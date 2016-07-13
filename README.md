@@ -88,7 +88,8 @@ Deploy MIQ pod from template
 
 Get the pod name
 
-```$ oc get pods
+`$ oc get pod`
+```
 NAME               READY     STATUS    RESTARTS   AGE
 manageiq-1-pxhc5   1/1       Running   0          5h
 ```
@@ -115,9 +116,10 @@ Please allow a few minutes for database to be prepared and MIQ start responding
 `$ oc rsh <pod_name>`
 
 ###Obtain host information from route
-A route should have been deployed via template for HTTPS for the MIQ pod
+A route should have been deployed via template for HTTPS access on the MIQ pod
 
-```$oc get routes
+`$oc get routes`
+```bash
 NAME       HOST/PORT                       PATH      SERVICE            TERMINATION   LABELS
 manageiq   miq.apps.e2e.bos.redhat.com             manageiq:443-tcp   passthrough   app=manageiq
 ```
