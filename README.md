@@ -36,7 +36,7 @@ _**As admin**_
 ```bash
 $ oc edit scc privileged
 ```
-Under `users:` add the <user> sand save:
+Under `users:` add the basic-user and save:
 
 ```yaml
 users:
