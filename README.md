@@ -3,7 +3,7 @@
 
 ##Purpose
 
-This example gives a basic template to deploy a single pod MIQ appliance with DB stored in a persistent volume. It provides a step-by-step setup including cluster administrative tasks as well as basic user information and commands. The current MIQ image requires a **privileged** pod. The ultimate goal of the project is to be able to decompose MIQ into several containers running on a pod or pods.
+This example gives a basic template to deploy a single pod MIQ appliance with DB stored in a persistent volume. It provides a step-by-step setup including cluster administrative tasks as well as basic user information and commands. The current MIQ image requires a **privileged** pod. The ultimate goal of the project is to be able to decompose MIQ into several containers running on a pod or a series of pods.
 
 ###Assumptions:
 
@@ -107,7 +107,7 @@ metadata:
     openshift.io/scc: privileged
 ...
 ```
-Please allow a few minutes for database to be prepared and MIQ start responding
+Please allow a few minutes for the database to be prepared and MIQ start responding
 
 ##POD access and routes
 
