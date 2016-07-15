@@ -76,7 +76,7 @@ An example PersistentVolumeClaim is provided by miq-pvc.yaml
 
 Create the MIQ template for deployment use
 
-`$ oc create -f miq-pod.yaml`
+`$ oc create -f miq-pod-template.yaml`
 
 Deploy MIQ pod from template
 
