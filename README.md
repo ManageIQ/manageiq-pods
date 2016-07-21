@@ -27,25 +27,20 @@ $ oc new-project <project_name> \
    
    _At a minimum, only `<project_name>` is required._
 
-##Add basic-user to privileged SCC
+## Add your default service account to privileged security context
 
-The basic user must be added to the privileged scc (or to a group given access to that scc) before they can run privileged pods.
+The default service account for your namespace (project) must be added to the privileged SCC before they can run privileged pods.
 
 _**As admin**_
 
 ```bash
-$ oc edit scc privileged
+$ oadm policy add-scc-to-user privileged system:serviceaccount:<your-namespace>:default
 ```
-Under `users:` add the basic-user and save:
 
-```yaml
-users:
-- <user>
-```
-Verify that <user> is now included in the privileged scc
+Verify that your default service account is now included in the privileged scc
 ```
 $ oc describe scc privileged | grep Users
-Users:					system:serviceaccount:openshift-infra:build-controller,system:serviceaccount:management-infra:management-admin,system:serviceaccount:management-infra:inspector-admin,system:serviceaccount:default:router,system:serviceaccount:default:registry,<user>
+Users:					system:serviceaccount:openshift-infra:build-controller,system:serviceaccount:management-infra:management-admin,system:serviceaccount:management-infra:inspector-admin,system:serviceaccount:default:router,system:serviceaccount:default:registry,system:serviceaccount:miq:default
 ```
 
 ##Make a persistent volume to host the MIQ database
@@ -61,22 +56,11 @@ Verify pv creation
 ```
 $ oc get pv
 ```
-
-##Make the volume available within the <user> project
-
-_**As basic-user**_
-
-Create the MIQ PersistentVolumeClaim (PVC)
-
-An example PersistentVolumeClaim is provided by miq-pvc.yaml
-
-`$ oc create -f miq-pvc.yaml`
-
 ## Deploy MIQ
 
 Create the MIQ template for deployment use
 
-`$ oc create -f miq-pod-template.yaml`
+`$ oc create -f miq-template.yaml`
 
 Deploy MIQ pod from template
 
