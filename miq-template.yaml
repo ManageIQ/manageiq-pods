@@ -42,11 +42,11 @@ objects:
 - apiVersion: v1
   kind: ImageStream
   metadata:
-    name: miq-docker19
+    name: manageiq
     annotations:
       description: "Keeps track of changes in the ManageIQ image"
   spec:
-    dockerImageRepository: docker.io/fbladilo/miq-docker19
+    dockerImageRepository: docker.io/fbladilo/manageiq
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
@@ -75,7 +75,7 @@ objects:
           persistentVolumeClaim:
             claimName: miq-pgdb-claim
         containers:
-        - image: fbladilo/miq-docker19:darga
+        - image: fbladilo/manageiq:latest
           imagePullPolicy: IfNotPresent
           name: manageiq
           livenessProbe:
@@ -91,7 +91,7 @@ objects:
             protocol: TCP
           volumeMounts:
           - name: miq-pgdb-volume
-            mountPath: /var/opt/rh/rh-postgresql94/lib/pgsql/data
+            mountPath: /var/opt/rh/rh-postgresql95/lib/pgsql/data
           securityContext:
             privileged: true
           readinessProbe:
@@ -112,7 +112,7 @@ objects:
             - "manageiq"
           from:
             kind: "ImageStreamTag"
-            name: "miq-docker19:darga"
+            name: "manageiq:latest"
     strategy:
       type: Rolling
       rollingParams:
