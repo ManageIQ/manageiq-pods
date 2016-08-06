@@ -1,0 +1,281 @@
+apiVersion: v1
+kind: Template
+labels:
+  template: manageiq
+metadata:
+  name: manageiq
+  annotations: 
+    description: "ManageIQ appliance template"
+    tags: "manageiq,quickstart,miq"
+    iconClass: "icon-app-code"
+objects:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      description: "Exposes and load balances ManageIQ pods"
+    name: ${NAME}
+  spec:
+    ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 80
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: 443
+    selector:
+      name: ${NAME}
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: ${NAME}
+  spec:
+    port:
+      targetPort: https
+    tls:
+      termination: passthrough
+    to:
+      kind: Service
+      name: ${NAME}
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    name: miq-app
+    annotations:
+      description: "Keeps track of changes in the ManageIQ image"
+  spec:
+    dockerImageRepository: docker.io/fbladilo/miq-app
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: miq-pgdb-claim
+  spec:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+         storage: 2Gi
+- apiVersion: v1
+  kind: "DeploymentConfig"
+  metadata:
+    name: ${NAME}
+    annotations:
+      description: "Defines how to deploy the ManageIQ appliance"
+  spec:
+    template:
+      metadata:
+        labels:
+          name: ${NAME}
+        name: ${NAME}
+      spec:
+        containers:
+        - image: fbladilo/miq-app:latest
+          imagePullPolicy: IfNotPresent
+          name: manageiq
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 300
+            timeoutSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 240
+            timeoutSeconds: 3
+          ports:
+          - containerPort: 80
+            protocol: TCP
+          - containerPort: 443
+            protocol: TCP
+          securityContext:
+            privileged: true
+          env:
+            -
+              name: "DATABASE_SERVICE_NAME"
+              value: "${DATABASE_SERVICE_NAME}"
+            - 
+              name: "POSTGRESQL_USER"
+              value: "${DATABASE_USER}"
+            - 
+              name: "POSTGRESQL_PASSWORD"
+              value: "${DATABASE_PASSWORD}"
+            - 
+              name: "POSTGRESQL_DATABASE"
+              value: "${DATABASE_NAME}"
+            - 
+              name: "SECRET_KEY_BASE"
+              value: "${SECRET_KEY_BASE}"
+            - 
+              name: "POSTGRESQL_MAX_CONNECTIONS"
+              value: "${POSTGRESQL_MAX_CONNECTIONS}"
+            - 
+              name: "POSTGRESQL_SHARED_BUFFERS"
+              value: "${POSTGRESQL_SHARED_BUFFERS}"
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                - /usr/bin/ose-dump-env.sh
+    replicas: 1
+    selector:
+      name: ${NAME}
+    triggers:
+      - type: "ConfigChange"
+      - type: "ImageChange"
+        imageChangeParams:
+          automatic: true
+          containerNames:
+            - "manageiq"
+          from:
+            kind: "ImageStreamTag"
+            name: "miq-app:latest"
+    strategy:
+      type: Rolling
+- apiVersion: v1
+  kind: "Service"
+  metadata:
+    name: "${DATABASE_SERVICE_NAME}"
+    annotations:
+      description: "Exposes the database server"
+  spec:
+    ports:
+      -
+        name: "postgresql"
+        port: 5432
+        targetPort: 5432
+    selector:
+      name: "${DATABASE_SERVICE_NAME}"
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    name: miq-postgresql
+    annotations:
+      description: "Keeps track of changes in the ManageIQ postgresql image"
+  spec:
+    dockerImageRepository: docker.io/fbladilo/miq-postgresql
+- apiVersion: v1
+  kind: "DeploymentConfig"
+  metadata:
+    name: "${DATABASE_SERVICE_NAME}"
+    annotations:
+      description: "Defines how to deploy the database"
+  spec:
+    strategy:
+      type: "Recreate"
+    triggers:
+      -
+        type: "ImageChange"
+        imageChangeParams:
+          automatic: true
+          containerNames:
+            - "postgresql"
+          from:
+            kind: "ImageStreamTag"
+            name: "miq-postgresql:latest"
+      -
+        type: "ConfigChange"
+    replicas: 1
+    selector:
+      name: "${DATABASE_SERVICE_NAME}"
+    template:
+      metadata:
+        name: "${DATABASE_SERVICE_NAME}"
+        labels:
+          name: "${DATABASE_SERVICE_NAME}"
+      spec:
+        volumes:
+          -
+            name: "miq-pgdb-volume"
+            persistentVolumeClaim:
+              claimName: miq-pgdb-claim
+        containers:
+          -
+            name: "postgresql"
+            image: "fbladilo/miq-postgresql:latest"
+            ports:
+              -
+                containerPort: 5432
+            readinessProbe:
+              timeoutSeconds: 1
+              initialDelaySeconds: 5
+              exec:
+                command:
+                  - "/bin/sh"
+                  - "-i"
+                  - "-c"
+                  - "psql -h 127.0.0.1 -U ${POSTGRESQL_USER} -q -d ${POSTGRESQL_DATABASE} -c 'SELECT 1'"
+            livenessProbe:
+              timeoutSeconds: 1
+              initialDelaySeconds: 30
+              tcpSocket:
+                port: 5432
+            volumeMounts:
+              -
+                name: "miq-pgdb-volume"
+                mountPath: "/var/lib/pgsql/data"
+            env:
+              -
+                name: "POSTGRESQL_USER"
+                value: "${DATABASE_USER}"
+              -
+                name: "POSTGRESQL_PASSWORD"
+                value: "${DATABASE_PASSWORD}"
+              -
+                name: "POSTGRESQL_DATABASE"
+                value: "${DATABASE_NAME}"
+              -
+                name: "POSTGRESQL_MAX_CONNECTIONS"
+                value: "${POSTGRESQL_MAX_CONNECTIONS}"
+              -
+                name: "POSTGRESQL_SHARED_BUFFERS"
+                value: "${POSTGRESQL_SHARED_BUFFERS}"
+            resources:
+              limits:
+                memory: "${MEMORY_POSTGRESQL_LIMIT}"
+
+parameters:
+  -
+    name: "NAME"
+    displayName: Name
+    description: The name assigned to all of the frontend objects defined in this template.
+    required: true
+    value: manageiq
+  -
+    name: "DATABASE_SERVICE_NAME"
+    required: true
+    displayName: "Database Service Name"
+    value: "postgresql"
+  -
+    name: "DATABASE_USER"
+    displayName: "Database Username"
+    generate: "expression"
+    from: "user[A-Z0-9]{3}"
+  -
+    name: "DATABASE_PASSWORD"
+    displayName: "Database Password"
+    generate: "expression"
+    from: "[a-zA-Z0-9]{8}"
+  -
+    name: "DATABASE_NAME"
+    required: true
+    displayName: "Database Name"
+    value: "vmdb_production"
+  -
+    name: "POSTGRESQL_MAX_CONNECTIONS"
+    displayName: "Maximum Database Connections"
+    value: "100"
+  -
+    name: "POSTGRESQL_SHARED_BUFFERS"
+    displayName: "Shared Buffer Amount"
+    value: "12MB"
+  -
+    name: "MEMORY_POSTGRESQL_LIMIT"
+    displayName: "Memory Limit (PostgreSQL)"
+    required: true
+    description: "Maximum amount of memory the PostgreSQL container can use."
+    value: "2048Mi"
+
