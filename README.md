@@ -68,6 +68,8 @@ Deploy MIQ pod from template
 
 ##Confirm the Setup was Successful
 
+The first deployment could take several minutes as OpenShift is pulling the necessary images
+
 ###Verify the Pod is Bound to the Correct scc
 
 Get the pod name
