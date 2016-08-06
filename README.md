@@ -45,12 +45,12 @@ Users:					system:serviceaccount:openshift-infra:build-controller,system:service
 
 ##Make a persistent volume to host the MIQ database
 
-An example NFS backed volume is provided by miq-pv.yaml (edit to match your settings), **please skip this step you have already configured persistent storage**
+An example NFS backed volume is provided by miq-pv-example.yaml (edit to match your settings), **please skip this step you have already configured persistent storage**
 
 _**As admin:**_
 
 ```bash
-$ oc create -f miq-pv.yaml
+$ oc create -f miq-pv-example.yaml
 ```
 Verify pv creation
 ```
@@ -64,7 +64,7 @@ Create the MIQ template for deployment use
 
 Deploy MIQ pod from template
 
-`$ oc new-app --template=manageiq-monolithic.yaml`
+`$ oc new-app --template=manageiq-monolithic`
 
 ##Confirm the Setup was Successful
 
