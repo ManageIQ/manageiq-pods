@@ -60,11 +60,11 @@ $ oc get pv
 
 Create the MIQ template for deployment use
 
-`$ oc create -f miq-template.yaml`
+`$ oc create -f templates/miq-template-monolithic.yaml`
 
 Deploy MIQ pod from template
 
-`$ oc new-app --template=manageiq`
+`$ oc new-app --template=manageiq-monolithic.yaml`
 
 ##Confirm the Setup was Successful
 
