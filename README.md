@@ -80,7 +80,7 @@ NAME       DESCRIPTION                   PARAMETERS        OBJECTS
 manageiq   ManageIQ appliance template   8 (2 generated)   8
 ```
 
-Deploy MIQ pod from template
+Deploy MIQ app from template
 
 `$ oc new-app --template=manageiq`
 
@@ -88,7 +88,7 @@ Deploy MIQ pod from template
 
 _**Note:**_ The first deployment could take several minutes as OpenShift is pulling the necessary images.
 
-###Verify the Pod is Bound to the Correct scc
+###Verify the MIQ pod is bound to the correct SCC
 
 Obtain the name of the pod
 
@@ -112,7 +112,7 @@ metadata:
     openshift.io/scc: privileged
 ...
 ```
-###Verify the persistent volume is attached to postgres pod
+###Verify the persistent volume is attached to postgresql pod
 
 ```bash
 $ oc volume pods <pg_pod_name>
@@ -127,7 +127,7 @@ _**Note:**_ Please allow ~5 minutes once pods are in Running state for MIQ to st
 
 ##POD access and routes
 
-###Get a shell on MIQ pod
+###Get a shell on the MIQ pod
 
 `$ oc rsh <pod_name> bash -l`
 
@@ -139,7 +139,7 @@ $oc get routes
 NAME       HOST/PORT                       PATH      SERVICE            TERMINATION   LABELS
 manageiq   miq.apps.e2e.bos.redhat.com             manageiq:443-tcp   passthrough   app=manageiq
 ```
-Examined output and use the supplied HOST information and point your web browser to the URL reported
+Examine output and point your web browser to the reported URL/HOST.
 
 ###Note about images
 
