@@ -14,14 +14,12 @@ This example gives a basic template to deploy a two-pod MIQ appliance with DB st
 ###Note about images 
 
 The images included in this deployment were built with docker-1.9 using a v1 image schema which is compatible with OSE 3.2.
-
 Please consider this if you plan to rebuild these images with docker-1.10 or newer, the registry included in OSE 3.2 does not support them.
-
 For more details see [here](https://docs.openshift.com/enterprise/3.2/release_notes/ose_3_2_release_notes.html#ose-32-asynchronous-errata-updates)
 
 ### Installation
 
-git clone https://github.com/fbladilo/miq-on-openshift.git
+`$ git clone https://github.com/fbladilo/miq-on-openshift.git`
 
 ##Login to OSE as basic-user and create user project
 
@@ -57,7 +55,7 @@ Users:					system:serviceaccount:openshift-infra:build-controller,system:service
 
 ##Make a persistent volume to host the MIQ database
 
-An example NFS backed volume is provided by miq-pv-example.yaml (edit to match your settings), **please skip this step you have already configured persistent storage**
+An example NFS backed volume is provided by miq-pv-example.yaml (edit to match your settings), **please skip this step you have already configured persistent storage.**
 
 _**As admin:**_
 
@@ -125,7 +123,7 @@ pods/postgresql-1-437jg
     mounted at /var/run/secrets/kubernetes.io/serviceaccount
 ```
 
-Please allow ~5 minutes once pods are in Running state for MIQ to start responding on HTTPS
+_**Note:**_ Please allow ~5 minutes once pods are in Running state for MIQ to start responding on HTTPS
 
 ##POD access and routes
 
