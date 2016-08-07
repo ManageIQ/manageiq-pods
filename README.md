@@ -5,23 +5,19 @@
 
 This example gives a basic template to deploy a two-pod MIQ appliance with DB stored in a persistent volume. It provides a step-by-step setup including cluster administrative tasks as well as basic user information and commands. The current MIQ image requires a **privileged** pod. The ultimate goal of the project is to be able to decompose MIQ into several containers running on a pod or a series of pods.
 
-###Assumptions:
+###Prerequisities:
 
 * OSE 3.x
 * NFS or other compatible volume provider
 * A cluster-admin user
 
-###Note about images 
-
-The images included in this deployment were built with docker-1.9 using a v1 image schema which is compatible with OSE 3.2.
-Please consider this if you plan to rebuild these images with docker-1.10 or newer, the registry included in OSE 3.2 does not support them.
-For more details see [here](https://docs.openshift.com/enterprise/3.2/release_notes/ose_3_2_release_notes.html#ose-32-asynchronous-errata-updates)
-
-### Installation
+###Installing
 
 `$ git clone https://github.com/fbladilo/miq-on-openshift.git`
 
-##Login to OSE as basic-user and create user project
+###Pre-deployment preparation tasks
+
+Login to OSE as basic-user and create user project
 
 _**Note:**_ This section assumes you have a basic user.
 
@@ -37,7 +33,7 @@ $ oc new-project <project_name> \
    
    _At a minimum, only `<project_name>` is required._
 
-## Add your default service account to the privileged security context
+### Add your default service account to the privileged security context
 
 The default service account for your namespace (project) must be added to the privileged SCC before they can run privileged pods.
 
@@ -53,7 +49,7 @@ $ oc describe scc privileged | grep Users
 Users:					system:serviceaccount:openshift-infra:build-controller,system:serviceaccount:management-infra:management-admin,system:serviceaccount:management-infra:inspector-admin,system:serviceaccount:default:router,system:serviceaccount:default:registry,system:serviceaccount:<your-namespace>:default
 ```
 
-##Make a persistent volume to host the MIQ database
+###Make a persistent volume to host the MIQ database
 
 An example NFS backed volume is provided by miq-pv-example.yaml (edit to match your settings), **please skip this step you have already configured persistent storage.**
 
@@ -84,7 +80,7 @@ Deploy MIQ pod from template
 
 `$ oc new-app --template=manageiq`
 
-##Confirm the Setup was Successful
+###Confirm the Setup was Successful
 
 _**Note:**_ The first deployment could take several minutes as OpenShift is pulling the necessary images.
 
@@ -140,3 +136,9 @@ NAME       HOST/PORT                       PATH      SERVICE            TERMINAT
 manageiq   miq.apps.e2e.bos.redhat.com             manageiq:443-tcp   passthrough   app=manageiq
 ```
 Examined output and use the supplied HOST information and point your web browser to the URL reported
+
+###Note about images
+
+The images included in this deployment were built with docker-1.9 using a v1 image schema which is compatible with OSE 3.2.
+Please consider this if you plan to rebuild these images with docker-1.10 or newer, the registry included in OSE 3.2 does not support them.
+More details [here](https://docs.openshift.com/enterprise/3.2/release_notes/ose_3_2_release_notes.html#ose-32-asynchronous-errata-updates)
