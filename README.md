@@ -5,7 +5,7 @@
 
 This example gives a basic template to deploy a two-pod MIQ appliance with DB stored in a persistent volume. It provides a step-by-step setup including cluster administrative tasks as well as basic user information and commands. The current MIQ image requires a **privileged** pod. The ultimate goal of the project is to be able to decompose MIQ into several containers running on a pod or a series of pods.
 
-###Prerequisities:
+###Prerequisites:
 
 * OSE 3.x
 * NFS or other compatible volume provider
@@ -68,7 +68,7 @@ nfs-pv01   2Gi        RWO           Available                       24d
 ```
 ## Deploy MIQ
 
-Create the MIQ template for deployment and verify is now available in your project
+Create the MIQ template for deployment and verify it is now available in your project
 
 _**As basic user**_
 
