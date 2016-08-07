@@ -17,13 +17,15 @@ This example gives a basic template to deploy a two-pod MIQ appliance with DB st
 
 ###Pre-deployment preparation tasks
 
-Login to OSE as basic-user and create user project
+_**As basic user**_
+
+Login to OSE and create a project
 
 _**Note:**_ This section assumes you have a basic user.
 
 `$ oc login -u <user> -p <password>`
     
-   Next, create the project as <user>:
+   Next, create the project as follows:
    
 ```bash
 $ oc new-project <project_name> \
@@ -67,6 +69,8 @@ nfs-pv01   2Gi        RWO           Available                       24d
 ## Deploy MIQ
 
 Create the MIQ template for deployment and verify is now available in your project
+
+_**As basic user**_
 
 ```bash
 $ oc create -f templates/miq-template.yaml
@@ -139,6 +143,6 @@ Examined output and use the supplied HOST information and point your web browser
 
 ###Note about images
 
-The images included in this deployment were built with docker-1.9 using a v1 image schema which is compatible with OSE 3.2.
+The images included in this deployment were built with docker-1.9 using v1 image schema which is compatible with OSE 3.2.
 Please consider this if you plan to rebuild these images with docker-1.10 or newer, the registry included in OSE 3.2 does not support them.
 More details [here](https://docs.openshift.com/enterprise/3.2/release_notes/ose_3_2_release_notes.html#ose-32-asynchronous-errata-updates)
