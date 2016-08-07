@@ -14,7 +14,9 @@ This example gives a basic template to deploy a two-pod MIQ appliance with DB st
 ###Note about images 
 
 The images included in this deployment were built with docker-1.9 using a v1 image schema which is compatible with OSE 3.2.
+
 Please consider this if you plan to rebuild these images with docker-1.10 or newer, the registry included in OSE 3.2 does not support them.
+
 For more details see [here](https://docs.openshift.com/enterprise/3.2/release_notes/ose_3_2_release_notes.html#ose-32-asynchronous-errata-updates)
 
 ### Installation
