@@ -50,7 +50,7 @@ objects:
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
-    name: miq-pgdb-claim
+    name: ${DATABASE_SERVICE_NAME}
   spec:
     accessModes:
       - ReadWriteOnce
@@ -188,7 +188,7 @@ objects:
           -
             name: "miq-pgdb-volume"
             persistentVolumeClaim:
-              claimName: miq-pgdb-claim
+              claimName: ${DATABASE_SERVICE_NAME}
         containers:
           -
             name: "postgresql"
