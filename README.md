@@ -3,7 +3,7 @@
 
 ##Purpose
 
-This example gives a basic template to deploy a two-pod MIQ appliance with DB stored in a persistent volume. It provides a step-by-step setup including cluster administrative tasks as well as basic user information and commands. The current MIQ image requires a **privileged** pod. The ultimate goal of the project is to be able to decompose MIQ into several containers running on a pod or a series of pods.
+This example gives a base template to deploy a multi-pod ManageIQ appliance with the DB stored in a persistent volume on OSE. It provides a step-by-step setup including cluster administrative tasks as well as basic user information and commands. The ultimate goal of the project is to be able to decompose the ManageIQ appliance into several containers running on a pod or a series of pods.
 
 ###Prerequisites:
 
@@ -36,6 +36,8 @@ $ oc new-project <project_name> \
    _At a minimum, only `<project_name>` is required._
 
 ### Add your default service account to the privileged security context
+
+_**Note:**_ The current MIQ image requires a privileged pod.
 
 The default service account for your namespace (project) must be added to the privileged SCC before they can run privileged pods.
 
@@ -84,13 +86,13 @@ Deploy MIQ app from template
 
 `$ oc new-app --template=manageiq`
 
-###Confirm the Setup was Successful
+##Verifying the setup was successful
 
 _**Note:**_ The first deployment could take several minutes as OpenShift is pulling the necessary images.
 
-###Verify the MIQ pod is bound to the correct SCC
+###Confirm the MIQ pod is bound to the correct SCC
 
-Obtain the name of the pod
+List and obtain the name of the miq-app pod
 
 ```bash
 $ oc get pod
@@ -123,7 +125,19 @@ pods/postgresql-1-437jg
     mounted at /var/run/secrets/kubernetes.io/serviceaccount
 ```
 
+###Check readiness of the miq-app pod
+
 _**Note:**_ Please allow ~5 minutes once pods are in Running state for MIQ to start responding on HTTPS
+
+```bash
+$oc describe pods <miq_pod_name>
+...
+Conditions:
+  Type		Status
+  Ready 	True 
+Volumes:
+...
+```
 
 ##POD access and routes
 
