@@ -210,7 +210,10 @@ objects:
                   tcpSocket:
                     port: 11211
                 volumeMounts: []
-                env: []
+                env:
+                  -
+                    name: "MEMCACHED_OPTS"
+                    value: "${MEMCACHED_OPTS}"
                 resources:
                   limits:
                     memory: "${MEMORY_MEMCACHED_LIMIT}"
@@ -349,6 +352,10 @@ parameters:
     required: true
     displayName: "Memcached Service Name"
     value: "memcached"
+  -
+    name: "MEMCACHED_OPTS"
+    required: false
+    displayName: "Memcached daemon startup options"
   -
     name: "POSTGRESQL_MAX_CONNECTIONS"
     displayName: "Maximum Database Connections"
