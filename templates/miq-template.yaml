@@ -4,7 +4,7 @@ labels:
   template: manageiq
 metadata:
   name: manageiq
-  annotations: 
+  annotations:
     description: "ManageIQ appliance template"
     tags: "manageiq,quickstart,miq"
     iconClass: "icon-app-code"
@@ -97,22 +97,22 @@ objects:
             -
               name: "DATABASE_SERVICE_NAME"
               value: "${DATABASE_SERVICE_NAME}"
-            - 
+            -
               name: "POSTGRESQL_USER"
               value: "${DATABASE_USER}"
-            - 
+            -
               name: "POSTGRESQL_PASSWORD"
               value: "${DATABASE_PASSWORD}"
-            - 
+            -
               name: "POSTGRESQL_DATABASE"
               value: "${DATABASE_NAME}"
-            - 
+            -
               name: "SECRET_KEY_BASE"
               value: "${SECRET_KEY_BASE}"
-            - 
+            -
               name: "POSTGRESQL_MAX_CONNECTIONS"
               value: "${POSTGRESQL_MAX_CONNECTIONS}"
-            - 
+            -
               name: "POSTGRESQL_SHARED_BUFFERS"
               value: "${POSTGRESQL_SHARED_BUFFERS}"
           lifecycle:
@@ -135,6 +135,86 @@ objects:
             name: "miq-app:latest"
     strategy:
       type: Rolling
+- apiVersion: v1
+  kind: "Service"
+  metadata:
+    name: "${MEMCACHED_SERVICE_NAME}"
+    annotations:
+      description: "Exposes the memcached server"
+  spec:
+    ports:
+      -
+        name: "memcached"
+        port: 11211
+        targetPort: 11211
+    selector:
+      name: "${MEMCACHED_SERVICE_NAME}"
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    name: miq-memcached
+    annotations:
+      description: "Keeps track of changes in the ManageIQ memcached image"
+  spec:
+    dockerImageRepository: docker.io/fvillain/miq-memcached
+- apiVersion: v1
+  kind: "DeploymentConfig"
+  metadata:
+    name: "${MEMCACHED_SERVICE_NAME}"
+    annotations:
+      description: "Defines how to deploy memcached"
+  spec:
+    strategy:
+      type: "Recreate"
+    triggers:
+      -
+        type: "ImageChange"
+        imageChangeParams:
+          automatic: true
+          containerNames:
+            - "postgresql"
+          from:
+            kind: "ImageStreamTag"
+            name: "miq-memcached:latest"
+      -
+        type: "ConfigChange"
+    replicas: 1
+    selector:
+      name: "${MEMCACHED_SERVICE_NAME}"
+        template:
+          metadata:
+            name: "${DATABASE_SERVICE_NAME}"
+            labels:
+              name: "${DATABASE_SERVICE_NAME}"
+          spec:
+            volumes:
+              -
+                name: "miq-pgdb-volume"
+                persistentVolumeClaim:
+                  claimName: miq-pgdb-claim
+            containers:
+              -
+                name: "memcached"
+                image: "fvillain/miq-memcached:latest"
+                ports:
+                  -
+                    containerPort: 11211
+                readinessProbe:
+                  timeoutSeconds: 1
+                  initialDelaySeconds: 5
+                  tcpSocket:
+                    port: 11211
+                livenessProbe:
+                  timeoutSeconds: 1
+                  initialDelaySeconds: 30
+                  tcpSocket:
+                    port: 11211
+                volumeMounts: []
+                env: []
+                resources:
+                  limits:
+                    memory: "${MEMORY_MEMCACHED_LIMIT}"
+
 - apiVersion: v1
   kind: "Service"
   metadata:
@@ -265,6 +345,11 @@ parameters:
     displayName: "Database Name"
     value: "vmdb_production"
   -
+    name: "MEMCACHED_SERVICE_NAME"
+    required: true
+    displayName: "Memcached Service Name"
+    value: "memcached"
+  -
     name: "POSTGRESQL_MAX_CONNECTIONS"
     displayName: "Maximum Database Connections"
     value: "100"
@@ -278,4 +363,9 @@ parameters:
     required: true
     description: "Maximum amount of memory the PostgreSQL container can use."
     value: "2048Mi"
-
+  -
+    name: "MEMORY_MEMCACHED_LIMIT"
+    displayName: "Memory Limit (Memcached)"
+    required: true
+    description: "Maximum amount of memory the Memcached container can use."
+    value: "256Mi"
