@@ -32,7 +32,6 @@ RUN yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.n
                    libxslt-devel           \
                    libyaml-devel           \
                    make                    \
-                   memcached               \
                    net-tools               \
                    nodejs                  \
                    openssl-devel           \
@@ -147,7 +146,7 @@ COPY ose-assets/ose-fix-permissions.sh /usr/bin
 RUN /usr/bin/ose-fix-permissions.sh ${APP_ROOT}
 
 ## Enable services on systemd
-RUN systemctl enable memcached appliance-initialize evmserverd evminit evm-watchdog miqvmstat miqtop
+RUN systemctl enable appliance-initialize evmserverd evminit evm-watchdog miqvmstat miqtop
 
 ## Expose required container ports
 EXPOSE 80 443
