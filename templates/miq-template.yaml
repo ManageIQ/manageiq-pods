@@ -56,7 +56,7 @@ objects:
       - ReadWriteOnce
     resources:
       requests:
-         storage: 2Gi
+         storage: ${VOLUME_CAPACITY}
 - apiVersion: v1
   kind: "DeploymentConfig"
   metadata:
@@ -261,6 +261,12 @@ parameters:
     required: true
     displayName: "Database Name"
     value: "vmdb_production"
+  -
+    name: "VOLUME_CAPACITY"
+    displayName: "Volume Capacity"
+    required: true
+    description: "Volume space available for database, e.g. 512Mi, 2Gi."
+    value: "1Gi"
   -
     name: "POSTGRESQL_MAX_CONNECTIONS"
     displayName: "Maximum Database Connections"
