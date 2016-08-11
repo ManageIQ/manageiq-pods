@@ -44,7 +44,7 @@ objects:
   metadata:
     name: miq-app
     annotations:
-      description: "Keeps track of changes in the ManageIQ image"
+      description: "Keeps track of changes in the ManageIQ app image"
   spec:
     dockerImageRepository: docker.io/fbladilo/miq-app
 - apiVersion: v1
@@ -238,28 +238,28 @@ parameters:
   -
     name: "NAME"
     displayName: Name
-    description: The name assigned to all of the frontend objects defined in this template.
+    description: "The name assigned to all of the frontend objects defined in this template."
     required: true
     value: manageiq
   -
     name: "DATABASE_SERVICE_NAME"
     required: true
-    displayName: "Database Service Name"
+    displayName: "OpenShift service name used to expose the database component."
     value: "postgresql"
   -
     name: "DATABASE_USER"
-    displayName: "Database Username"
+    displayName: "PostgreSQL user that will be used for accessing the database."
     generate: "expression"
     from: "user[A-Z0-9]{3}"
   -
     name: "DATABASE_PASSWORD"
-    displayName: "Database Password"
+    displayName: "Password for the PostgreSQL user."
     generate: "expression"
     from: "[a-zA-Z0-9]{8}"
   -
     name: "DATABASE_NAME"
     required: true
-    displayName: "Database Name"
+    displayName: "Name of the PostgreSQL database accessed."
     value: "vmdb_production"
   -
     name: "VOLUME_CAPACITY"
