@@ -152,11 +152,11 @@ objects:
 - apiVersion: v1
   kind: ImageStream
   metadata:
-    name: miq-memcached
+    name: memcached
     annotations:
-      description: "Keeps track of changes in the ManageIQ memcached image"
+      description: "Keeps track of changes in the memcached image"
   spec:
-    dockerImageRepository: docker.io/fvillain/miq-memcached
+    dockerImageRepository: docker.io/_/memcached
 - apiVersion: v1
   kind: "DeploymentConfig"
   metadata:
@@ -175,7 +175,7 @@ objects:
             - "postgresql"
           from:
             kind: "ImageStreamTag"
-            name: "miq-memcached:latest"
+            name: "memcached:latest"
       -
         type: "ConfigChange"
     replicas: 1
@@ -195,7 +195,7 @@ objects:
             containers:
               -
                 name: "memcached"
-                image: "fvillain/miq-memcached:latest"
+                image: "memcached:latest"
                 ports:
                   -
                     containerPort: 11211
@@ -210,10 +210,7 @@ objects:
                   tcpSocket:
                     port: 11211
                 volumeMounts: []
-                env:
-                  -
-                    name: "MEMCACHED_OPTS"
-                    value: "${MEMCACHED_OPTS}"
+                env: []
                 resources:
                   limits:
                     memory: "${MEMORY_MEMCACHED_LIMIT}"
