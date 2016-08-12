@@ -11,5 +11,8 @@
 
 DB_SVC_HOST="$(echo $DATABASE_SERVICE_NAME | tr '[:lower:]' '[:upper:]')_SERVICE_HOST"
 
+# replace memcache host in configuration
+sed -i.bak -E "s/:memcache_server:.*?:11211/:memcache_server: ${MEMCACHED_SERVICE_NAME}:11211/gi" ${APP_ROOT}/config/settings.yml
+
 echo "Initializing Appliance, please wait ..."
 appliance_console_cli --region 0 --hostname $(eval echo \$$DB_SVC_HOST) --username ${POSTGRESQL_USER} --password ${POSTGRESQL_PASSWORD}

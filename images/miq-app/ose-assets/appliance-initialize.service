@@ -2,7 +2,6 @@
 Description=Initialize Appliance Database
 After=evminit.service memcached.service
 Before=evmserverd.service
-Requires=memcached.service
 [Service]
 TimeoutStartSec=10m
 Type=oneshot

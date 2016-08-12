@@ -98,6 +98,9 @@ objects:
               name: "DATABASE_SERVICE_NAME"
               value: "${DATABASE_SERVICE_NAME}"
             -
+              name: "MEMCACHED_SERVICE_NAME"
+              value: "${MEMCACHED_SERVICE_NAME}"
+            -
               name: "POSTGRESQL_USER"
               value: "${DATABASE_USER}"
             -
@@ -172,7 +175,7 @@ objects:
         imageChangeParams:
           automatic: true
           containerNames:
-            - "postgresql"
+            - "memcached"
           from:
             kind: "ImageStreamTag"
             name: "memcached:latest"
@@ -183,9 +186,9 @@ objects:
       name: "${MEMCACHED_SERVICE_NAME}"
         template:
           metadata:
-            name: "${DATABASE_SERVICE_NAME}"
+            name: "${MEMCACHED_SERVICE_NAME}"
             labels:
-              name: "${DATABASE_SERVICE_NAME}"
+              name: "${MEMCACHED_SERVICE_NAME}"
           spec:
             volumes:
               -
@@ -214,7 +217,6 @@ objects:
                 resources:
                   limits:
                     memory: "${MEMORY_MEMCACHED_LIMIT}"
-
 - apiVersion: v1
   kind: "Service"
   metadata:
