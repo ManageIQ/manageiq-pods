@@ -124,7 +124,7 @@ objects:
       - type: "ConfigChange"
       - type: "ImageChange"
         imageChangeParams:
-          automatic: true
+          automatic: false
           containerNames:
             - "manageiq"
           from:
@@ -167,7 +167,7 @@ objects:
       -
         type: "ImageChange"
         imageChangeParams:
-          automatic: true
+          automatic: false
           containerNames:
             - "postgresql"
           from:
