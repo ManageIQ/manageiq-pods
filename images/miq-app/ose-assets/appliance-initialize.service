@@ -1,13 +1,13 @@
 [Unit]
 Description=Initialize Appliance Database
-After=evminit.service memcached.service
+After=evminit.service
 Before=evmserverd.service
-Requires=memcached.service
 [Service]
 TimeoutStartSec=10m
 Type=oneshot
+EnvironmentFile=/container.env.vars
 ExecStartPre=/usr/bin/sleep 30
-ExecStart=/bin/appliance-initialize.sh
+ExecStart=/bin/bash /bin/appliance-initialize.sh
 ExecStartPost=/usr/bin/systemctl disable appliance-initialize
 [Install]
 WantedBy=multi-user.target
