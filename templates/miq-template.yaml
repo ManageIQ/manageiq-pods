@@ -110,9 +110,6 @@ objects:
               name: "POSTGRESQL_DATABASE"
               value: "${DATABASE_NAME}"
             -
-              name: "SECRET_KEY_BASE"
-              value: "${SECRET_KEY_BASE}"
-            -
               name: "POSTGRESQL_MAX_CONNECTIONS"
               value: "${POSTGRESQL_MAX_CONNECTIONS}"
             -
