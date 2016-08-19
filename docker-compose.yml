@@ -1,0 +1,40 @@
+version: '2'
+services:
+  memcached:
+    image: memcached:latest
+    ports:
+      - "11211:11211"
+    volumes: []
+  postgresql:
+    build: ./images/miq-postgresql/9.5/
+    image: miq-postgresql:latest
+    ports:
+      - "5432:5432"
+    volumes: []
+    environment:
+      POSTGRESQL_USER: vmdb
+      POSTGRESQL_PASSWORD: smartvm
+      POSTGRESQL_DATABASE: vmdb_production
+      POSTGRESQL_MAX_CONNECTIONS: 100
+      POSTGRESQL_SHARED_BUFFERS: "12MB"
+  miq:
+    build: ./images/miq-app
+    #image: miq-app:latest
+    privileged: true
+    ports:
+      - "80:80"
+      - "443:443"
+      - "5000:5000"
+    environment:
+      DATABASE_SERVICE_NAME: postgresql
+      MEMCACHED_SERVICE_NAME: memcached
+      POSTGRESQL_USER: vmdb
+      POSTGRESQL_PASSWORD: smartvm
+      POSTGRESQL_DATABASE: vmdb_production
+    volumes: []
+    links:
+      - postgresql
+      - memcached
+    depends_on:
+      - memcached
+      - postgresql
