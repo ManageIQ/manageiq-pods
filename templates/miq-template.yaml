@@ -181,39 +181,35 @@ objects:
     replicas: 1
     selector:
       name: "${MEMCACHED_SERVICE_NAME}"
-        template:
-          metadata:
-            name: "${MEMCACHED_SERVICE_NAME}"
-            labels:
-              name: "${MEMCACHED_SERVICE_NAME}"
-          spec:
-            volumes:
+    template:
+      metadata:
+        name: "${MEMCACHED_SERVICE_NAME}"
+        labels:
+          name: "${MEMCACHED_SERVICE_NAME}"
+      spec:
+        volumes: []
+        containers:
+          -
+            name: "memcached"
+            image: "memcached:latest"
+            ports:
               -
-                name: "miq-pgdb-volume"
-                persistentVolumeClaim:
-                  claimName: miq-pgdb-claim
-            containers:
-              -
-                name: "memcached"
-                image: "memcached:latest"
-                ports:
-                  -
-                    containerPort: 11211
-                readinessProbe:
-                  timeoutSeconds: 1
-                  initialDelaySeconds: 5
-                  tcpSocket:
-                    port: 11211
-                livenessProbe:
-                  timeoutSeconds: 1
-                  initialDelaySeconds: 30
-                  tcpSocket:
-                    port: 11211
-                volumeMounts: []
-                env: []
-                resources:
-                  limits:
-                    memory: "${MEMORY_MEMCACHED_LIMIT}"
+                containerPort: 11211
+            readinessProbe:
+              timeoutSeconds: 1
+              initialDelaySeconds: 5
+              tcpSocket:
+                port: 11211
+            livenessProbe:
+              timeoutSeconds: 1
+              initialDelaySeconds: 30
+              tcpSocket:
+                port: 11211
+            volumeMounts: []
+            env: []
+            resources:
+              limits:
+                memory: "${MEMORY_MEMCACHED_LIMIT}"
 - apiVersion: v1
   kind: "Service"
   metadata:
