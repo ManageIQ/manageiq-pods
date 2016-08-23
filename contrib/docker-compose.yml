@@ -6,7 +6,7 @@ services:
       - "11211:11211"
     volumes: []
   postgresql:
-    build: ./images/miq-postgresql/9.5/
+    build: ../images/miq-postgresql/9.5/
     image: miq-postgresql:latest
     ports:
       - "5432:5432"
@@ -18,7 +18,7 @@ services:
       POSTGRESQL_MAX_CONNECTIONS: 100
       POSTGRESQL_SHARED_BUFFERS: "12MB"
   miq:
-    build: ./images/miq-app
+    build: ../images/miq-app
     #image: miq-app:latest
     privileged: true
     ports:
