@@ -115,11 +115,6 @@ objects:
             -
               name: "POSTGRESQL_SHARED_BUFFERS"
               value: "${POSTGRESQL_SHARED_BUFFERS}"
-          lifecycle:
-            postStart:
-              exec:
-                command:
-                - /usr/bin/ose-dump-env.sh
     replicas: 1
     selector:
       name: ${NAME}
