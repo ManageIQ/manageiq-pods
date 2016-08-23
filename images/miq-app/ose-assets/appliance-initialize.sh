@@ -2,6 +2,10 @@
 
 [[ -s /etc/default/evm ]] && source /etc/default/evm
 
+# $DATABASE_SERVICE_NAME AND MEMCACHED_SERVICE_NAME are not initialized by default
+#  when using the docker-compose file: contrib/docker-compose.yml
+# this is to avoir problem if the env variable parameters of the miq container is removed by mistake
+# Note: there may be a better way to this
 if [[ -z $DATABASE_SERVICE_NAME ]]; then
   DATABASE_SERVICE_NAME='postgresql'
 fi
