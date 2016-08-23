@@ -137,9 +137,6 @@ COPY ose-assets/appliance-initialize.sh /bin
 ## Scripts symlinks
 RUN ln -s /var/www/miq/vmdb/docker-assets/docker_initdb /usr/bin
 
-## Lifecycle hook script
-COPY ose-assets/ose-dump-env.sh /usr/bin
-
 ## Copy script and fix permissions on APP_ROOT for OSE use
 COPY ose-assets/ose-fix-permissions.sh /usr/bin
 RUN /usr/bin/ose-fix-permissions.sh ${APP_ROOT}
