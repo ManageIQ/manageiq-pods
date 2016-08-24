@@ -32,15 +32,12 @@ RUN yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.n
                    libxslt-devel           \
                    libyaml-devel           \
                    make                    \
-                   memcached               \
                    net-tools               \
                    nodejs                  \
                    openssl-devel           \
                    patch                   \
-                   rh-postgresql95-postgresql-server \
+                   rh-postgresql95-postgresql-libs \
                    rh-postgresql95-postgresql-devel  \
-                   rh-postgresql95-postgresql-pglogical-output \
-                   rh-postgresql95-postgresql-pglogical \
                    rh-repmgr95             \
                    readline-devel          \
                    sqlite-devel            \
@@ -63,7 +60,7 @@ RUN yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.n
     yum clean all
 
 # Add persistent data volume for postgres
-VOLUME [ "/var/opt/rh/rh-postgresql95/lib/pgsql/data" ]
+# VOLUME [ "/var/opt/rh/rh-postgresql95/lib/pgsql/data" ]
 
 # Download chruby and chruby-install, install, setup environment, clean all
 RUN curl -sL https://github.com/postmodern/chruby/archive/v0.3.9.tar.gz | tar xz && \
@@ -133,21 +130,20 @@ RUN source /etc/default/evm && \
     bower cache clean
 
 ## Copy appliance-initialize script and service unit file
+COPY ./entrypoint.sh /
 COPY ose-assets/appliance-initialize.service /usr/lib/systemd/system
 COPY ose-assets/appliance-initialize.sh /bin
 
 ## Scripts symlinks
 RUN ln -s /var/www/miq/vmdb/docker-assets/docker_initdb /usr/bin
 
-## Lifecycle hook script
-COPY ose-assets/ose-dump-env.sh /usr/bin
-
 ## Copy script and fix permissions on APP_ROOT for OSE use
 COPY ose-assets/ose-fix-permissions.sh /usr/bin
 RUN /usr/bin/ose-fix-permissions.sh ${APP_ROOT}
 
 ## Enable services on systemd
-RUN systemctl enable memcached appliance-initialize evmserverd evminit evm-watchdog miqvmstat miqtop
+RUN systemctl enable appliance-initialize evmserverd evminit evm-watchdog miqvmstat miqtop
+RUN systemctl disable rh-postgresql95-postgresql
 
 ## Expose required container ports
 EXPOSE 80 443
@@ -184,4 +180,5 @@ LABEL io.k8s.description="ManageIQ is a management and automation platform for v
       io.openshift.tags="ManageIQ,miq,manageiq"
 
 ## Call systemd to bring up system
+ENTRYPOINT ["/entrypoint.sh"]
 CMD [ "/usr/sbin/init" ]
