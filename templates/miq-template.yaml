@@ -56,7 +56,7 @@ objects:
       - ReadWriteOnce
     resources:
       requests:
-         storage: ${VOLUME_CAPACITY}
+        storage: ${VOLUME_CAPACITY}
 - apiVersion: v1
   kind: "DeploymentConfig"
   metadata:
@@ -147,11 +147,11 @@ objects:
 - apiVersion: v1
   kind: ImageStream
   metadata:
-    name: memcached
+    name: miq-memcached
     annotations:
       description: "Keeps track of changes in the memcached image"
   spec:
-    dockerImageRepository: docker.io/_/memcached
+    dockerImageRepository: docker.io/fbladilo/miq-memcached
 - apiVersion: v1
   kind: "DeploymentConfig"
   metadata:
@@ -170,7 +170,7 @@ objects:
             - "memcached"
           from:
             kind: "ImageStreamTag"
-            name: "memcached:latest"
+            name: "miq-memcached:latest"
       -
         type: "ConfigChange"
     replicas: 1
@@ -186,7 +186,7 @@ objects:
         containers:
           -
             name: "memcached"
-            image: "memcached:latest"
+            image: "fbladilo/miq-memcached:latest"
             ports:
               -
                 containerPort: 11211
@@ -201,7 +201,13 @@ objects:
               tcpSocket:
                 port: 11211
             volumeMounts: []
-            env: []
+            env:
+              -
+                name: "MEMCACHED_MAX_MEMORY"
+                value: "${MEMCACHED_MAX_MEMORY}"
+              -
+                name: "MEMCACHED_MAX_CONNECTIONS"
+                value: "${MEMCACHED_MAX_CONNECTIONS}"
             resources:
               limits:
                 memory: "${MEMORY_MEMCACHED_LIMIT}"
@@ -345,6 +351,14 @@ parameters:
     required: true
     displayName: "Memcached Service Name"
     value: "memcached"
+  -
+    name: "MEMCACHED_MAX_MEMORY"
+    displayName: "Maximum memory for memcached object storage in MB"
+    value: "64"
+  -
+    name: "MEMCACHED_MAX_CONNECTIONS"
+    displayName: "Maximum number of connections for memcached"
+    value: "1024"
   -
     name: "POSTGRESQL_MAX_CONNECTIONS"
     displayName: "Maximum Database Connections"
