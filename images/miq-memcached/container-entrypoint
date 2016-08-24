@@ -1,0 +1,14 @@
+#!/bin/bash
+
+OPTIONS="$MEMCACHED_EXTRA_PARAMETERS"
+
+if [ -n "${MEMCACHED_MAX_MEMORY}" ]; then
+    OPTIONS+=" -m $MEMCACHED_MAX_MEMORY"
+fi
+
+if [ -n "${MEMCACHED_MAX_CONNECTIONS}" ]; then
+    OPTIONS+=" -c $MEMCACHED_MAX_CONNECTIONS"
+fi
+
+set -eu
+exec "$@" $OPTIONS
