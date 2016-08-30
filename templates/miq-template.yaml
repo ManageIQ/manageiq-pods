@@ -84,7 +84,7 @@ objects:
             httpGet:
               path: /
               port: 80
-            initialDelaySeconds: 240
+            initialDelaySeconds: 180
             timeoutSeconds: 3
           ports:
           - containerPort: 80
