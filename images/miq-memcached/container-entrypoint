@@ -10,5 +10,9 @@ if [ -n "${MEMCACHED_MAX_CONNECTIONS}" ]; then
     OPTIONS+=" -c $MEMCACHED_MAX_CONNECTIONS"
 fi
 
+if [ -n "${MEMCACHED_SLAB_PAGE_SIZE}" ]; then
+    OPTIONS+=" -I $MEMCACHED_SLAB_PAGE_SIZE"
+fi
+
 set -eu
 exec "$@" $OPTIONS
