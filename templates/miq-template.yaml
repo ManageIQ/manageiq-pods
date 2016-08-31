@@ -208,6 +208,9 @@ objects:
               -
                 name: "MEMCACHED_MAX_CONNECTIONS"
                 value: "${MEMCACHED_MAX_CONNECTIONS}"
+              -
+                name: "MEMCACHED_SLAB_PAGE_SIZE"
+                value: "${MEMCACHED_SLAB_PAGE_SIZE}"
             resources:
               limits:
                 memory: "${MEMORY_MEMCACHED_LIMIT}"
@@ -359,6 +362,10 @@ parameters:
     name: "MEMCACHED_MAX_CONNECTIONS"
     displayName: "Maximum number of connections for memcached"
     value: "1024"
+  -
+    name: "MEMCACHED_SLAB_PAGE_SIZE"
+    displayName: "Size of each slab page for memcached in bytes, supports m or k"
+    value: "1m"
   -
     name: "POSTGRESQL_MAX_CONNECTIONS"
     displayName: "Maximum Database Connections"
