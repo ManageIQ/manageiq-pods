@@ -129,7 +129,7 @@ objects:
             kind: "ImageStreamTag"
             name: "miq-app:latest"
     strategy:
-      type: Rolling
+      type: "Recreate"
 - apiVersion: v1
   kind: "Service"
   metadata:
