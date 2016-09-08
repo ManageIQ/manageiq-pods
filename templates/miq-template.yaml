@@ -56,7 +56,17 @@ objects:
       - ReadWriteOnce
     resources:
       requests:
-        storage: ${VOLUME_CAPACITY}
+        storage: ${DB_VOLUME_CAPACITY}
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: ${NAME}
+  spec:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${APP_VOLUME_CAPACITY}
 - apiVersion: v1
   kind: "DeploymentConfig"
   metadata:
@@ -70,6 +80,11 @@ objects:
           name: ${NAME}
         name: ${NAME}
       spec:
+        volumes:
+          -
+            name: "miq-app-volume"
+            persistentVolumeClaim:
+              claimName: ${NAME}
         containers:
         - image: fbladilo/miq-app:latest
           imagePullPolicy: IfNotPresent
@@ -93,6 +108,10 @@ objects:
             protocol: TCP
           securityContext:
             privileged: true
+          volumeMounts:
+              -
+                name: "miq-app-volume"
+                mountPath: "/var/www/miq/vmdb/persistent"
           env:
             -
               name: "DATABASE_SERVICE_NAME"
@@ -320,35 +339,29 @@ parameters:
   -
     name: "NAME"
     displayName: Name
-    description: "The name assigned to all of the frontend objects defined in this template."
+    description: "The name assigned to all of the frontend objects defined in this template"
     required: true
     value: manageiq
   -
     name: "DATABASE_SERVICE_NAME"
     required: true
-    displayName: "OpenShift service name used to expose the database component."
+    displayName: "PostgreSQL service name"
     value: "postgresql"
   -
     name: "DATABASE_USER"
-    displayName: "PostgreSQL user that will be used for accessing the database."
+    displayName: "PostgreSQL user that will be used for accessing the database"
     generate: "expression"
     from: "user[A-Z0-9]{3}"
   -
     name: "DATABASE_PASSWORD"
-    displayName: "Password for the PostgreSQL user."
+    displayName: "PostgreSQL password for database user"
     generate: "expression"
     from: "[a-zA-Z0-9]{8}"
   -
     name: "DATABASE_NAME"
     required: true
-    displayName: "Name of the PostgreSQL database accessed."
+    displayName: "PostgreSQL database name"
     value: "vmdb_production"
-  -
-    name: "VOLUME_CAPACITY"
-    displayName: "Volume Capacity"
-    required: true
-    description: "Volume space available for database, e.g. 512Mi, 2Gi."
-    value: "1Gi"
   -
     name: "MEMCACHED_SERVICE_NAME"
     required: true
@@ -356,33 +369,45 @@ parameters:
     value: "memcached"
   -
     name: "MEMCACHED_MAX_MEMORY"
-    displayName: "Maximum memory for memcached object storage in MB"
+    displayName: "Memcached maximum memory for memcached object storage in MB"
     value: "64"
   -
     name: "MEMCACHED_MAX_CONNECTIONS"
-    displayName: "Maximum number of connections for memcached"
+    displayName: "Memcached maximum number of connections for memcached"
     value: "1024"
   -
     name: "MEMCACHED_SLAB_PAGE_SIZE"
-    displayName: "Size of each slab page for memcached in bytes, supports m or k"
+    displayName: "Memcached size of each slab page"
     value: "1m"
   -
     name: "POSTGRESQL_MAX_CONNECTIONS"
-    displayName: "Maximum Database Connections"
+    displayName: "Maximum Database Connections (PostgreSQL)"
     value: "100"
   -
     name: "POSTGRESQL_SHARED_BUFFERS"
-    displayName: "Shared Buffer Amount"
+    displayName: "Shared Buffer Amount (PostgreSQL)"
     value: "12MB"
   -
     name: "MEMORY_POSTGRESQL_LIMIT"
     displayName: "Memory Limit (PostgreSQL)"
     required: true
-    description: "Maximum amount of memory the PostgreSQL container can use."
+    description: "Maximum amount of memory the PostgreSQL container can use"
     value: "2048Mi"
   -
     name: "MEMORY_MEMCACHED_LIMIT"
     displayName: "Memory Limit (Memcached)"
     required: true
-    description: "Maximum amount of memory the Memcached container can use."
+    description: "Maximum amount of memory the Memcached container can use"
     value: "256Mi"
+  -
+    name: "APP_VOLUME_CAPACITY"
+    displayName: "Application Volume Capacity"
+    required: true
+    description: "Volume space available for persistent application data"
+    value: "1Gi"
+  -
+    name: "DB_VOLUME_CAPACITY"
+    displayName: "Database Volume Capacity"
+    required: true
+    description: "Volume space available for database"
+    value: "1Gi"
