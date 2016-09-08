@@ -117,6 +117,9 @@ objects:
               name: "DATABASE_SERVICE_NAME"
               value: "${DATABASE_SERVICE_NAME}"
             -
+              name: "DATABASE_REGION"
+              value: "${DATABASE_REGION}"
+            -
               name: "MEMCACHED_SERVICE_NAME"
               value: "${MEMCACHED_SERVICE_NAME}"
             -
@@ -362,6 +365,11 @@ parameters:
     required: true
     displayName: "PostgreSQL database name"
     value: "vmdb_production"
+  -
+    name: "DATABASE_REGION"
+    required: true
+    displayName: "Application database region"
+    value: "0"
   -
     name: "MEMCACHED_SERVICE_NAME"
     required: true
