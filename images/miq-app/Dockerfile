@@ -8,6 +8,7 @@ ENV LANG en_US.UTF-8
 ENV TERM xterm
 ENV RUBY_GEMS_ROOT /opt/rubies/ruby-2.2.5/lib/ruby/gems/2.2.0
 ENV APP_ROOT /var/www/miq/vmdb
+ENV APP_ROOT_PERSISTENT /var/www/miq/vmdb/persistent
 ENV APPLIANCE_ROOT /opt/manageiq/manageiq-appliance
 ENV SSUI_ROOT /opt/manageiq/manageiq-ui-self_service
 
@@ -94,6 +95,7 @@ RUN curl -L https://github.com/ManageIQ/manageiq/tarball/${REF} | tar vxz -C ${A
 RUN ${APPLIANCE_ROOT}/setup && \
     echo "export PATH=\$PATH:/opt/rubies/ruby-2.2.5/bin" >> /etc/default/evm && \
     mkdir ${APP_ROOT}/log/apache && \
+    mkdir ${APP_ROOT_PERSISTENT} && \
     mv /etc/httpd/conf.d/ssl.conf{,.orig} && \
     echo "# This file intentionally left blank. ManageIQ maintains its own SSL configuration" > /etc/httpd/conf.d/ssl.conf && \
     echo "export APP_ROOT=${APP_ROOT}" >> /etc/default/evm && \
