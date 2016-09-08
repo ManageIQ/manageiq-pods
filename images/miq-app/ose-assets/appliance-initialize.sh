@@ -17,7 +17,7 @@ fi
 # $POSTGRESQL_USER and $POSTGRESQL_PASSWORD are supplied by OpenShift MIQ template
 # Assemble DB service host variable based on template parameter $DATABASE_SERVICE_NAME
 
-DB_SVC_HOST="$(echo $DATABASE_SERVICE_NAME | tr '[:lower:]' '[:upper:]')_SERVICE_HOST"
+DATABASE_SVC_HOST="$(echo $DATABASE_SERVICE_NAME | tr '[:lower:]' '[:upper:]')_SERVICE_HOST"
 MEMCACHED_SVC_HOST="$(echo $MEMCACHED_SERVICE_NAME | tr '[:lower:]' '[:upper:]')_SERVICE_HOST"
 
 # if {MEMCACHED}_SERVICE_HOST is empty, force service name to 'memcached'
@@ -26,12 +26,12 @@ if [[ -z ${!MEMCACHED_SVC_HOST} ]]; then
 fi
 
 # if {DATABASE}_SERVICE_HOST is empty, force service name to 'postgresql'
-if [[ -z ${!DB_SVC_HOST} ]]; then
-  eval ${DB_SVC_HOST}='postgresql'
+if [[ -z ${!DATABASE_SVC_HOST} ]]; then
+  eval ${DATABASE_SVC_HOST}='postgresql'
 fi
 
 # replace memcache host in configuration
 sed -i.bak -E "s/:memcache_server:.*/:memcache_server: ${!MEMCACHED_SVC_HOST}:11211/gi" ${APP_ROOT}/config/settings.yml
 
 echo "Initializing Appliance, please wait ..."
-appliance_console_cli --region 0 --hostname ${!DB_SVC_HOST} --username ${POSTGRESQL_USER} --password ${POSTGRESQL_PASSWORD}
+appliance_console_cli --region ${DATABASE_REGION} --hostname ${!DATABASE_SVC_HOST} --username ${POSTGRESQL_USER} --password ${POSTGRESQL_PASSWORD}
