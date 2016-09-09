@@ -11,6 +11,7 @@ ENV APP_ROOT /var/www/miq/vmdb
 ENV APP_ROOT_PERSISTENT /var/www/miq/vmdb/persistent
 ENV APPLIANCE_ROOT /opt/manageiq/manageiq-appliance
 ENV SSUI_ROOT /opt/manageiq/manageiq-ui-self_service
+ENV IMAGE_VERSION ${REF}
 
 # Fetch pglogical repo
 RUN curl -sSLko /etc/yum.repos.d/ncarboni-pglogical-SCL-epel-7.repo \
@@ -132,7 +133,7 @@ RUN source /etc/default/evm && \
     bower cache clean
 
 ## Copy appliance-initialize script and service unit file
-COPY ./entrypoint.sh /
+COPY entrypoint.sh /
 COPY ose-assets/appliance-initialize.service /usr/lib/systemd/system
 COPY ose-assets/appliance-initialize.sh /bin
 
