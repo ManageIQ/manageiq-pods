@@ -145,8 +145,8 @@ COPY ose-assets/appliance-initialize.sh /bin
 RUN ln -s /var/www/miq/vmdb/docker-assets/docker_initdb /usr/bin
 
 ## Copy OpenShift fix permissions script, run on application rootdir
-COPY ose-assets/ose-fix-permissions.sh /usr/bin
-RUN /usr/bin/ose-fix-permissions.sh ${APP_ROOT}
+COPY ose-assets/ose-fix-permissions.sh ${SCRIPTS_ROOT}
+RUN ${SCRIPTS_ROOT}/ose-fix-permissions.sh ${APP_ROOT}
 
 ## Enable services on systemd
 RUN systemctl enable appliance-initialize evmserverd evminit evm-watchdog miqvmstat miqtop
