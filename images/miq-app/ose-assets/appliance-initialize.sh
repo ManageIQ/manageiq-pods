@@ -13,12 +13,16 @@ check_deployment_status
 
 if [ -n "${UPGRADE}" ]; then
   echo "== Starting Upgrade =="
+  restore_persistent_data
+  setup_memcached
   echo "== Migrating Database =="
   cd ${APP_ROOT} && bin/rake db:migrate
 fi
 
 if [ -n "${REDEPLOY}" ]; then
   echo "== Starting Re-deployment =="
+  restore_persistent_data
+  setup_memcached
   echo "== Migrating Database =="
   cd ${APP_ROOT} && bin/rake db:migrate
 fi

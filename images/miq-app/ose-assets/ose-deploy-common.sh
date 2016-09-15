@@ -3,7 +3,16 @@
 [[ -s /etc/default/evm ]] && source /etc/default/evm
 
 # This file is created by the write_deployment_info during initial deployment
-DEPLOY_INFO_FILE=${APP_ROOT_PERSISTENT}/.deployment_info
+PV_DEPLOY_INFO_FILE=${APP_ROOT_PERSISTENT}/.deployment_info
+
+# This file is supplied by the app docker image with default files/dirs to persist on PV
+CONTAINER_DATA_PERSIST_FILE="/container.data.persist"
+
+# Copy of CONTAINER_DATA_PERSIST_FILE that will be stored on PV and can be customized by users to add more files/dirs
+PV_DATA_PERSIST_FILE="$APP_ROOT_PERSISTENT/container.data.persist"
+
+# VMDB app_root directory inside persistent volume mount
+APP_ROOT_PERSISTENT_VMDB=${APP_ROOT_PERSISTENT}/var/www/miq/vmdb
 
 function check_deployment_status {
 # Description
@@ -13,22 +22,21 @@ function check_deployment_status {
 
 echo "== Checking deployment status =="
 
-if [[ -f ${APP_ROOT_PERSISTENT}/config/database.yml && -f ${DEPLOY_INFO_FILE} ]]; then
+if [[ -f ${APP_ROOT_PERSISTENT_VMDB}/config/database.yml && -f ${PV_DEPLOY_INFO_FILE} ]]; then
   echo "== Found existing deployment configuration =="
   echo "== Restoring existing database configuration =="
-  mv ${APP_ROOT}/config/database.yml ${APP_ROOT}/config/database.yml~
-  ln -s ${APP_ROOT_PERSISTENT}/config/database.yml ${APP_ROOT}/config/database.yml
+  ln --backup -sn ${APP_ROOT_PERSISTENT_VMDB}/config/database.yml ${APP_ROOT}/config/database.yml
   # Source original deployment info variables from PV
-  source ${DEPLOY_INFO_FILE}
+  source ${PV_DEPLOY_INFO_FILE}
   # Obtain current running environment
   APP_VERSION=$(cat ${APP_ROOT}/VERSION)
-  SCHEMA_VERSION=$(cd ${APP_ROOT} ; bin/rake db:version | awk '{ print $3 }')
+  SCHEMA_VERSION=$(cd ${APP_ROOT} && env RAILS_USE_MEMORY_STORE=true bin/rake db:version | awk '{ print $3 }')
   IMG_VERSION=${IMAGE_VERSION}
   # Check if we have identical EVM versions (exclude master builds)
   if [[ $APP_VERSION == $PV_APP_VERSION && $APP_VERSION != master ]]; then
     echo "== App version matches original deployment =="
   # Check if we have same schema version for same EVM version
-    if [ ${SCHEMA_VERSION} != ${PV_SCHEMA_VERSION} ]; then
+    if [ "${SCHEMA_VERSION}" != "${PV_SCHEMA_VERSION}" ]; then
        echo "Something seems wrong, db schema version mismatch for the same app version: ${PV_SCHEMA_VERSION} <-> ${SCHEMA_VERSION}"
        exit 1
     fi
@@ -51,16 +59,20 @@ function write_deployment_info {
 # Output in bash format to be easily sourced
 # IMAGE_VERSION is supplied by docker environment
 
+[ -f "${PV_DEPLOY_INFO_FILE}" ] && { echo "Something seems wrong, ${PV_DEPLOY_INFO_FILE} already exists on a new deployment"; exit 1; }
+
+DEPLOYMENT_DATE=$(date +"%F_%T")
 APP_VERSION=$(cat ${APP_ROOT}/VERSION)
-SCHEMA_VERSION=$(cd ${APP_ROOT} ; bin/rake db:version | awk '{ print $3 }')
+SCHEMA_VERSION=$(cd ${APP_ROOT} && bin/rake db:version | awk '{ print $3 }')
 
 if [[ -z $APP_VERSION || -z $SCHEMA_VERSION || -z $IMAGE_VERSION ]]; then
-  echo "${DEPLOY_INFO_FILE} is incomplete, one or more required variables are undefined"
+  echo "${PV_DEPLOY_INFO_FILE} is incomplete, one or more required variables are undefined"
   exit 1
 else
-  echo "PV_APP_VERSION=${APP_VERSION}" > ${DEPLOY_INFO_FILE}
-  echo "PV_SCHEMA_VERSION=${SCHEMA_VERSION}" >> ${DEPLOY_INFO_FILE}
-  echo "PV_IMG_VERSION=${IMAGE_VERSION}" >> ${DEPLOY_INFO_FILE}
+  echo "PV_APP_VERSION=${APP_VERSION}" > ${PV_DEPLOY_INFO_FILE}
+  echo "PV_SCHEMA_VERSION=${SCHEMA_VERSION}" >> ${PV_DEPLOY_INFO_FILE}
+  echo "PV_IMG_VERSION=${IMAGE_VERSION}" >> ${PV_DEPLOY_INFO_FILE}
+  echo "PV_DEPLOYMENT_DATE=${DEPLOYMENT_DATE}" >> ${PV_DEPLOY_INFO_FILE}
 fi
 
 }
@@ -92,34 +104,57 @@ function setup_persistent_data {
 # Process container.data.persist which contains the desired files/dirs to store on PV
 # Copy listed files/dirs to PV, make backups and deploy symblinks pointing to PV
 
-# This file is supplied by the container image with default files/dirs
-CONTAINER_INPUT_FILE="/container.data.persist"
-
-# Copy of CONTAINER_INPUT_FILE that will be stored on PV and can be customized by users to add their own files/dirs
-PERSISTENT_INPUT_FILE="$APP_ROOT_PERSISTENT/container.data.persist"
-
- [ ! -f "${PERSIST_INPUT_FILE}" ] && cp -a ${CONTAINER_INPUT_FILE} ${APP_ROOT_PERSISTENT}
+[ ! -f "${PV_DATA_PERSIST_FILE}" ] && cp -a ${CONTAINER_DATA_PERSIST_FILE} ${APP_ROOT_PERSISTENT}
 
 echo "== Initializing persistent data =="
 
-while read -r file
+while read -r FILE
 do
     # Sanity checks
-    [[ $file = \#* ]] && continue
-    [[ $file == / ]] && continue
-    [[ ! -e $file ]] && echo "$file does not exist, skipping" && continue
-    [[ -h $file ]] && echo "$file symblink is already in place, skipping" && continue
+    [[ ${FILE} = \#* ]] && continue
+    [[ ${FILE} == / ]] && continue
+    [[ ! -e ${FILE} ]] && echo "${FILE} does not exist, skipping" && continue
+    [[ -h ${FILE} ]] && echo "${FILE} symblink is already in place, skipping" && continue
     # Obtain dirname and filename from source file
-    DIR=$(dirname $file)
-    FILENAME=$(basename $file)
+    DIR=$(dirname ${FILE})
+    FILENAME=$(basename ${FILE})
     # Create directory structure under persistent volume if not present
     [[ ! -d ${APP_ROOT_PERSISTENT}/${DIR} ]] && mkdir -p ${APP_ROOT_PERSISTENT}/${DIR}
     # Copy supplied files/dirs into persistent volume
-    cp -a $file ${APP_ROOT_PERSISTENT}${DIR}/$FILENAME
+    cp -a ${FILE} ${APP_ROOT_PERSISTENT}${DIR}/${FILENAME}
     # Check if we are working with a directory, backup
-    [[ -d $file ]] && mv ${file} ${file}~
+    [[ -d ${FILE} ]] && mv ${FILE} ${FILE}~
     # Place symblink back to persistent volume
-    ln --backup -sn ${APP_ROOT_PERSISTENT}${DIR}/$FILENAME $file
-done < "${PERSISTENT_INPUT_FILE}"
+    ln --backup -sn ${APP_ROOT_PERSISTENT}${DIR}/${FILENAME} ${FILE}
+done < "${PV_DATA_PERSIST_FILE}"
+
+}
+
+function restore_persistent_data {
+
+# Description
+# Process container.data.persist which contains the desired files/dirs to restore from PV
+# Check if file/dir exits on PV, redeploy symblinks on ${APP_ROOT} pointing to PV
+
+# Ensure PV_DATA_PERSIST_FILE is present, it should be if setup_persistent_data was executed
+[ ! -f "${PV_DATA_PERSIST_FILE}" ] && cp -a ${CONTAINER_DATA_PERSIST_FILE} ${APP_ROOT_PERSISTENT}
+
+echo "== Restoring persistent data =="
+
+while read -r FILE
+do
+    # Sanity checks
+    [[ ${FILE} = \#* ]] && continue
+    [[ ${FILE} == / ]] && continue
+    [[ ! -e ${APP_ROOT_PERSISTENT}$FILE ]] && echo "${FILE} does not exist on PV, skipping" && continue
+    [[ -h ${FILE} ]] && echo "${FILE} symblink is already in place, skipping" && continue
+    # Obtain dirname and filename from source file
+    DIR=$(dirname ${FILE})
+    FILENAME=$(basename ${FILE})
+    # Check if we are working with a directory, backup
+    [[ -d ${FILE} ]] && mv ${FILE} ${FILE}~
+    # Place symblink back to persistent volume
+    ln --backup -sn ${APP_ROOT_PERSISTENT}${DIR}/${FILENAME} ${FILE}
+done < "${PV_DATA_PERSIST_FILE}"
 
 }
