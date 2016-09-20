@@ -61,11 +61,13 @@ _**As admin:**_
 
 ```bash
 $ oc create -f miq-pv-example.yaml
+$ oc create -f miq-pv-app-example.yaml
 ```
 Verify pv creation
 ```bash
 $ oc get pv
 NAME       CAPACITY   ACCESSMODES   STATUS      CLAIM     REASON    AGE
+manageiq   2Gi        RWO           Available                       24d
 nfs-pv01   2Gi        RWO           Available                       24d
 ```
 ## Deploy MIQ
