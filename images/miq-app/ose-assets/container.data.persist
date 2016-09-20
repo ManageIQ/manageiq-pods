@@ -1,4 +1,4 @@
-# Please list files or directories to persist across deployments (upgrade or redeployment)
+# Please list ABSOLUTE path to files or directories to persist across deployments (upgrade/redeployment)
 /var/www/miq/vmdb/REGION
 /var/www/miq/vmdb/GUID
 /var/www/miq/vmdb/config/database.yml

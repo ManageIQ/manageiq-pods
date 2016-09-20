@@ -3,7 +3,10 @@
 [[ -s /etc/default/evm ]] && source /etc/default/evm
 
 # This file is created by the write_deployment_info during initial deployment
-PV_DEPLOY_INFO_FILE=${APP_ROOT_PERSISTENT}/.deployment_info
+PV_DEPLOY_INFO_FILE="${APP_ROOT_PERSISTENT}/.deployment_info"
+
+# This directory is used to store initialization logfiles on PV
+PV_LOG_DIR="${APP_ROOT_PERSISTENT}/log"
 
 # This file is supplied by the app docker image with default files/dirs to persist on PV
 CONTAINER_DATA_PERSIST_FILE="/container.data.persist"
@@ -30,14 +33,13 @@ if [[ -f ${APP_ROOT_PERSISTENT_VMDB}/config/database.yml && -f ${PV_DEPLOY_INFO_
   source ${PV_DEPLOY_INFO_FILE}
   # Obtain current running environment
   APP_VERSION=$(cat ${APP_ROOT}/VERSION)
-  SCHEMA_VERSION=$(cd ${APP_ROOT} && env RAILS_USE_MEMORY_STORE=true bin/rake db:version | awk '{ print $3 }')
-  IMG_VERSION=${IMAGE_VERSION}
+  SCHEMA_VERSION=$(cd ${APP_ROOT} && RAILS_USE_MEMORY_STORE=true bin/rake db:version | awk '{ print $3 }')
   # Check if we have identical EVM versions (exclude master builds)
   if [[ $APP_VERSION == $PV_APP_VERSION && $APP_VERSION != master ]]; then
     echo "== App version matches original deployment =="
   # Check if we have same schema version for same EVM version
     if [ "${SCHEMA_VERSION}" != "${PV_SCHEMA_VERSION}" ]; then
-       echo "Something seems wrong, db schema version mismatch for the same app version: ${PV_SCHEMA_VERSION} <-> ${SCHEMA_VERSION}"
+       echo "ERROR: Something seems wrong, db schema version mismatch for the same app version: ${PV_SCHEMA_VERSION} <-> ${SCHEMA_VERSION}"
        exit 1
     fi
   # Assuming redeployment (same APP_VERSION)
@@ -59,7 +61,7 @@ function write_deployment_info {
 # Output in bash format to be easily sourced
 # IMAGE_VERSION is supplied by docker environment
 
-[ -f "${PV_DEPLOY_INFO_FILE}" ] && { echo "Something seems wrong, ${PV_DEPLOY_INFO_FILE} already exists on a new deployment"; exit 1; }
+[ -f "${PV_DEPLOY_INFO_FILE}" ] && echo "ERROR: Something seems wrong, ${PV_DEPLOY_INFO_FILE} already exists on a new deployment" && exit 1
 
 DEPLOYMENT_DATE=$(date +"%F_%T")
 APP_VERSION=$(cat ${APP_ROOT}/VERSION)
@@ -77,16 +79,30 @@ fi
 
 }
 
-function prepare_svc_vars {
+function prepare_init_env {
 
 # Description
-# Prepare service host variables for use in other functions
-# *_SERVICE_NAME variables are supplied via OpenShift template parameters (i.e DATABASE_SERVICE_NAME)
-# *_SERVICE_HOST variables are auto-created by OpenShift and contain the IP address exposed by service pod
-# Upcase values of SERVICE_NAME, assemble proper SVC_HOST and export vars for use
+# Prepare appliance initialization environment
 
-export DATABASE_SVC_HOST="$(echo $DATABASE_SERVICE_NAME | tr '[:lower:]' '[:upper:]')_SERVICE_HOST"
-export MEMCACHED_SVC_HOST="$(echo $MEMCACHED_SERVICE_NAME | tr '[:lower:]' '[:upper:]')_SERVICE_HOST"
+# Make a copy of CONTAINER_DATA_PERSIST_FILE into PV if not present
+[ ! -f "${PV_DATA_PERSIST_FILE}" ] && cp -a ${CONTAINER_DATA_PERSIST_FILE} ${APP_ROOT_PERSISTENT}
+
+}
+
+function setup_logs {
+# Description
+# Configure logs on PV before EVM init
+
+# Create scripts logdir into PV if not present
+[ ! -d "${PV_LOG_DIR}" ] && mkdir -p ${PV_LOG_DIR}
+
+# Ensure EVM logdir is on PV before init
+if [ ! -h "${APP_ROOT}/log" ]; then
+  [ ! -d "${APP_ROOT_PERSISTENT}${APP_ROOT}/log" ] && mkdir -p ${APP_ROOT_PERSISTENT}${APP_ROOT}/log
+  cp -a ${APP_ROOT}/log ${APP_ROOT_PERSISTENT}${APP_ROOT}
+  mv ${APP_ROOT}/log ${APP_ROOT}/log~
+  ln --backup -sn ${APP_ROOT_PERSISTENT}${APP_ROOT}/log ${APP_ROOT}/log
+fi
 
 }
 
@@ -95,51 +111,58 @@ function setup_memcached {
 # Replace memcached host in EVM configuration to use assigned service pod IP
 
 echo "== Applying memcached config =="
-sed -i~ -E "s/:memcache_server:.*/:memcache_server: ${!MEMCACHED_SVC_HOST}:11211/gi" ${APP_ROOT}/config/settings.yml
+
+sed -i~ -E "s/:memcache_server:.*/:memcache_server: ${MEMCACHED_SERVICE_NAME}:11211/gi" ${APP_ROOT}/config/settings.yml
+
+[ "$?" -ne "0" ] && echo "ERROR: Failed to apply memcached configuration, please check journal or PV logs" && exit 1
 
 }
 
-function setup_persistent_data {
+function migrate_db {
 # Description
-# Process container.data.persist which contains the desired files/dirs to store on PV
-# Copy listed files/dirs to PV, make backups and deploy symblinks pointing to PV
+# Execute DB migration, log output and check errors
 
-[ ! -f "${PV_DATA_PERSIST_FILE}" ] && cp -a ${CONTAINER_DATA_PERSIST_FILE} ${APP_ROOT_PERSISTENT}
+PV_MIGRATE_DB_LOG=${PV_LOG_DIR}/migrate_db_${$}.log
 
-echo "== Initializing persistent data =="
+# Ensure exit status to last pipe to fail
+set -o pipefail
 
-while read -r FILE
-do
-    # Sanity checks
-    [[ ${FILE} = \#* ]] && continue
-    [[ ${FILE} == / ]] && continue
-    [[ ! -e ${FILE} ]] && echo "${FILE} does not exist, skipping" && continue
-    [[ -h ${FILE} ]] && echo "${FILE} symblink is already in place, skipping" && continue
-    # Obtain dirname and filename from source file
-    DIR=$(dirname ${FILE})
-    FILENAME=$(basename ${FILE})
-    # Create directory structure under persistent volume if not present
-    [[ ! -d ${APP_ROOT_PERSISTENT}/${DIR} ]] && mkdir -p ${APP_ROOT_PERSISTENT}/${DIR}
-    # Copy supplied files/dirs into persistent volume
-    cp -a ${FILE} ${APP_ROOT_PERSISTENT}${DIR}/${FILENAME}
-    # Check if we are working with a directory, backup
-    [[ -d ${FILE} ]] && mv ${FILE} ${FILE}~
-    # Place symblink back to persistent volume
-    ln --backup -sn ${APP_ROOT_PERSISTENT}${DIR}/${FILENAME} ${FILE}
-done < "${PV_DATA_PERSIST_FILE}"
+echo "== Migrating Database =="
+
+cd ${APP_ROOT} && bin/rake db:migrate | tee ${PV_MIGRATE_DB_LOG}
+
+[ "$?" -ne "0" ] && echo "ERROR: Failed to migrate database, please check logs at ${PV_MIGRATE_DB_LOG}" && exit 1
+
+set +o pipefail
+}
+
+function sync_pv_data {
+# Description
+# Process PV_DATA_PERSIST_FILE which contains the desired files/dirs to store on PV
+# Use rsync to transfer files/dirs, log output and check return status
+
+PV_DATA_SYNC_LOG=${PV_LOG_DIR}/sync_persistent_data_${$}.log
+
+echo "== Initializing PV data =="
+
+rsync -qavL --log-file=${PV_DATA_SYNC_LOG} --files-from=${PV_DATA_PERSIST_FILE} / ${APP_ROOT_PERSISTENT} 2>/dev/null
+
+# Catch non-zero return value and print warning
+
+[ "$?" -ne "0" ] && echo "WARNING: Some files might not have been copied please check logs at ${PV_DATA_SYNC_LOG}"
 
 }
 
-function restore_persistent_data {
-
+function restore_pv_data {
 # Description
-# Process container.data.persist which contains the desired files/dirs to restore from PV
-# Check if file/dir exits on PV, redeploy symblinks on ${APP_ROOT} pointing to PV
+# Process PV_DATA_PERSIST_FILE which contains the desired files/dirs to restore from PV
+# Check if file/dir exists on PV, redeploy symlinks on ${APP_ROOT} pointing to PV
 
-# Ensure PV_DATA_PERSIST_FILE is present, it should be if setup_persistent_data was executed
-[ ! -f "${PV_DATA_PERSIST_FILE}" ] && cp -a ${CONTAINER_DATA_PERSIST_FILE} ${APP_ROOT_PERSISTENT}
+echo "== Restoring PV data symlinks =="
 
-echo "== Restoring persistent data =="
+# Ensure PV_DATA_PERSIST_FILE is present, it should be if prepare_init_env_data was executed
+
+[ ! -f "${PV_DATA_PERSIST_FILE}" ] && echo "ERROR: Something seems wrong, ${PV_DATA_PERSIST_FILE} was not found" && exit 1
 
 while read -r FILE
 do
@@ -147,13 +170,13 @@ do
     [[ ${FILE} = \#* ]] && continue
     [[ ${FILE} == / ]] && continue
     [[ ! -e ${APP_ROOT_PERSISTENT}$FILE ]] && echo "${FILE} does not exist on PV, skipping" && continue
-    [[ -h ${FILE} ]] && echo "${FILE} symblink is already in place, skipping" && continue
+    [[ -h ${FILE} ]] && echo "${FILE} symlink is already in place, skipping" && continue
     # Obtain dirname and filename from source file
     DIR=$(dirname ${FILE})
     FILENAME=$(basename ${FILE})
     # Check if we are working with a directory, backup
     [[ -d ${FILE} ]] && mv ${FILE} ${FILE}~
-    # Place symblink back to persistent volume
+    # Place symlink back to persistent volume
     ln --backup -sn ${APP_ROOT_PERSISTENT}${DIR}/${FILENAME} ${FILE}
 done < "${PV_DATA_PERSIST_FILE}"
 

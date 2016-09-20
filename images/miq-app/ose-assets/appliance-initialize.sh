@@ -5,39 +5,43 @@
 # Ensure OpenShift scripting environment is present, exit if source fails
 [[ -s ${SCRIPTS_ROOT}/ose-deploy-common.sh ]] && source ${SCRIPTS_ROOT}/ose-deploy-common.sh || { echo "Failed to source ${SCRIPTS_ROOT}/ose-deploy-common.sh" ; exit 1; }
 
-# Prepare service host vars
-prepare_svc_vars
+# Prepare initialization environment
+prepare_init_env
 
 # Check deployment status
 check_deployment_status
 
 if [ -n "${UPGRADE}" ]; then
   echo "== Starting Upgrade =="
-  restore_persistent_data
+  restore_pv_data
   setup_memcached
-  echo "== Migrating Database =="
-  cd ${APP_ROOT} && bin/rake db:migrate
+  migrate_db
 fi
 
 if [ -n "${REDEPLOY}" ]; then
   echo "== Starting Re-deployment =="
-  restore_persistent_data
+  restore_pv_data
   setup_memcached
-  echo "== Migrating Database =="
-  cd ${APP_ROOT} && bin/rake db:migrate
+  migrate_db
 fi
 
 if [ -n "${NEW_DEPLOYMENT}" ]; then
 
+  # Setup logs on PV
+  setup_logs
+
   # Setup memcached host in EVM configuration
   setup_memcached
-
-  # Setup persistent data files/dirs on PV
-  setup_persistent_data
  
   # Initialize EVM appliance 
   echo "== Initializing Appliance =="
-  appliance_console_cli --region ${DATABASE_REGION} --hostname ${!DATABASE_SVC_HOST} --username ${POSTGRESQL_USER} --password ${POSTGRESQL_PASSWORD}
+  appliance_console_cli --region ${DATABASE_REGION} --hostname ${DATABASE_SERVICE_NAME} --username ${POSTGRESQL_USER} --password ${POSTGRESQL_PASSWORD}
+
+  # Sync persistent data on PV
+  sync_pv_data
+
+  # Restore symlinks from PV data
+  restore_pv_data
 
   # Write deployment info file to PV
   write_deployment_info

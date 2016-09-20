@@ -8,7 +8,7 @@ ENV LANG en_US.UTF-8
 ENV TERM xterm
 ENV RUBY_GEMS_ROOT /opt/rubies/ruby-2.2.5/lib/ruby/gems/2.2.0
 ENV APP_ROOT /var/www/miq/vmdb
-ENV APP_ROOT_PERSISTENT /var/www/miq/vmdb/persistent
+ENV APP_ROOT_PERSISTENT /persistent
 ENV APPLIANCE_ROOT /opt/manageiq/manageiq-appliance
 ENV SSUI_ROOT /opt/manageiq/manageiq-ui-self_service
 ENV SCRIPTS_ROOT /usr/share/container-scripts
@@ -143,10 +143,6 @@ COPY ose-assets/appliance-initialize.sh /bin
 
 ## Scripts symlinks
 RUN ln -s /var/www/miq/vmdb/docker-assets/docker_initdb /usr/bin
-
-## Copy OpenShift fix permissions script, run on application rootdir
-COPY ose-assets/ose-fix-permissions.sh ${SCRIPTS_ROOT}
-RUN ${SCRIPTS_ROOT}/ose-fix-permissions.sh ${APP_ROOT}
 
 ## Enable services on systemd
 RUN systemctl enable appliance-initialize evmserverd evminit evm-watchdog miqvmstat miqtop
