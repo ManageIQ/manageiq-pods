@@ -17,7 +17,7 @@ PV_DATA_PERSIST_FILE="$APP_ROOT_PERSISTENT/container.data.persist"
 # VMDB app_root directory inside persistent volume mount
 APP_ROOT_PERSISTENT_VMDB=${APP_ROOT_PERSISTENT}/var/www/miq/vmdb
 
-function check_deployment_status {
+function check_deployment_status() {
 # Description
 # Inspect PV for previous deployments, if a DB a config is present, restore
 # Source previous deployment info file from PV and compare data with current environment
@@ -43,19 +43,19 @@ if [[ -f ${APP_ROOT_PERSISTENT_VMDB}/config/database.yml && -f ${PV_DEPLOY_INFO_
        exit 1
     fi
   # Assuming redeployment (same APP_VERSION)
-  export REDEPLOY=true
+  export DEPLOYMENT_STATUS=redeployment
   else
   # Assuming upgrade (different APP_VERSION)
-  export UPGRADE=true
+  export DEPLOYMENT_STATUS=upgrade
   fi
 else
   echo "No pre-existing EVM configuration found on PV"
-  export NEW_DEPLOYMENT=true
+  export DEPLOYMENT_STATUS=new_deployment
 fi
 
 }
 
-function write_deployment_info {
+function write_deployment_info() {
 # Description
 # Populate info file based on initial deployment and store on PV
 # Output in bash format to be easily sourced
@@ -79,7 +79,7 @@ fi
 
 }
 
-function prepare_init_env {
+function prepare_init_env() {
 
 # Description
 # Prepare appliance initialization environment
@@ -89,7 +89,7 @@ function prepare_init_env {
 
 }
 
-function setup_logs {
+function setup_logs() {
 # Description
 # Configure logs on PV before EVM init
 
@@ -106,7 +106,18 @@ fi
 
 }
 
-function setup_memcached {
+function init_appliance() {
+# Description
+# Execute appliance_console to initialize appliance
+
+echo "== Initializing Appliance =="
+appliance_console_cli --region ${DATABASE_REGION} --hostname ${DATABASE_SERVICE_NAME} --username ${POSTGRESQL_USER} --password ${POSTGRESQL_PASSWORD}
+
+[ "$?" -ne "0" ] && echo "ERROR: Failed to initialize appliance, please check journal or appliance_console logs at ${APP_ROOT}/log/appliance_console.log" && exit 1
+
+}
+
+function setup_memcached() {
 # Description
 # Replace memcached host in EVM configuration to use assigned service pod IP
 
@@ -118,7 +129,30 @@ sed -i~ -E "s/:memcache_server:.*/:memcache_server: ${MEMCACHED_SERVICE_NAME}:11
 
 }
 
-function migrate_db {
+function pre_upgrade_hook() {
+# Description
+# Pre-upgrade hook script to enable future code to be run prior an upgrade
+
+# Fixed script and log location
+PRE_UPGRADE_HOOK_SCRIPT=${SCRIPTS_ROOT}/pre-upgrade-hook
+PV_PRE_UPGRADE_HOOK_LOG=${PV_LOG_DIR}/pre_upgrade_hook_${$}.log
+
+if [ -f "${PRE_UPGRADE_HOOK_SCRIPT}" ]; then
+  echo "== Found Pre-upgrade Script =="
+  # Ensure is executable
+  [ ! -x "${PRE_UPGRADE_HOOK_SCRIPT}" ] && chmod +x ${PRE_UPGRADE_HOOK_SCRIPT}
+  echo "== Starting Pre-upgrade Script =="
+  set -o pipefail
+  ${PRE_UPGRADE_HOOK_SCRIPT} | tee ${PV_PRE_UPGRADE_HOOK_LOG}
+  [ "$?" -ne "0" ] && echo "ERROR: Failed to run ${PRE_UPGRADE_HOOK_SCRIPT}, please check logs at ${PV_PRE_UPGRADE_HOOK_LOG}" && exit 1
+  set +o pipefail
+else
+  echo "Pre-upgrade script not found, skipping"
+fi
+
+}
+
+function migrate_db() {
 # Description
 # Execute DB migration, log output and check errors
 
@@ -136,7 +170,7 @@ cd ${APP_ROOT} && bin/rake db:migrate | tee ${PV_MIGRATE_DB_LOG}
 set +o pipefail
 }
 
-function sync_pv_data {
+function sync_pv_data() {
 # Description
 # Process PV_DATA_PERSIST_FILE which contains the desired files/dirs to store on PV
 # Use rsync to transfer files/dirs, log output and check return status
@@ -153,7 +187,7 @@ rsync -qavL --log-file=${PV_DATA_SYNC_LOG} --files-from=${PV_DATA_PERSIST_FILE} 
 
 }
 
-function restore_pv_data {
+function restore_pv_data() {
 # Description
 # Process PV_DATA_PERSIST_FILE which contains the desired files/dirs to restore from PV
 # Check if file/dir exists on PV, redeploy symlinks on ${APP_ROOT} pointing to PV
