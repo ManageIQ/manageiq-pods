@@ -42,8 +42,8 @@ if [[ -f ${APP_ROOT_PERSISTENT_VMDB}/config/database.yml && -f ${PV_DEPLOY_INFO_
        echo "ERROR: Something seems wrong, db schema version mismatch for the same app version: ${PV_SCHEMA_VERSION} <-> ${SCHEMA_VERSION}"
        exit 1
     fi
-  # Assuming redeployment (same APP_VERSION)
-  export DEPLOYMENT_STATUS=redeployment
+    # Assuming redeployment (same APP_VERSION)
+    export DEPLOYMENT_STATUS=redeployment
   else
   # Assuming upgrade (different APP_VERSION)
   export DEPLOYMENT_STATUS=upgrade
