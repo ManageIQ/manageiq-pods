@@ -2,14 +2,51 @@
 
 [[ -s /etc/default/evm ]] && source /etc/default/evm
 
-# Environment supplied by OpenShift MIQ via template
-# Assemble DB service host variable based on template parameter $DATABASE_SERVICE_NAME
+# Ensure OpenShift scripting environment is present, exit if source fails
+[[ -s ${SCRIPTS_ROOT}/ose-deploy-common.sh ]] && source ${SCRIPTS_ROOT}/ose-deploy-common.sh || { echo "Failed to source ${SCRIPTS_ROOT}/ose-deploy-common.sh" ; exit 1; }
 
-DATABASE_SVC_HOST="$(echo $DATABASE_SERVICE_NAME | tr '[:lower:]' '[:upper:]')_SERVICE_HOST"
-MEMCACHED_SVC_HOST="$(echo $MEMCACHED_SERVICE_NAME | tr '[:lower:]' '[:upper:]')_SERVICE_HOST"
+# Prepare initialization environment
+prepare_init_env
 
-# Replace memcache host in EVM configuration
-sed -i.bak -E "s/:memcache_server:.*/:memcache_server: ${!MEMCACHED_SVC_HOST}:11211/gi" ${APP_ROOT}/config/settings.yml
+# Check deployment status
+check_deployment_status
 
-echo "Initializing Appliance, please wait ..."
-appliance_console_cli --region ${DATABASE_REGION} --hostname ${!DATABASE_SVC_HOST} --username ${POSTGRESQL_USER} --password ${POSTGRESQL_PASSWORD}
+# Select path of action based on DEPLOYMENT_STATUS value
+case "${DEPLOYMENT_STATUS}" in
+  redeployment)
+  echo "== Starting Re-deployment =="
+  restore_pv_data
+  setup_memcached
+  migrate_db
+  ;;
+  upgrade)
+  echo "== Starting Upgrade =="
+  restore_pv_data
+  pre_upgrade_hook
+  setup_memcached
+  migrate_db
+  ;;
+  new_deployment)
+  echo "== Starting New Deployment =="
+  # Setup logs on PV before init
+  setup_logs
+
+  # Setup memcached host in EVM configuration
+  setup_memcached
+
+  # Run appliance-console to init appliance
+  init_appliance
+
+  # Sync persistent data on PV
+  sync_pv_data
+
+  # Restore symlinks from PV data
+  restore_pv_data
+
+  # Write deployment info file to PV
+  write_deployment_info
+  ;;
+  *)
+  echo "Could not find a suitable deployment type, exiting.."
+  exit 1
+esac

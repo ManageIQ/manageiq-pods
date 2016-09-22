@@ -111,7 +111,7 @@ objects:
           volumeMounts:
               -
                 name: "miq-app-volume"
-                mountPath: "/var/www/miq/vmdb/persistent"
+                mountPath: "/persistent"
           env:
             -
               name: "DATABASE_SERVICE_NAME"

@@ -1,0 +1,6 @@
+# Please list ABSOLUTE path to files or directories to persist across deployments (upgrade/redeployment)
+/var/www/miq/vmdb/REGION
+/var/www/miq/vmdb/GUID
+/var/www/miq/vmdb/config/database.yml
+/var/www/miq/vmdb/certs/v2_key
+/var/www/miq/vmdb/log

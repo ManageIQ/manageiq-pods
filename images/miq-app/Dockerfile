@@ -8,9 +8,10 @@ ENV LANG en_US.UTF-8
 ENV TERM xterm
 ENV RUBY_GEMS_ROOT /opt/rubies/ruby-2.2.5/lib/ruby/gems/2.2.0
 ENV APP_ROOT /var/www/miq/vmdb
-ENV APP_ROOT_PERSISTENT /var/www/miq/vmdb/persistent
+ENV APP_ROOT_PERSISTENT /persistent
 ENV APPLIANCE_ROOT /opt/manageiq/manageiq-appliance
 ENV SSUI_ROOT /opt/manageiq/manageiq-ui-self_service
+ENV SCRIPTS_ROOT /usr/share/container-scripts
 ENV IMAGE_VERSION ${REF}
 
 # Fetch pglogical repo
@@ -97,6 +98,7 @@ RUN ${APPLIANCE_ROOT}/setup && \
     echo "export PATH=\$PATH:/opt/rubies/ruby-2.2.5/bin" >> /etc/default/evm && \
     mkdir ${APP_ROOT}/log/apache && \
     mkdir ${APP_ROOT_PERSISTENT} && \
+    mkdir -p ${SCRIPTS_ROOT} && \
     mv /etc/httpd/conf.d/ssl.conf{,.orig} && \
     echo "# This file intentionally left blank. ManageIQ maintains its own SSL configuration" > /etc/httpd/conf.d/ssl.conf && \
     echo "export APP_ROOT=${APP_ROOT}" >> /etc/default/evm && \
@@ -132,17 +134,15 @@ RUN source /etc/default/evm && \
     npm cache clean && \
     bower cache clean
 
-## Copy appliance-initialize script and service unit file
+## Copy OpenShift and appliance-initialize scripts, add systemd service unit file
 COPY entrypoint.sh /
+COPY ose-assets/container.data.persist /
+COPY ose-assets/ose-deploy-common.sh ${SCRIPTS_ROOT}
 COPY ose-assets/appliance-initialize.service /usr/lib/systemd/system
 COPY ose-assets/appliance-initialize.sh /bin
 
 ## Scripts symlinks
 RUN ln -s /var/www/miq/vmdb/docker-assets/docker_initdb /usr/bin
-
-## Copy script and fix permissions on APP_ROOT for OSE use
-COPY ose-assets/ose-fix-permissions.sh /usr/bin
-RUN /usr/bin/ose-fix-permissions.sh ${APP_ROOT}
 
 ## Enable services on systemd
 RUN systemctl enable appliance-initialize evmserverd evminit evm-watchdog miqvmstat miqtop
