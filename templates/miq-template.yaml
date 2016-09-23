@@ -5,8 +5,8 @@ labels:
 metadata:
   name: manageiq
   annotations:
-    description: "ManageIQ appliance template"
-    tags: "manageiq,quickstart,miq"
+    description: "ManageIQ appliance with persistent storage"
+    tags: "instant-app,manageiq,miq"
     iconClass: "icon-app-code"
 objects:
 - apiVersion: v1
@@ -32,6 +32,7 @@ objects:
   metadata:
     name: ${NAME}
   spec:
+    host: ${APPLICATION_DOMAIN}
     port:
       targetPort: https
     tls:
@@ -56,7 +57,7 @@ objects:
       - ReadWriteOnce
     resources:
       requests:
-        storage: ${DB_VOLUME_CAPACITY}
+        storage: ${DATABASE_VOLUME_CAPACITY}
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
@@ -66,7 +67,7 @@ objects:
       - ReadWriteOnce
     resources:
       requests:
-        storage: ${APP_VOLUME_CAPACITY}
+        storage: ${APPLICATION_VOLUME_CAPACITY}
 - apiVersion: v1
   kind: "DeploymentConfig"
   metadata:
@@ -342,80 +343,96 @@ parameters:
   -
     name: "NAME"
     displayName: Name
-    description: "The name assigned to all of the frontend objects defined in this template"
     required: true
+    description: "The name assigned to all of the frontend objects defined in this template."
     value: manageiq
   -
     name: "DATABASE_SERVICE_NAME"
+    displayName: "PostgreSQL Service Name"
     required: true
-    displayName: "PostgreSQL service name"
+    description: "The name of the OpenShift Service exposed for the PostgreSQL container."
     value: "postgresql"
   -
     name: "DATABASE_USER"
-    displayName: "PostgreSQL user that will be used for accessing the database"
-    generate: "expression"
-    from: "user[A-Z0-9]{3}"
+    displayName: "PostgreSQL User"
+    required: true
+    description: "PostgreSQL user that will access the database."
+    value: "root"
   -
     name: "DATABASE_PASSWORD"
-    displayName: "PostgreSQL password for database user"
-    generate: "expression"
-    from: "[a-zA-Z0-9]{8}"
+    displayName: "PostgreSQL Password"
+    required: true
+    description: "Password for the PostgreSQL user."
+    value: "smartvm"
   -
     name: "DATABASE_NAME"
     required: true
-    displayName: "PostgreSQL database name"
+    displayName: "PostgreSQL Database Name"
+    description: "Name of the PostgreSQL database accessed."
     value: "vmdb_production"
   -
     name: "DATABASE_REGION"
     required: true
-    displayName: "Application database region"
+    displayName: "Application Database Region"
+    description: "Database region that will be used for application."
     value: "0"
   -
     name: "MEMCACHED_SERVICE_NAME"
     required: true
     displayName: "Memcached Service Name"
+    description: "The name of the OpenShift Service exposed for the Memcached container."
     value: "memcached"
   -
     name: "MEMCACHED_MAX_MEMORY"
-    displayName: "Memcached maximum memory for memcached object storage in MB"
+    displayName: "Memcached Max Memory"
+    description: "Memcached maximum memory for memcached object storage in MB."
     value: "64"
   -
     name: "MEMCACHED_MAX_CONNECTIONS"
-    displayName: "Memcached maximum number of connections for memcached"
+    displayName: "Memcached Max Connections"
+    description: "Memcached maximum number of connections allowed."
     value: "1024"
   -
     name: "MEMCACHED_SLAB_PAGE_SIZE"
-    displayName: "Memcached size of each slab page"
+    displayName: "Memcached Slab Page Size"
+    description: "Memcached size of each slab page."
     value: "1m"
   -
     name: "POSTGRESQL_MAX_CONNECTIONS"
-    displayName: "Maximum Database Connections (PostgreSQL)"
+    displayName: "PostgreSQL Max Connections"
+    description: "PostgreSQL maximum number of database connections allowed."
     value: "100"
   -
     name: "POSTGRESQL_SHARED_BUFFERS"
-    displayName: "Shared Buffer Amount (PostgreSQL)"
-    value: "12MB"
+    displayName: "PostgreSQL Shared Buffer Amount"
+    description: "Amount of memory dedicated for PostgreSQL shared memory buffers."
+    value: "64MB"
   -
     name: "MEMORY_POSTGRESQL_LIMIT"
-    displayName: "Memory Limit (PostgreSQL)"
+    displayName: "PostgreSQL Memory Limit"
     required: true
-    description: "Maximum amount of memory the PostgreSQL container can use"
+    description: "Maximum amount of memory the PostgreSQL container can use."
     value: "2048Mi"
   -
     name: "MEMORY_MEMCACHED_LIMIT"
-    displayName: "Memory Limit (Memcached)"
+    displayName: "Memcached Memory Limit"
     required: true
-    description: "Maximum amount of memory the Memcached container can use"
+    description: "Maximum amount of memory the Memcached container can use."
     value: "256Mi"
   -
-    name: "APP_VOLUME_CAPACITY"
+    name: "APPLICATION_DOMAIN"
+    displayName: "Application Hostname"
+    description: "The exposed hostname that will route to the application service, if left blank a value will be defaulted."
+    value: ""
+  -
+    name: "APPLICATION_VOLUME_CAPACITY"
     displayName: "Application Volume Capacity"
     required: true
-    description: "Volume space available for persistent application data"
+    description: "Volume space available for application data."
     value: "1Gi"
   -
-    name: "DB_VOLUME_CAPACITY"
+    name: "DATABASE_VOLUME_CAPACITY"
     displayName: "Database Volume Capacity"
     required: true
-    description: "Volume space available for database"
+    description: "Volume space available for database."
     value: "1Gi"
