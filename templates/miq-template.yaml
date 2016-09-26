@@ -172,7 +172,7 @@ objects:
   metadata:
     name: miq-memcached
     annotations:
-      description: "Keeps track of changes in the memcached image"
+      description: "Keeps track of changes in the ManageIQ memcached image"
   spec:
     dockerImageRepository: docker.io/fbladilo/miq-memcached
 - apiVersion: v1
@@ -193,7 +193,7 @@ objects:
             - "memcached"
           from:
             kind: "ImageStreamTag"
-            name: "miq-memcached:latest"
+            name: "miq-memcached:1.4.15"
       -
         type: "ConfigChange"
     replicas: 1
@@ -209,7 +209,7 @@ objects:
         containers:
           -
             name: "memcached"
-            image: "fbladilo/miq-memcached:latest"
+            image: "fbladilo/miq-memcached:1.4.15"
             ports:
               -
                 containerPort: 11211
@@ -277,7 +277,7 @@ objects:
             - "postgresql"
           from:
             kind: "ImageStreamTag"
-            name: "miq-postgresql:latest"
+            name: "miq-postgresql:9.5"
       -
         type: "ConfigChange"
     replicas: 1
@@ -297,7 +297,7 @@ objects:
         containers:
           -
             name: "postgresql"
-            image: "fbladilo/miq-postgresql:latest"
+            image: "fbladilo/miq-postgresql:9.5"
             ports:
               -
                 containerPort: 5432
