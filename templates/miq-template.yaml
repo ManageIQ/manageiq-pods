@@ -193,7 +193,7 @@ objects:
             - "memcached"
           from:
             kind: "ImageStreamTag"
-            name: "miq-memcached:latest"
+            name: "miq-memcached:1.4.15"
       -
         type: "ConfigChange"
     replicas: 1
@@ -297,7 +297,7 @@ objects:
         containers:
           -
             name: "postgresql"
-            image: "fbladilo/miq-postgresql:latest"
+            image: "fbladilo/miq-postgresql:9.5"
             ports:
               -
                 containerPort: 5432
