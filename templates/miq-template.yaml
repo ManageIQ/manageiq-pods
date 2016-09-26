@@ -188,7 +188,7 @@ objects:
       -
         type: "ImageChange"
         imageChangeParams:
-          automatic: true
+          automatic: false
           containerNames:
             - "memcached"
           from:
