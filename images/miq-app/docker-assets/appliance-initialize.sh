@@ -2,8 +2,8 @@
 
 [[ -s /etc/default/evm ]] && source /etc/default/evm
 
-# Ensure OpenShift scripting environment is present, exit if source fails
-[[ -s ${SCRIPTS_ROOT}/ose-deploy-common.sh ]] && source ${SCRIPTS_ROOT}/ose-deploy-common.sh || { echo "Failed to source ${SCRIPTS_ROOT}/ose-deploy-common.sh" ; exit 1; }
+# Source OpenShift scripting env
+[[ -s ${CONTAINER_SCRIPTS_ROOT}/ose-deploy-common.sh ]] && source ${CONTAINER_SCRIPTS_ROOT}/ose-deploy-common.sh
 
 # Prepare initialization environment
 prepare_init_env

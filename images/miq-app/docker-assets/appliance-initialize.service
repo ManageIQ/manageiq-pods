@@ -3,11 +3,12 @@ Description=Initialize Appliance Database
 After=evminit.service
 Before=evmserverd.service
 [Service]
-TimeoutStartSec=10m
+TimeoutStartSec=5m
 Type=oneshot
 EnvironmentFile=/container.env.vars
 ExecStartPre=/usr/bin/sleep 30
-ExecStart=/bin/bash /bin/appliance-initialize.sh
+ExecStart=/bin/appliance-initialize.sh
 ExecStartPost=/usr/bin/systemctl disable appliance-initialize
+ExecStopPost=-/bin/sh -c '${CONTAINER_SCRIPTS_ROOT}/appliance-stop-post.sh'
 [Install]
 WantedBy=multi-user.target
