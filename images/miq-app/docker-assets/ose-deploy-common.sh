@@ -14,6 +14,9 @@ CONTAINER_DATA_PERSIST_FILE="/container.data.persist"
 # Copy of CONTAINER_DATA_PERSIST_FILE that will be stored on PV and can be customized by users to add more files/dirs
 PV_DATA_PERSIST_FILE="$APP_ROOT_PERSISTENT/container.data.persist"
 
+# Set log timestamp for running instance
+PV_LOG_TIMESTAMP=$(date +%s)
+
 # VMDB app_root directory inside persistent volume mount
 APP_ROOT_PERSISTENT_VMDB=${APP_ROOT_PERSISTENT}/var/www/miq/vmdb
 
@@ -87,16 +90,16 @@ function prepare_init_env() {
 # Make a copy of CONTAINER_DATA_PERSIST_FILE into PV if not present
 [ ! -f "${PV_DATA_PERSIST_FILE}" ] && cp -a ${CONTAINER_DATA_PERSIST_FILE} ${APP_ROOT_PERSISTENT}
 
+# Create scripts logdir into PV if not already present
+[ ! -d "${PV_LOG_DIR}" ] && mkdir -p ${PV_LOG_DIR}
+
 }
 
 function setup_logs() {
 # Description
-# Configure logs on PV before EVM init
+# Configure EVM logdir on PV
 
-# Create scripts logdir into PV if not present
-[ ! -d "${PV_LOG_DIR}" ] && mkdir -p ${PV_LOG_DIR}
-
-# Ensure EVM logdir is on PV before init
+# Ensure EVM logdir is setup on PV before init
 if [ ! -h "${APP_ROOT}/log" ]; then
   [ ! -d "${APP_ROOT_PERSISTENT}${APP_ROOT}/log" ] && mkdir -p ${APP_ROOT_PERSISTENT}${APP_ROOT}/log
   cp -a ${APP_ROOT}/log ${APP_ROOT_PERSISTENT}${APP_ROOT}
@@ -134,8 +137,8 @@ function pre_upgrade_hook() {
 # Pre-upgrade hook script to enable future code to be run prior an upgrade
 
 # Fixed script and log location
-PRE_UPGRADE_HOOK_SCRIPT=${SCRIPTS_ROOT}/pre-upgrade-hook
-PV_PRE_UPGRADE_HOOK_LOG=${PV_LOG_DIR}/pre_upgrade_hook_${$}.log
+PRE_UPGRADE_HOOK_SCRIPT=${CONTAINER_SCRIPTS_ROOT}/pre-upgrade-hook
+PV_PRE_UPGRADE_HOOK_LOG=${PV_LOG_DIR}/pre_upgrade_hook_${PV_LOG_TIMESTAMP}.log
 
 if [ -f "${PRE_UPGRADE_HOOK_SCRIPT}" ]; then
   echo "== Found Pre-upgrade Script =="
@@ -143,7 +146,7 @@ if [ -f "${PRE_UPGRADE_HOOK_SCRIPT}" ]; then
   [ ! -x "${PRE_UPGRADE_HOOK_SCRIPT}" ] && chmod +x ${PRE_UPGRADE_HOOK_SCRIPT}
   echo "== Starting Pre-upgrade Script =="
   set -o pipefail
-  ${PRE_UPGRADE_HOOK_SCRIPT} | tee ${PV_PRE_UPGRADE_HOOK_LOG}
+  ${PRE_UPGRADE_HOOK_SCRIPT} 2>&1 | tee ${PV_PRE_UPGRADE_HOOK_LOG}
   [ "$?" -ne "0" ] && echo "ERROR: Failed to run ${PRE_UPGRADE_HOOK_SCRIPT}, please check logs at ${PV_PRE_UPGRADE_HOOK_LOG}" && exit 1
   set +o pipefail
 else
@@ -156,14 +159,14 @@ function migrate_db() {
 # Description
 # Execute DB migration, log output and check errors
 
-PV_MIGRATE_DB_LOG=${PV_LOG_DIR}/migrate_db_${$}.log
+PV_MIGRATE_DB_LOG=${PV_LOG_DIR}/migrate_db_${PV_LOG_TIMESTAMP}.log
 
 # Ensure exit status to last pipe to fail
 set -o pipefail
 
 echo "== Migrating Database =="
 
-cd ${APP_ROOT} && bin/rake db:migrate | tee ${PV_MIGRATE_DB_LOG}
+cd ${APP_ROOT} && bin/rake db:migrate 2>&1 | tee ${PV_MIGRATE_DB_LOG}
 
 [ "$?" -ne "0" ] && echo "ERROR: Failed to migrate database, please check logs at ${PV_MIGRATE_DB_LOG}" && exit 1
 
@@ -175,22 +178,29 @@ function sync_pv_data() {
 # Process PV_DATA_PERSIST_FILE which contains the desired files/dirs to store on PV
 # Use rsync to transfer files/dirs, log output and check return status
 
-PV_DATA_SYNC_LOG=${PV_LOG_DIR}/sync_persistent_data_${$}.log
+PV_DATA_SYNC_LOG=${PV_LOG_DIR}/sync_pv_data_${PV_LOG_TIMESTAMP}.log
+
+set -o pipefail
 
 echo "== Initializing PV data =="
 
-rsync -qavL --log-file=${PV_DATA_SYNC_LOG} --files-from=${PV_DATA_PERSIST_FILE} / ${APP_ROOT_PERSISTENT} 2>/dev/null
+rsync -qavL --files-from=${PV_DATA_PERSIST_FILE} / ${APP_ROOT_PERSISTENT} 2>&1 | tee ${PV_DATA_SYNC_LOG}
 
 # Catch non-zero return value and print warning
 
 [ "$?" -ne "0" ] && echo "WARNING: Some files might not have been copied please check logs at ${PV_DATA_SYNC_LOG}"
 
+set +o pipefail
 }
 
 function restore_pv_data() {
 # Description
 # Process PV_DATA_PERSIST_FILE which contains the desired files/dirs to restore from PV
 # Check if file/dir exists on PV, redeploy symlinks on ${APP_ROOT} pointing to PV
+
+PV_DATA_RESTORE_LOG=${PV_LOG_DIR}/restore_pv_data_${PV_LOG_TIMESTAMP}.log
+
+{
 
 echo "== Restoring PV data symlinks =="
 
@@ -213,5 +223,7 @@ do
     # Place symlink back to persistent volume
     ln --backup -sn ${APP_ROOT_PERSISTENT}${DIR}/${FILENAME} ${FILE}
 done < "${PV_DATA_PERSIST_FILE}"
+
+} 2>&1 | tee "${PV_DATA_RESTORE_LOG}"
 
 }

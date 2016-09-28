@@ -6,12 +6,12 @@ ARG REF=master
 # Set ENV, LANG only needed if building with docker-1.8
 ENV LANG en_US.UTF-8
 ENV TERM xterm
-ENV RUBY_GEMS_ROOT /opt/rubies/ruby-2.2.5/lib/ruby/gems/2.2.0
+ENV RUBY_GEMS_ROOT /opt/rubies/ruby-2.3.1/lib/ruby/gems/2.3.0
 ENV APP_ROOT /var/www/miq/vmdb
 ENV APP_ROOT_PERSISTENT /persistent
 ENV APPLIANCE_ROOT /opt/manageiq/manageiq-appliance
 ENV SSUI_ROOT /opt/manageiq/manageiq-ui-self_service
-ENV SCRIPTS_ROOT /usr/share/container-scripts
+ENV CONTAINER_SCRIPTS_ROOT /opt/manageiq/container-scripts
 ENV IMAGE_VERSION ${REF}
 
 # Fetch pglogical repo
@@ -75,8 +75,8 @@ RUN curl -sL https://github.com/postmodern/chruby/archive/v0.3.9.tar.gz | tar xz
     curl -sL https://github.com/postmodern/ruby-install/archive/v0.6.0.tar.gz | tar xz && \
     cd ruby-install-0.6.0 && \
     make install && \
-    ruby-install ruby 2.2.5 -- --disable-install-doc && \
-    echo "chruby ruby-2.2.5" >> ~/.bash_profile && \
+    ruby-install ruby 2.3.1 -- --disable-install-doc && \
+    echo "chruby ruby-2.3.1" >> ~/.bash_profile && \
     rm -rf /chruby-* && \
     rm -rf /usr/local/src/* && \
     yum clean all
@@ -95,10 +95,10 @@ RUN curl -L https://github.com/ManageIQ/manageiq/tarball/${REF} | tar vxz -C ${A
 
 ## Setup environment
 RUN ${APPLIANCE_ROOT}/setup && \
-    echo "export PATH=\$PATH:/opt/rubies/ruby-2.2.5/bin" >> /etc/default/evm && \
+    echo "export PATH=\$PATH:/opt/rubies/ruby-2.3.1/bin" >> /etc/default/evm && \
     mkdir ${APP_ROOT}/log/apache && \
     mkdir ${APP_ROOT_PERSISTENT} && \
-    mkdir -p ${SCRIPTS_ROOT} && \
+    mkdir -p ${CONTAINER_SCRIPTS_ROOT} && \
     mv /etc/httpd/conf.d/ssl.conf{,.orig} && \
     echo "# This file intentionally left blank. ManageIQ maintains its own SSL configuration" > /etc/httpd/conf.d/ssl.conf && \
     echo "export APP_ROOT=${APP_ROOT}" >> /etc/default/evm && \
@@ -136,17 +136,17 @@ RUN source /etc/default/evm && \
 
 ## Copy OpenShift and appliance-initialize scripts, add systemd service unit file
 COPY entrypoint.sh /
-COPY ose-assets/container.data.persist /
-COPY ose-assets/ose-deploy-common.sh ${SCRIPTS_ROOT}
-COPY ose-assets/appliance-initialize.service /usr/lib/systemd/system
-COPY ose-assets/appliance-initialize.sh /bin
+COPY docker-assets/container.data.persist /
+COPY docker-assets/ose-deploy-common.sh ${CONTAINER_SCRIPTS_ROOT}
+COPY docker-assets/appliance-stop-post.sh ${CONTAINER_SCRIPTS_ROOT}
+COPY docker-assets/appliance-initialize.service /usr/lib/systemd/system
+COPY docker-assets/appliance-initialize.sh /bin
 
 ## Scripts symlinks
 RUN ln -s /var/www/miq/vmdb/docker-assets/docker_initdb /usr/bin
 
 ## Enable services on systemd
 RUN systemctl enable appliance-initialize evmserverd evminit evm-watchdog miqvmstat miqtop
-RUN systemctl disable rh-postgresql95-postgresql
 
 ## Expose required container ports
 EXPOSE 80 443
