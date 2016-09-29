@@ -3,7 +3,7 @@
 [[ -s /etc/default/evm ]] && source /etc/default/evm
 
 # Source OpenShift scripting env
-[[ -s ${CONTAINER_SCRIPTS_ROOT}/ose-deploy-common.sh ]] && source ${CONTAINER_SCRIPTS_ROOT}/ose-deploy-common.sh
+[[ -s ${CONTAINER_SCRIPTS_ROOT}/container-deploy-common.sh ]] && source ${CONTAINER_SCRIPTS_ROOT}/container-deploy-common.sh
 
 # Prepare initialization environment
 prepare_init_env
