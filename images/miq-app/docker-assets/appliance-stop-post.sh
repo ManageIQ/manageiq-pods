@@ -7,4 +7,4 @@
 
 # Dump journal logs into PV (ensure log access for troubleshooting purposes)
 
-/usr/bin/journalctl -u appliance-initialize > ${APP_ROOT_PERSISTENT}/log/appliance_initialize_${PV_LOG_TIMESTAMP}.log
+/usr/bin/journalctl -u appliance-initialize > ${PV_LOG_DIR}/appliance_initialize_${PV_LOG_TIMESTAMP}.log

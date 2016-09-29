@@ -5,8 +5,17 @@
 # This file is created by the write_deployment_info during initial deployment
 PV_DEPLOY_INFO_FILE="${APP_ROOT_PERSISTENT}/.deployment_info"
 
+# This directory is used to store application data to be persisted
+PV_CONTAINER_DATA_DIR="${APP_ROOT_PERSISTENT}/container-data"
+
+# This directory is used to store container deployment data (logs,backups,etc)
+PV_CONTAINER_DEPLOY_DIR="${APP_ROOT_PERSISTENT}/container-deploy"
+
 # This directory is used to store initialization logfiles on PV
-PV_LOG_DIR="${APP_ROOT_PERSISTENT}/log"
+PV_LOG_DIR="${PV_CONTAINER_DEPLOY_DIR}/log"
+
+# Directory used to backup PV data before performing an upgrade
+PV_BACKUP_DIR="${PV_CONTAINER_DEPLOY_DIR}/backup"
 
 # This file is supplied by the app docker image with default files/dirs to persist on PV
 CONTAINER_DATA_PERSIST_FILE="/container.data.persist"
@@ -18,7 +27,7 @@ PV_DATA_PERSIST_FILE="$APP_ROOT_PERSISTENT/container.data.persist"
 PV_LOG_TIMESTAMP=$(date +%s)
 
 # VMDB app_root directory inside persistent volume mount
-APP_ROOT_PERSISTENT_VMDB=${APP_ROOT_PERSISTENT}/var/www/miq/vmdb
+APP_ROOT_PERSISTENT_VMDB=${PV_CONTAINER_DATA_DIR}/var/www/miq/vmdb
 
 function check_deployment_status() {
 # Description
@@ -90,8 +99,9 @@ function prepare_init_env() {
 # Make a copy of CONTAINER_DATA_PERSIST_FILE into PV if not present
 [ ! -f "${PV_DATA_PERSIST_FILE}" ] && cp -a ${CONTAINER_DATA_PERSIST_FILE} ${APP_ROOT_PERSISTENT}
 
-# Create scripts logdir into PV if not already present
+# Create container deployment dirs into PV if not already present
 [ ! -d "${PV_LOG_DIR}" ] && mkdir -p ${PV_LOG_DIR}
+[ ! -d "${PV_BACKUP_DIR}" ] && mkdir -p ${PV_BACKUP_DIR}
 
 }
 
@@ -101,10 +111,10 @@ function setup_logs() {
 
 # Ensure EVM logdir is setup on PV before init
 if [ ! -h "${APP_ROOT}/log" ]; then
-  [ ! -d "${APP_ROOT_PERSISTENT}${APP_ROOT}/log" ] && mkdir -p ${APP_ROOT_PERSISTENT}${APP_ROOT}/log
-  cp -a ${APP_ROOT}/log ${APP_ROOT_PERSISTENT}${APP_ROOT}
+  [ ! -d "${PV_CONTAINER_DATA_DIR}${APP_ROOT}/log" ] && mkdir -p ${PV_CONTAINER_DATA_DIR}${APP_ROOT}/log
+  cp -a ${APP_ROOT}/log ${PV_CONTAINER_DATA_DIR}${APP_ROOT}
   mv ${APP_ROOT}/log ${APP_ROOT}/log~
-  ln --backup -sn ${APP_ROOT_PERSISTENT}${APP_ROOT}/log ${APP_ROOT}/log
+  ln --backup -sn ${PV_CONTAINER_DATA_DIR}${APP_ROOT}/log ${APP_ROOT}/log
 fi
 
 }
@@ -184,7 +194,7 @@ set -o pipefail
 
 echo "== Initializing PV data =="
 
-rsync -qavL --files-from=${PV_DATA_PERSIST_FILE} / ${APP_ROOT_PERSISTENT} 2>&1 | tee ${PV_DATA_SYNC_LOG}
+rsync -qavL --files-from=${PV_DATA_PERSIST_FILE} / ${PV_CONTAINER_DATA_DIR} 2>&1 | tee ${PV_DATA_SYNC_LOG}
 
 # Catch non-zero return value and print warning
 
@@ -213,7 +223,7 @@ do
     # Sanity checks
     [[ ${FILE} = \#* ]] && continue
     [[ ${FILE} == / ]] && continue
-    [[ ! -e ${APP_ROOT_PERSISTENT}$FILE ]] && echo "${FILE} does not exist on PV, skipping" && continue
+    [[ ! -e ${PV_CONTAINER_DATA_DIR}$FILE ]] && echo "${FILE} does not exist on PV, skipping" && continue
     [[ -h ${FILE} ]] && echo "${FILE} symlink is already in place, skipping" && continue
     # Obtain dirname and filename from source file
     DIR=$(dirname ${FILE})
@@ -221,7 +231,7 @@ do
     # Check if we are working with a directory, backup
     [[ -d ${FILE} ]] && mv ${FILE} ${FILE}~
     # Place symlink back to persistent volume
-    ln --backup -sn ${APP_ROOT_PERSISTENT}${DIR}/${FILENAME} ${FILE}
+    ln --backup -sn ${PV_CONTAINER_DATA_DIR}${DIR}/${FILENAME} ${FILE}
 done < "${PV_DATA_PERSIST_FILE}"
 
 } 2>&1 | tee "${PV_DATA_RESTORE_LOG}"
