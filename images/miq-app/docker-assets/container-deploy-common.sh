@@ -210,8 +210,7 @@ function restore_pv_data() {
 
 PV_DATA_RESTORE_LOG=${PV_LOG_DIR}/restore_pv_data_${PV_LOG_TIMESTAMP}.log
 
-{
-
+(
 echo "== Restoring PV data symlinks =="
 
 # Ensure PV_DATA_PERSIST_FILE is present, it should be if prepare_init_env_data was executed
@@ -234,6 +233,24 @@ do
     ln --backup -sn ${PV_CONTAINER_DATA_DIR}${DIR}/${FILENAME} ${FILE}
 done < "${PV_DATA_PERSIST_FILE}"
 
-} 2>&1 | tee "${PV_DATA_RESTORE_LOG}"
+) 2>&1 | tee "${PV_DATA_RESTORE_LOG}"
+
+}
+
+function backup_pv_data() {
+# Description
+# Backup existing PV data before initiating an upgrade procedure
+
+PV_DATA_BACKUP_LOG=${PV_LOG_DIR}/backup_pv_data_${PV_LOG_TIMESTAMP}.log
+PV_BACKUP_TIMESTAMP=$(date +%Y_%m_%d_%H%M%S)
+
+(
+echo "== Initializing PV data backup =="
+
+rsync -qav ${PV_CONTAINER_DATA_DIR} ${PV_BACKUP_DIR}/backup_${PV_BACKUP_TIMESTAMP}
+
+[ "$?" -ne "0" ] && echo "WARNING: Some files might not have been copied please check logs at ${PV_DATA_BACKUP_LOG}"
+
+) 2>&1 | tee ${PV_DATA_BACKUP_LOG}
 
 }
