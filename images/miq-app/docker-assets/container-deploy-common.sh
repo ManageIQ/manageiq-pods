@@ -77,7 +77,7 @@ function write_deployment_info() {
 
 DEPLOYMENT_DATE=$(date +"%F_%T")
 APP_VERSION=$(cat ${APP_ROOT}/VERSION)
-SCHEMA_VERSION=$(cd ${APP_ROOT} && bin/rake db:version | awk '{ print $3 }')
+SCHEMA_VERSION=$(cd ${APP_ROOT} && RAILS_USE_MEMORY_STORE=true bin/rake db:version | awk '{ print $3 }')
 
 if [[ -z $APP_VERSION || -z $SCHEMA_VERSION || -z $IMAGE_VERSION ]]; then
   echo "${PV_DEPLOY_INFO_FILE} is incomplete, one or more required variables are undefined"
@@ -150,18 +150,18 @@ function pre_upgrade_hook() {
 PRE_UPGRADE_HOOK_SCRIPT=${CONTAINER_SCRIPTS_ROOT}/pre-upgrade-hook
 PV_PRE_UPGRADE_HOOK_LOG=${PV_LOG_DIR}/pre_upgrade_hook_${PV_LOG_TIMESTAMP}.log
 
+(
 if [ -f "${PRE_UPGRADE_HOOK_SCRIPT}" ]; then
   echo "== Found Pre-upgrade Script =="
   # Ensure is executable
   [ ! -x "${PRE_UPGRADE_HOOK_SCRIPT}" ] && chmod +x ${PRE_UPGRADE_HOOK_SCRIPT}
   echo "== Starting Pre-upgrade Script =="
-  set -o pipefail
-  ${PRE_UPGRADE_HOOK_SCRIPT} 2>&1 | tee ${PV_PRE_UPGRADE_HOOK_LOG}
+  ${PRE_UPGRADE_HOOK_SCRIPT}
   [ "$?" -ne "0" ] && echo "ERROR: Failed to run ${PRE_UPGRADE_HOOK_SCRIPT}, please check logs at ${PV_PRE_UPGRADE_HOOK_LOG}" && exit 1
-  set +o pipefail
 else
   echo "Pre-upgrade script not found, skipping"
 fi
+) 2>&1 | tee "${PV_PRE_UPGRADE_HOOK_LOG}"
 
 }
 
@@ -171,16 +171,14 @@ function migrate_db() {
 
 PV_MIGRATE_DB_LOG=${PV_LOG_DIR}/migrate_db_${PV_LOG_TIMESTAMP}.log
 
-# Ensure exit status to last pipe to fail
-set -o pipefail
-
+(
 echo "== Migrating Database =="
 
-cd ${APP_ROOT} && bin/rake db:migrate 2>&1 | tee ${PV_MIGRATE_DB_LOG}
+cd ${APP_ROOT} && bin/rake db:migrate
 
 [ "$?" -ne "0" ] && echo "ERROR: Failed to migrate database, please check logs at ${PV_MIGRATE_DB_LOG}" && exit 1
+) 2>&1 | tee ${PV_MIGRATE_DB_LOG}
 
-set +o pipefail
 }
 
 function sync_pv_data() {
@@ -190,17 +188,16 @@ function sync_pv_data() {
 
 PV_DATA_SYNC_LOG=${PV_LOG_DIR}/sync_pv_data_${PV_LOG_TIMESTAMP}.log
 
-set -o pipefail
-
+(
 echo "== Initializing PV data =="
 
-rsync -qavL --files-from=${PV_DATA_PERSIST_FILE} / ${PV_CONTAINER_DATA_DIR} 2>&1 | tee ${PV_DATA_SYNC_LOG}
+rsync -qavL --files-from=${PV_DATA_PERSIST_FILE} / ${PV_CONTAINER_DATA_DIR}
 
 # Catch non-zero return value and print warning
 
 [ "$?" -ne "0" ] && echo "WARNING: Some files might not have been copied please check logs at ${PV_DATA_SYNC_LOG}"
+) 2>&1 | tee ${PV_DATA_SYNC_LOG}
 
-set +o pipefail
 }
 
 function restore_pv_data() {
