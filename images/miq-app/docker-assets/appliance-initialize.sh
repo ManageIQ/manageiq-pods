@@ -22,10 +22,12 @@ case "${DEPLOYMENT_STATUS}" in
   upgrade)
   echo "== Starting Upgrade =="
   backup_pv_data
+  run_hook pre-upgrade
   restore_pv_data
   pre_upgrade_hook
   setup_memcached
   migrate_db
+  run_hook post-upgrade
   ;;
   new_deployment)
   echo "== Starting New Deployment =="
