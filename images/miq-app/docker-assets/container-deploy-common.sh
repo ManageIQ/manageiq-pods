@@ -142,26 +142,31 @@ sed -i~ -E "s/:memcache_server:.*/:memcache_server: ${MEMCACHED_SERVICE_NAME}:11
 
 }
 
-function pre_upgrade_hook() {
+function run_hook() {
 # Description
-# Pre-upgrade hook script to enable future code to be run prior an upgrade
+# Run hook script to enable future code to be run anywhere needed (i.e upgrades)
 
-# Fixed script and log location
-PRE_UPGRADE_HOOK_SCRIPT=${CONTAINER_SCRIPTS_ROOT}/pre-upgrade-hook
-PV_PRE_UPGRADE_HOOK_LOG=${PV_LOG_DIR}/pre_upgrade_hook_${PV_LOG_TIMESTAMP}.log
+echo "== Calling Deployment Hook =="
+
+[[ -z $1 ]] && echo "Called hook script but no filename was provided, exiting.." && return 1
+
+local SCRIPT_NAME=$1
+
+# Fixed script path and log location
+HOOK_SCRIPT=${CONTAINER_SCRIPTS_ROOT}/$SCRIPT_NAME
+PV_HOOK_SCRIPT_LOG=${PV_LOG_DIR}/${SCRIPT_NAME}_hook_${PV_LOG_TIMESTAMP}.log
 
 (
-if [ -f "${PRE_UPGRADE_HOOK_SCRIPT}" ]; then
-  echo "== Found Pre-upgrade Script =="
+if [ -f "${HOOK_SCRIPT}" ]; then
   # Ensure is executable
-  [ ! -x "${PRE_UPGRADE_HOOK_SCRIPT}" ] && chmod +x ${PRE_UPGRADE_HOOK_SCRIPT}
-  echo "== Starting Pre-upgrade Script =="
-  ${PRE_UPGRADE_HOOK_SCRIPT}
-  [ "$?" -ne "0" ] && echo "ERROR: Failed to run ${PRE_UPGRADE_HOOK_SCRIPT}, please check logs at ${PV_PRE_UPGRADE_HOOK_LOG}" && exit 1
+  [ ! -x "${HOOK_SCRIPT}" ] && chmod +x ${HOOK_SCRIPT}
+  echo "== Running ${HOOK_SCRIPT} =="
+  ${HOOK_SCRIPT}
+  [ "$?" -ne "0" ] && echo "ERROR: ${HOOK_SCRIPT} failed, please check logs at ${PV_HOOK_SCRIPT_LOG}" && exit 1
 else
-  echo "Pre-upgrade script not found, skipping"
+  echo "Hook script ${SCRIPT_NAME} not found, skipping"
 fi
-) 2>&1 | tee "${PV_PRE_UPGRADE_HOOK_LOG}"
+) 2>&1 | tee "${PV_HOOK_SCRIPT_LOG}"
 
 }
 
