@@ -21,13 +21,13 @@ PV_BACKUP_DIR="${PV_CONTAINER_DEPLOY_DIR}/backup"
 CONTAINER_DATA_PERSIST_FILE="/container.data.persist"
 
 # Copy of CONTAINER_DATA_PERSIST_FILE that will be stored on PV and can be customized by users to add more files/dirs
-PV_DATA_PERSIST_FILE="$APP_ROOT_PERSISTENT/container.data.persist"
+PV_DATA_PERSIST_FILE="${APP_ROOT_PERSISTENT}/container.data.persist"
 
 # Set log timestamp for running instance
-PV_LOG_TIMESTAMP=$(date +%s)
+PV_LOG_TIMESTAMP="$(date +%s)"
 
 # VMDB app_root directory inside persistent volume mount
-APP_ROOT_PERSISTENT_VMDB=${PV_CONTAINER_DATA_DIR}/var/www/miq/vmdb
+APP_ROOT_PERSISTENT_VMDB="${PV_CONTAINER_DATA_DIR}/var/www/miq/vmdb"
 
 function check_deployment_status() {
 # Description
@@ -44,8 +44,8 @@ if [[ -f ${APP_ROOT_PERSISTENT_VMDB}/config/database.yml && -f ${PV_DEPLOY_INFO_
   # Source original deployment info variables from PV
   source ${PV_DEPLOY_INFO_FILE}
   # Obtain current running environment
-  APP_VERSION=$(cat ${APP_ROOT}/VERSION)
-  SCHEMA_VERSION=$(cd ${APP_ROOT} && RAILS_USE_MEMORY_STORE=true bin/rake db:version | awk '{ print $3 }')
+  APP_VERSION="$(cat ${APP_ROOT}/VERSION)"
+  SCHEMA_VERSION="$(cd ${APP_ROOT} && RAILS_USE_MEMORY_STORE=true bin/rake db:version | awk '{ print $3 }')"
   # Check if we have identical EVM versions (exclude master builds)
   if [[ $APP_VERSION == $PV_APP_VERSION && $APP_VERSION != master ]]; then
     echo "== App version matches original deployment =="
@@ -55,14 +55,14 @@ if [[ -f ${APP_ROOT_PERSISTENT_VMDB}/config/database.yml && -f ${PV_DEPLOY_INFO_
        exit 1
     fi
     # Assuming redeployment (same APP_VERSION)
-    export DEPLOYMENT_STATUS=redeployment
+    DEPLOYMENT_STATUS=redeployment
   else
   # Assuming upgrade (different APP_VERSION)
-  export DEPLOYMENT_STATUS=upgrade
+  DEPLOYMENT_STATUS=upgrade
   fi
 else
   echo "No pre-existing EVM configuration found on PV"
-  export DEPLOYMENT_STATUS=new_deployment
+  DEPLOYMENT_STATUS=new_deployment
 fi
 
 }
@@ -75,18 +75,18 @@ function write_deployment_info() {
 
 [ -f "${PV_DEPLOY_INFO_FILE}" ] && echo "ERROR: Something seems wrong, ${PV_DEPLOY_INFO_FILE} already exists on a new deployment" && exit 1
 
-DEPLOYMENT_DATE=$(date +"%F_%T")
-APP_VERSION=$(cat ${APP_ROOT}/VERSION)
-SCHEMA_VERSION=$(cd ${APP_ROOT} && RAILS_USE_MEMORY_STORE=true bin/rake db:version | awk '{ print $3 }')
+DEPLOYMENT_DATE="$(date +%F_%T)"
+APP_VERSION="$(cat ${APP_ROOT}/VERSION)"
+SCHEMA_VERSION="$(cd ${APP_ROOT} && RAILS_USE_MEMORY_STORE=true bin/rake db:version | awk '{ print $3 }')"
 
 if [[ -z $APP_VERSION || -z $SCHEMA_VERSION || -z $IMAGE_VERSION ]]; then
   echo "${PV_DEPLOY_INFO_FILE} is incomplete, one or more required variables are undefined"
   exit 1
 else
-  echo "PV_APP_VERSION=${APP_VERSION}" > ${PV_DEPLOY_INFO_FILE}
-  echo "PV_SCHEMA_VERSION=${SCHEMA_VERSION}" >> ${PV_DEPLOY_INFO_FILE}
-  echo "PV_IMG_VERSION=${IMAGE_VERSION}" >> ${PV_DEPLOY_INFO_FILE}
-  echo "PV_DEPLOYMENT_DATE=${DEPLOYMENT_DATE}" >> ${PV_DEPLOY_INFO_FILE}
+  echo "PV_APP_VERSION=${APP_VERSION}" > "${PV_DEPLOY_INFO_FILE}"
+  echo "PV_SCHEMA_VERSION=${SCHEMA_VERSION}" >> "${PV_DEPLOY_INFO_FILE}"
+  echo "PV_IMG_VERSION=${IMAGE_VERSION}" >> "${PV_DEPLOY_INFO_FILE}"
+  echo "PV_DEPLOYMENT_DATE=${DEPLOYMENT_DATE}" >> "${PV_DEPLOY_INFO_FILE}"
 fi
 
 }
@@ -97,11 +97,11 @@ function prepare_init_env() {
 # Prepare appliance initialization environment
 
 # Make a copy of CONTAINER_DATA_PERSIST_FILE into PV if not present
-[ ! -f "${PV_DATA_PERSIST_FILE}" ] && cp -a ${CONTAINER_DATA_PERSIST_FILE} ${APP_ROOT_PERSISTENT}
+[ ! -f "${PV_DATA_PERSIST_FILE}" ] && cp -a "${CONTAINER_DATA_PERSIST_FILE}" "${APP_ROOT_PERSISTENT}"
 
 # Create container deployment dirs into PV if not already present
-[ ! -d "${PV_LOG_DIR}" ] && mkdir -p ${PV_LOG_DIR}
-[ ! -d "${PV_BACKUP_DIR}" ] && mkdir -p ${PV_BACKUP_DIR}
+[ ! -d "${PV_LOG_DIR}" ] && mkdir -p "${PV_LOG_DIR}"
+[ ! -d "${PV_BACKUP_DIR}" ] && mkdir -p "${PV_BACKUP_DIR}"
 
 }
 
@@ -111,10 +111,10 @@ function setup_logs() {
 
 # Ensure EVM logdir is setup on PV before init
 if [ ! -h "${APP_ROOT}/log" ]; then
-  [ ! -d "${PV_CONTAINER_DATA_DIR}${APP_ROOT}/log" ] && mkdir -p ${PV_CONTAINER_DATA_DIR}${APP_ROOT}/log
-  cp -a ${APP_ROOT}/log ${PV_CONTAINER_DATA_DIR}${APP_ROOT}
-  mv ${APP_ROOT}/log ${APP_ROOT}/log~
-  ln --backup -sn ${PV_CONTAINER_DATA_DIR}${APP_ROOT}/log ${APP_ROOT}/log
+  [ ! -d "${PV_CONTAINER_DATA_DIR}${APP_ROOT}/log" ] && mkdir -p "${PV_CONTAINER_DATA_DIR}${APP_ROOT}/log"
+  cp -a "${APP_ROOT}/log" "${PV_CONTAINER_DATA_DIR}${APP_ROOT}"
+  mv "${APP_ROOT}/log" "${APP_ROOT}/log~"
+  ln --backup -sn "${PV_CONTAINER_DATA_DIR}${APP_ROOT}/log" "${APP_ROOT}/log"
 fi
 
 }
@@ -136,7 +136,7 @@ function setup_memcached() {
 
 echo "== Applying memcached config =="
 
-sed -i~ -E "s/:memcache_server:.*/:memcache_server: ${MEMCACHED_SERVICE_NAME}:11211/gi" ${APP_ROOT}/config/settings.yml
+sed -i~ -E "s/:memcache_server:.*/:memcache_server: ${MEMCACHED_SERVICE_NAME}:11211/gi" "${APP_ROOT}/config/settings.yml"
 
 [ "$?" -ne "0" ] && echo "ERROR: Failed to apply memcached configuration, please check journal or PV logs" && exit 1
 
@@ -150,16 +150,16 @@ echo "== Calling Deployment Hook =="
 
 [[ -z $1 ]] && echo "Called hook script but no filename was provided, exiting.." && return 1
 
-local SCRIPT_NAME=$1
+local SCRIPT_NAME="$1"
 
 # Fixed script path and log location
-HOOK_SCRIPT=${CONTAINER_SCRIPTS_ROOT}/$SCRIPT_NAME
-PV_HOOK_SCRIPT_LOG=${PV_LOG_DIR}/${SCRIPT_NAME}_hook_${PV_LOG_TIMESTAMP}.log
+HOOK_SCRIPT="${CONTAINER_SCRIPTS_ROOT}/$SCRIPT_NAME"
+PV_HOOK_SCRIPT_LOG="${PV_LOG_DIR}/${SCRIPT_NAME}_hook_${PV_LOG_TIMESTAMP}.log"
 
 (
 if [ -f "${HOOK_SCRIPT}" ]; then
   # Ensure is executable
-  [ ! -x "${HOOK_SCRIPT}" ] && chmod +x ${HOOK_SCRIPT}
+  [ ! -x "${HOOK_SCRIPT}" ] && chmod +x "${HOOK_SCRIPT}"
   echo "== Running ${HOOK_SCRIPT} =="
   ${HOOK_SCRIPT}
   [ "$?" -ne "0" ] && echo "ERROR: ${HOOK_SCRIPT} failed, please check logs at ${PV_HOOK_SCRIPT_LOG}" && exit 1
@@ -174,7 +174,7 @@ function migrate_db() {
 # Description
 # Execute DB migration, log output and check errors
 
-PV_MIGRATE_DB_LOG=${PV_LOG_DIR}/migrate_db_${PV_LOG_TIMESTAMP}.log
+PV_MIGRATE_DB_LOG="${PV_LOG_DIR}/migrate_db_${PV_LOG_TIMESTAMP}.log"
 
 (
 echo "== Migrating Database =="
@@ -191,17 +191,17 @@ function sync_pv_data() {
 # Process PV_DATA_PERSIST_FILE which contains the desired files/dirs to store on PV
 # Use rsync to transfer files/dirs, log output and check return status
 
-PV_DATA_SYNC_LOG=${PV_LOG_DIR}/sync_pv_data_${PV_LOG_TIMESTAMP}.log
+PV_DATA_SYNC_LOG="${PV_LOG_DIR}/sync_pv_data_${PV_LOG_TIMESTAMP}.log"
 
 (
 echo "== Initializing PV data =="
 
-rsync -qavL --files-from=${PV_DATA_PERSIST_FILE} / ${PV_CONTAINER_DATA_DIR}
+rsync -qavL --files-from="${PV_DATA_PERSIST_FILE}" / "${PV_CONTAINER_DATA_DIR}"
 
 # Catch non-zero return value and print warning
 
 [ "$?" -ne "0" ] && echo "WARNING: Some files might not have been copied please check logs at ${PV_DATA_SYNC_LOG}"
-) 2>&1 | tee ${PV_DATA_SYNC_LOG}
+) 2>&1 | tee "${PV_DATA_SYNC_LOG}"
 
 }
 
@@ -210,7 +210,7 @@ function restore_pv_data() {
 # Process PV_DATA_PERSIST_FILE which contains the desired files/dirs to restore from PV
 # Check if file/dir exists on PV, redeploy symlinks on ${APP_ROOT} pointing to PV
 
-PV_DATA_RESTORE_LOG=${PV_LOG_DIR}/restore_pv_data_${PV_LOG_TIMESTAMP}.log
+PV_DATA_RESTORE_LOG="${PV_LOG_DIR}/restore_pv_data_${PV_LOG_TIMESTAMP}.log"
 
 (
 echo "== Restoring PV data symlinks =="
@@ -227,12 +227,12 @@ do
     [[ ! -e ${PV_CONTAINER_DATA_DIR}$FILE ]] && echo "${FILE} does not exist on PV, skipping" && continue
     [[ -h ${FILE} ]] && echo "${FILE} symlink is already in place, skipping" && continue
     # Obtain dirname and filename from source file
-    DIR=$(dirname ${FILE})
-    FILENAME=$(basename ${FILE})
+    DIR="$(dirname ${FILE})"
+    FILENAME="$(basename ${FILE})"
     # Check if we are working with a directory, backup
-    [[ -d ${FILE} ]] && mv ${FILE} ${FILE}~
+    [[ -d ${FILE} ]] && mv "${FILE}" "${FILE}~"
     # Place symlink back to persistent volume
-    ln --backup -sn ${PV_CONTAINER_DATA_DIR}${DIR}/${FILENAME} ${FILE}
+    ln --backup -sn "${PV_CONTAINER_DATA_DIR}${DIR}/${FILENAME}" "${FILE}"
 done < "${PV_DATA_PERSIST_FILE}"
 
 ) 2>&1 | tee "${PV_DATA_RESTORE_LOG}"
@@ -243,16 +243,16 @@ function backup_pv_data() {
 # Description
 # Backup existing PV data before initiating an upgrade procedure
 
-PV_DATA_BACKUP_LOG=${PV_LOG_DIR}/backup_pv_data_${PV_LOG_TIMESTAMP}.log
-PV_BACKUP_TIMESTAMP=$(date +%Y_%m_%d_%H%M%S)
+PV_DATA_BACKUP_LOG="${PV_LOG_DIR}/backup_pv_data_${PV_LOG_TIMESTAMP}.log"
+PV_BACKUP_TIMESTAMP="$(date +%Y_%m_%d_%H%M%S)"
 
 (
 echo "== Initializing PV data backup =="
 
-rsync -qav ${PV_CONTAINER_DATA_DIR} ${PV_BACKUP_DIR}/backup_${PV_BACKUP_TIMESTAMP}
+rsync -qav "${PV_CONTAINER_DATA_DIR}" "${PV_BACKUP_DIR}/backup_${PV_BACKUP_TIMESTAMP}"
 
 [ "$?" -ne "0" ] && echo "WARNING: Some files might not have been copied please check logs at ${PV_DATA_BACKUP_LOG}"
 
-) 2>&1 | tee ${PV_DATA_BACKUP_LOG}
+) 2>&1 | tee "${PV_DATA_BACKUP_LOG}"
 
 }

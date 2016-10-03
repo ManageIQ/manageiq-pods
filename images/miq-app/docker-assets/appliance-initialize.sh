@@ -3,10 +3,10 @@
 [[ -s /etc/default/evm ]] && source /etc/default/evm
 
 # Source OpenShift scripting env
-[[ -s ${CONTAINER_SCRIPTS_ROOT}/container-deploy-common.sh ]] && source ${CONTAINER_SCRIPTS_ROOT}/container-deploy-common.sh
+[[ -s ${CONTAINER_SCRIPTS_ROOT}/container-deploy-common.sh ]] && source "${CONTAINER_SCRIPTS_ROOT}/container-deploy-common.sh"
 
 # Delay in seconds before we init, allows rest of services to settle
-sleep ${APPLICATION_INIT_DELAY}
+sleep "${APPLICATION_INIT_DELAY}"
 
 # Prepare initialization environment
 prepare_init_env
