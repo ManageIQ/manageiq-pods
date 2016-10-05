@@ -135,7 +135,7 @@ RUN source /etc/default/evm && \
     bower cache clean
 
 ## Copy OpenShift and appliance-initialize scripts, add systemd service unit file
-COPY entrypoint.sh /
+COPY docker-assets/entrypoint /usr/bin
 COPY docker-assets/container.data.persist /
 COPY docker-assets/container-deploy-common.sh ${CONTAINER_SCRIPTS_ROOT}
 COPY docker-assets/appliance-stop-post.sh ${CONTAINER_SCRIPTS_ROOT}
@@ -183,5 +183,5 @@ LABEL io.k8s.description="ManageIQ is a management and automation platform for v
       io.openshift.tags="ManageIQ,miq,manageiq"
 
 ## Call systemd to bring up system
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["entrypoint"]
 CMD [ "/usr/sbin/init" ]
