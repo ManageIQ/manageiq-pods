@@ -7,7 +7,7 @@ metadata:
   annotations:
     description: "ManageIQ appliance with persistent storage"
     tags: "instant-app,manageiq,miq"
-    iconClass: "icon-app-code"
+    iconClass: "icon-rails"
 objects:
 - apiVersion: v1
   kind: Service
@@ -100,7 +100,7 @@ objects:
             httpGet:
               path: /
               port: 80
-            initialDelaySeconds: 180
+            initialDelaySeconds: 200
             timeoutSeconds: 3
           ports:
           - containerPort: 80
