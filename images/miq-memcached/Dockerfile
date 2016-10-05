@@ -18,7 +18,7 @@ RUN yum install -y memcached && \
     rpm -V memcached && \
     yum clean all
 
-COPY container-entrypoint /usr/bin
+COPY docker-assets/container-entrypoint /usr/bin
 
 USER memcached
 ENTRYPOINT ["container-entrypoint"]

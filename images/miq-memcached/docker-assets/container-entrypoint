@@ -15,4 +15,5 @@ if [ -n "${MEMCACHED_SLAB_PAGE_SIZE}" ]; then
 fi
 
 set -eu
-exec "$@" $OPTIONS
+echo "Starting memcached with : $@ ${OPTIONS}"
+exec "$@" ${OPTIONS}
