@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# This is a sample script intended to run as a post-upgrade hook
+
+[[ -s /etc/default/evm ]] && source /etc/default/evm
+
+# Source OpenShift scripting env
+[[ -s ${CONTAINER_SCRIPTS_ROOT}/container-deploy-common.sh ]] && source "${CONTAINER_SCRIPTS_ROOT}/container-deploy-common.sh"
+
+echo "Running upgrade ${FROM_VERSION} to ${TO_VERSION} post-upgrade tasks"
+exit 0
