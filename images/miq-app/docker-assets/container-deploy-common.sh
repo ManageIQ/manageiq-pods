@@ -47,7 +47,7 @@ if [[ -f ${APP_ROOT_PERSISTENT_VMDB}/config/database.yml && -f ${PV_DEPLOY_INFO_
   APP_VERSION="$(cat ${APP_ROOT}/VERSION)"
   SCHEMA_VERSION="$(cd ${APP_ROOT} && RAILS_USE_MEMORY_STORE=true bin/rake db:version | awk '{ print $3 }')"
   # Check if we have identical EVM versions (exclude master builds)
-  if [[ $APP_VERSION == $PV_APP_VERSION && $APP_VERSION != master ]]; then
+  if [[ ${APP_VERSION} == ${PV_APP_VERSION} && ${APP_VERSION} != master ]]; then
     echo "== App version matches original deployment =="
   # Check if we have same schema version for same EVM version
     if [ "${SCHEMA_VERSION}" != "${PV_SCHEMA_VERSION}" ]; then
@@ -58,11 +58,30 @@ if [[ -f ${APP_ROOT_PERSISTENT_VMDB}/config/database.yml && -f ${PV_DEPLOY_INFO_
     DEPLOYMENT_STATUS=redeployment
   else
   # Assuming upgrade (different APP_VERSION)
+  # Ensure APP_VERSION must be greater than stored PV_APP_VERSION on upgrades (exclude master)
+
+  [[ ${APP_VERSION} != master ]] && check_version_gt ${APP_VERSION} ${PV_APP_VERSION}
   DEPLOYMENT_STATUS=upgrade
   fi
 else
   echo "No pre-existing EVM configuration found on PV"
   DEPLOYMENT_STATUS=new_deployment
+fi
+
+}
+
+function check_version_gt() { 
+# Check if upgrade version is actually greater than stored PV version
+# -V sorts alphanumeric versions within text, will always return oldest version first
+# Compare sort version result against upgrade version
+
+if [[ "$(echo "$@" | tr " " "\n" | sort -V | head -n 1)" != "$1" ]]; then
+   # Version is newer return 0 and continue
+   return 0
+
+   else
+     echo "ERROR: Upgrade version $1 is older than PV version $2, aborting upgrade.."
+     exit 1
 fi
 
 }
