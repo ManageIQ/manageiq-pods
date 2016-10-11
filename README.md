@@ -13,7 +13,7 @@ This example gives a base template to deploy a multi-pod ManageIQ appliance with
 
 ###Installing
 
-`$ git clone https://github.com/fbladilo/miq-on-openshift.git`
+`$ git clone https://github.com/ManageIQ/manageiq-pods.git`
 
 ###Pre-deployment preparation tasks
 
