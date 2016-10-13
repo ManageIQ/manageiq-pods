@@ -179,8 +179,9 @@ PV_HOOK_SCRIPT_LOG="${PV_LOG_DIR}/${SCRIPT_NAME}_hook_${PV_LOG_TIMESTAMP}.log"
 if [ -f "${HOOK_SCRIPT}" ]; then
   # Ensure is executable
   [ ! -x "${HOOK_SCRIPT}" ] && chmod +x "${HOOK_SCRIPT}"
+  # APP_VERSION and PV_APP_VERSION are set by check_deployment_status and passed to hook environment as FROM/TO vars
   echo "== Running ${HOOK_SCRIPT} =="
-  ${HOOK_SCRIPT}
+  FROM_VERSION="${PV_APP_VERSION}" TO_VERSION="${APP_VERSION}" "${HOOK_SCRIPT}"
   [ "$?" -ne "0" ] && echo "ERROR: ${HOOK_SCRIPT} failed, please check logs at ${PV_HOOK_SCRIPT_LOG}" && exit 1
 else
   echo "Hook script ${SCRIPT_NAME} not found, skipping"
