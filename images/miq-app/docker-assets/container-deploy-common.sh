@@ -92,8 +92,6 @@ function write_deployment_info() {
 # Output in bash format to be easily sourced
 # IMAGE_VERSION is supplied by docker environment
 
-[ -f "${PV_DEPLOY_INFO_FILE}" ] && echo "ERROR: Something seems wrong, ${PV_DEPLOY_INFO_FILE} already exists on a new deployment" && exit 1
-
 DEPLOYMENT_DATE="$(date +%F_%T)"
 APP_VERSION="$(cat ${APP_ROOT}/VERSION)"
 SCHEMA_VERSION="$(cd ${APP_ROOT} && RAILS_USE_MEMORY_STORE=true bin/rake db:version | awk '{ print $3 }')"
@@ -102,10 +100,33 @@ if [[ -z $APP_VERSION || -z $SCHEMA_VERSION || -z $IMAGE_VERSION ]]; then
   echo "${PV_DEPLOY_INFO_FILE} is incomplete, one or more required variables are undefined"
   exit 1
 else
-  echo "PV_APP_VERSION=${APP_VERSION}" > "${PV_DEPLOY_INFO_FILE}"
-  echo "PV_SCHEMA_VERSION=${SCHEMA_VERSION}" >> "${PV_DEPLOY_INFO_FILE}"
-  echo "PV_IMG_VERSION=${IMAGE_VERSION}" >> "${PV_DEPLOY_INFO_FILE}"
-  echo "PV_DEPLOYMENT_DATE=${DEPLOYMENT_DATE}" >> "${PV_DEPLOY_INFO_FILE}"
+  case "${DEPLOYMENT_STATUS}" in
+    redeployment)
+    ;;
+    upgrade)
+    # PV_DEPLOY_INFO_FILE must exist on upgrades
+    [ ! -f "${PV_DEPLOY_INFO_FILE}" ] && echo "ERROR: Something seems wrong, ${PV_DEPLOY_INFO_FILE} could not be found" && exit 1
+    # Backup existing PV_DEPLOY_INFO_FILE
+    cp "${PV_DEPLOY_INFO_FILE}" "${PV_BACKUP_DIR}/backup_${PV_BACKUP_TIMESTAMP}"
+    cp "${PV_DEPLOY_INFO_FILE}" "${PV_DEPLOY_INFO_FILE}~"
+    # Re-write file with upgraded deployment info
+    echo "PV_APP_VERSION=${APP_VERSION}" > "${PV_DEPLOY_INFO_FILE}"
+    echo "PV_SCHEMA_VERSION=${SCHEMA_VERSION}" >> "${PV_DEPLOY_INFO_FILE}"
+    echo "PV_IMG_VERSION=${IMAGE_VERSION}" >> "${PV_DEPLOY_INFO_FILE}"
+    echo "PV_DEPLOYMENT_DATE=${DEPLOYMENT_DATE}" >> "${PV_DEPLOY_INFO_FILE}"
+    ;;
+    new_deployment)
+    # No PV DEPLOY INFO file should exist on new deployments
+    [ -f "${PV_DEPLOY_INFO_FILE}" ] && echo "ERROR: Something seems wrong, ${PV_DEPLOY_INFO_FILE} already exists on a new deployment" && exit 1
+    echo "PV_APP_VERSION=${APP_VERSION}" > "${PV_DEPLOY_INFO_FILE}"
+    echo "PV_SCHEMA_VERSION=${SCHEMA_VERSION}" >> "${PV_DEPLOY_INFO_FILE}"
+    echo "PV_IMG_VERSION=${IMAGE_VERSION}" >> "${PV_DEPLOY_INFO_FILE}"
+    echo "PV_DEPLOYMENT_DATE=${DEPLOYMENT_DATE}" >> "${PV_DEPLOY_INFO_FILE}"
+    ;;
+    *)
+    echo "Could not find a suitable deployment status type, exiting.."
+    exit 1
+  esac
 fi
 
 }
