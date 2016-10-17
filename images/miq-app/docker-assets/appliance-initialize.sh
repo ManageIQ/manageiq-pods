@@ -30,6 +30,7 @@ case "${DEPLOYMENT_STATUS}" in
   setup_memcached
   migrate_db
   run_hook post-upgrade
+  write_deployment_info
   ;;
   new_deployment)
   echo "== Starting New Deployment =="
