@@ -8,6 +8,6 @@ Type=oneshot
 EnvironmentFile=/container.env.vars
 ExecStart=/bin/appliance-initialize.sh
 ExecStartPost=/usr/bin/systemctl disable appliance-initialize
-ExecStopPost=-/bin/sh -c '${CONTAINER_SCRIPTS_ROOT}/appliance-stop-post.sh'
+ExecStopPost=-/bin/sh -c '${CONTAINER_SCRIPTS_ROOT}/appliance-stop-post'
 [Install]
 WantedBy=multi-user.target

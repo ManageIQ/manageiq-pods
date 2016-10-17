@@ -137,12 +137,9 @@ RUN source /etc/default/evm && \
 ## Copy OpenShift and appliance-initialize scripts, add systemd service unit file
 COPY docker-assets/entrypoint /usr/bin
 COPY docker-assets/container.data.persist /
-COPY docker-assets/container-deploy-common.sh ${CONTAINER_SCRIPTS_ROOT}
-COPY docker-assets/appliance-stop-post.sh ${CONTAINER_SCRIPTS_ROOT}
 COPY docker-assets/appliance-initialize.service /usr/lib/systemd/system
 COPY docker-assets/appliance-initialize.sh /bin
-COPY docker-assets/pre-upgrade ${CONTAINER_SCRIPTS_ROOT}
-COPY docker-assets/post-upgrade ${CONTAINER_SCRIPTS_ROOT}
+ADD  docker-assets/container-scripts ${CONTAINER_SCRIPTS_ROOT}
 
 ## Scripts symlinks
 RUN ln -s /var/www/miq/vmdb/docker-assets/docker_initdb /usr/bin
