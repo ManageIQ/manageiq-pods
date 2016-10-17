@@ -7,11 +7,15 @@ MAINTAINER ManageIQ https://github.com/ManageIQ/manageiq-appliance-build
 # Switch USER to root to add required repo and packages
 USER root
 
-# Fetch postgresql 9.5 COPR and pglogical repos for MIQ use
+# Fetch pglogical and repmgr repos for MIQ use
 RUN  curl -sSLko /etc/yum.repos.d/ncarboni-pglogical-SCL-epel-7.repo \
      https://copr.fedorainfracloud.org/coprs/ncarboni/pglogical-SCL/repo/epel-7/ncarboni-pglogical-SCL-epel-7.repo
+RUN  curl -sSLko /etc/yum.repos.d/manageiq-ManageIQ-epel-7.repo \
+     https://copr.fedorainfracloud.org/coprs/manageiq/ManageIQ/repo/epel-7/manageiq-ManageIQ-epel-7.repo
 
-RUN yum -y --setopt=tsflags=nodocs install rh-postgresql95-postgresql-pglogical-output rh-postgresql95-postgresql-pglogical rh-repmgr95 && \
+RUN yum -y --setopt=tsflags=nodocs install rh-postgresql95-postgresql-pglogical-output \
+                                           rh-postgresql95-postgresql-pglogical \
+                                           rh-postgresql95-repmgr && \
     yum clean all
 
 # Add pglogical openshift tag to new image
