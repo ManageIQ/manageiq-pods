@@ -141,6 +141,11 @@ objects:
             -
               name: "POSTGRESQL_SHARED_BUFFERS"
               value: "${POSTGRESQL_SHARED_BUFFERS}"
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - /opt/manageiq/container-scripts/sync-pv-data
     replicas: 1
     selector:
       name: ${NAME}
