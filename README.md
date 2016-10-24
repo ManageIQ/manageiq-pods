@@ -3,7 +3,7 @@
 
 ##Purpose
 
-This example gives a base template to deploy a multi-pod ManageIQ appliance with the DB stored in a persistent volume on OSE. It provides a step-by-step setup including cluster administrative tasks as well as basic user information and commands. The ultimate goal of the project is to be able to decompose the ManageIQ appliance into several containers running on a pod or a series of pods.
+This example gives a base template to deploy a multi-pod ManageIQ appliance with the DB stored in a persistent volume on OpenShift. It provides a step-by-step setup including cluster administrative tasks as well as basic user information and commands. The ultimate goal of the project is to be able to decompose the ManageIQ appliance into several containers running on a pod or a series of pods.
 
 ###Prerequisites:
 
@@ -19,7 +19,7 @@ This example gives a base template to deploy a multi-pod ManageIQ appliance with
 
 _**As basic user**_
 
-Login to OSE and create a project
+Login to OpenShift and create a project
 
 _**Note:**_ This section assumes you have a basic user.
 
@@ -89,7 +89,7 @@ manageiq   ManageIQ appliance template   18 (1 blank)      12
 
 ```
 
-The supplied miq-template supports customizable deployment parameters, use _oc process_ to see available parameters along with descriptions
+The supplied template provides customizable deployment parameters, use _oc process_ to see available parameters and descriptions
 
 `$ oc process --parameters -n <your-project> manageiq`
 
@@ -146,7 +146,7 @@ pods/manageiq-1-s3bnp
     mounted at /var/run/secrets/kubernetes.io/serviceaccount
 ```
 
-###Check readiness of the miq-app pod
+###Check readiness of the MIQ pod
 
 _**Note:**_ Please allow ~5 minutes once pods are in Running state for MIQ to start responding on HTTPS
 
@@ -178,7 +178,7 @@ Examine output and point your web browser to the reported URL/HOST.
 
 ## Troubleshooting
 Under normal circumstances the entire first time deployment process should take around ~10 minutes, indication of issues can be seen
-by examining events on deployment configs and pod logs.
+by examination of the deployment events and pod logs.
 
 ### Re-trying a failed deployment
 
