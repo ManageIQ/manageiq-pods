@@ -11,6 +11,9 @@ sleep "${APPLICATION_INIT_DELAY}"
 # Prepare initialization environment
 prepare_init_env
 
+# Check DB readiness
+check_db_status
+
 # Check deployment status
 check_deployment_status
 
