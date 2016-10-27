@@ -70,6 +70,22 @@ fi
 
 }
 
+function check_db_status() {
+# Check if database pod is accepting connections
+
+echo "== Checking DB status =="
+
+PG_ISREADY="$(which pg_isready)"
+
+[[ ! -x ${PG_ISREADY} ]] && echo "ERROR: Could not find pg_isready executable, aborting.." && exit 1
+
+while true; do
+  ${PG_ISREADY} -h ${DATABASE_SERVICE_NAME} && break
+  sleep 5
+done
+
+}
+
 function check_version_gt() { 
 # Check if upgrade version is actually greater than stored PV version
 # -V sorts alphanumeric versions within text, will always return oldest version first
