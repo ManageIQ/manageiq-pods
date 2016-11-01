@@ -10,7 +10,7 @@ ENV RUBY_GEMS_ROOT /opt/rubies/ruby-2.3.1/lib/ruby/gems/2.3.0
 ENV APP_ROOT /var/www/miq/vmdb
 ENV APP_ROOT_PERSISTENT /persistent
 ENV APPLIANCE_ROOT /opt/manageiq/manageiq-appliance
-ENV SSUI_ROOT /opt/manageiq/manageiq-ui-self_service
+ENV SUI_ROOT /opt/manageiq/manageiq-ui-service
 ENV CONTAINER_SCRIPTS_ROOT /opt/manageiq/container-scripts
 ENV IMAGE_VERSION ${REF}
 
@@ -83,13 +83,13 @@ RUN curl -sL https://github.com/postmodern/chruby/archive/v0.3.9.tar.gz | tar xz
     rm -rf /usr/local/src/* && \
     yum clean all
 
-## GIT clone manageiq-appliance and self-service UI repo (SSUI)
+## GIT clone manageiq-appliance and service UI repo (SUI)
 RUN mkdir -p ${APP_ROOT} && \
     mkdir -p ${APPLIANCE_ROOT} && \
-    mkdir -p ${SSUI_ROOT} && \
+    mkdir -p ${SUI_ROOT} && \
     ln -vs ${APP_ROOT} /opt/manageiq/manageiq && \
     curl -L https://github.com/ManageIQ/manageiq-appliance/tarball/${REF} | tar vxz -C ${APPLIANCE_ROOT} --strip 1 && \
-    curl -L https://github.com/ManageIQ/manageiq-ui-self_service/tarball/${REF} | tar vxz -C ${SSUI_ROOT} --strip 1
+    curl -L https://github.com/ManageIQ/manageiq-ui-service/tarball/${REF} | tar vxz -C ${SUI_ROOT} --strip 1
 
 ## Add ManageIQ source from local directory (dockerfile development) or from Github (official build)
 #ADD . ${APP_ROOT}
@@ -125,9 +125,9 @@ RUN source /etc/default/evm && \
     rm -rvf /root/.bundle/cache && \
     rm -rvf ${APP_ROOT}/tmp/cache/assets
 
-## Build SSUI
+## Build SUI
 RUN source /etc/default/evm && \
-    cd ${SSUI_ROOT} && \
+    cd ${SUI_ROOT} && \
     npm install && \
     bower -F --allow-root install && \
     gulp build && \
