@@ -142,6 +142,9 @@ objects:
             -
               name: "POSTGRESQL_SHARED_BUFFERS"
               value: "${POSTGRESQL_SHARED_BUFFERS}"
+          resources:
+            requests:
+              memory: "${MEMORY_APPLICATION_MIN}"
           lifecycle:
             preStop:
               exec:
@@ -418,6 +421,12 @@ parameters:
     displayName: "PostgreSQL Shared Buffer Amount"
     description: "Amount of memory dedicated for PostgreSQL shared memory buffers."
     value: "64MB"
+  -
+    name: "MEMORY_APPLICATION_MIN"
+    displayName: "Application Memory Minimum"
+    required: true
+    description: "Minimum amount of memory the Application container will need."
+    value: "4096Mi"
   -
     name: "MEMORY_POSTGRESQL_LIMIT"
     displayName: "PostgreSQL Memory Limit"
