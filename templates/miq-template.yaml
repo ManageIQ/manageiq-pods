@@ -88,9 +88,8 @@ objects:
             persistentVolumeClaim:
               claimName: ${NAME}
         containers:
-        - image: fbladilo/miq-app:${APPLICATION_IMG_TAG}
+        - name: manageiq
           imagePullPolicy: IfNotPresent
-          name: manageiq
           livenessProbe:
             httpGet:
               path: /
@@ -223,7 +222,6 @@ objects:
         containers:
           -
             name: "memcached"
-            image: "fbladilo/miq-memcached:${MEMCACHED_IMG_TAG}"
             ports:
               -
                 containerPort: 11211
@@ -311,7 +309,6 @@ objects:
         containers:
           -
             name: "postgresql"
-            image: "fbladilo/miq-postgresql:${POSTGRESQL_IMG_TAG}"
             ports:
               -
                 containerPort: 5432
