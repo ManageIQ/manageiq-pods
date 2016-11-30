@@ -110,7 +110,7 @@ RUN ${APPLIANCE_ROOT}/setup && \
 WORKDIR ${APP_ROOT}
 RUN source /etc/default/evm && \
     export RAILS_USE_MEMORY_STORE="true" && \
-    npm install gulp bower -g && \
+    npm install gulp bower yarn -g && \
     gem install bundler -v ">=1.8.4" && \
     bin/setup --no-db --no-tests && \
     rake evm:compile_assets && \
@@ -128,12 +128,8 @@ RUN source /etc/default/evm && \
 ## Build SUI
 RUN source /etc/default/evm && \
     cd ${SUI_ROOT} && \
-    npm install && \
-    bower -F --allow-root install && \
-    gulp build && \
-    # Cleanup install artifacts
-    npm cache clean && \
-    bower cache clean
+    yarn install && \
+    gulp build
 
 ## Copy OpenShift and appliance-initialize scripts, add systemd service unit file
 COPY docker-assets/entrypoint /usr/bin
