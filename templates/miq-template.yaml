@@ -44,11 +44,11 @@ objects:
 - apiVersion: v1
   kind: ImageStream
   metadata:
-    name: miq-app
+    name: miq-images
     annotations:
-      description: "Keeps track of changes in the ManageIQ app image"
+      description: "Keeps track of the ManageIQ image changes"
   spec:
-    dockerImageRepository: docker.io/fbladilo/miq-app
+    dockerImageRepository: docker.io/manageiq/manageiq-pods
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
@@ -88,7 +88,7 @@ objects:
             persistentVolumeClaim:
               claimName: ${NAME}
         containers:
-        - image: fbladilo/miq-app:${APPLICATION_IMG_TAG}
+        - image: manageiq/manageiq-pods:{APPLICATION_IMG_TAG}
           imagePullPolicy: IfNotPresent
           name: manageiq
           livenessProbe:
@@ -162,7 +162,7 @@ objects:
             - "manageiq"
           from:
             kind: "ImageStreamTag"
-            name: "miq-app:${APPLICATION_IMG_TAG}"
+            name: "miq-images:${APPLICATION_IMG_TAG}"
     strategy:
       type: "Recreate"
       recreateParams:
@@ -182,14 +182,6 @@ objects:
     selector:
       name: "${MEMCACHED_SERVICE_NAME}"
 - apiVersion: v1
-  kind: ImageStream
-  metadata:
-    name: miq-memcached
-    annotations:
-      description: "Keeps track of changes in the ManageIQ memcached image"
-  spec:
-    dockerImageRepository: docker.io/fbladilo/miq-memcached
-- apiVersion: v1
   kind: "DeploymentConfig"
   metadata:
     name: "${MEMCACHED_SERVICE_NAME}"
@@ -207,7 +199,7 @@ objects:
             - "memcached"
           from:
             kind: "ImageStreamTag"
-            name: "miq-memcached:${MEMCACHED_IMG_TAG}"
+            name: "miq-images:${MEMCACHED_IMG_TAG}"
       -
         type: "ConfigChange"
     replicas: 1
@@ -223,7 +215,7 @@ objects:
         containers:
           -
             name: "memcached"
-            image: "fbladilo/miq-memcached:${MEMCACHED_IMG_TAG}"
+            image: "manageiq/manageiq-pods:${MEMCACHED_IMG_TAG}"
             ports:
               -
                 containerPort: 11211
@@ -266,14 +258,6 @@ objects:
     selector:
       name: "${DATABASE_SERVICE_NAME}"
 - apiVersion: v1
-  kind: ImageStream
-  metadata:
-    name: miq-postgresql
-    annotations:
-      description: "Keeps track of changes in the ManageIQ postgresql image"
-  spec:
-    dockerImageRepository: docker.io/fbladilo/miq-postgresql
-- apiVersion: v1
   kind: "DeploymentConfig"
   metadata:
     name: "${DATABASE_SERVICE_NAME}"
@@ -291,7 +275,7 @@ objects:
             - "postgresql"
           from:
             kind: "ImageStreamTag"
-            name: "miq-postgresql:${POSTGRESQL_IMG_TAG}"
+            name: "miq-images:${POSTGRESQL_IMG_TAG}"
       -
         type: "ConfigChange"
     replicas: 1
@@ -311,7 +295,7 @@ objects:
         containers:
           -
             name: "postgresql"
-            image: "fbladilo/miq-postgresql:${POSTGRESQL_IMG_TAG}"
+            image: "manageiq/manageiq-pods:${POSTGRESQL_IMG_TAG}"
             ports:
               -
                 containerPort: 5432
@@ -443,17 +427,17 @@ parameters:
     name: "POSTGRESQL_IMG_TAG"
     displayName: "PostgreSQL Image Tag"
     description: "This is the PostgreSQL image tag/version requested to deploy."
-    value: "latest"
+    value: "postgresql-latest"
   -
     name: "MEMCACHED_IMG_TAG"
     displayName: "Memcached Image Tag"
     description: "This is the Memcached image tag/version requested to deploy."
-    value: "latest"
+    value: "memcached-latest"
   -
     name: "APPLICATION_IMG_TAG"
     displayName: "Application Image Tag"
     description: "This is the Application image tag/version requested to deploy."
-    value: "latest"
+    value: "app-latest"
   -
     name: "APPLICATION_DOMAIN"
     displayName: "Application Hostname"
