@@ -88,7 +88,7 @@ objects:
             persistentVolumeClaim:
               claimName: ${NAME}
         containers:
-        - image: fbladilo/miq-app:latest
+        - image: fbladilo/miq-app:${APPLICATION_IMG_TAG}
           imagePullPolicy: IfNotPresent
           name: manageiq
           livenessProbe:
@@ -162,7 +162,7 @@ objects:
             - "manageiq"
           from:
             kind: "ImageStreamTag"
-            name: "miq-app:latest"
+            name: "miq-app:${APPLICATION_IMG_TAG}"
     strategy:
       type: "Recreate"
       recreateParams:
@@ -207,7 +207,7 @@ objects:
             - "memcached"
           from:
             kind: "ImageStreamTag"
-            name: "miq-memcached:1.4.15"
+            name: "miq-memcached:${MEMCACHED_IMG_TAG}"
       -
         type: "ConfigChange"
     replicas: 1
@@ -223,7 +223,7 @@ objects:
         containers:
           -
             name: "memcached"
-            image: "fbladilo/miq-memcached:1.4.15"
+            image: "fbladilo/miq-memcached:${MEMCACHED_IMG_TAG}"
             ports:
               -
                 containerPort: 11211
@@ -291,7 +291,7 @@ objects:
             - "postgresql"
           from:
             kind: "ImageStreamTag"
-            name: "miq-postgresql:9.5"
+            name: "miq-postgresql:${POSTGRESQL_IMG_TAG}"
       -
         type: "ConfigChange"
     replicas: 1
@@ -311,7 +311,7 @@ objects:
         containers:
           -
             name: "postgresql"
-            image: "fbladilo/miq-postgresql:9.5"
+            image: "fbladilo/miq-postgresql:${POSTGRESQL_IMG_TAG}"
             ports:
               -
                 containerPort: 5432
@@ -439,6 +439,21 @@ parameters:
     required: true
     description: "Maximum amount of memory the Memcached container can use."
     value: "256Mi"
+  -
+    name: "POSTGRESQL_IMG_TAG"
+    displayName: "PostgreSQL Image Tag"
+    description: "This is the PostgreSQL image tag/version requested to deploy."
+    value: "latest"
+  -
+    name: "MEMCACHED_IMG_TAG"
+    displayName: "Memcached Image Tag"
+    description: "This is the Memcached image tag/version requested to deploy."
+    value: "latest"
+  -
+    name: "APPLICATION_IMG_TAG"
+    displayName: "Application Image Tag"
+    description: "This is the Application image tag/version requested to deploy."
+    value: "latest"
   -
     name: "APPLICATION_DOMAIN"
     displayName: "Application Hostname"
