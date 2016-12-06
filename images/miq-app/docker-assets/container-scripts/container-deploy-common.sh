@@ -41,6 +41,8 @@ if [[ -f ${APP_ROOT_PERSISTENT_VMDB}/config/database.yml && -f ${PV_DEPLOY_INFO_
   echo "== Found existing deployment configuration =="
   echo "== Restoring existing database configuration =="
   ln --backup -sn ${APP_ROOT_PERSISTENT_VMDB}/config/database.yml ${APP_ROOT}/config/database.yml
+  [[ ! -f ${APP_ROOT_PERSISTENT_VMDB}/certs/v2_key ]] && echo "ERROR: Could not find ${APP_ROOT_PERSISTENT_VMDB}/certs/v2_key on upgrade/redeploy case, aborting.." && exit 1
+  ln --backup -sn ${APP_ROOT_PERSISTENT_VMDB}/certs/v2_key ${APP_ROOT}/certs/v2_key
   # Source original deployment info variables from PV
   source ${PV_DEPLOY_INFO_FILE}
   # Obtain current running environment
