@@ -34,6 +34,7 @@ RUN yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.n
                    net-tools               \
                    nodejs                  \
                    openssl-devel           \
+                   openscap-scanner        \
                    patch                   \
                    rh-postgresql95-postgresql-libs \
                    rh-postgresql95-postgresql-devel  \
