@@ -88,7 +88,7 @@ objects:
             persistentVolumeClaim:
               claimName: ${NAME}
         containers:
-        - image: manageiq/manageiq-pods:{APPLICATION_IMG_TAG}
+        - image: manageiq/manageiq-pods:${APPLICATION_IMG_TAG}
           imagePullPolicy: IfNotPresent
           name: manageiq
           livenessProbe:
