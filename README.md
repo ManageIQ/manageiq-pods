@@ -79,9 +79,9 @@ postgresql 2Gi        RWO           Available                       24d
 
 ###Increase maximum number of imported images on ImageStream
 
-By default OpenShift will import 5 images per ImageStream, we build and use more than 5 images for MIQ deployments in our repos.
+By default OpenShift will import 5 images per ImageStream, we build and use more than 5 images in our repos for MIQ deployments.
 
-We can modify these settings on the master node config at /etc/origin/master/master-config.yml, add the following at the end of the file and re-start the master service:
+You can modify these settings on the master node at /etc/origin/master/master-config.yml, add the following at the end of the file and re-start the master service:
 
 ```yaml
 ...
