@@ -177,6 +177,24 @@ Conditions:
 Volumes:
 ...
 ```
+###Disable Image Change Triggers
+By default on initial deployments the automatic image change trigger is enabled, this could potentially start an unintended upgrade on a deployment if a newer image was found in the IS.
+
+Once you have successfully validated your MIQ deployment, disable automatic image change triggers for MIQ DCs on project.
+
+```bash
+$ oc set triggers dc --manual -l app=manageiq
+deploymentconfig "manageiq" updated
+deploymentconfig "memcached" updated
+deploymentconfig "postgresql" updated
+
+$ oc set triggers dc --from-config --auto -l app=manageiq
+deploymentconfig "manageiq" updated
+deploymentconfig "memcached" updated
+deploymentconfig "postgresql" updated
+```
+
+Please note the config change trigger is kept enabled, if you desire to have full control of your deployments you can alternatively turn it off.
 
 ##POD access and routes
 
