@@ -9,6 +9,7 @@ ENV TERM xterm
 ENV RUBY_GEMS_ROOT /opt/rubies/ruby-2.3.1/lib/ruby/gems/2.3.0
 ENV APP_ROOT /var/www/miq/vmdb
 ENV APP_ROOT_PERSISTENT /persistent
+ENV APP_ROOT_PERSISTENT_REGION /persistent-region
 ENV APPLIANCE_ROOT /opt/manageiq/manageiq-appliance
 ENV SUI_ROOT /opt/manageiq/manageiq-ui-service
 ENV CONTAINER_SCRIPTS_ROOT /opt/manageiq/container-scripts
@@ -101,6 +102,7 @@ RUN ${APPLIANCE_ROOT}/setup && \
     echo "export PATH=\$PATH:/opt/rubies/ruby-2.3.1/bin" >> /etc/default/evm && \
     mkdir ${APP_ROOT}/log/apache && \
     mkdir ${APP_ROOT_PERSISTENT} && \
+    mkdir ${APP_ROOT_PERSISTENT_REGION} && \
     mkdir -p ${CONTAINER_SCRIPTS_ROOT} && \
     mv /etc/httpd/conf.d/ssl.conf{,.orig} && \
     echo "# This file intentionally left blank. ManageIQ maintains its own SSL configuration" > /etc/httpd/conf.d/ssl.conf && \

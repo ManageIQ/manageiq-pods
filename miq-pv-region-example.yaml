@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: nfs-pv01
+  name: miq-pv02
 spec:
   capacity:
     storage: 2Gi
   accessModes:
     - ReadWriteOnce
   nfs: 
-    path: /opt/nfs/volumes
-    server: 10.19.0.216
+    path: /exports/miq-pv02
+    server: <your-nfs-host-here>
   persistentVolumeReclaimPolicy: Recycle
