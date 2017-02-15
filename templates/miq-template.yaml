@@ -48,7 +48,7 @@ objects:
     annotations:
       description: "Keeps track of the ManageIQ image changes"
   spec:
-    dockerImageRepository: docker.io/manageiq/manageiq-pods
+    dockerImageRepository: "${IMAGES_REGISTRY}/${APPLICATION_IMG_NAME}"
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
@@ -88,7 +88,7 @@ objects:
             persistentVolumeClaim:
               claimName: ${NAME}
         containers:
-        - image: manageiq/manageiq-pods:${APPLICATION_IMG_TAG}
+        - image: "${APPLICATION_IMG_NAME}:${APPLICATION_IMG_TAG}"
           imagePullPolicy: IfNotPresent
           name: manageiq
           livenessProbe:
@@ -215,7 +215,7 @@ objects:
         containers:
           -
             name: "memcached"
-            image: "manageiq/manageiq-pods:${MEMCACHED_IMG_TAG}"
+            image: "${MEMCACHED_IMG_NAME}:${MEMCACHED_IMG_TAG}"
             ports:
               -
                 containerPort: 11211
@@ -295,7 +295,7 @@ objects:
         containers:
           -
             name: "postgresql"
-            image: "manageiq/manageiq-pods:${POSTGRESQL_IMG_TAG}"
+            image: "${POSTGRESQL_IMG_NAME}:${POSTGRESQL_IMG_TAG}"
             ports:
               -
                 containerPort: 5432
@@ -424,15 +424,35 @@ parameters:
     description: "Maximum amount of memory the Memcached container can use."
     value: "256Mi"
   -
+    name: "IMAGES_REGISTRY"
+    displayName: "Images Registry Hostname"
+    description: "This is the hostname of the registry where images are stored."
+    value: "docker.io"
+  -
+    name: "POSTGRESQL_IMG_NAME"
+    displayName: "PostgreSQL Image Name"
+    description: "This is the PostgreSQL image name requested to deploy."
+    value: "manageiq/manageiq-pods"
+  -
     name: "POSTGRESQL_IMG_TAG"
     displayName: "PostgreSQL Image Tag"
     description: "This is the PostgreSQL image tag/version requested to deploy."
     value: "postgresql-latest"
   -
+    name: "MEMCACHED_IMG_NAME"
+    displayName: "Memcached Image Name"
+    description: "This is the Memcached image name requested to deploy."
+    value: "manageiq/manageiq-pods"
+  -
     name: "MEMCACHED_IMG_TAG"
     displayName: "Memcached Image Tag"
     description: "This is the Memcached image tag/version requested to deploy."
     value: "memcached-latest"
+  -
+    name: "APPLICATION_IMG_NAME"
+    displayName: "Application Image Name"
+    description: "This is the Application image name requested to deploy."
+    value: "manageiq/manageiq-pods"
   -
     name: "APPLICATION_IMG_TAG"
     displayName: "Application Image Tag"
