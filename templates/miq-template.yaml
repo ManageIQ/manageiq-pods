@@ -44,11 +44,27 @@ objects:
 - apiVersion: v1
   kind: ImageStream
   metadata:
-    name: miq-images
+    name: miq-app
     annotations:
       description: "Keeps track of the ManageIQ image changes"
   spec:
-    dockerImageRepository: "${IMAGES_REGISTRY}/${APPLICATION_IMG_NAME}"
+    dockerImageRepository: "${IMAGE_REGISTRY}/${APPLICATION_IMG_NAME}"
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    name: miq-postgresql
+    annotations:
+      description: "Keeps track of the PostgreSQL image changes"
+  spec:
+    dockerImageRepository: "${IMAGE_REGISTRY}/${POSTGRESQL_IMG_NAME}"
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    name: miq-memcached
+    annotations:
+      description: "Keeps track of the Memcached image changes"
+  spec:
+    dockerImageRepository: "${IMAGE_REGISTRY}/${MEMCACHED_IMG_NAME}"
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
@@ -162,7 +178,7 @@ objects:
             - "manageiq"
           from:
             kind: "ImageStreamTag"
-            name: "miq-images:${APPLICATION_IMG_TAG}"
+            name: "miq-app:${APPLICATION_IMG_TAG}"
     strategy:
       type: "Recreate"
       recreateParams:
@@ -199,7 +215,7 @@ objects:
             - "memcached"
           from:
             kind: "ImageStreamTag"
-            name: "miq-images:${MEMCACHED_IMG_TAG}"
+            name: "miq-memcached:${MEMCACHED_IMG_TAG}"
       -
         type: "ConfigChange"
     replicas: 1
@@ -275,7 +291,7 @@ objects:
             - "postgresql"
           from:
             kind: "ImageStreamTag"
-            name: "miq-images:${POSTGRESQL_IMG_TAG}"
+            name: "miq-postgresql:${POSTGRESQL_IMG_TAG}"
       -
         type: "ConfigChange"
     replicas: 1
@@ -424,8 +440,8 @@ parameters:
     description: "Maximum amount of memory the Memcached container can use."
     value: "256Mi"
   -
-    name: "IMAGES_REGISTRY"
-    displayName: "Images Registry Hostname"
+    name: "IMAGE_REGISTRY"
+    displayName: "Image Registry Hostname"
     description: "This is the hostname of the registry where images are stored."
     value: "docker.io"
   -
