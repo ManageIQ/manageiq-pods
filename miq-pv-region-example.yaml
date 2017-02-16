@@ -10,4 +10,4 @@ spec:
   nfs: 
     path: /exports/miq-pv02
     server: <your-nfs-host-here>
-  persistentVolumeReclaimPolicy: Recycle
+  persistentVolumeReclaimPolicy: Retain

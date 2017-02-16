@@ -9,7 +9,7 @@ This example gives a base template to deploy a multi-pod ManageIQ appliance with
 
 ###Prerequisites:
 
-* OpenShift 3.x
+* OpenShift Origin 1.3 or higher
 * NFS or other compatible volume provider
 * A cluster-admin user
 
@@ -19,7 +19,7 @@ In order to avoid random deployment failures due to resource starvation, we reco
 
 * 1 x Master node with at least 8 VCPUs and 12GB of RAM
 * 2 x Nodes with at least 4 VCPUs and 8GB of RAM
-* At least 20GB of storage for MIQ PV use
+* 25GB of storage for MIQ PV use
 
 Other sizing considerations: 
 
@@ -72,25 +72,38 @@ Users:					system:serviceaccount:openshift-infra:build-controller,system:service
 
 ###Make persistent volumes to host the MIQ database and application data
 
-An example NFS backed volume is provided by miq-pv-example.yaml (edit to match your settings), **please skip this step you have already configured persistent storage.**
+A basic (single server/replica) deployment needs at least 3 persistent volumes (PVs) to store MIQ data:
 
-For NFS backed volumes, please ensure your firewall is configured to allow traffic to the appropiate NFS shares.
+* Server   (Server specific appliance data)
+* Region   (Region appliance data)
+* Database (PostgreSQL)
 
-_**Note:**_ Recommended permissions for the pv-app (privileged pod volume) are 775, uid/gid 0 (root)
+Example NFS PV templates are provided, **please skip this step you have already configured persistent storage.**
+
+For NFS backed volumes, please ensure your NFS server firewall is configured to allow traffic on port 2049 (TCP) from the OpenShift cluster.
+
+_**Note:**_ Recommended permissions for the PV volumes are 775, root uid/gid owned.
 
 _**As admin:**_
 
+Please inspect example NFS PV files and edit settings to match your site. You will at a minimum need to configure the correct NFS server host and appropiate path.
+
+Create PV
 ```bash
-$ oc create -f miq-pv-example.yaml
-$ oc create -f miq-pv-app-example.yaml
+$ oc create -f miq-pv-db-example.yaml
+$ oc create -f miq-pv-region-example.yaml
+$ oc create -f miq-pv-server-example.yaml
 ```
-Verify pv creation
+Verify PV creation
 ```bash
 $ oc get pv
-NAME       CAPACITY   ACCESSMODES   STATUS      CLAIM     REASON    AGE
-miq-pv01   15Gi        RWO           Available                       24d
-miq-pv02   5Gi         RWO           Available                       24d
+NAME       CAPACITY   ACCESSMODES   RECLAIMPOLICY   STATUS      CLAIM  REASON   AGE
+miq-pv01   15Gi        RWO           Recycle         Available                   30s
+miq-pv02   5Gi         RWO           Recycle         Available                   19s
+miq-pv03   5Gi         RWO           Recycle         Available                   14s
 ```
+
+It is strongly suggested that you validate NFS share connectivity from an OpenShift node prior attemping a deployment.
 
 ###Increase maximum number of imported images on ImageStream
 
@@ -117,9 +130,8 @@ _**As basic user**_
 $ oc create -f templates/miq-template.yaml
 template "manageiq" created
 $ oc get templates
-NAME       DESCRIPTION                   PARAMETERS        OBJECTS
-manageiq   ManageIQ appliance template   18 (1 blank)      12
-
+NAME       DESCRIPTION                                  PARAMETERS     OBJECTS
+manageiq   ManageIQ appliance with persistent storage   23 (1 blank)   10
 ```
 
 The supplied template provides customizable deployment parameters, use _oc process_ to see available parameters and descriptions
@@ -145,9 +157,9 @@ List and obtain the name of the miq-app pod
 ```bash
 $ oc get pod
 NAME                 READY     STATUS    RESTARTS   AGE
-manageiq-1-fzwzm     1/1       Running   0          4m
-memcached-1-6iuxu    1/1       Running   0          4m
-postgresql-1-2kxc3   1/1       Running   0          4m
+manageiq-0           1/1       Running   0          2h
+memcached-1-mzeer    1/1       Running   0          3h
+postgresql-1-dufgp   1/1       Running   0          3h
 ```
 
 Export the configuration of the pod.
@@ -167,15 +179,17 @@ metadata:
 
 ```bash
 $ oc volume pods --all
-pods/postgresql-1-437jg
-  pvc/miq-pgdb-claim (allocated 2GiB) as miq-pgdb-volume
-    mounted at /var/lib/pgsql/data
-  secret/default-token-2se06 as default-token-2se06
-    mounted at /var/run/secrets/kubernetes.io/serviceaccount
-pods/manageiq-1-s3bnp
-  pvc/manageiq (allocated 2GiB) as miq-app-volume
+pods/manageiq-0
+  pvc/manageiq-server-manageiq-0 (allocated 2GiB) as manageiq-server
     mounted at /persistent
-  secret/default-token-9q4ge as default-token-9q4ge
+  pvc/manageiq-region (allocated 2GiB) as manageiq-region
+    mounted at /persistent-region
+  secret/default-token-nw0qi as default-token-nw0qi
+    mounted at /var/run/secrets/kubernetes.io/serviceaccount
+pods/postgresql-1-dufgp
+  pvc/manageiq-postgresql (allocated 2GiB) as miq-pgdb-volume
+    mounted at /var/lib/pgsql/data
+  secret/default-token-nw0qi as default-token-nw0qi
     mounted at /var/run/secrets/kubernetes.io/serviceaccount
 ```
 
@@ -199,17 +213,36 @@ Once you have successfully validated your MIQ deployment, disable automatic imag
 
 ```bash
 $ oc set triggers dc --manual -l app=manageiq
-deploymentconfig "manageiq" updated
 deploymentconfig "memcached" updated
 deploymentconfig "postgresql" updated
 
 $ oc set triggers dc --from-config --auto -l app=manageiq
-deploymentconfig "manageiq" updated
 deploymentconfig "memcached" updated
 deploymentconfig "postgresql" updated
 ```
 
 Please note the config change trigger is kept enabled, if you desire to have full control of your deployments you can alternatively turn it off.
+
+## Scale MIQ 
+
+We use PetSets (AKA StatefulSets) to allow scaling of MIQ appliances, before you attempt scaling please ensure you have enough PVs available to scale. Each new replica will consume a PV.
+
+Example scaling to 2 replicas/servers
+
+```bash 
+$ oc patch petset manageiq -p '{"spec":{"replicas":2}}'
+"manageiq" patched
+$ oc get pods
+NAME                 READY     STATUS    RESTARTS   AGE
+manageiq-0           1/1       Running   0          34m
+manageiq-1           1/1       Running   0          5m
+memcached-1-mzeer    1/1       Running   0          1h
+postgresql-1-dufgp   1/1       Running   0          1h
+```
+
+The newly created replicas will join the existing MIQ region. For a PetSet with N replicas, when Pods are being deployed, they are created sequentially, in order from {0..N-1}.
+
+_**Note:**_ As of Origin 1.4 PetSets are an alpha feature, be aware functionality might be limited.
 
 ##POD access and routes
 

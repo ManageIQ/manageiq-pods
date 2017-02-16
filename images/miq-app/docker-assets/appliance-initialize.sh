@@ -17,6 +17,9 @@ check_db_status
 # Check deployment status
 check_deployment_status
 
+# Check for new replica case
+check_if_new_replica
+
 # Select path of action based on DEPLOYMENT_STATUS value
 case "${DEPLOYMENT_STATUS}" in
   redeployment)
@@ -34,6 +37,14 @@ case "${DEPLOYMENT_STATUS}" in
   migrate_db
   run_hook post-upgrade
   write_deployment_info
+  ;;
+  new_replica)
+  echo "== Starting New Replica =="
+  setup_logs
+  setup_memcached
+  replica_join_region
+  sync_pv_data
+  restore_pv_data
   ;;
   new_deployment)
   echo "== Starting New Deployment =="
