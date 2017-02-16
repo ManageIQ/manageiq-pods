@@ -277,3 +277,39 @@ log/sync_pv_data_1477272010.log
 sent 72 bytes  received 1881 bytes  1302.00 bytes/sec
 total size is 1585  speedup is 0.81
 ```
+
+## Building Images on OpenShift
+It is possible to build the images from this repository (or any of other) using OpenShift:
+
+```bash
+$ oc -n <your-namespace> new-build --context-dir=images/miq-app https://github.com/ManageIQ/manageiq-pods#master
+```
+
+In addition it is also suggested to tweak the following `dockerStrategy` parameters to ensure fresh builds every time:
+
+```bash
+$ oc edit bc -n <your-namespace> manageiq-pods
+```
+
+```yaml
+strategy:
+  dockerStrategy:
+    forcePull: true
+    noCache: true
+```
+
+To execute new builds after the first (automatically started) you can execute:
+
+```bash
+$ oc start-build -n <your-namespace> manageiq-pods
+```
+
+To take advantage of the newly built image you should configure the following template parameters:
+
+```bash
+$ oc new-app --template=manageiq \
+  -n <your-namespace> \
+  -p APPLICATION_IMG_NAME=<your-docker-registry>:5000/<your-namespace>/manageiq-pods \
+  -p APPLICATION_IMG_TAG=latest \
+  ...
+```
