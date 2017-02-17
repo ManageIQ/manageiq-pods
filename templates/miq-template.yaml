@@ -48,7 +48,7 @@ objects:
     annotations:
       description: "Keeps track of the ManageIQ image changes"
   spec:
-    dockerImageRepository: "${IMAGE_REGISTRY}/${APPLICATION_IMG_NAME}"
+    dockerImageRepository: "${APPLICATION_IMG_NAME}"
 - apiVersion: v1
   kind: ImageStream
   metadata:
@@ -56,7 +56,7 @@ objects:
     annotations:
       description: "Keeps track of the PostgreSQL image changes"
   spec:
-    dockerImageRepository: "${IMAGE_REGISTRY}/${POSTGRESQL_IMG_NAME}"
+    dockerImageRepository: "${POSTGRESQL_IMG_NAME}"
 - apiVersion: v1
   kind: ImageStream
   metadata:
@@ -64,7 +64,7 @@ objects:
     annotations:
       description: "Keeps track of the Memcached image changes"
   spec:
-    dockerImageRepository: "${IMAGE_REGISTRY}/${MEMCACHED_IMG_NAME}"
+    dockerImageRepository: "${MEMCACHED_IMG_NAME}"
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
@@ -440,15 +440,10 @@ parameters:
     description: "Maximum amount of memory the Memcached container can use."
     value: "256Mi"
   -
-    name: "IMAGE_REGISTRY"
-    displayName: "Image Registry Hostname"
-    description: "This is the hostname of the registry where images are stored."
-    value: "docker.io"
-  -
     name: "POSTGRESQL_IMG_NAME"
     displayName: "PostgreSQL Image Name"
     description: "This is the PostgreSQL image name requested to deploy."
-    value: "manageiq/manageiq-pods"
+    value: "docker.io/manageiq/manageiq-pods"
   -
     name: "POSTGRESQL_IMG_TAG"
     displayName: "PostgreSQL Image Tag"
@@ -458,7 +453,7 @@ parameters:
     name: "MEMCACHED_IMG_NAME"
     displayName: "Memcached Image Name"
     description: "This is the Memcached image name requested to deploy."
-    value: "manageiq/manageiq-pods"
+    value: "docker.io/manageiq/manageiq-pods"
   -
     name: "MEMCACHED_IMG_TAG"
     displayName: "Memcached Image Tag"
@@ -468,7 +463,7 @@ parameters:
     name: "APPLICATION_IMG_NAME"
     displayName: "Application Image Name"
     description: "This is the Application image name requested to deploy."
-    value: "manageiq/manageiq-pods"
+    value: "docker.io/manageiq/manageiq-pods"
   -
     name: "APPLICATION_IMG_TAG"
     displayName: "Application Image Tag"
