@@ -59,11 +59,20 @@ if [[ -f ${APP_ROOT_PERSISTENT_VMDB}/config/database.yml && -f ${PV_DEPLOY_INFO_
     # Assuming redeployment (same APP_VERSION)
     DEPLOYMENT_STATUS=redeployment
   else
-  # Assuming upgrade (different APP_VERSION)
-  # Ensure APP_VERSION must be greater than stored PV_APP_VERSION on upgrades (exclude master)
+    # Handle special master case
+    # Master version remains static, check image latest tDB schema and proceed accordingly
 
-  [[ ${APP_VERSION} != master ]] && check_version_gt ${APP_VERSION} ${PV_APP_VERSION}
-  DEPLOYMENT_STATUS=upgrade
+    if [[ ${APP_VERSION} == master ]]; then
+       # Go for redeployment case unless image DB schema is newer than deployed
+       DEPLOYMENT_STATUS=redeployment
+       MASTER_IMG_SCHEMA_VERSION="$(cd ${APP_ROOT}/db/migrate && ls *.rb | awk -F '_' '{ print $1 }' | sort -n | tail -1)"
+       [[ ${MASTER_IMG_SCHEMA_VERSION} -gt ${SCHEMA_VERSION} ]] && DEPLOYMENT_STATUS=upgrade
+    else
+     # Assuming regular upgrade (different APP_VERSION)
+     # Ensure APP_VERSION must be greater than stored PV_APP_VERSION on upgrades
+        check_version_gt ${APP_VERSION} ${PV_APP_VERSION}
+        DEPLOYMENT_STATUS=upgrade
+    fi
   fi
 else
   echo "No pre-existing EVM configuration found on PV"
