@@ -15,18 +15,18 @@ This example gives a base template to deploy a multi-pod ManageIQ appliance with
 
 ###Cluster Sizing
 
-In order to avoid random deployment failures due to resource starvation, we recommend a minimum cluster sizing for a _prototype/test_ environment.
+In order to avoid random deployment failures due to resource starvation, we recommend a minimum cluster size for a **test** environment.
 
 * 1 x Master node with at least 8 VCPUs and 12GB of RAM
 * 2 x Nodes with at least 4 VCPUs and 8GB of RAM
 * 1 x NFS server with at least 10GB of space for PV use
 
-Other cluster sizing considerations : 
+Other sizing considerations: 
 
-* Sizing recommendations assume MIQ will be the only application running on this cluster.
+* Recommendations assume MIQ will be the only application running on this cluster.
 * Alternatively, you can provision an infrastructure node to run registry/metrics/router/logging pods.
 * Each MIQ application pod will consume at least 3GB of RAM on initial deployment (blank deployment without providers).
-* MIQ RAM consumption will ramp up higher depending on use, once providers are added expect higher resource consumption.
+* RAM consumption will ramp up higher depending on appliance use, once providers are added expect higher resource consumption.
 
 ###Installing
 
