@@ -60,13 +60,13 @@ if [[ -f ${APP_ROOT_PERSISTENT_VMDB}/config/database.yml && -f ${PV_DEPLOY_INFO_
     DEPLOYMENT_STATUS=redeployment
   else
     # Handle special master case
-    # Master version remains static, check image latest tDB schema and proceed accordingly
+    # Master version remains static, check DB schema status and proceed accordingly
 
     if [[ ${APP_VERSION} == master ]]; then
-       # Go for redeployment case unless image DB schema is newer than deployed
+       # Go for redeployment case unless rake task returns 1 (pending migrations)
        DEPLOYMENT_STATUS=redeployment
-       MASTER_IMG_SCHEMA_VERSION="$(cd ${APP_ROOT}/db/migrate && ls *.rb | awk -F '_' '{ print $1 }' | sort -n | tail -1)"
-       [[ ${MASTER_IMG_SCHEMA_VERSION} -gt ${SCHEMA_VERSION} ]] && DEPLOYMENT_STATUS=upgrade
+       cd ${APP_ROOT} && RAILS_USE_MEMORY_STORE=true bin/rake db:abort_if_pending_migrations
+       [ "$?" -eq "1" ] && DEPLOYMENT_STATUS=upgrade
     else
      # Assuming regular upgrade (different APP_VERSION)
      # Ensure APP_VERSION must be greater than stored PV_APP_VERSION on upgrades
