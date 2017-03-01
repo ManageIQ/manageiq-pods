@@ -59,11 +59,20 @@ if [[ -f ${APP_ROOT_PERSISTENT_VMDB}/config/database.yml && -f ${PV_DEPLOY_INFO_
     # Assuming redeployment (same APP_VERSION)
     DEPLOYMENT_STATUS=redeployment
   else
-  # Assuming upgrade (different APP_VERSION)
-  # Ensure APP_VERSION must be greater than stored PV_APP_VERSION on upgrades (exclude master)
+    # Handle special master case
+    # Master version remains static, check DB schema status and proceed accordingly
 
-  [[ ${APP_VERSION} != master ]] && check_version_gt ${APP_VERSION} ${PV_APP_VERSION}
-  DEPLOYMENT_STATUS=upgrade
+    if [[ ${APP_VERSION} == master ]]; then
+       # Go for redeployment case unless rake task returns 1 (pending migrations)
+       DEPLOYMENT_STATUS=redeployment
+       cd ${APP_ROOT} && RAILS_USE_MEMORY_STORE=true bin/rake db:abort_if_pending_migrations
+       [ "$?" -eq "1" ] && DEPLOYMENT_STATUS=upgrade
+    else
+     # Assuming regular upgrade (different APP_VERSION)
+     # Ensure APP_VERSION must be greater than stored PV_APP_VERSION on upgrades
+        check_version_gt ${APP_VERSION} ${PV_APP_VERSION}
+        DEPLOYMENT_STATUS=upgrade
+    fi
   fi
 else
   echo "No pre-existing EVM configuration found on PV"
