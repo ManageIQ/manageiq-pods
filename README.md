@@ -70,27 +70,37 @@ $ oc describe scc privileged | grep Users
 Users:					system:serviceaccount:openshift-infra:build-controller,system:serviceaccount:management-infra:management-admin,system:serviceaccount:management-infra:inspector-admin,system:serviceaccount:default:router,system:serviceaccount:default:registry,system:serviceaccount:<your-namespace>:default
 ```
 
-###Make persistent volumes to host the MIQ database and application data
+###Create persistent volumes (PVs) to host the MIQ database and application data
 
-An example NFS backed volume is provided by miq-pv-example.yaml (edit to match your settings), **please skip this step you have already configured persistent storage.**
+We need at least 3 persistent volumes to store MIQ data:
 
-For NFS backed volumes, please ensure your firewall is configured to allow traffic to the appropiate NFS shares.
+* Server   (Server specific appliance data)
+* Region   (Shared region appliance data)
+* Database (PostgreSQL)
 
-_**Note:**_ Recommended permissions for the pv-app (privileged pod volume) are 775, uid/gid 0 (root)
+Example NFS volume templates are provided (edit to match your site settings), **please skip this step you have already configured persistent storage.**
+
+For NFS backed volumes, please ensure your NFS server firewall is configured to allow traffic on port 2049 (TCP) from the OpenShift cluster.
+
+_**Note:**_ Recommended permissions for the PV volumes are 775, root uid/gid owned.
 
 _**As admin:**_
 
 ```bash
-$ oc create -f miq-pv-example.yaml
-$ oc create -f miq-pv-app-example.yaml
+$ oc create -f miq-pv-db-example.yaml
+$ oc create -f miq-pv-region-example.yaml
+$ oc create -f miq-pv-server-example.yaml
 ```
-Verify pv creation
+Verify PV creation
 ```bash
 $ oc get pv
-NAME       CAPACITY   ACCESSMODES   STATUS      CLAIM     REASON    AGE
-manageiq   2Gi        RWO           Available                       24d
-postgresql 2Gi        RWO           Available                       24d
+NAME       CAPACITY   ACCESSMODES   RECLAIMPOLICY   STATUS      CLAIM  REASON   AGE
+miq-pv01   2Gi        RWO           Recycle         Available                   30s
+miq-pv02   2Gi        RWO           Recycle         Available                   19s
+miq-pv03   2Gi        RWO           Recycle         Available                   14s
 ```
+
+It is strongly suggested that you validate NFS share connectivity from an OpenShift node prior attemping a deployment.
 
 ###Increase maximum number of imported images on ImageStream
 
@@ -167,15 +177,17 @@ metadata:
 
 ```bash
 $ oc volume pods --all
-pods/postgresql-1-437jg
-  pvc/miq-pgdb-claim (allocated 2GiB) as miq-pgdb-volume
-    mounted at /var/lib/pgsql/data
-  secret/default-token-2se06 as default-token-2se06
-    mounted at /var/run/secrets/kubernetes.io/serviceaccount
-pods/manageiq-1-s3bnp
-  pvc/manageiq (allocated 2GiB) as miq-app-volume
+pods/manageiq-1-of9nl
+  pvc/manageiq-server (allocated 2GiB) as miq-app-volume-server
     mounted at /persistent
-  secret/default-token-9q4ge as default-token-9q4ge
+  pvc/manageiq-region (allocated 2GiB) as miq-app-volume-region
+    mounted at /persistent-region
+  secret/default-token-nw0qi as default-token-nw0qi
+    mounted at /var/run/secrets/kubernetes.io/serviceaccount
+pods/postgresql-1-3fltn
+  pvc/manageiq-postgresql (allocated 2GiB) as miq-pgdb-volume
+    mounted at /var/lib/pgsql/data
+  secret/default-token-nw0qi as default-token-nw0qi
     mounted at /var/run/secrets/kubernetes.io/serviceaccount
 ```
 

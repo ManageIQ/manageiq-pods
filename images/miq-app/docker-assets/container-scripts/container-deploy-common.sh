@@ -5,17 +5,20 @@
 # This file is created by the write_deployment_info during initial deployment
 PV_DEPLOY_INFO_FILE="${APP_ROOT_PERSISTENT}/.deployment_info"
 
-# This directory is used to store application data to be persisted
+# This directory is used to store server specific data to be persisted
 PV_CONTAINER_DATA_DIR="${APP_ROOT_PERSISTENT}/container-data"
 
-# This directory is used to store container deployment data (logs,backups,etc)
+# This directory is used to store server specific container deployment data (logs,backups,etc)
 PV_CONTAINER_DEPLOY_DIR="${APP_ROOT_PERSISTENT}/container-deploy"
 
-# This directory is used to store initialization logfiles on PV
+# This directory is used to store server specific initialization logfiles on PV
 PV_LOG_DIR="${PV_CONTAINER_DEPLOY_DIR}/log"
 
-# Directory used to backup PV data before performing an upgrade
+# Directory used to backup server specific PV data before performing an upgrade
 PV_BACKUP_DIR="${PV_CONTAINER_DEPLOY_DIR}/backup"
+
+# This directory is used to store shared region application data to be persisted (database.yml, keys, etc)
+PV_CONTAINER_DATA_REGION_DIR="${APP_ROOT_PERSISTENT_REGION}/container-data"
 
 # This file is supplied by the app docker image with default files/dirs to persist on PV
 CONTAINER_DATA_PERSIST_FILE="/container.data.persist"
@@ -26,8 +29,8 @@ PV_DATA_PERSIST_FILE="${APP_ROOT_PERSISTENT}/container.data.persist"
 # Set log timestamp for running instance
 PV_LOG_TIMESTAMP="$(date +%s)"
 
-# VMDB app_root directory inside persistent volume mount
-APP_ROOT_PERSISTENT_VMDB="${PV_CONTAINER_DATA_DIR}/var/www/miq/vmdb"
+# VMDB shared REGION app_root directory on PV
+PV_REGION_VMDB="${PV_CONTAINER_DATA_REGION_DIR}/var/www/miq/vmdb"
 
 function check_deployment_status() {
 # Description
@@ -37,12 +40,12 @@ function check_deployment_status() {
 
 echo "== Checking deployment status =="
 
-if [[ -f ${APP_ROOT_PERSISTENT_VMDB}/config/database.yml && -f ${PV_DEPLOY_INFO_FILE} ]]; then
+if [[ -f ${PV_REGION_VMDB}/config/database.yml && -f ${PV_DEPLOY_INFO_FILE} ]]; then
   echo "== Found existing deployment configuration =="
   echo "== Restoring existing database configuration =="
-  ln --backup -sn ${APP_ROOT_PERSISTENT_VMDB}/config/database.yml ${APP_ROOT}/config/database.yml
-  [[ ! -f ${APP_ROOT_PERSISTENT_VMDB}/certs/v2_key ]] && echo "ERROR: Could not find ${APP_ROOT_PERSISTENT_VMDB}/certs/v2_key on upgrade/redeploy case, aborting.." && exit 1
-  ln --backup -sn ${APP_ROOT_PERSISTENT_VMDB}/certs/v2_key ${APP_ROOT}/certs/v2_key
+  ln --backup -sn ${PV_REGION_VMDB}/config/database.yml ${APP_ROOT}/config/database.yml
+  [[ ! -f ${PV_REGION_VMDB}/certs/v2_key ]] && echo "ERROR: Could not find ${PV_REGION_VMDB}/certs/v2_key on upgrade/redeploy case, aborting.." && exit 1
+  ln --backup -sn ${PV_REGION_VMDB}/certs/v2_key ${APP_ROOT}/certs/v2_key
   # Source original deployment info variables from PV
   source ${PV_DEPLOY_INFO_FILE}
   # Obtain current running environment
@@ -269,6 +272,14 @@ rsync -qavL --files-from="${PV_DATA_PERSIST_FILE}" / "${PV_CONTAINER_DATA_DIR}"
 # Catch non-zero return value and print warning
 
 [ "$?" -ne "0" ] && echo "WARNING: Some files might not have been copied please check logs at ${PV_DATA_SYNC_LOG}"
+
+# Make database.yml, DB keys and region file are available on shared PV, rsync will create directory structure
+
+[ ! -f "${PV_REGION_VMDB}/config/database.yml" ] && rsync -qavR "${APP_ROOT}/config/database.yml" "${PV_CONTAINER_DATA_REGION_DIR}"
+[ ! -f "${PV_REGION_VMDB}/certs/v2_key" ] && rsync -qavR "${APP_ROOT}/certs/v2_key" "${PV_CONTAINER_DATA_REGION_DIR}"
+[ ! -f "${PV_REGION_VMDB}/REGION" ] && rsync -qavR "${APP_ROOT}/REGION" "${PV_CONTAINER_DATA_REGION_DIR}"
+
+
 ) 2>&1 | tee "${PV_DATA_SYNC_LOG}"
 
 }
@@ -286,6 +297,12 @@ echo "== Restoring PV data symlinks =="
 # Ensure PV_DATA_PERSIST_FILE is present, it should be if prepare_init_env_data was executed
 
 [ ! -f "${PV_DATA_PERSIST_FILE}" ] && echo "ERROR: Something seems wrong, ${PV_DATA_PERSIST_FILE} was not found" && exit 1
+
+# Ensure we always restore DB config and keys from region PV before processing PV_DATA_PERSIST_FILE, sync_pv_data populates these files
+
+ln --backup -sn "${PV_REGION_VMDB}/config/database.yml" "${APP_ROOT}/config/database.yml"
+ln --backup -sn "${PV_REGION_VMDB}/certs/v2_key" "${APP_ROOT}/certs/v2_key"
+ln --backup -sn "${PV_REGION_VMDB}/REGION" "${APP_ROOT}/REGION"
 
 while read -r FILE
 do

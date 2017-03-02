@@ -68,7 +68,7 @@ objects:
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
-    name: ${DATABASE_SERVICE_NAME}
+    name: ${NAME}-${DATABASE_SERVICE_NAME}
   spec:
     accessModes:
       - ReadWriteOnce
@@ -78,13 +78,23 @@ objects:
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
-    name: ${NAME}
+    name: ${NAME}-server
   spec:
     accessModes:
       - ReadWriteOnce
     resources:
       requests:
         storage: ${APPLICATION_VOLUME_CAPACITY}
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: ${NAME}-region
+  spec:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${APPLICATION_REGION_VOLUME_CAPACITY}
 - apiVersion: v1
   kind: "DeploymentConfig"
   metadata:
@@ -100,9 +110,13 @@ objects:
       spec:
         volumes:
           -
-            name: "miq-app-volume"
+            name: "miq-app-volume-server"
             persistentVolumeClaim:
-              claimName: ${NAME}
+              claimName: ${NAME}-server
+          -
+            name: "miq-app-volume-region"
+            persistentVolumeClaim:
+              claimName: ${NAME}-region
         containers:
         - image: "${APPLICATION_IMG_NAME}:${APPLICATION_IMG_TAG}"
           imagePullPolicy: IfNotPresent
@@ -128,8 +142,11 @@ objects:
             privileged: true
           volumeMounts:
               -
-                name: "miq-app-volume"
+                name: "miq-app-volume-server"
                 mountPath: "/persistent"
+              -
+                name: "miq-app-volume-region"
+                mountPath: "/persistent-region"
           env:
             -
               name: "APPLICATION_INIT_DELAY"
@@ -307,7 +324,7 @@ objects:
           -
             name: "miq-pgdb-volume"
             persistentVolumeClaim:
-              claimName: ${DATABASE_SERVICE_NAME}
+              claimName: ${NAME}-${DATABASE_SERVICE_NAME}
         containers:
           -
             name: "postgresql"
@@ -484,7 +501,13 @@ parameters:
     name: "APPLICATION_VOLUME_CAPACITY"
     displayName: "Application Volume Capacity"
     required: true
-    description: "Volume space available for application data."
+    description: "Volume space available for server application data."
+    value: "1Gi"
+  -
+    name: "APPLICATION_REGION_VOLUME_CAPACITY"
+    displayName: "Application Region Volume Capacity"
+    required: true
+    description: "Volume space available for region application data."
     value: "1Gi"
   -
     name: "DATABASE_VOLUME_CAPACITY"
