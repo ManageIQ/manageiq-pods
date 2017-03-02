@@ -453,7 +453,7 @@ parameters:
     displayName: "Application Min RAM Requested"
     required: true
     description: "Minimum amount of memory the Application container will need."
-    value: "4096Mi"
+    value: "6144Mi"
   -
     name: "POSTGRESQL_MEM_REQ"
     displayName: "PostgreSQL Min RAM Requested"
@@ -471,13 +471,13 @@ parameters:
     displayName: "Application Max RAM Limit"
     required: true
     description: "Maximum amount of memory the Application container can consume."
-    value: "8192Mi"
+    value: "16384Mi"
   -
     name: "POSTGRESQL_MEM_LIMIT"
     displayName: "PostgreSQL Max RAM Limit"
     required: true
     description: "Maximum amount of memory the PostgreSQL container can consume."
-    value: "2048Mi"
+    value: "8192Mi"
   -
     name: "MEMCACHED_MEM_LIMIT"
     displayName: "Memcached Max RAM Limit"
