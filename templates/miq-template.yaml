@@ -160,7 +160,10 @@ objects:
               value: "${POSTGRESQL_SHARED_BUFFERS}"
           resources:
             requests:
-              memory: "${MEMORY_APPLICATION_MIN}"
+              memory: "${APPLICATION_MEM_REQ}"
+              cpu: "${APPLICATION_CPU_REQ}"
+            limits:
+              memory: "${APPLICATION_MEM_LIMIT}"
           lifecycle:
             preStop:
               exec:
@@ -257,8 +260,11 @@ objects:
                 name: "MEMCACHED_SLAB_PAGE_SIZE"
                 value: "${MEMCACHED_SLAB_PAGE_SIZE}"
             resources:
+              requests:
+                memory: "${MEMCACHED_MEM_REQ}"
+                cpu: "${MEMCACHED_CPU_REQ}"
               limits:
-                memory: "${MEMORY_MEMCACHED_LIMIT}"
+                memory: "${MEMCACHED_MEM_LIMIT}"
 - apiVersion: v1
   kind: "Service"
   metadata:
@@ -350,8 +356,11 @@ objects:
                 name: "POSTGRESQL_SHARED_BUFFERS"
                 value: "${POSTGRESQL_SHARED_BUFFERS}"
             resources:
+              requests:
+                memory: "${POSTGRESQL_MEM_REQ}"
+                cpu: "${POSTGRESQL_CPU_REQ}"
               limits:
-                memory: "${MEMORY_POSTGRESQL_LIMIT}"
+                memory: "${POSTGRESQL_MEM_LIMIT}"
 
 parameters:
   -
@@ -420,24 +429,60 @@ parameters:
     name: "POSTGRESQL_SHARED_BUFFERS"
     displayName: "PostgreSQL Shared Buffer Amount"
     description: "Amount of memory dedicated for PostgreSQL shared memory buffers."
-    value: "64MB"
+    value: "256MB"
   -
-    name: "MEMORY_APPLICATION_MIN"
-    displayName: "Application Memory Minimum"
+    name: "APPLICATION_CPU_REQ"
+    displayName: "Application Min CPU Requested"
+    required: true
+    description: "Minimum amount of CPU time the Application container will need (expressed in millicores)."
+    value: "1000m"
+  -
+    name: "POSTGRESQL_CPU_REQ"
+    displayName: "PostgreSQL Min CPU Requested"
+    required: true
+    description: "Minimum amount of CPU time the PostgreSQL container will need (expressed in millicores)."
+    value: "500m"
+  -
+    name: "MEMCACHED_CPU_REQ"
+    displayName: "Memcached Min CPU Requested"
+    required: true
+    description: "Minimum amount of CPU time the Memcached container will need (expressed in millicores)."
+    value: "200m"
+  -
+    name: "APPLICATION_MEM_REQ"
+    displayName: "Application Min RAM Requested"
     required: true
     description: "Minimum amount of memory the Application container will need."
-    value: "4096Mi"
+    value: "6144Mi"
   -
-    name: "MEMORY_POSTGRESQL_LIMIT"
-    displayName: "PostgreSQL Memory Limit"
+    name: "POSTGRESQL_MEM_REQ"
+    displayName: "PostgreSQL Min RAM Requested"
     required: true
-    description: "Maximum amount of memory the PostgreSQL container can use."
-    value: "2048Mi"
+    description: "Minimum amount of memory the PostgreSQL container will need."
+    value: "1024Mi"
   -
-    name: "MEMORY_MEMCACHED_LIMIT"
-    displayName: "Memcached Memory Limit"
+    name: "MEMCACHED_MEM_REQ"
+    displayName: "Memcached Min RAM Requested"
     required: true
-    description: "Maximum amount of memory the Memcached container can use."
+    description: "Minimum amount of memory the Memcached container will need."
+    value: "64Mi"
+  -
+    name: "APPLICATION_MEM_LIMIT"
+    displayName: "Application Max RAM Limit"
+    required: true
+    description: "Maximum amount of memory the Application container can consume."
+    value: "16384Mi"
+  -
+    name: "POSTGRESQL_MEM_LIMIT"
+    displayName: "PostgreSQL Max RAM Limit"
+    required: true
+    description: "Maximum amount of memory the PostgreSQL container can consume."
+    value: "8192Mi"
+  -
+    name: "MEMCACHED_MEM_LIMIT"
+    displayName: "Memcached Max RAM Limit"
+    required: true
+    description: "Maximum amount of memory the Memcached container can consume."
     value: "256Mi"
   -
     name: "POSTGRESQL_IMG_NAME"
