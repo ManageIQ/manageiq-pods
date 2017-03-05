@@ -254,12 +254,13 @@ cd ${APP_ROOT} && bin/rake db:migrate
 
 }
 
-function sync_pv_data() {
+function init_pv_data() {
 # Description
 # Process PV_DATA_PERSIST_FILE which contains the desired files/dirs to store on PV
 # Use rsync to transfer files/dirs, log output and check return status
+# Ensure we always store an initial data backup on PV
 
-PV_DATA_SYNC_LOG="${PV_LOG_DIR}/sync_pv_data_${PV_LOG_TIMESTAMP}.log"
+PV_DATA_INIT_LOG="${PV_LOG_DIR}/init_pv_data_${PV_LOG_TIMESTAMP}.log"
 
 (
 echo "== Initializing PV data =="
@@ -268,8 +269,11 @@ rsync -qavL --files-from="${PV_DATA_PERSIST_FILE}" / "${PV_CONTAINER_DATA_DIR}"
 
 # Catch non-zero return value and print warning
 
-[ "$?" -ne "0" ] && echo "WARNING: Some files might not have been copied please check logs at ${PV_DATA_SYNC_LOG}"
-) 2>&1 | tee "${PV_DATA_SYNC_LOG}"
+[ "$?" -ne "0" ] && echo "WARNING: Some files might not have been copied please check logs at ${PV_DATA_INIT_LOG}"
+
+backup_pv_data
+
+) 2>&1 | tee "${PV_DATA_INIT_LOG}"
 
 }
 
@@ -310,6 +314,7 @@ done < "${PV_DATA_PERSIST_FILE}"
 function backup_pv_data() {
 # Description
 # Backup existing PV data before initiating an upgrade procedure
+# Exclude EVM server logs
 
 PV_DATA_BACKUP_LOG="${PV_LOG_DIR}/backup_pv_data_${PV_LOG_TIMESTAMP}.log"
 PV_BACKUP_TIMESTAMP="$(date +%Y_%m_%d_%H%M%S)"
@@ -317,10 +322,30 @@ PV_BACKUP_TIMESTAMP="$(date +%Y_%m_%d_%H%M%S)"
 (
 echo "== Initializing PV data backup =="
 
-rsync -qav "${PV_CONTAINER_DATA_DIR}" "${PV_BACKUP_DIR}/backup_${PV_BACKUP_TIMESTAMP}"
+rsync -qav --exclude 'log' "${PV_CONTAINER_DATA_DIR}" "${PV_BACKUP_DIR}/backup_${PV_BACKUP_TIMESTAMP}"
 
 [ "$?" -ne "0" ] && echo "WARNING: Some files might not have been copied please check logs at ${PV_DATA_BACKUP_LOG}"
 
 ) 2>&1 | tee "${PV_DATA_BACKUP_LOG}"
+
+}
+
+function sync_pv_data() {
+# Description
+# Process data persist file and sync data back to PV
+# Skip essential files that should never be synced back after region initialization
+
+PV_DATA_SYNC_LOG="${PV_LOG_DIR}/sync_pv_data_${PV_LOG_TIMESTAMP}.log"
+
+(
+echo "== Syncing PV data =="
+
+rsync -avL --exclude 'v2_key' --exclude 'database.yml' --exclude 'REGION' --files-from="${PV_DATA_PERSIST_FILE}" / "${PV_CONTAINER_DATA_DIR}"
+
+# Catch non-zero return value and print warning
+
+[ "$?" -ne "0" ] && echo "WARNING: Some files might not have been copied please check logs at ${PV_DATA_SYNC_LOG}"
+
+) 2>&1 | tee "${PV_DATA_SYNC_LOG}"
 
 }

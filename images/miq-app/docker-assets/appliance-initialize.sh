@@ -46,8 +46,8 @@ case "${DEPLOYMENT_STATUS}" in
   # Run appliance_console_cli to init appliance
   init_appliance
 
-  # Sync persistent data from application rootdir on PV
-  sync_pv_data
+  # Init persistent data from application rootdir on PV
+  init_pv_data
 
   # Restore symlinks from PV to application rootdir
   restore_pv_data
