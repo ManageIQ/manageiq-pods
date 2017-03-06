@@ -530,10 +530,10 @@ parameters:
     displayName: "Application Volume Capacity"
     required: true
     description: "Volume space available for application data."
-    value: "1Gi"
+    value: "5Gi"
   -
     name: "DATABASE_VOLUME_CAPACITY"
     displayName: "Database Volume Capacity"
     required: true
     description: "Volume space available for database."
-    value: "1Gi"
+    value: "15Gi"

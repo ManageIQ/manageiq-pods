@@ -19,7 +19,7 @@ In order to avoid random deployment failures due to resource starvation, we reco
 
 * 1 x Master node with at least 8 VCPUs and 12GB of RAM
 * 2 x Nodes with at least 4 VCPUs and 8GB of RAM
-* 1 x NFS server with at least 10GB of space for PV use
+* At least 20GB of storage for MIQ PV use
 
 Other sizing considerations: 
 
@@ -88,8 +88,8 @@ Verify pv creation
 ```bash
 $ oc get pv
 NAME       CAPACITY   ACCESSMODES   STATUS      CLAIM     REASON    AGE
-manageiq   2Gi        RWO           Available                       24d
-postgresql 2Gi        RWO           Available                       24d
+miq-pv01   15Gi        RWO           Available                       24d
+miq-pv02   5Gi         RWO           Available                       24d
 ```
 
 ###Increase maximum number of imported images on ImageStream
