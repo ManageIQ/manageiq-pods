@@ -55,6 +55,8 @@ RUN yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.n
                    lvm2                    \
                    openldap-clients        \
                    gdbm-devel              \
+                   cronie                  \
+                   logrotate               \
                    &&                      \
     yum clean all
 
@@ -147,7 +149,7 @@ ADD  docker-assets/container-scripts ${CONTAINER_SCRIPTS_ROOT}
 RUN ln -s /var/www/miq/vmdb/docker-assets/docker_initdb /usr/bin
 
 ## Enable services on systemd
-RUN systemctl enable appliance-initialize evmserverd evminit evm-watchdog miqvmstat miqtop
+RUN systemctl enable appliance-initialize evmserverd evminit evm-watchdog miqvmstat miqtop crond
 
 ## Expose required container ports
 EXPOSE 80 443
