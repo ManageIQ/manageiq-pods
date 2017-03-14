@@ -303,8 +303,6 @@ rsync -qavL --exclude 'v2_key' --exclude 'database.yml' --exclude 'REGION' --fil
 [ ! -f "${PV_REGION_VMDB}/certs/v2_key" ] && rsync -qavR "${APP_ROOT}/certs/v2_key" "${PV_CONTAINER_DATA_REGION_DIR}"
 [ ! -f "${PV_REGION_VMDB}/REGION" ] && rsync -qavR "${APP_ROOT}/REGION" "${PV_CONTAINER_DATA_REGION_DIR}"
 
-backup_pv_data
-
 ) 2>&1 | tee "${PV_DATA_INIT_LOG}"
 
 }
@@ -360,7 +358,7 @@ PV_BACKUP_TIMESTAMP="$(date +%Y_%m_%d_%H%M%S)"
 (
 echo "== Initializing PV data backup =="
 
-rsync -qav --exclude 'log' "${PV_CONTAINER_DATA_DIR}" "${PV_BACKUP_DIR}/backup_${PV_BACKUP_TIMESTAMP}"
+rsync -av --exclude 'log' "${PV_CONTAINER_DATA_DIR}" "${PV_CONTAINER_DATA_REGION_DIR}" "${PV_BACKUP_DIR}/backup_${PV_BACKUP_TIMESTAMP}"
 
 [ "$?" -ne "0" ] && echo "WARNING: Some files might not have been copied please check logs at ${PV_DATA_BACKUP_LOG}"
 

@@ -60,6 +60,9 @@ case "${DEPLOYMENT_STATUS}" in
   # Init persistent data from application rootdir on PV
   init_pv_data
 
+  # Make initial backup
+  backup_pv_data
+
   # Restore symlinks from PV to application rootdir
   restore_pv_data
 
