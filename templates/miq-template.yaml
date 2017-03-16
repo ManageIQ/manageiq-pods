@@ -108,15 +108,15 @@ objects:
           imagePullPolicy: IfNotPresent
           name: manageiq
           livenessProbe:
-            httpGet:
-              path: /
-              port: 80
+            tcpSocket:
+              port: 443
             initialDelaySeconds: 480
             timeoutSeconds: 3
           readinessProbe:
             httpGet:
               path: /
-              port: 80
+              port: 443
+              scheme: HTTPS
             initialDelaySeconds: 200
             timeoutSeconds: 3
           ports:
