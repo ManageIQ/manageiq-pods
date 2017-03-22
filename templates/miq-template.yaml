@@ -527,7 +527,7 @@ parameters:
     displayName: "Application Init Delay"
     required: true
     description: "Delay in seconds before we attempt to initialize the application."
-    value: "30"
+    value: "15"
   -
     name: "APPLICATION_VOLUME_CAPACITY"
     displayName: "Application Volume Capacity"
