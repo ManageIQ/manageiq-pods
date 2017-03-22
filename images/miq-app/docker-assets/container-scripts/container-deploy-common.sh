@@ -84,20 +84,24 @@ fi
 
 }
 
-function check_db_status() {
-# Check if database pod is accepting connections
+function check_svc_status() {
+# Description
+# Check service status, requires two arguments: SVC name and SVC port (injected via template)
 
-echo "== Checking DB status =="
+NCAT="$(which ncat)"
+local SVC_NAME=$1 SVC_PORT=$2
 
-PG_ISREADY="$(which pg_isready)"
+[[ $# -lt 2 ]] && echo "Error something seems wrong, we need at least two parameters to check service status" && exit 1
 
-[[ ! -x ${PG_ISREADY} ]] && echo "ERROR: Could not find pg_isready executable, aborting.." && exit 1
+echo "== Checking ${SVC_NAME}:$SVC_PORT status =="
+
+[[ ! -x ${NCAT} ]] && echo "ERROR: Could not find ncat executable, aborting.." && exit 1
 
 while true; do
-  ${PG_ISREADY} -h ${DATABASE_SERVICE_NAME} && break
+  ${NCAT} ${SVC_NAME} ${SVC_PORT} < /dev/null && break
   sleep 5
 done
-
+echo "${SVC_NAME}:${SVC_PORT} - accepting connections"
 }
 
 function check_version_gt() { 

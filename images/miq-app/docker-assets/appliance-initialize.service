@@ -3,7 +3,7 @@ Description=Initialize Appliance Database
 After=evminit.service
 Before=evmserverd.service
 [Service]
-TimeoutStartSec=5m
+TimeoutStartSec=10m
 Type=oneshot
 EnvironmentFile=/container.env.vars
 ExecStart=/bin/appliance-initialize.sh

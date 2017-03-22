@@ -11,8 +11,11 @@ sleep "${APPLICATION_INIT_DELAY}"
 # Prepare initialization environment
 prepare_init_env
 
+# Check Memcached readiness
+check_svc_status ${MEMCACHED_SERVICE_NAME} 11211
+
 # Check DB readiness
-check_db_status
+check_svc_status ${DATABASE_SERVICE_NAME} 5432
 
 # Check deployment status
 check_deployment_status
