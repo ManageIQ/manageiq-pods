@@ -235,7 +235,7 @@ echo "== Applying memcached config =="
 
 sed -i~ -E "s/:memcache_server:.*/:memcache_server: ${MEMCACHED_SERVICE_NAME}:11211/gi" "${APP_ROOT}/config/settings.yml"
 
-[ "$?" -ne "0" ] && echo "ERROR: Failed to apply memcached configuration, please check journal or PV logs" && exit 1
+[ "$?" -eq "0" ] && return 0 || echo "ERROR: Failed to apply memcached configuration, please check journal or PV logs" && exit 1
 
 }
 
