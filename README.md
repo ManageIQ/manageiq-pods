@@ -3,17 +3,17 @@
 [![Join the chat at https://gitter.im/ManageIQ/manageiq-pods](https://badges.gitter.im/ManageIQ/manageiq-pods.svg)](https://gitter.im/ManageIQ/manageiq-pods?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 **This guide will demo deploying ManageIQ in OpenShift as its example use-case but this method could actually be used in a different container cluster environment**
 
-##Purpose
+## Purpose
 
 This example gives a base template to deploy a multi-pod ManageIQ appliance with the DB stored in a persistent volume on OpenShift. It provides a step-by-step setup including cluster administrative tasks as well as basic user information and commands. The ultimate goal of the project is to be able to decompose the ManageIQ appliance into several containers running on a pod or a series of pods.
 
-###Prerequisites:
+### Prerequisites:
 
 * OpenShift Origin 1.3 or higher
 * NFS or other compatible volume provider
 * A cluster-admin user
 
-###Cluster Sizing
+### Cluster Sizing
 
 In order to avoid random deployment failures due to resource starvation, we recommend a minimum cluster size for a **test** environment.
 
@@ -28,11 +28,11 @@ Other sizing considerations:
 * Each MIQ application pod will consume at least 3GB of RAM on initial deployment (blank deployment without providers).
 * RAM consumption will ramp up higher depending on appliance use, once providers are added expect higher resource consumption.
 
-###Installing
+### Installing
 
 `$ git clone https://github.com/ManageIQ/manageiq-pods.git`
 
-###Pre-deployment preparation tasks
+### Pre-deployment preparation tasks
 
 _**As basic user**_
 
@@ -70,7 +70,7 @@ $ oc describe scc privileged | grep Users
 Users:					system:serviceaccount:openshift-infra:build-controller,system:serviceaccount:management-infra:management-admin,system:serviceaccount:management-infra:inspector-admin,system:serviceaccount:default:router,system:serviceaccount:default:registry,system:serviceaccount:<your-namespace>:default
 ```
 
-###Make persistent volumes to host the MIQ database and application data
+### Make persistent volumes to host the MIQ database and application data
 
 A basic (single server/replica) deployment needs at least 3 persistent volumes (PVs) to store MIQ data:
 
@@ -105,7 +105,7 @@ miq-pv03   5Gi         RWO           Recycle         Available                  
 
 It is strongly suggested that you validate NFS share connectivity from an OpenShift node prior attemping a deployment.
 
-###Increase maximum number of imported images on ImageStream
+### Increase maximum number of imported images on ImageStream
 
 By default OpenShift will import 5 images per ImageStream, we build and use more than 5 images in our repos for MIQ deployments.
 
@@ -146,11 +146,11 @@ Deploy MIQ from template using customized settings
 
 `$ oc new-app --template=manageiq -p DATABASE_VOLUME_CAPACITY=2Gi,MEMORY_POSTGRESQL_LIMIT=4Gi`
 
-##Verifying the setup was successful
+## Verifying the setup was successful
 
 _**Note:**_ The first deployment could take several minutes as OpenShift is downloading the necessary images.
 
-###Confirm the MIQ pod is bound to the correct SCC
+### Confirm the MIQ pod is bound to the correct SCC
 
 List and obtain the name of the miq-app pod
 
@@ -175,7 +175,7 @@ metadata:
     openshift.io/scc: privileged
 ...
 ```
-###Verify the persistent volumes are attached to postgresql and miq-app pods
+### Verify the persistent volumes are attached to postgresql and miq-app pods
 
 ```bash
 $ oc volume pods --all
@@ -193,7 +193,7 @@ pods/postgresql-1-dufgp
     mounted at /var/run/secrets/kubernetes.io/serviceaccount
 ```
 
-###Check readiness of the MIQ pod
+### Check readiness of the MIQ pod
 
 _**Note:**_ Please allow ~5 minutes once pods are in Running state for MIQ to start responding on HTTPS
 
@@ -206,7 +206,7 @@ Conditions:
 Volumes:
 ...
 ```
-###Disable Image Change Triggers
+### Disable Image Change Triggers
 By default on initial deployments the automatic image change trigger is enabled, this could potentially start an unintended upgrade on a deployment if a newer image was found in the IS.
 
 Once you have successfully validated your MIQ deployment, disable automatic image change triggers for MIQ DCs on project.
@@ -244,13 +244,13 @@ The newly created replicas will join the existing MIQ region. For a PetSet with 
 
 _**Note:**_ As of Origin 1.4 PetSets are an alpha feature, be aware functionality might be limited.
 
-##POD access and routes
+## POD access and routes
 
-###Get a shell on the MIQ pod
+### Get a shell on the MIQ pod
 
 `$ oc rsh <pod_name> bash -l`
 
-###Obtain host information from route
+### Obtain host information from route
 A route should have been deployed via template for HTTPS access on the MIQ pod
 
 ```bash
