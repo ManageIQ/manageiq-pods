@@ -29,7 +29,6 @@ case "${DEPLOYMENT_STATUS}" in
   echo "== Starting Re-deployment =="
   restore_pv_data
   setup_memcached
-  migrate_db
   ;;
   upgrade)
   echo "== Starting Upgrade =="
