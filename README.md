@@ -90,9 +90,9 @@ Please inspect example NFS PV files and edit settings to match your site. You wi
 
 Create PV
 ```bash
-$ oc create -f miq-pv-db-example.yaml
-$ oc create -f miq-pv-region-example.yaml
-$ oc create -f miq-pv-server-example.yaml
+$ oc create -f templates/miq-pv-db-example.yaml
+$ oc create -f templates/miq-pv-region-example.yaml
+$ oc create -f templates/miq-pv-server-example.yaml
 ```
 Verify PV creation
 ```bash
