@@ -1,19 +1,34 @@
 FROM centos:7
-ENV container docker
 MAINTAINER ManageIQ https://github.com/ManageIQ/manageiq-appliance-build
+
+## Set build ARGs
 ARG REF=master
 
-# Set ENV, LANG only needed if building with docker-1.8
-ENV LANG en_US.UTF-8
-ENV TERM xterm
-ENV RUBY_GEMS_ROOT /opt/rubies/ruby-2.3.1/lib/ruby/gems/2.3.0
-ENV APP_ROOT /var/www/miq/vmdb
-ENV APP_ROOT_PERSISTENT /persistent
-ENV APP_ROOT_PERSISTENT_REGION /persistent-region
-ENV APPLIANCE_ROOT /opt/manageiq/manageiq-appliance
-ENV SUI_ROOT /opt/manageiq/manageiq-ui-service
-ENV CONTAINER_SCRIPTS_ROOT /opt/manageiq/container-scripts
-ENV IMAGE_VERSION ${REF}
+## Set ENV, LANG only needed if building with docker-1.8
+ENV container=docker \
+    LANG=en_US.UTF-8 \
+    TERM=xterm \
+    APP_ROOT=/var/www/miq/vmdb \
+    APP_ROOT_PERSISTENT=/persistent \
+    APP_ROOT_PERSISTENT_REGION=/persistent-region \
+    APPLIANCE_ROOT=/opt/manageiq/manageiq-appliance \
+    SUI_ROOT=/opt/manageiq/manageiq-ui-service \ 
+    RUBY_GEMS_ROOT=/opt/rubies/ruby-2.3.1/lib/ruby/gems/2.3.0 \
+    CONTAINER_SCRIPTS_ROOT=/opt/manageiq/container-scripts \
+    IMAGE_VERSION=${REF}
+
+## Atomic/OpenShift Labels
+LABEL name="manageiq" \
+      vendor="ManageIQ" \
+      version="Master" \
+      release=${REF} \
+      url="http://manageiq.org/" \
+      summary="ManageIQ appliance image" \
+      description="ManageIQ is a management and automation platform for virtual, private, and hybrid cloud infrastructures." \
+      io.k8s.display-name="ManageIQ" \
+      io.k8s.description="ManageIQ is a management and automation platform for virtual, private, and hybrid cloud infrastructures." \
+      io.openshift.expose-services="443:https" \
+      io.openshift.tags="ManageIQ,miq,manageiq"
 
 ## Install EPEL repo, yum necessary packages for the build without docs, clean all caches
 RUN yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && \
@@ -72,7 +87,7 @@ RUN (cd /lib/systemd/system/sysinit.target.wants && for i in *; do [ $i == syste
     rm -vf /lib/systemd/system/basic.target.wants/* && \
     rm -vf /lib/systemd/system/anaconda.target.wants/*
 
-# Download chruby and chruby-install, install, setup environment, clean all
+## Download chruby and chruby-install, install, setup environment, clean all
 RUN curl -sL https://github.com/postmodern/chruby/archive/v0.3.9.tar.gz | tar xz && \
     cd chruby-0.3.9 && \
     make install && \
@@ -141,6 +156,9 @@ RUN source /etc/default/evm && \
     yarn install && \
     yarn run build
 
+## Expose required container ports
+EXPOSE 80 443
+
 ## Copy OpenShift and appliance-initialize scripts, add systemd service unit file
 COPY docker-assets/entrypoint /usr/bin
 COPY docker-assets/container.data.persist /
@@ -148,45 +166,8 @@ COPY docker-assets/appliance-initialize.service /usr/lib/systemd/system
 COPY docker-assets/appliance-initialize.sh /bin
 ADD  docker-assets/container-scripts ${CONTAINER_SCRIPTS_ROOT}
 
-## Scripts symlinks
-RUN ln -s /var/www/miq/vmdb/docker-assets/docker_initdb /usr/bin
-
 ## Enable services on systemd
 RUN systemctl enable appliance-initialize evmserverd evminit evm-watchdog miqvmstat miqtop crond
-
-## Expose required container ports
-EXPOSE 80 443
-
-## Atomic Labels
-# The UNINSTALL label by DEFAULT will attempt to delete a container (rm) and image (rmi) if the container NAME is the same as the actual IMAGE
-# NAME is set via -n flag to ALL atomic commands (install,run,stop,uninstall)
-LABEL name="manageiq" \
-      vendor="ManageIQ" \
-      version="Master" \
-      release=${REF} \
-      architecture="x86_64" \
-      url="http://manageiq.org/" \
-      summary="ManageIQ appliance image" \
-      description="ManageIQ is a management and automation platform for virtual, private, and hybrid cloud infrastructures." \
-      INSTALL='docker run -ti --privileged \
-                --name ${NAME}_volume \
-                --entrypoint /usr/bin/docker_initdb \
-                $IMAGE' \
-      RUN='docker run -di --privileged \
-            --name ${NAME}_run \
-            -v /etc/localtime:/etc/localtime:ro \
-            --volumes-from ${NAME}_volume \
-            -p 80:80 \
-            -p 443:443 \
-            $IMAGE' \
-      STOP='docker stop ${NAME}_run && echo "Container ${NAME}_run has been stopped"' \
-      UNINSTALL='docker rm -v ${NAME}_volume ${NAME}_run && echo "Uninstallation complete"'
-
-## OpenShift labels
-LABEL io.k8s.description="ManageIQ is a management and automation platform for virtual, private, and hybrid cloud infrastructures." \
-      io.k8s.display-name="ManageIQ" \
-      io.openshift.expose-services="443:https" \
-      io.openshift.tags="ManageIQ,miq,manageiq"
 
 ## Call systemd to bring up system
 ENTRYPOINT ["entrypoint"]
