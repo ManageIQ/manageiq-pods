@@ -156,7 +156,7 @@ RUN source /etc/default/evm && \
 ## Build SUI
 RUN source /etc/default/evm && \
     cd ${SUI_ROOT} && \
-    yarn install && \
+    yarn install --production && \
     yarn run build
 
 ## Expose required container ports
