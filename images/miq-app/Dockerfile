@@ -157,7 +157,8 @@ RUN source /etc/default/evm && \
 RUN source /etc/default/evm && \
     cd ${SUI_ROOT} && \
     yarn install --production && \
-    yarn run build
+    yarn run build && \
+    yarn cache clean
 
 ## Expose required container ports
 EXPOSE 80 443
