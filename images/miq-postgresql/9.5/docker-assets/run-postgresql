@@ -9,7 +9,7 @@ source "${CONTAINER_SCRIPTS_PATH}/common.sh"
 
 # Inject required DB role for MIQ
 function set_miq_role() {
-    psql --command "ALTER ROLE \"${POSTGRESQL_USER}\" SUPERUSER LOGIN PASSWORD '${POSTGRESQL_PASSWORD}';"
+  psql --command "ALTER ROLE \"${POSTGRESQL_USER}\" SUPERUSER LOGIN PASSWORD '${POSTGRESQL_PASSWORD}';"
 }
 
 set_pgdata
