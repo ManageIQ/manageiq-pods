@@ -32,11 +32,10 @@ PV_LOG_TIMESTAMP="$(date +%s)"
 # VMDB shared REGION app_root directory on PV
 PV_REGION_VMDB="${PV_CONTAINER_DATA_REGION_DIR}/var/www/miq/vmdb"
 
-function check_deployment_status() {
-# Description
 # Inspect PV for previous deployments, if a DB a config is present, restore
 # Source previous deployment info file from PV and compare data with current environment
 # Evaluate conditions and decide a target deployment type: redeploy,upgrade or new
+function check_deployment_status() {
 
 echo "== Checking deployment status =="
 
@@ -84,9 +83,8 @@ fi
 
 }
 
-function check_svc_status() {
-# Description
 # Check service status, requires two arguments: SVC name and SVC port (injected via template)
+function check_svc_status() {
 
 NCAT="$(which ncat)"
 local SVC_NAME=$1 SVC_PORT=$2
@@ -104,10 +102,10 @@ done
 echo "${SVC_NAME}:${SVC_PORT} - accepting connections"
 }
 
-function check_version_gt() { 
 # Check if upgrade version is actually greater than stored PV version
 # -V sorts alphanumeric versions within text, will always return oldest version first
 # Compare sort version result against upgrade version
+function check_version_gt() { 
 
 if [[ "$(echo "$@" | tr " " "\n" | sort -V | head -n 1)" != "$1" ]]; then
    # Version is newer return 0 and continue
@@ -120,10 +118,9 @@ fi
 
 }
 
-function check_if_new_replica() {
-# Description
 # Check for pre-existing server data into PV, if not found, we assume a new server/replica case
 # Always skip if we are performing a new_deployment
+function check_if_new_replica() {
 
 echo "== Checking for existing data on server PV =="
 
@@ -134,20 +131,18 @@ fi
 
 }
 
-function replica_join_region() {
-# Description
 # Join the new server/replica to the remote region
+function replica_join_region() {
 
 echo "== Joining region =="
 cd ${APP_ROOT} && RAILS_USE_MEMORY_STORE=true bin/rake evm:join_region
 
 }
 
-function write_deployment_info() {
-# Description
 # Populate info file based on initial deployment and store on PV
 # Output in bash format to be easily sourced
 # IMAGE_VERSION is supplied by docker environment
+function write_deployment_info() {
 
 DEPLOYMENT_DATE="$(date +%F_%T)"
 APP_VERSION="$(cat ${APP_ROOT}/VERSION)"
@@ -188,10 +183,8 @@ fi
 
 }
 
-function prepare_init_env() {
-
-# Description
 # Prepare appliance initialization environment
+function prepare_init_env() {
 
 # Make a copy of CONTAINER_DATA_PERSIST_FILE into PV if not present
 [ ! -f "${PV_DATA_PERSIST_FILE}" ] && cp -a "${CONTAINER_DATA_PERSIST_FILE}" "${APP_ROOT_PERSISTENT}"
@@ -202,9 +195,8 @@ function prepare_init_env() {
 
 }
 
-function setup_logs() {
-# Description
 # Configure EVM logdir on PV
+function setup_logs() {
 
 # Ensure EVM logdir is setup on PV before init
 if [ ! -h "${APP_ROOT}/log" ]; then
@@ -216,9 +208,8 @@ fi
 
 }
 
-function init_appliance() {
-# Description
 # Execute appliance_console to initialize appliance
+function init_appliance() {
 
 echo "== Initializing Appliance =="
 appliance_console_cli --region ${DATABASE_REGION} --hostname ${DATABASE_SERVICE_NAME} --username ${POSTGRESQL_USER} --password ${POSTGRESQL_PASSWORD} --key
@@ -227,9 +218,8 @@ appliance_console_cli --region ${DATABASE_REGION} --hostname ${DATABASE_SERVICE_
 
 }
 
-function setup_memcached() {
-# Description
 # Replace memcached host in EVM configuration to use assigned service pod IP
+function setup_memcached() {
 
 echo "== Applying memcached config =="
 
@@ -239,9 +229,8 @@ sed -i~ -E "s/:memcache_server:.*/:memcache_server: ${MEMCACHED_SERVICE_NAME}:11
 
 }
 
-function run_hook() {
-# Description
 # Run hook script to enable future code to be run anywhere needed (i.e upgrades)
+function run_hook() {
 
 echo "== Calling Deployment Hook =="
 
@@ -268,9 +257,8 @@ fi
 
 }
 
-function migrate_db() {
-# Description
 # Execute DB migration, log output and check errors
+function migrate_db() {
 
 PV_MIGRATE_DB_LOG="${PV_LOG_DIR}/migrate_db_${PV_LOG_TIMESTAMP}.log"
 
@@ -284,11 +272,10 @@ cd ${APP_ROOT} && bin/rake db:migrate
 
 }
 
-function init_pv_data() {
-# Description
 # Process PV_DATA_PERSIST_FILE which contains the desired files/dirs to store on server and region PVs
 # Use rsync to transfer files/dirs, log output and check return status
 # Ensure we always store an initial data backup on PV
+function init_pv_data() {
 
 PV_DATA_INIT_LOG="${PV_LOG_DIR}/init_pv_data_${PV_LOG_TIMESTAMP}.log"
 
@@ -311,10 +298,9 @@ rsync -qavL --exclude 'v2_key' --exclude 'database.yml' --exclude 'REGION' --fil
 
 }
 
-function restore_pv_data() {
-# Description
 # Process PV_DATA_PERSIST_FILE which contains the desired files/dirs to restore from PV
 # Check if file/dir exists on PV, redeploy symlinks on ${APP_ROOT} pointing to PV
+function restore_pv_data() {
 
 PV_DATA_RESTORE_LOG="${PV_LOG_DIR}/restore_pv_data_${PV_LOG_TIMESTAMP}.log"
 
@@ -351,10 +337,9 @@ done < "${PV_DATA_PERSIST_FILE}"
 
 }
 
-function backup_pv_data() {
-# Description
 # Backup existing PV data before initiating an upgrade procedure
 # Exclude EVM server logs
+function backup_pv_data() {
 
 PV_DATA_BACKUP_LOG="${PV_LOG_DIR}/backup_pv_data_${PV_LOG_TIMESTAMP}.log"
 PV_BACKUP_TIMESTAMP="$(date +%Y_%m_%d_%H%M%S)"
@@ -370,10 +355,9 @@ rsync -av --exclude 'log' "${PV_CONTAINER_DATA_DIR}" "${PV_CONTAINER_DATA_REGION
 
 }
 
-function sync_pv_data() {
-# Description
 # Process data persist file and sync data back to PV
 # Skip essential files that should never be synced back after region initialization
+function sync_pv_data() {
 
 PV_DATA_SYNC_LOG="${PV_LOG_DIR}/sync_pv_data_${PV_LOG_TIMESTAMP}.log"
 
