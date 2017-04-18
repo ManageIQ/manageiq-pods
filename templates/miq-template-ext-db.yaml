@@ -312,6 +312,12 @@ parameters:
     description: "PostgreSQL remote server IP used to configure service end-points."
     value: ""
   -
+    name: "DATABASE_PORT_
+    displayName: "PostgreSQL Server Port"
+    required: true
+    description: "PostgreSQL remote server port used to configure service end-points."
+    value: "5432"
+  -
     name: "DATABASE_NAME"
     required: true
     displayName: "PostgreSQL Database Name"
