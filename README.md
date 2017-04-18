@@ -150,8 +150,8 @@ Deploy MIQ from template using customized settings
 
 Before you attempt an external DB deployment please ensure the following conditions are satisfied :
 
-* Your OpenShift cluster can access the remote PostgreSQL server on port 5432
-* MIQ user, password and role have been created on the remote PostgreSQL server
+* Your OpenShift cluster can access the external PostgreSQL server
+* MIQ user, password and role have been created on the external PostgreSQL server
 * The intended MIQ database is created and ownership has been assigned to the MIQ user
 
 Import the MIQ external db template
@@ -160,7 +160,7 @@ Import the MIQ external db template
 
 Launch deployment, database server IP is required, rest of settings must match your remote PG server side.
 
-`$ oc new-app --template=manageiq-ext-db -p DATABASE_REMOTE_IP=<server_ip> -p DATABASE_USER=<user> -p DATABASE_PASSWORD=<password> -p DATABASE_NAME=<database_name>`
+`$ oc new-app --template=manageiq-ext-db -p DATABASE_IP=<server_ip> -p DATABASE_USER=<user> -p DATABASE_PASSWORD=<password> -p DATABASE_NAME=<database_name>`
 
 ## Verifying the setup was successful
 
