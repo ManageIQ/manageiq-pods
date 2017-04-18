@@ -132,6 +132,9 @@ objects:
               name: "DATABASE_REGION"
               value: "${DATABASE_REGION}"
             -
+              name: "DATABASE_PORT"
+              value: "${DATABASE_PORT}"
+            -
               name: "MEMCACHED_SERVICE_NAME"
               value: "${MEMCACHED_SERVICE_NAME}"
             -
@@ -264,7 +267,7 @@ objects:
       -
         name: "postgresql"
         port: 5432
-        targetPort: 5432
+        targetPort: ${{DATABASE_PORT}}
     selector: {}
 - apiVersion: v1
   kind: "Endpoints"
@@ -274,10 +277,10 @@ objects:
     -
       addresses:
         -
-          ip: "${DATABASE_REMOTE_IP}"
+          ip: "${DATABASE_IP}"
       ports:
         -
-          port: 5432
+          port: ${{DATABASE_PORT}}
           name: "postgresql"
 parameters:
   -
@@ -306,16 +309,16 @@ parameters:
     from: "[a-zA-Z0-9]{8}"
     generate: expression
   -
-    name: "DATABASE_REMOTE_IP"
+    name: "DATABASE_IP"
     displayName: "PostgreSQL Server IP"
     required: true
-    description: "PostgreSQL remote server IP used to configure service end-points."
+    description: "PostgreSQL external server IP used to configure service."
     value: ""
   -
-    name: "DATABASE_PORT_
+    name: "DATABASE_PORT"
     displayName: "PostgreSQL Server Port"
     required: true
-    description: "PostgreSQL remote server port used to configure service end-points."
+    description: "PostgreSQL external server port used to configure service."
     value: "5432"
   -
     name: "DATABASE_NAME"
