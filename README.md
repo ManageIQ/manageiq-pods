@@ -9,7 +9,7 @@ This example gives a base template to deploy a multi-pod ManageIQ appliance with
 
 ### Prerequisites:
 
-* OpenShift Origin 1.3 or higher
+* OpenShift Origin 1.5 or higher
 * NFS or other compatible volume provider
 * A cluster-admin user
 
@@ -225,13 +225,13 @@ Please note the config change trigger is kept enabled, if you desire to have ful
 
 ## Scale MIQ 
 
-We use PetSets (AKA StatefulSets) to allow scaling of MIQ appliances, before you attempt scaling please ensure you have enough PVs available to scale. Each new replica will consume a PV.
+We use StatefulSets to allow scaling of MIQ appliances, before you attempt scaling please ensure you have enough PVs available to scale. Each new replica will consume a PV.
 
 Example scaling to 2 replicas/servers
 
 ```bash 
-$ oc patch petset manageiq -p '{"spec":{"replicas":2}}'
-"manageiq" patched
+$ oc scale statefulset manageiq --replicas=2
+statefulset "manageiq" scaled
 $ oc get pods
 NAME                 READY     STATUS    RESTARTS   AGE
 manageiq-0           1/1       Running   0          34m
@@ -240,9 +240,9 @@ memcached-1-mzeer    1/1       Running   0          1h
 postgresql-1-dufgp   1/1       Running   0          1h
 ```
 
-The newly created replicas will join the existing MIQ region. For a PetSet with N replicas, when Pods are being deployed, they are created sequentially, in order from {0..N-1}.
+The newly created replicas will join the existing MIQ region. For a StatefulSet with N replicas, when Pods are being deployed, they are created sequentially, in order from {0..N-1}.
 
-_**Note:**_ As of Origin 1.4 PetSets are an alpha feature, be aware functionality might be limited.
+_**Note:**_ As of Origin 1.5 StatefulSets are a beta feature, be aware functionality might be limited.
 
 ## POD access and routes
 
