@@ -109,7 +109,7 @@ It is strongly suggested that you validate NFS share connectivity from an OpenSh
 
 By default OpenShift will import 5 images per ImageStream, we build and use more than 5 images in our repos for MIQ deployments.
 
-You can modify these settings on the master node at /etc/origin/master/master-config.yml, add the following at the end of the file and re-start the master service:
+You can modify these settings on the master node at `/etc/origin/master/master-config.yaml`, add the following at the end of the file and re-start the master service:
 
 ```yaml
 ...
