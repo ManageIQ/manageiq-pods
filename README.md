@@ -260,6 +260,12 @@ manageiq   miq.apps.e2e.bos.redhat.com             manageiq:443-tcp   passthroug
 ```
 Examine output and point your web browser to the reported URL/HOST.
 
+### Logging In
+
+Per the ManageIQ project [basic configuration](http://manageiq.org/docs/get-started/basic-configuration) documentation, you can now login to the MIQ web interface
+using the default name/password: `admin`/`smartvm`.
+
+
 ## Troubleshooting
 Under normal circumstances the entire first time deployment process should take around ~10 minutes, indication of issues can be seen
 by examination of the deployment events and pod logs.
