@@ -223,6 +223,11 @@ deploymentconfig "postgresql" updated
 
 Please note the config change trigger is kept enabled, if you desire to have full control of your deployments you can alternatively turn it off.
 
+### Loggin In
+
+Per the ManageIQ project [basic configuration](http://manageiq.org/docs/get-started/basic-configuration) documentation, you can now login to the MIQ web interface
+using the default name/password: `admin`/`smartvm`.
+
 ## Scale MIQ 
 
 We use StatefulSets to allow scaling of MIQ appliances, before you attempt scaling please ensure you have enough PVs available to scale. Each new replica will consume a PV.
