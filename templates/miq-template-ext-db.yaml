@@ -74,8 +74,8 @@ objects:
     resources:
       requests:
         storage: ${APPLICATION_REGION_VOLUME_CAPACITY}
-- apiVersion: apps/v1alpha1
-  kind: "PetSet"
+- apiVersion: apps/v1beta1
+  kind: "StatefulSet"
   metadata:
     name: ${NAME}
     annotations:
@@ -88,9 +88,6 @@ objects:
         labels:
           name: ${NAME}
         name: ${NAME}
-        annotations:
-          # 'false' pauses a petset after creation of each pet, to avoid it we set it to 'true'
-          pod.alpha.kubernetes.io/initialized: "true"
       spec:
         containers:
         - name: manageiq
