@@ -2,7 +2,7 @@ FROM centos:7
 MAINTAINER ManageIQ https://github.com/ManageIQ/manageiq-appliance-build
 
 ## Set build ARGs
-ARG REF=master
+ARG REF=fine
 
 ## Set ENV, LANG only needed if building with docker-1.8
 ENV container=docker \
@@ -20,7 +20,7 @@ ENV container=docker \
 ## Atomic/OpenShift Labels
 LABEL name="manageiq" \
       vendor="ManageIQ" \
-      version="Master" \
+      version="Fine" \
       release=${REF} \
       url="http://manageiq.org/" \
       summary="ManageIQ appliance image" \
