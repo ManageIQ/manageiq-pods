@@ -199,7 +199,7 @@ function setup_logs() {
 # Execute appliance_console to initialize appliance
 function init_appliance() {
   echo "== Initializing Appliance =="
-  appliance_console_cli --region ${DATABASE_REGION} --hostname ${DATABASE_SERVICE_NAME} --username ${POSTGRESQL_USER} --password ${POSTGRESQL_PASSWORD} --key
+  appliance_console_cli --region ${DATABASE_REGION} --hostname ${DATABASE_SERVICE_NAME} --username ${POSTGRESQL_USER} --password ${POSTGRESQL_PASSWORD} --dbname ${DATABASE_NAME} --key
 
   [ "$?" -ne "0" ] && echo "ERROR: Failed to initialize appliance, please check journal or appliance_console logs at ${APP_ROOT}/log/appliance_console.log" && exit 1
 }
