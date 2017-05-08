@@ -129,6 +129,9 @@ objects:
               name: "DATABASE_REGION"
               value: "${DATABASE_REGION}"
             -
+              name: "DATABASE_NAME"
+              value: "${DATABASE_NAME}"
+            -
               name: "DATABASE_PORT"
               value: "${DATABASE_PORT}"
             -

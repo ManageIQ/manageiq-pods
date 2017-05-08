@@ -147,6 +147,9 @@ objects:
               name: "DATABASE_REGION"
               value: "${DATABASE_REGION}"
             -
+              name: "DATABASE_NAME"
+              value: "${DATABASE_NAME}"
+            -
               name: "MEMCACHED_SERVICE_NAME"
               value: "${MEMCACHED_SERVICE_NAME}"
             -
