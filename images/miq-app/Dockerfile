@@ -1,4 +1,4 @@
-FROM centos:7
+FROM manageiq/ruby
 MAINTAINER ManageIQ https://github.com/ManageIQ/manageiq-appliance-build
 
 ## Set build ARGs
