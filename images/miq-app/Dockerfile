@@ -163,15 +163,14 @@ RUN source /etc/default/evm && \
 ## Expose required container ports
 EXPOSE 80 443
 
-## Copy OpenShift and appliance-initialize scripts, add systemd service unit file
+## Copy OpenShift and appliance-initialize scripts
 COPY docker-assets/entrypoint /usr/bin
 COPY docker-assets/container.data.persist /
-COPY docker-assets/appliance-initialize.service /usr/lib/systemd/system
 COPY docker-assets/appliance-initialize.sh /bin
 ADD  docker-assets/container-scripts ${CONTAINER_SCRIPTS_ROOT}
 
 ## Enable services on systemd
-RUN systemctl enable appliance-initialize evmserverd evminit evm-watchdog miqvmstat miqtop crond
+RUN systemctl enable evmserverd evminit evm-watchdog miqvmstat miqtop crond
 
 ## Call systemd to bring up system
 ENTRYPOINT ["entrypoint"]
