@@ -59,7 +59,7 @@ objects:
 - apiVersion: v1
   kind: ImageStream
   metadata:
-    name: miq-postgresql
+    name: postgresql
     annotations:
       description: "Keeps track of the PostgreSQL image changes"
   spec:
@@ -67,7 +67,7 @@ objects:
 - apiVersion: v1
   kind: ImageStream
   metadata:
-    name: miq-memcached
+    name: memcached
     annotations:
       description: "Keeps track of the Memcached image changes"
   spec:
@@ -230,7 +230,7 @@ objects:
             - "memcached"
           from:
             kind: "ImageStreamTag"
-            name: "miq-memcached:${MEMCACHED_IMG_TAG}"
+            name: "memcached:${MEMCACHED_IMG_TAG}"
       -
         type: "ConfigChange"
     replicas: 1
@@ -309,7 +309,7 @@ objects:
             - "postgresql"
           from:
             kind: "ImageStreamTag"
-            name: "miq-postgresql:${POSTGRESQL_IMG_TAG}"
+            name: "postgresql:${POSTGRESQL_IMG_TAG}"
       -
         type: "ConfigChange"
     replicas: 1
@@ -504,22 +504,22 @@ parameters:
     name: "POSTGRESQL_IMG_NAME"
     displayName: "PostgreSQL Image Name"
     description: "This is the PostgreSQL image name requested to deploy."
-    value: "docker.io/manageiq/manageiq-pods"
+    value: "docker.io/manageiq/postgresql"
   -
     name: "POSTGRESQL_IMG_TAG"
     displayName: "PostgreSQL Image Tag"
     description: "This is the PostgreSQL image tag/version requested to deploy."
-    value: "postgresql-latest"
+    value: "latest"
   -
     name: "MEMCACHED_IMG_NAME"
     displayName: "Memcached Image Name"
     description: "This is the Memcached image name requested to deploy."
-    value: "docker.io/manageiq/manageiq-pods"
+    value: "docker.io/manageiq/memcached"
   -
     name: "MEMCACHED_IMG_TAG"
     displayName: "Memcached Image Tag"
     description: "This is the Memcached image tag/version requested to deploy."
-    value: "memcached-latest"
+    value: "latest"
   -
     name: "APPLICATION_IMG_NAME"
     displayName: "Application Image Name"
