@@ -34,8 +34,11 @@ STOPSIGNAL SIGRTMIN+3
 ## Install EPEL repo, yum necessary packages for the build without docs, clean all caches
 RUN yum -y install centos-release-scl-rh && \
     yum -y install --setopt=tsflags=nodocs \
+                   cmake                   \
                    file                    \
+                   gcc-c++                 \
                    git                     \
+                   libcurl-devel           \
                    libtool                 \
                    libxslt-devel           \
                    net-tools               \
