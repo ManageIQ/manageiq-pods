@@ -323,3 +323,8 @@ function sync_pv_data() {
     [ "$?" -ne "0" ] && echo "WARNING: Some files might not have been copied please check logs at ${PV_DATA_SYNC_LOG}"
   ) 2>&1 | tee "${PV_DATA_SYNC_LOG}"
 }
+
+# Copy the assets built with the image into the /persistent-assets PV
+function sync_assets() {
+    rsync -avL "/var/www/miq/vmdb/public/assets" "/persistent-assets"
+}
