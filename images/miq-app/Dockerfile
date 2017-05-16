@@ -7,6 +7,7 @@ ARG REF=master
 ## Set ENV, LANG only needed if building with docker-1.8
 ENV container=docker \
     TERM=xterm \
+    CONTAINER=true \
     APP_ROOT=/var/www/miq/vmdb \
     APP_ROOT_PERSISTENT=/persistent \
     APP_ROOT_PERSISTENT_REGION=/persistent-region \
@@ -92,15 +93,13 @@ RUN curl -L https://github.com/ManageIQ/manageiq/tarball/${REF} | tar vxz -C ${A
 
 ## Setup environment
 RUN ${APPLIANCE_ROOT}/setup && \
-    echo "export PATH=\$PATH:/opt/rubies/ruby-2.3.1/bin" >> /etc/default/evm && \
     mkdir ${APP_ROOT}/log/apache && \
     mkdir ${APP_ROOT_PERSISTENT} && \
     mkdir ${APP_ROOT_PERSISTENT_REGION} && \
     mkdir -p ${CONTAINER_SCRIPTS_ROOT} && \
     mv /etc/httpd/conf.d/ssl.conf{,.orig} && \
     echo "# This file intentionally left blank. ManageIQ maintains its own SSL configuration" > /etc/httpd/conf.d/ssl.conf && \
-    cp ${APP_ROOT}/config/cable.yml.sample ${APP_ROOT}/config/cable.yml && \
-    echo "export CONTAINER=true" >> /etc/default/evm
+    cp ${APP_ROOT}/config/cable.yml.sample ${APP_ROOT}/config/cable.yml
 
 ## Change workdir to application root, build/install gems
 WORKDIR ${APP_ROOT}
