@@ -100,7 +100,6 @@ RUN ${APPLIANCE_ROOT}/setup && \
     mv /etc/httpd/conf.d/ssl.conf{,.orig} && \
     echo "# This file intentionally left blank. ManageIQ maintains its own SSL configuration" > /etc/httpd/conf.d/ssl.conf && \
     cp ${APP_ROOT}/config/cable.yml.sample ${APP_ROOT}/config/cable.yml && \
-    echo "export APP_ROOT=${APP_ROOT}" >> /etc/default/evm && \
     echo "export CONTAINER=true" >> /etc/default/evm
 
 ## Change workdir to application root, build/install gems
