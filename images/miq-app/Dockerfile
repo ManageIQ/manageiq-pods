@@ -1,4 +1,4 @@
-FROM centos:7
+FROM manageiq/ruby
 MAINTAINER ManageIQ https://github.com/ManageIQ/manageiq-appliance-build
 
 ## Set build ARGs
@@ -6,14 +6,12 @@ ARG REF=master
 
 ## Set ENV, LANG only needed if building with docker-1.8
 ENV container=docker \
-    LANG=en_US.UTF-8 \
     TERM=xterm \
     APP_ROOT=/var/www/miq/vmdb \
     APP_ROOT_PERSISTENT=/persistent \
     APP_ROOT_PERSISTENT_REGION=/persistent-region \
     APPLIANCE_ROOT=/opt/manageiq/manageiq-appliance \
     SUI_ROOT=/opt/manageiq/manageiq-ui-service \ 
-    RUBY_GEMS_ROOT=/opt/rubies/ruby-2.3.1/lib/ruby/gems/2.3.0 \
     CONTAINER_SCRIPTS_ROOT=/opt/manageiq/container-scripts \
     IMAGE_VERSION=${REF}
 
@@ -34,30 +32,21 @@ LABEL name="manageiq" \
 STOPSIGNAL SIGRTMIN+3
 
 ## Install EPEL repo, yum necessary packages for the build without docs, clean all caches
-RUN yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && \
-    yum -y install centos-release-scl-rh && \
+RUN yum -y install centos-release-scl-rh && \
     yum -y install --setopt=tsflags=nodocs \
-                   bison                   \
-                   bzip2                   \
                    cmake                   \
                    file                    \
                    gcc-c++                 \
                    git                     \
                    libcurl-devel           \
-                   libffi-devel            \
                    libtool                 \
-                   libxml2-devel           \
                    libxslt-devel           \
-                   libyaml-devel           \
-                   make                    \
                    net-tools               \
                    nodejs                  \
-                   openssl-devel           \
                    openscap-scanner        \
                    patch                   \
                    rh-postgresql95-postgresql-libs \
                    rh-postgresql95-postgresql-devel  \
-                   readline-devel          \
                    sqlite-devel            \
                    sysvinit-tools          \
                    which                   \
@@ -73,7 +62,6 @@ RUN yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.n
                    psmisc                  \
                    lvm2                    \
                    openldap-clients        \
-                   gdbm-devel              \
                    cronie                  \
                    logrotate               \
                    nmap-ncat               \
@@ -89,22 +77,6 @@ RUN (cd /lib/systemd/system/sysinit.target.wants && for i in *; do [ $i == syste
     rm -vf /lib/systemd/system/sockets.target.wants/*initctl* && \
     rm -vf /lib/systemd/system/basic.target.wants/* && \
     rm -vf /lib/systemd/system/anaconda.target.wants/*
-
-## Download chruby and chruby-install, install, setup environment, clean all
-RUN curl -sL https://github.com/postmodern/chruby/archive/v0.3.9.tar.gz | tar xz && \
-    cd chruby-0.3.9 && \
-    make install && \
-    scripts/setup.sh && \
-    echo "gem: --no-ri --no-rdoc --no-document" > ~/.gemrc && \
-    echo "source /usr/local/share/chruby/chruby.sh" >> ~/.bashrc && \
-    curl -sL https://github.com/postmodern/ruby-install/archive/v0.6.0.tar.gz | tar xz && \
-    cd ruby-install-0.6.0 && \
-    make install && \
-    ruby-install ruby 2.3.1 -- --disable-install-doc && \
-    echo "chruby ruby-2.3.1" >> ~/.bash_profile && \
-    rm -rf /chruby-* && \
-    rm -rf /usr/local/src/* && \
-    yum clean all
 
 ## GIT clone manageiq-appliance and service UI repo (SUI)
 RUN mkdir -p ${APP_ROOT} && \
