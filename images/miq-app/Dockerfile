@@ -140,9 +140,9 @@ COPY docker-assets/container.data.persist /
 COPY docker-assets/appliance-initialize.sh /bin
 ADD  docker-assets/container-scripts ${CONTAINER_SCRIPTS_ROOT}
 
-## Enable services on systemd
-RUN systemctl enable evmserverd crond
+RUN wget -O /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64
+RUN chmod +x /usr/local/bin/dumb-init
 
 ## Call systemd to bring up system
-ENTRYPOINT ["entrypoint"]
-CMD [ "/usr/sbin/init" ]
+ENTRYPOINT ["/usr/local/bin/dumb-init", "--"]
+CMD ["entrypoint"]
