@@ -127,8 +127,6 @@ objects:
             protocol: TCP
           - containerPort: 443
             protocol: TCP
-          securityContext:
-            privileged: true
           volumeMounts:
               -
                 name: "${NAME}-server"

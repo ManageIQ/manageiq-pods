@@ -61,13 +61,13 @@ The default service account for your namespace (project) must be added to the pr
 _**As admin**_
 
 ```bash
-$ oadm policy add-scc-to-user privileged system:serviceaccount:<your-namespace>:default
+$ oadm policy add-scc-to-user anyuid system:serviceaccount:<your-namespace>:default
 ```
 
 Verify that your default service account is now included in the privileged scc
 ```
-$ oc describe scc privileged | grep Users
-Users:					system:serviceaccount:openshift-infra:build-controller,system:serviceaccount:management-infra:management-admin,system:serviceaccount:management-infra:inspector-admin,system:serviceaccount:default:router,system:serviceaccount:default:registry,system:serviceaccount:<your-namespace>:default
+$ oc describe scc anyuid | grep Users
+Users:					system:serviceaccount:<your-namespace>:default
 ```
 
 ### Make persistent volumes to host the MIQ database and application data
