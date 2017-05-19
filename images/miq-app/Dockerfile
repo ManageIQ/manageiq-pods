@@ -29,9 +29,6 @@ LABEL name="manageiq" \
       io.openshift.expose-services="443:https" \
       io.openshift.tags="ManageIQ,miq,manageiq"
 
-## To cleanly shutdown systemd, use SIGRTMIN+3
-STOPSIGNAL SIGRTMIN+3
-
 ## Install EPEL repo, yum necessary packages for the build without docs, clean all caches
 RUN yum -y install centos-release-scl-rh && \
     yum -y install --setopt=tsflags=nodocs \
