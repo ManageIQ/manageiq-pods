@@ -271,7 +271,6 @@ function init_pv_data() {
 
     [ ! -f "${PV_REGION_VMDB}/config/database.yml" ] && rsync -qavR "${APP_ROOT}/config/database.yml" "${PV_CONTAINER_DATA_REGION_DIR}"
     [ ! -f "${PV_REGION_VMDB}/certs/v2_key" ] && rsync -qavR "${APP_ROOT}/certs/v2_key" "${PV_CONTAINER_DATA_REGION_DIR}"
-    [ ! -f "${PV_REGION_VMDB}/REGION" ] && rsync -qavR "${APP_ROOT}/REGION" "${PV_CONTAINER_DATA_REGION_DIR}"
 
   ) 2>&1 | tee "${PV_DATA_INIT_LOG}"
 }
@@ -292,7 +291,6 @@ function restore_pv_data() {
 
     ln --backup -sn "${PV_REGION_VMDB}/config/database.yml" "${APP_ROOT}/config/database.yml"
     ln --backup -sn "${PV_REGION_VMDB}/certs/v2_key" "${APP_ROOT}/certs/v2_key"
-    ln --backup -sn "${PV_REGION_VMDB}/REGION" "${APP_ROOT}/REGION"
 
     while read -r FILE
     do
