@@ -175,8 +175,8 @@ function write_deployment_info() {
 
 # Prepare appliance initialization environment
 function prepare_init_env() {
-  # Make a copy of CONTAINER_DATA_PERSIST_FILE into PV if not present
-  [ ! -f "${PV_DATA_PERSIST_FILE}" ] && cp -a "${CONTAINER_DATA_PERSIST_FILE}" "${APP_ROOT_PERSISTENT}"
+  # Copy CONTAINER_DATA_PERSIST_FILE into PV ensuring it is kept up to date
+  cp -a "${CONTAINER_DATA_PERSIST_FILE}" "${APP_ROOT_PERSISTENT}"
 
   # Create container deployment dirs into PV if not already present
   [ ! -d "${PV_LOG_DIR}" ] && mkdir -p "${PV_LOG_DIR}"
