@@ -262,7 +262,7 @@ function init_pv_data() {
     echo "== Initializing PV data =="
 
     # Exclude region files on server PV
-    rsync -qavL --exclude 'v2_key' --exclude 'database.yml' --exclude 'REGION' --files-from="${PV_DATA_PERSIST_FILE}" / "${PV_CONTAINER_DATA_DIR}"
+    rsync -qavL --files-from="${PV_DATA_PERSIST_FILE}" / "${PV_CONTAINER_DATA_DIR}"
 
     # Catch non-zero return value and print warning
     [ "$?" -ne "0" ] && echo "WARNING: Some files might not have been copied please check logs at ${PV_DATA_INIT_LOG}"
@@ -335,7 +335,7 @@ function sync_pv_data() {
   (
     echo "== Syncing PV data =="
 
-    rsync -avL --exclude 'v2_key' --exclude 'database.yml' --exclude 'REGION' --files-from="${PV_DATA_PERSIST_FILE}" / "${PV_CONTAINER_DATA_DIR}"
+    rsync -avL --files-from="${PV_DATA_PERSIST_FILE}" / "${PV_CONTAINER_DATA_DIR}"
 
     [ "$?" -ne "0" ] && echo "WARNING: Some files might not have been copied please check logs at ${PV_DATA_SYNC_LOG}"
   ) 2>&1 | tee "${PV_DATA_SYNC_LOG}"
