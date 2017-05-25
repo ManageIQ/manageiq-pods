@@ -82,7 +82,7 @@ Example NFS PV templates are provided, **please skip this step you have already 
 
 For NFS backed volumes, please ensure your NFS server firewall is configured to allow traffic on port 2049 (TCP) from the OpenShift cluster.
 
-_**Note:**_ Recommended permissions for the PV volumes are 775, root uid/gid owned.
+_**Note:**_ Recommended permissions for the PV volumes are 777, root uid/gid owned.
 
 _**As admin:**_
 
