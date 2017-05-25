@@ -1,5 +1,9 @@
 #!/bin/bash
 
+/usr/sbin/crond &
+
 appliance-initialize.sh
 
-exec "$@"
+[[ -s /etc/default/evm ]] && source /etc/default/evm
+
+exec ruby /var/www/miq/vmdb/lib/workers/bin/evm_server.rb

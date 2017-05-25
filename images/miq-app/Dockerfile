@@ -7,6 +7,7 @@ ARG REF=master
 ## Set ENV, LANG only needed if building with docker-1.8
 ENV container=docker \
     TERM=xterm \
+    CONTAINER=true \
     APP_ROOT=/var/www/miq/vmdb \
     APP_ROOT_PERSISTENT=/persistent \
     APP_ROOT_PERSISTENT_REGION=/persistent-region \
@@ -27,9 +28,6 @@ LABEL name="manageiq" \
       io.k8s.description="ManageIQ is a management and automation platform for virtual, private, and hybrid cloud infrastructures." \
       io.openshift.expose-services="443:https" \
       io.openshift.tags="ManageIQ,miq,manageiq"
-
-## To cleanly shutdown systemd, use SIGRTMIN+3
-STOPSIGNAL SIGRTMIN+3
 
 ## Install EPEL repo, yum necessary packages for the build without docs, clean all caches
 RUN yum -y install centos-release-scl-rh && \
@@ -92,15 +90,13 @@ RUN curl -L https://github.com/ManageIQ/manageiq/tarball/${REF} | tar vxz -C ${A
 
 ## Setup environment
 RUN ${APPLIANCE_ROOT}/setup && \
-    echo "export PATH=\$PATH:/opt/rubies/ruby-2.3.1/bin" >> /etc/default/evm && \
     mkdir ${APP_ROOT}/log/apache && \
     mkdir ${APP_ROOT_PERSISTENT} && \
     mkdir ${APP_ROOT_PERSISTENT_REGION} && \
     mkdir -p ${CONTAINER_SCRIPTS_ROOT} && \
     mv /etc/httpd/conf.d/ssl.conf{,.orig} && \
     echo "# This file intentionally left blank. ManageIQ maintains its own SSL configuration" > /etc/httpd/conf.d/ssl.conf && \
-    cp ${APP_ROOT}/config/cable.yml.sample ${APP_ROOT}/config/cable.yml && \
-    echo "export CONTAINER=true" >> /etc/default/evm
+    cp ${APP_ROOT}/config/cable.yml.sample ${APP_ROOT}/config/cable.yml
 
 ## Change workdir to application root, build/install gems
 WORKDIR ${APP_ROOT}
@@ -140,9 +136,9 @@ COPY docker-assets/container.data.persist /
 COPY docker-assets/appliance-initialize.sh /bin
 ADD  docker-assets/container-scripts ${CONTAINER_SCRIPTS_ROOT}
 
-## Enable services on systemd
-RUN systemctl enable evmserverd crond
+RUN wget -O /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64
+RUN chmod +x /usr/local/bin/dumb-init
 
 ## Call systemd to bring up system
-ENTRYPOINT ["entrypoint"]
-CMD [ "/usr/sbin/init" ]
+ENTRYPOINT ["/usr/local/bin/dumb-init", "--single-child", "--"]
+CMD ["entrypoint"]

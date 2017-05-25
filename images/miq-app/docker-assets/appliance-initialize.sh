@@ -11,6 +11,9 @@ sleep "${APPLICATION_INIT_DELAY}"
 # Prepare initialization environment
 prepare_init_env
 
+# Generate the certs if needed
+/usr/bin/generate_miq_server_cert.sh
+
 # Check Memcached readiness
 check_svc_status ${MEMCACHED_SERVICE_NAME} 11211
 
