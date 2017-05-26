@@ -52,11 +52,11 @@ $ oc new-project <project_name> \
    
    _At a minimum, only `<project_name>` is required._
 
-### Add your default service account to the privileged security context
+### Add your default service account to the anyuid security context
 
-_**Note:**_ The current MIQ image requires a privileged pod.
+_**Note:**_ The current MIQ image requires the root user.
 
-The default service account for your namespace (project) must be added to the privileged SCC before they can run privileged pods.
+The default service account for your namespace (project) must be added to the anyuid SCC before pods using the service account can run as root.
 
 _**As admin**_
 
