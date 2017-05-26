@@ -66,16 +66,6 @@ RUN yum -y install centos-release-scl-rh && \
                    &&                      \
     yum clean all
 
-## Systemd cleanup base image
-RUN (cd /lib/systemd/system/sysinit.target.wants && for i in *; do [ $i == systemd-tmpfiles-setup.service ] || rm -vf $i; done) && \
-    rm -vf /lib/systemd/system/multi-user.target.wants/* && \
-    rm -vf /etc/systemd/system/*.wants/* && \
-    rm -vf /lib/systemd/system/local-fs.target.wants/* && \
-    rm -vf /lib/systemd/system/sockets.target.wants/*udev* && \
-    rm -vf /lib/systemd/system/sockets.target.wants/*initctl* && \
-    rm -vf /lib/systemd/system/basic.target.wants/* && \
-    rm -vf /lib/systemd/system/anaconda.target.wants/*
-
 ## GIT clone manageiq-appliance and service UI repo (SUI)
 RUN mkdir -p ${APP_ROOT} && \
     mkdir -p ${APPLIANCE_ROOT} && \
@@ -139,6 +129,5 @@ ADD  docker-assets/container-scripts ${CONTAINER_SCRIPTS_ROOT}
 RUN wget -O /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64
 RUN chmod +x /usr/local/bin/dumb-init
 
-## Call systemd to bring up system
 ENTRYPOINT ["/usr/local/bin/dumb-init", "--single-child", "--"]
 CMD ["entrypoint"]
