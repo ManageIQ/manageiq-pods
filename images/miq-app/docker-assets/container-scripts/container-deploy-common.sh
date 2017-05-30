@@ -258,11 +258,7 @@ function init_pv_data() {
   (
     echo "== Initializing PV data =="
 
-    # Exclude region files on server PV
-    rsync -qavL --files-from="${DATA_PERSIST_FILE}" / "${PV_CONTAINER_DATA_DIR}"
-
-    # Catch non-zero return value and print warning
-    [ "$?" -ne "0" ] && echo "WARNING: Some files might not have been copied please check logs at ${PV_DATA_INIT_LOG}"
+    sync_pv_data
 
     # Make v2_key is available on region PV, rsync will create directory structure
 
@@ -320,9 +316,9 @@ function sync_pv_data() {
   PV_DATA_SYNC_LOG="${PV_LOG_DIR}/sync_pv_data_${PV_LOG_TIMESTAMP}.log"
 
   (
-    echo "== Syncing PV data =="
+    echo "== Syncing persist data to server PV =="
 
-    rsync -avL --files-from="${DATA_PERSIST_FILE}" / "${PV_CONTAINER_DATA_DIR}"
+    rsync -qavL --files-from="${DATA_PERSIST_FILE}" / "${PV_CONTAINER_DATA_DIR}"
 
     [ "$?" -ne "0" ] && echo "WARNING: Some files might not have been copied please check logs at ${PV_DATA_SYNC_LOG}"
   ) 2>&1 | tee "${PV_DATA_SYNC_LOG}"
