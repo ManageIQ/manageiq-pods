@@ -11,9 +11,6 @@ sleep "${APPLICATION_INIT_DELAY}"
 # Prepare initialization environment
 prepare_init_env
 
-# Generate the certs if needed
-/usr/bin/generate_miq_server_cert.sh
-
 # Check Memcached readiness
 check_svc_status ${MEMCACHED_SERVICE_NAME} 11211
 
@@ -45,6 +42,7 @@ case "${DEPLOYMENT_STATUS}" in
   ;;
   new_replica)
     echo "== Starting New Replica =="
+    /usr/bin/generate_miq_server_cert.sh
     setup_logs
     setup_memcached
     replica_join_region
@@ -53,6 +51,9 @@ case "${DEPLOYMENT_STATUS}" in
   ;;
   new_deployment)
     echo "== Starting New Deployment =="
+    # Generate the certs
+    /usr/bin/generate_miq_server_cert.sh
+
     # Setup logs on PV before init
     setup_logs
 
