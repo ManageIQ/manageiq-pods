@@ -55,6 +55,7 @@ RUN yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.n
                    lvm2                    \
                    openldap-clients        \
                    gdbm-devel              \
+                   http-parser             \
                    &&                      \
     yum clean all
 
