@@ -5,8 +5,7 @@ MAINTAINER ManageIQ https://github.com/ManageIQ/manageiq-appliance-build
 ARG REF=master
 
 ## Set ENV, LANG only needed if building with docker-1.8
-ENV container=docker \
-    TERM=xterm \
+ENV TERM=xterm \
     CONTAINER=true \
     APP_ROOT=/var/www/miq/vmdb \
     APP_ROOT_PERSISTENT=/persistent \
