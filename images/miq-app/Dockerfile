@@ -63,6 +63,7 @@ RUN yum -y install centos-release-scl-rh && \
                    cronie                  \
                    logrotate               \
                    nmap-ncat               \
+                   http-parser             \
                    &&                      \
     yum clean all
 
