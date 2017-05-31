@@ -77,6 +77,7 @@ RUN yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.n
                    cronie                  \
                    logrotate               \
                    nmap-ncat               \
+                   http-parser             \
                    &&                      \
     yum clean all
 
