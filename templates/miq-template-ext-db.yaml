@@ -160,6 +160,8 @@ objects:
               exec:
                 command:
                   - /opt/manageiq/container-scripts/sync-pv-data
+        serviceAccount: ${NAME}
+        serviceAccountName: ${NAME}
         volumes:
          -
            name: "${NAME}-region"
