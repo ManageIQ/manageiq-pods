@@ -52,22 +52,26 @@ $ oc new-project <project_name> \
    
    _At a minimum, only `<project_name>` is required._
 
-### Add your default service account to the anyuid security context
+Create a manageiq service account into your project
+
+`$ oc create serviceaccount manageiq`
+
+### Add the manageiq service account to the anyuid security context
 
 _**Note:**_ The current MIQ image requires the root user.
 
-The default service account for your namespace (project) must be added to the anyuid SCC before pods using the service account can run as root.
+The manageiq service account for your namespace (project) must be added to the anyuid SCC before pods using the service account can run as root.
 
 _**As admin**_
 
 ```bash
-$ oadm policy add-scc-to-user anyuid system:serviceaccount:<your-namespace>:default
+$ oc adm policy add-scc-to-user anyuid system:serviceaccount:<your-namespace>:manageiq
 ```
 
 Verify that your default service account is now included in the privileged scc
 ```
 $ oc describe scc anyuid | grep Users
-Users:					system:serviceaccount:<your-namespace>:default
+Users:					system:serviceaccount:<your-namespace>:manageiq
 ```
 
 ### Make persistent volumes to host the MIQ database and application data
@@ -182,13 +186,13 @@ Export the configuration of the pod.
 
 `$ oc export pod <miq_pod_name>`
 
-Examine the output. Check that `openshift.io/scc` has the value `privileged`.
+Examine the output. Check that `openshift.io/scc` has the value `anyuid`.
 
 ```yaml
 ...
 metadata:
   annotations:
-    openshift.io/scc: privileged
+    openshift.io/scc: anyuid
 ...
 ```
 ### Verify the persistent volumes are attached to postgresql and miq-app pods
