@@ -109,8 +109,6 @@ objects:
             protocol: TCP
           - containerPort: 443
             protocol: TCP
-          securityContext:
-            privileged: true
           volumeMounts:
               -
                 name: "${NAME}-server"
@@ -165,6 +163,7 @@ objects:
            name: "${NAME}-region"
            persistentVolumeClaim:
              claimName: ${NAME}-region
+        terminationGracePeriodSeconds: 90
     volumeClaimTemplates:
       - metadata:
           name: "${NAME}-server"
