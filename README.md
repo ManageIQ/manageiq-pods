@@ -52,26 +52,22 @@ $ oc new-project <project_name> \
    
    _At a minimum, only `<project_name>` is required._
 
-Create a manageiq service account into your project
-
-`$ oc create serviceaccount manageiq`
-
-### Add the manageiq service account to the anyuid security context
+### Add the miq-anyuid service account to the anyuid security context
 
 _**Note:**_ The current MIQ image requires the root user.
 
-The manageiq service account for your namespace (project) must be added to the anyuid SCC before pods using the service account can run as root.
+The miq-anyuid service account for your namespace (project) must be added to the anyuid SCC before pods using the service account can run as root.
 
 _**As admin**_
 
 ```bash
-$ oc adm policy add-scc-to-user anyuid system:serviceaccount:<your-namespace>:manageiq
+$ oc adm policy add-scc-to-user anyuid system:serviceaccount:<your-namespace>:miq-anyuid
 ```
 
 Verify that your default service account is now included in the privileged scc
 ```
 $ oc describe scc anyuid | grep Users
-Users:					system:serviceaccount:<your-namespace>:manageiq
+Users:					system:serviceaccount:<your-namespace>:miq-anyuid
 ```
 
 ### Make persistent volumes to host the MIQ database and application data
