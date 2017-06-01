@@ -10,6 +10,10 @@ metadata:
     iconClass: "icon-rails"
 objects:
 - apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: miq-anyuid
+- apiVersion: v1
   kind: Secret
   metadata:
     name: "${NAME}-secrets"
@@ -158,6 +162,8 @@ objects:
               exec:
                 command:
                   - /opt/manageiq/container-scripts/sync-pv-data
+        serviceAccount: miq-anyuid
+        serviceAccountName: miq-anyuid
         volumes:
          -
            name: "${NAME}-region"
