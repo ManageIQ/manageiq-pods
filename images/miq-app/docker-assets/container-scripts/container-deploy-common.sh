@@ -17,7 +17,7 @@ PV_LOG_DIR="${PV_CONTAINER_DEPLOY_DIR}/log"
 # Directory used to backup server specific PV data before performing an upgrade
 PV_BACKUP_DIR="${PV_CONTAINER_DEPLOY_DIR}/backup"
 
-# This directory is used to store shared region application data to be persisted (database.yml, keys, etc)
+# This directory is used to store shared region application data to be persisted (keys, etc)
 PV_CONTAINER_DATA_REGION_DIR="${APP_ROOT_PERSISTENT_REGION}/region-data"
 
 # This file is supplied by the app docker image with default files/dirs to persist on PV
@@ -38,11 +38,9 @@ PV_REGION_VMDB="${PV_CONTAINER_DATA_REGION_DIR}/var/www/miq/vmdb"
 function check_deployment_status() {
   echo "== Checking deployment status =="
 
-  if [[ -f ${PV_REGION_VMDB}/config/database.yml && -f ${PV_DEPLOY_INFO_FILE} ]]; then
+  if [[ -f ${PV_DEPLOY_INFO_FILE} ]]; then
     echo "== Found existing deployment configuration =="
     echo "== Restoring existing database configuration =="
-
-    ln --backup -sn ${PV_REGION_VMDB}/config/database.yml ${APP_ROOT}/config/database.yml
 
     [[ ! -f ${PV_REGION_VMDB}/certs/v2_key ]] && echo "ERROR: Could not find ${PV_REGION_VMDB}/certs/v2_key on upgrade/redeploy case, aborting.." && exit 1
     ln --backup -sn ${PV_REGION_VMDB}/certs/v2_key ${APP_ROOT}/certs/v2_key
@@ -199,7 +197,12 @@ function setup_logs() {
 # Execute appliance_console to initialize appliance
 function init_appliance() {
   echo "== Initializing Appliance =="
-  appliance_console_cli --region ${DATABASE_REGION} --hostname ${DATABASE_SERVICE_NAME} --username ${POSTGRESQL_USER} --password ${POSTGRESQL_PASSWORD} --dbname ${DATABASE_NAME} --key
+  appliance_console_cli --key
+  [ "$?" -ne "0" ] && echo "ERROR: Failed to create v2_key" && exit 1
+
+  pushd ${APP_ROOT}
+    bundle exec rake evm:db:region -- --region ${DATABASE_REGION}
+  popd
 
   [ "$?" -ne "0" ] && echo "ERROR: Failed to initialize appliance, please check journal or appliance_console logs at ${APP_ROOT}/log/appliance_console.log" && exit 1
 }
@@ -267,9 +270,8 @@ function init_pv_data() {
     # Catch non-zero return value and print warning
     [ "$?" -ne "0" ] && echo "WARNING: Some files might not have been copied please check logs at ${PV_DATA_INIT_LOG}"
 
-    # Make database.yml, DB keys and region file are available on region PV, rsync will create directory structure
+    # Make v2_key is available on region PV, rsync will create directory structure
 
-    [ ! -f "${PV_REGION_VMDB}/config/database.yml" ] && rsync -qavR "${APP_ROOT}/config/database.yml" "${PV_CONTAINER_DATA_REGION_DIR}"
     [ ! -f "${PV_REGION_VMDB}/certs/v2_key" ] && rsync -qavR "${APP_ROOT}/certs/v2_key" "${PV_CONTAINER_DATA_REGION_DIR}"
 
   ) 2>&1 | tee "${PV_DATA_INIT_LOG}"
@@ -287,9 +289,7 @@ function restore_pv_data() {
 
     [ ! -f "${PV_DATA_PERSIST_FILE}" ] && echo "ERROR: Something seems wrong, ${PV_DATA_PERSIST_FILE} was not found" && exit 1
 
-    # Ensure we always restore DB config and keys from region PV before processing PV_DATA_PERSIST_FILE, sync_pv_data populates these files
-
-    ln --backup -sn "${PV_REGION_VMDB}/config/database.yml" "${APP_ROOT}/config/database.yml"
+    # Ensure we always restore v2_key from region PV before processing DATA_PERSIST_FILE, sync_pv_data populates these files
     ln --backup -sn "${PV_REGION_VMDB}/certs/v2_key" "${APP_ROOT}/certs/v2_key"
 
     while read -r FILE
