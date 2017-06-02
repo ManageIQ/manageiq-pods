@@ -21,10 +21,7 @@ PV_BACKUP_DIR="${PV_CONTAINER_DEPLOY_DIR}/backup"
 PV_CONTAINER_DATA_REGION_DIR="${APP_ROOT_PERSISTENT_REGION}/region-data"
 
 # This file is supplied by the app docker image with default files/dirs to persist on PV
-CONTAINER_DATA_PERSIST_FILE="/container.data.persist"
-
-# Copy of CONTAINER_DATA_PERSIST_FILE that will be stored on PV and can be customized by users to add more files/dirs
-PV_DATA_PERSIST_FILE="${APP_ROOT_PERSISTENT}/container.data.persist"
+DATA_PERSIST_FILE="/container.data.persist"
 
 # Set log timestamp for running instance
 PV_LOG_TIMESTAMP="$(date +%s)"
@@ -175,9 +172,6 @@ function write_deployment_info() {
 
 # Prepare appliance initialization environment
 function prepare_init_env() {
-  # Make a copy of CONTAINER_DATA_PERSIST_FILE into PV if not present
-  [ ! -f "${PV_DATA_PERSIST_FILE}" ] && cp -a "${CONTAINER_DATA_PERSIST_FILE}" "${APP_ROOT_PERSISTENT}"
-
   # Create container deployment dirs into PV if not already present
   [ ! -d "${PV_LOG_DIR}" ] && mkdir -p "${PV_LOG_DIR}"
   [ ! -d "${PV_BACKUP_DIR}" ] && mkdir -p "${PV_BACKUP_DIR}"
@@ -255,7 +249,7 @@ function migrate_db() {
   ) 2>&1 | tee ${PV_MIGRATE_DB_LOG}
 }
 
-# Process PV_DATA_PERSIST_FILE which contains the desired files/dirs to store on server and region PVs
+# Process DATA_PERSIST_FILE which contains the desired files/dirs to store on server and region PVs
 # Use rsync to transfer files/dirs, log output and check return status
 # Ensure we always store an initial data backup on PV
 function init_pv_data() {
@@ -264,11 +258,7 @@ function init_pv_data() {
   (
     echo "== Initializing PV data =="
 
-    # Exclude region files on server PV
-    rsync -qavL --files-from="${PV_DATA_PERSIST_FILE}" / "${PV_CONTAINER_DATA_DIR}"
-
-    # Catch non-zero return value and print warning
-    [ "$?" -ne "0" ] && echo "WARNING: Some files might not have been copied please check logs at ${PV_DATA_INIT_LOG}"
+    sync_pv_data
 
     # Make v2_key is available on region PV, rsync will create directory structure
 
@@ -277,18 +267,13 @@ function init_pv_data() {
   ) 2>&1 | tee "${PV_DATA_INIT_LOG}"
 }
 
-# Process PV_DATA_PERSIST_FILE which contains the desired files/dirs to restore from PV
+# Process DATA_PERSIST_FILE which contains the desired files/dirs to restore from PV
 # Check if file/dir exists on PV, redeploy symlinks on ${APP_ROOT} pointing to PV
 function restore_pv_data() {
   PV_DATA_RESTORE_LOG="${PV_LOG_DIR}/restore_pv_data_${PV_LOG_TIMESTAMP}.log"
 
   (
     echo "== Restoring PV data symlinks =="
-
-    # Ensure PV_DATA_PERSIST_FILE is present, it should be if prepare_init_env_data was executed
-
-    [ ! -f "${PV_DATA_PERSIST_FILE}" ] && echo "ERROR: Something seems wrong, ${PV_DATA_PERSIST_FILE} was not found" && exit 1
-
     # Ensure we always restore v2_key from region PV before processing DATA_PERSIST_FILE, sync_pv_data populates these files
     ln --backup -sn "${PV_REGION_VMDB}/certs/v2_key" "${APP_ROOT}/certs/v2_key"
 
@@ -306,7 +291,7 @@ function restore_pv_data() {
       [[ -d ${FILE} ]] && mv "${FILE}" "${FILE}~"
       # Place symlink back to persistent volume
       ln --backup -sn "${PV_CONTAINER_DATA_DIR}${DIR}/${FILENAME}" "${FILE}"
-    done < "${PV_DATA_PERSIST_FILE}"
+    done < "${DATA_PERSIST_FILE}"
   ) 2>&1 | tee "${PV_DATA_RESTORE_LOG}"
 }
 
@@ -331,9 +316,9 @@ function sync_pv_data() {
   PV_DATA_SYNC_LOG="${PV_LOG_DIR}/sync_pv_data_${PV_LOG_TIMESTAMP}.log"
 
   (
-    echo "== Syncing PV data =="
+    echo "== Syncing persist data to server PV =="
 
-    rsync -avL --files-from="${PV_DATA_PERSIST_FILE}" / "${PV_CONTAINER_DATA_DIR}"
+    rsync -qavL --files-from="${DATA_PERSIST_FILE}" / "${PV_CONTAINER_DATA_DIR}"
 
     [ "$?" -ne "0" ] && echo "WARNING: Some files might not have been copied please check logs at ${PV_DATA_SYNC_LOG}"
   ) 2>&1 | tee "${PV_DATA_SYNC_LOG}"
