@@ -200,9 +200,6 @@ objects:
                 mountPath: "/persistent-assets"
           env:
             -
-              name: "APPLICATION_DOMAIN"
-              value: "${APPLICATION_DOMAIN}"
-            -
               name: "APPLICATION_INIT_DELAY"
               value: "${APPLICATION_INIT_DELAY}"
             -
@@ -470,9 +467,9 @@ objects:
         serviceAccountName: miq-sysadmin
         volumes:
           -
-            name: "miq-httpd-volume"
+            name: "${NAME}-httpd"
             persistentVolumeClaim:
-              claimName: "${NAME}-${HTTPD_SERVICE_NAME}"
+              claimName: "${NAME}-httpd"
           -
             name: "${NAME}-assets"
             persistentVolumeClaim:
@@ -496,7 +493,7 @@ objects:
                 port: 443
             volumeMounts:
               -
-                name: "miq-httpd-volume"
+                name: "${NAME}-httpd"
                 mountPath: "/persistent"
               -
                 name: "${NAME}-assets"

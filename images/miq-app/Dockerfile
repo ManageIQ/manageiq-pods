@@ -72,7 +72,6 @@ RUN mkdir -p ${APP_ROOT} && \
     mkdir -p ${SUI_ROOT} && \
     ln -vs ${APP_ROOT} /opt/manageiq/manageiq && \
     curl -L https://github.com/ManageIQ/manageiq-appliance/tarball/${REF} | tar vxz -C ${APPLIANCE_ROOT} --strip 1 && \
-    mkdir -p ${APP_ROOT}/public/assets && \
     curl -L https://github.com/ManageIQ/manageiq-ui-service/tarball/${REF} | tar vxz -C ${SUI_ROOT} --strip 1
 
 ## Add ManageIQ source from local directory (dockerfile development) or from Github (official build)
