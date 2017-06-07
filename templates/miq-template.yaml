@@ -141,16 +141,6 @@ objects:
     resources:
       requests:
         storage: ${HTTPD_VOLUME_CAPACITY}
-- apiVersion: v1
-  kind: PersistentVolumeClaim
-  metadata:
-    name: "${NAME}-assets"
-  spec:
-    accessModes:
-      - ReadWriteMany
-    resources:
-      requests:
-        storage: ${APPLICATION_ASSETS_VOLUME_CAPACITY}
 - apiVersion: apps/v1beta1
   kind: "StatefulSet"
   metadata:
@@ -195,9 +185,6 @@ objects:
               -
                 name: "${NAME}-region"
                 mountPath: "/persistent-region"
-              -
-                name: "${NAME}-assets"
-                mountPath: "/persistent-assets"
           env:
             -
               name: "APPLICATION_INIT_DELAY"
@@ -238,10 +225,6 @@ objects:
            name: "${NAME}-region"
            persistentVolumeClaim:
              claimName: ${NAME}-region
-         -
-           name: "${NAME}-assets"
-           persistentVolumeClaim:
-             claimName: ${NAME}-assets
         terminationGracePeriodSeconds: 90
     volumeClaimTemplates:
       - metadata:
@@ -470,10 +453,6 @@ objects:
             name: "${NAME}-httpd"
             persistentVolumeClaim:
               claimName: "${NAME}-httpd"
-          -
-            name: "${NAME}-assets"
-            persistentVolumeClaim:
-              claimName: "${NAME}-assets"
         containers:
           -
             name: "httpd"
@@ -495,13 +474,6 @@ objects:
               -
                 name: "${NAME}-httpd"
                 mountPath: "/persistent"
-              -
-                name: "${NAME}-assets"
-                mountPath: "/persistent-assets"
-            env:
-              -
-                name: "APPLICATION_DOMAIN"
-                value: "${APPLICATION_DOMAIN}"
             resources:
               requests:
                 memory: "${HTTPD_MEM_REQ}"
@@ -688,12 +660,6 @@ parameters:
     displayName: "Application Region Volume Capacity"
     required: true
     description: "Volume space available for region application data."
-    value: "5Gi"
-  -
-    name: "APPLICATION_ASSETS_VOLUME_CAPACITY"
-    displayName: "Application Assets Volume Capacity"
-    required: true
-    description: "Volume space available for application assets."
     value: "5Gi"
   -
     name: "DATABASE_VOLUME_CAPACITY"
