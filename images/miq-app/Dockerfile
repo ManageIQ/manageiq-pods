@@ -38,18 +38,12 @@ RUN yum -y install centos-release-scl-rh && \
                    gcc-c++                 \
                    git                     \
                    http-parser             \
-                   httpd                   \
                    initscripts             \
                    libcurl-devel           \
                    libtool                 \
                    libxslt-devel           \
                    logrotate               \
                    lvm2                    \
-                   mod_auth_kerb           \
-                   mod_authnz_pam          \
-                   mod_intercept_form_submit \
-                   mod_lookup_identity     \
-                   mod_ssl                 \
                    net-tools               \
                    nmap-ncat               \
                    nodejs                  \
@@ -84,41 +78,26 @@ RUN ${APPLIANCE_ROOT}/setup && \
     mkdir ${APP_ROOT_PERSISTENT} && \
     mkdir ${APP_ROOT_PERSISTENT_REGION} && \
     mkdir -p ${CONTAINER_SCRIPTS_ROOT} && \
-    mv /etc/httpd/conf.d/ssl.conf{,.orig} && \
-    echo "# This file intentionally left blank. ManageIQ maintains its own SSL configuration" > /etc/httpd/conf.d/ssl.conf && \
     cp ${APP_ROOT}/config/cable.yml.sample ${APP_ROOT}/config/cable.yml
 
 ## Change workdir to application root, build/install gems
 WORKDIR ${APP_ROOT}
 RUN source /etc/default/evm && \
     export RAILS_USE_MEMORY_STORE="true" && \
-    npm install bower yarn -g && \
     gem install bundler --conservative && \
     bundle install && \
-    rake update:bower && \
     bin/rails log:clear tmp:clear && \
-    rake evm:compile_assets && \
     rake evm:compile_sti_loader && \
     # Cleanup install artifacts
-    npm cache clean && \
-    bower cache clean && \
     find ${RUBY_GEMS_ROOT}/gems/ -name .git | xargs rm -rvf && \
     find ${RUBY_GEMS_ROOT}/gems/ | grep "\.s\?o$" | xargs rm -rvf && \
     rm -rvf ${RUBY_GEMS_ROOT}/gems/rugged-*/vendor/libgit2/build && \
     rm -rvf ${RUBY_GEMS_ROOT}/cache/* && \
     rm -rvf /root/.bundle/cache && \
-    rm -rvf ${APP_ROOT}/tmp/cache/assets && \
     rm -vf ${APP_ROOT}/log/*.log
 
-## Build SUI
-RUN source /etc/default/evm && \
-    cd ${SUI_ROOT} && \
-    yarn install --production && \
-    yarn run build && \
-    yarn cache clean
-
 ## Expose required container ports
-EXPOSE 80 443
+EXPOSE 3000 4000 5000
 
 ## Copy OpenShift and appliance-initialize scripts
 COPY docker-assets/entrypoint /usr/bin
