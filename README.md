@@ -86,6 +86,19 @@ Verify that the SCC was properly created:
 $ oc describe scc miq-sysadmin
 ```
 
+The miq-sysadmin service account for your namespace (project) must be added to the miq-sysadmin SCC before the manageiq/httpd pod can run as root.
+
+```bash
+$ oc adm policy add-scc-to-user miq-sysadmin system:serviceaccount:<your-namespace>:miq-sysadmin
+```
+
+Verify that your default service account is now included in the miq-sysadmin scc
+
+```
+$ oc describe scc miq-sysadmin | grep Users
+Users:					system:serviceaccount:<your-namespace>:miq-sysadmin
+```
+
 ### Make persistent volumes to host the MIQ database and application data
 
 A basic (single server/replica) deployment needs at least 3 persistent volumes (PVs) to store MIQ data:
