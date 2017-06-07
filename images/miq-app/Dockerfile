@@ -11,7 +11,7 @@ ENV TERM=xterm \
     APP_ROOT_PERSISTENT=/persistent \
     APP_ROOT_PERSISTENT_REGION=/persistent-region \
     APPLIANCE_ROOT=/opt/manageiq/manageiq-appliance \
-    SUI_ROOT=/opt/manageiq/manageiq-ui-service \ 
+    SUI_ROOT=/opt/manageiq/manageiq-ui-service \
     CONTAINER_SCRIPTS_ROOT=/opt/manageiq/container-scripts \
     IMAGE_VERSION=${REF}
 
