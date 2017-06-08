@@ -14,6 +14,10 @@ objects:
   metadata:
     name: miq-anyuid
 - apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: miq-sysadmin
+- apiVersion: v1
   kind: Secret
   metadata:
     name: "${NAME}-secrets"
@@ -23,10 +27,9 @@ objects:
 - apiVersion: v1
   kind: Service
   metadata:
+    name: "${HTTPD_SERVICE_NAME}"
     annotations:
-      description: "Exposes and load balances ManageIQ pods"
-      service.alpha.openshift.io/dependencies: '[{"name":"${DATABASE_SERVICE_NAME}","namespace":"","kind":"Service"},{"name":"${MEMCACHED_SERVICE_NAME}","namespace":"","kind":"Service"}]'
-    name: ${NAME}
+      description: "Exposes ManageIQ httpd"
   spec:
     clusterIP: None
     ports:
@@ -38,6 +41,29 @@ objects:
       port: 443
       protocol: TCP
       targetPort: 443
+    selector:
+      name: ${HTTPD_SERVICE_NAME}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      description: "Exposes and load balances ManageIQ pods"
+      service.alpha.openshift.io/dependencies: '[{"name":"${DATABASE_SERVICE_NAME}","namespace":"","kind":"Service"},{"name":"${MEMCACHED_SERVICE_NAME}","namespace":"","kind":"Service"},{"name":"${HTTPD_SERVICE_NAME}","namespace":"","kind":"Service"}]'
+    name: ${NAME}
+  spec:
+    ports:
+    - name: http-ui
+      port: 3000
+      protocol: TCP
+      targetPort: 3000
+    - name: http-ws
+      port: 4000
+      protocol: TCP
+      targetPort: 4000
+    - name: http-websocket
+      port: 5000
+      protocol: TCP
+      targetPort: 5000
     selector:
       name: ${NAME}
 - apiVersion: v1
@@ -52,7 +78,7 @@ objects:
       termination: passthrough
     to:
       kind: Service
-      name: ${NAME}
+      name: ${HTTPD_SERVICE_NAME}
 - apiVersion: v1
   kind: ImageStream
   metadata:
@@ -78,6 +104,14 @@ objects:
   spec:
     dockerImageRepository: "${MEMCACHED_IMG_NAME}"
 - apiVersion: v1
+  kind: ImageStream
+  metadata:
+    name: httpd
+    annotations:
+      description: "Keeps track of the Httpd image changes"
+  spec:
+    dockerImageRepository: "${HTTPD_IMG_NAME}"
+- apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
     name: "${NAME}-${DATABASE_SERVICE_NAME}"
@@ -97,6 +131,16 @@ objects:
     resources:
       requests:
         storage: ${APPLICATION_REGION_VOLUME_CAPACITY}
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: "${NAME}-${HTTPD_SERVICE_NAME}"
+  spec:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${HTTPD_VOLUME_CAPACITY}
 - apiVersion: apps/v1beta1
   kind: "StatefulSet"
   metadata:
@@ -117,20 +161,22 @@ objects:
           image: "${APPLICATION_IMG_NAME}:${APPLICATION_IMG_TAG}"
           livenessProbe:
             tcpSocket:
-              port: 443
+              port: 3000
             initialDelaySeconds: 480
             timeoutSeconds: 3
           readinessProbe:
             httpGet:
               path: /
-              port: 443
-              scheme: HTTPS
+              port: 3000
+              scheme: HTTP
             initialDelaySeconds: 200
             timeoutSeconds: 3
           ports:
-          - containerPort: 80
+          - containerPort: 3000
             protocol: TCP
-          - containerPort: 443
+          - containerPort: 4000
+            protocol: TCP
+          - containerPort: 5000
             protocol: TCP
           volumeMounts:
               -
@@ -158,6 +204,9 @@ objects:
             -
               name: "MEMCACHED_SERVICE_NAME"
               value: "${MEMCACHED_SERVICE_NAME}"
+            -
+              name: "BINDING_ADDRESS"
+              value: "0.0.0.0"
           resources:
             requests:
               memory: "${APPLICATION_MEM_REQ}"
@@ -367,7 +416,70 @@ objects:
                 cpu: "${POSTGRESQL_CPU_REQ}"
               limits:
                 memory: "${POSTGRESQL_MEM_LIMIT}"
-
+- apiVersion: v1
+  kind: "DeploymentConfig"
+  metadata:
+    name: "${HTTPD_SERVICE_NAME}"
+    annotations:
+      description: "Defines how to deploy ManageIQ httpd"
+  spec:
+    strategy:
+      type: "Recreate"
+    triggers:
+      -
+        type: "ImageChange"
+        imageChangeParams:
+          automatic: true
+          containerNames:
+            - "httpd"
+          from:
+            kind: "ImageStreamTag"
+            name: "httpd:${HTTPD_IMG_TAG}"
+      -
+        type: "ConfigChange"
+    replicas: 1
+    selector:
+      name: "${HTTPD_SERVICE_NAME}"
+    template:
+      metadata:
+        name: "${HTTPD_SERVICE_NAME}"
+        labels:
+          name: "${HTTPD_SERVICE_NAME}"
+      spec:
+        serviceAccount: miq-sysadmin
+        serviceAccountName: miq-sysadmin
+        volumes:
+          -
+            name: "${NAME}-httpd"
+            persistentVolumeClaim:
+              claimName: "${NAME}-httpd"
+        containers:
+          -
+            name: "httpd"
+            image: "${HTTPD_IMG_NAME}:${HTTPD_IMG_TAG}"
+            ports:
+              - containerPort: 80
+              - containerPort: 443
+            readinessProbe:
+              timeoutSeconds: 1
+              initialDelaySeconds: 5
+              tcpSocket:
+                port: 443
+            livenessProbe:
+              timeoutSeconds: 1
+              initialDelaySeconds: 30
+              tcpSocket:
+                port: 443
+            volumeMounts:
+              -
+                name: "${NAME}-httpd"
+                mountPath: "/persistent"
+            resources:
+              requests:
+                memory: "${HTTPD_MEM_REQ}"
+                cpu: "${HTTPD_CPU_REQ}"
+              limits:
+                memory: "${HTTPD_MEM_LIMIT}"
 parameters:
   -
     name: "NAME"
@@ -555,3 +667,45 @@ parameters:
     required: true
     description: "Volume space available for database."
     value: "15Gi"
+##############################################################################################3
+## Httpd Container Configuration Parameters
+  -
+    name: "HTTPD_SERVICE_NAME"
+    required: true
+    displayName: "ManageIQ Httpd Service Name"
+    description: "The name of the OpenShift Service exposed for the ManageIQ Httpd container."
+    value: "httpd"
+  -
+    name: "HTTPD_IMG_NAME"
+    displayName: "ManageIQ Httpd Image Name"
+    description: "This is the ManageIQ Httpd image name requested to deploy."
+    value: "docker.io/manageiq/httpd"
+  -
+    name: "HTTPD_IMG_TAG"
+    displayName: "ManageIQ Httpd Image Tag"
+    description: "This is the ManageIQ Httpd image tag/version requested to deploy."
+    value: "latest"
+  -
+    name: "HTTPD_MEM_REQ"
+    displayName: "ManageIQ Httpd Min RAM Requested"
+    required: true
+    description: "Minimum amount of memory the ManageIQ Httpd container will need."
+    value: "512Mi"
+  -
+    name: "HTTPD_MEM_LIMIT"
+    displayName: "ManageIQ Httpd Max RAM Limit"
+    required: true
+    description: "Maximum amount of memory the ManageIQ Httpd container can consume."
+    value: "2048Mi"
+  -
+    name: "HTTPD_VOLUME_CAPACITY"
+    displayName: "Httpd Volume Capacity"
+    required: true
+    description: "Volume space available for httpd."
+    value: "5Gi"
+  -
+    name: "HTTPD_CPU_REQ"
+    displayName: "ManageIQ Httpd Min CPU Requested"
+    required: true
+    description: "Minimum amount of CPU time the ManageIQ Httpd container will need (expressed in millicores)."
+    value: "200m"

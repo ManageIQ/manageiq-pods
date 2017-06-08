@@ -118,7 +118,7 @@ RUN source /etc/default/evm && \
     yarn cache clean
 
 ## Expose required container ports
-EXPOSE 80 443
+EXPOSE 3000 4000 5000
 
 ## Copy OpenShift and appliance-initialize scripts
 COPY docker-assets/entrypoint /usr/bin

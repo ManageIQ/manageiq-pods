@@ -70,6 +70,35 @@ $ oc describe scc anyuid | grep Users
 Users:					system:serviceaccount:<your-namespace>:miq-anyuid
 ```
 
+### Add the miq-sysadmin security context
+
+Note: Like the MIQ image, the manageiq/httpd container image needs to run as root so it needs an SCC like anyuid. It also requires SYS_ADMIN capabilities to support systemd and the message bus. The _miq-sysadmin_ security context is a modified anyuid SCC with the SYS_ADMIN capability.
+
+_**As admin**_
+
+```bash
+$ oc create -f templates/miq-sysadmin.yaml
+```
+
+Verify that the SCC was properly created:
+
+```bash
+$ oc describe scc miq-sysadmin
+```
+
+The miq-sysadmin service account for your namespace (project) must be added to the miq-sysadmin SCC before the manageiq/httpd pod can run as root.
+
+```bash
+$ oc adm policy add-scc-to-user miq-sysadmin system:serviceaccount:<your-namespace>:miq-sysadmin
+```
+
+Verify that your default service account is now included in the miq-sysadmin scc
+
+```
+$ oc describe scc miq-sysadmin | grep Users
+Users:					system:serviceaccount:<your-namespace>:miq-sysadmin
+```
+
 ### Make persistent volumes to host the MIQ database and application data
 
 A basic (single server/replica) deployment needs at least 3 persistent volumes (PVs) to store MIQ data:
