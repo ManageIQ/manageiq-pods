@@ -554,7 +554,7 @@ parameters:
     displayName: "Application Min CPU Requested"
     required: true
     description: "Minimum amount of CPU time the Application container will need (expressed in millicores)."
-    value: "900m"
+    value: "1000m"
   -
     name: "POSTGRESQL_CPU_REQ"
     displayName: "PostgreSQL Min CPU Requested"
@@ -708,4 +708,4 @@ parameters:
     displayName: "ManageIQ Httpd Min CPU Requested"
     required: true
     description: "Minimum amount of CPU time the ManageIQ Httpd container will need (expressed in millicores)."
-    value: "100m"
+    value: "200m"
