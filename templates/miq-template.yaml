@@ -175,6 +175,12 @@ objects:
                 secretKeyRef:
                   name: "${NAME}-secrets"
                   key: "v2-key"
+            -
+              name: "ANSIBLE_SERVICE_NAME"
+              value: "${ANSIBLE_SERVICE_NAME}"
+            -
+              name: "ANSIBLE_ADMIN_PASSWORD"
+              value: "${ANSIBLE_ADMIN_PASSWORD}"
           resources:
             requests:
               memory: "${APPLICATION_MEM_REQ}"
