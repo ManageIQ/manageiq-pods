@@ -19,6 +19,8 @@ setup_memcached
 # Check DB readiness
 check_svc_status ${DATABASE_SERVICE_NAME} 5432
 
+write_v2_key
+
 # Check deployment status
 check_deployment_status
 

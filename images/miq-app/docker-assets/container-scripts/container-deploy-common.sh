@@ -29,6 +29,15 @@ PV_LOG_TIMESTAMP="$(date +%s)"
 # VMDB shared REGION app_root directory on PV
 PV_REGION_VMDB="${PV_CONTAINER_DATA_REGION_DIR}/var/www/miq/vmdb"
 
+function write_v2_key() {
+  echo "== Writing encryption key =="
+  cat > /var/www/miq/vmdb/certs/v2_key << KEY
+---
+:algorithm: aes-256-cbc
+:key: ${V2_KEY}
+KEY
+}
+
 # Inspect PV for previous deployments, if a DB a config is present, restore
 # Source previous deployment info file from PV and compare data with current environment
 # Evaluate conditions and decide a target deployment type: redeploy,upgrade or new
@@ -38,9 +47,6 @@ function check_deployment_status() {
   if [[ -f ${PV_DEPLOY_INFO_FILE} ]]; then
     echo "== Found existing deployment configuration =="
     echo "== Restoring existing database configuration =="
-
-    [[ ! -f ${PV_REGION_VMDB}/certs/v2_key ]] && echo "ERROR: Could not find ${PV_REGION_VMDB}/certs/v2_key on upgrade/redeploy case, aborting.." && exit 1
-    ln --backup -sn ${PV_REGION_VMDB}/certs/v2_key ${APP_ROOT}/certs/v2_key
 
     # Source original deployment info variables from PV
     source ${PV_DEPLOY_INFO_FILE}
@@ -191,8 +197,6 @@ function setup_logs() {
 # Execute appliance_console to initialize appliance
 function init_appliance() {
   echo "== Initializing Appliance =="
-  appliance_console_cli --key
-  [ "$?" -ne "0" ] && echo "ERROR: Failed to create v2_key" && exit 1
 
   pushd ${APP_ROOT}
     bundle exec rake evm:db:region -- --region ${DATABASE_REGION}
@@ -260,10 +264,6 @@ function init_pv_data() {
 
     sync_pv_data
 
-    # Make v2_key is available on region PV, rsync will create directory structure
-
-    [ ! -f "${PV_REGION_VMDB}/certs/v2_key" ] && rsync -qavR "${APP_ROOT}/certs/v2_key" "${PV_CONTAINER_DATA_REGION_DIR}"
-
   ) 2>&1 | tee "${PV_DATA_INIT_LOG}"
 }
 
@@ -274,9 +274,6 @@ function restore_pv_data() {
 
   (
     echo "== Restoring PV data symlinks =="
-    # Ensure we always restore v2_key from region PV before processing DATA_PERSIST_FILE, sync_pv_data populates these files
-    ln --backup -sn "${PV_REGION_VMDB}/certs/v2_key" "${APP_ROOT}/certs/v2_key"
-
     while read -r FILE
     do
       # Sanity checks
