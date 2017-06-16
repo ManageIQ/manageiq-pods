@@ -19,7 +19,7 @@ objects:
     name: "${NAME}-secrets"
   stringData:
     pg-password: "${DATABASE_PASSWORD}"
-    database_url: "postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_SERVICE_NAME}/${DATABASE_NAME}?encoding=utf8&pool=5&wait_timeout=5"
+    database-url: "postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_SERVICE_NAME}/${DATABASE_NAME}?encoding=utf8&pool=5&wait_timeout=5"
     v2-key: "${V2_KEY}"
 - apiVersion: v1
   kind: Service
@@ -155,7 +155,7 @@ objects:
               valueFrom:
                 secretKeyRef:
                   name: "${NAME}-secrets"
-                  key: "database_url"
+                  key: "database-url"
             -
               name: "MEMCACHED_SERVICE_NAME"
               value: "${MEMCACHED_SERVICE_NAME}"
