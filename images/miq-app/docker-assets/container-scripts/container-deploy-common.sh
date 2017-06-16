@@ -38,52 +38,34 @@ function write_v2_key() {
 KEY
 }
 
-# Inspect PV for previous deployments, if a DB a config is present, restore
-# Source previous deployment info file from PV and compare data with current environment
-# Evaluate conditions and decide a target deployment type: redeploy,upgrade or new
 function check_deployment_status() {
   echo "== Checking deployment status =="
 
-  if [[ -f ${PV_DEPLOY_INFO_FILE} ]]; then
-    echo "== Found existing deployment configuration =="
-    echo "== Restoring existing database configuration =="
+  cd "${APP_ROOT}"
 
-    # Source original deployment info variables from PV
-    source ${PV_DEPLOY_INFO_FILE}
-
-    # Obtain current running environment
-    APP_VERSION="$(cat ${APP_ROOT}/VERSION)"
-    SCHEMA_VERSION="$(cd ${APP_ROOT} && RAILS_USE_MEMORY_STORE=true bin/rake db:version | awk '{ print $3 }')"
-    # Check if we have identical EVM versions (exclude master builds)
-    if [[ ${APP_VERSION} == ${PV_APP_VERSION} && ${APP_VERSION} != master ]]; then
-      echo "== App version matches original deployment =="
-      # Check if we have same schema version for same EVM version
-      if [ "${SCHEMA_VERSION}" != "${PV_SCHEMA_VERSION}" ]; then
-        echo "ERROR: Something seems wrong, db schema version mismatch for the same app version: ${PV_SCHEMA_VERSION} <-> ${SCHEMA_VERSION}"
-        exit 1
-      fi
-      # Assuming redeployment (same APP_VERSION)
-      DEPLOYMENT_STATUS=redeployment
+  SCHEMA_VERSION="$(RAILS_USE_MEMORY_STORE=true bin/rake db:version | grep "Current version" | awk '{ print $3 }')"
+  echo "Current schema version is $SCHEMA_VERSION"
+  if [ "$SCHEMA_VERSION" == "0" ]; then
+    # database has not been migrated
+    DEPLOYMENT_STATUS=new_deployment
+  else
+    RAILS_USE_MEMORY_STORE=true bin/rails r 'MiqServer.my_server.id'
+    if [ "$?" -ne "0" ]; then
+      # no server record for the current GUID
+      DEPLOYMENT_STATUS=new_replica
     else
-      # Handle special master case
-      # Master version remains static, check DB schema status and proceed accordingly
-
-      if [[ ${APP_VERSION} == master ]]; then
-        # Go for redeployment case unless rake task returns 1 (pending migrations)
+      RAILS_USE_MEMORY_STORE=true bin/rake db:abort_if_pending_migrations
+      if [ "$?" -eq "0" ]; then
+        # no pending migrations
         DEPLOYMENT_STATUS=redeployment
-        cd ${APP_ROOT} && RAILS_USE_MEMORY_STORE=true bin/rake db:abort_if_pending_migrations
-        [ "$?" -eq "1" ] && DEPLOYMENT_STATUS=upgrade
       else
-        # Assuming regular upgrade (different APP_VERSION)
-        # Ensure APP_VERSION must be greater than stored PV_APP_VERSION on upgrades
-        check_version_gt ${APP_VERSION} ${PV_APP_VERSION}
+        # have pending migrations
         DEPLOYMENT_STATUS=upgrade
       fi
     fi
-  else
-    echo "No pre-existing EVM configuration found on region PV"
-    DEPLOYMENT_STATUS=new_deployment
   fi
+
+  echo "Deployment Status is ${DEPLOYMENT_STATUS}"
 }
 
 # Check service status, requires two arguments: SVC name and SVC port (injected via template)
@@ -102,30 +84,6 @@ function check_svc_status() {
     sleep 5
   done
   echo "${SVC_NAME}:${SVC_PORT} - accepting connections"
-}
-
-# Check if upgrade version is actually greater than stored PV version
-# -V sorts alphanumeric versions within text, will always return oldest version first
-# Compare sort version result against upgrade version
-function check_version_gt() { 
-  if [[ "$(echo "$@" | tr " " "\n" | sort -V | head -n 1)" != "$1" ]]; then
-    # Version is newer return 0 and continue
-    return 0
-  else
-    echo "ERROR: Upgrade version $1 is older than PV version $2, aborting upgrade.."
-    exit 1
-  fi
-}
-
-# Check for pre-existing server data into PV, if not found, we assume a new server/replica case
-# Always skip if we are performing a new_deployment
-function check_if_new_replica() {
-  echo "== Checking for existing data on server PV =="
-
-  if [[ ! -d ${PV_CONTAINER_DATA_DIR} && ${DEPLOYMENT_STATUS} != new_deployment ]]; then
-    echo "No server data was found on PV, assuming new replica.."
-    DEPLOYMENT_STATUS=new_replica
-  fi
 }
 
 # Join the new server/replica to the remote region

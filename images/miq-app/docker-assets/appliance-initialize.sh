@@ -24,9 +24,6 @@ write_v2_key
 # Check deployment status
 check_deployment_status
 
-# Check for new replica case
-check_if_new_replica
-
 # Select path of action based on DEPLOYMENT_STATUS value
 case "${DEPLOYMENT_STATUS}" in
   redeployment)
