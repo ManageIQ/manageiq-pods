@@ -72,10 +72,9 @@ Users:					system:serviceaccount:<your-namespace>:miq-anyuid
 
 ### Make persistent volumes to host the MIQ database and application data
 
-A basic (single server/replica) deployment needs at least 3 persistent volumes (PVs) to store MIQ data:
+A basic (single server/replica) deployment needs at least 2 persistent volumes (PVs) to store MIQ data:
 
 * Server   (Server specific appliance data)
-* Region   (Region appliance data)
 * Database (PostgreSQL)
 
 Example NFS PV templates are provided, **please skip this step you have already configured persistent storage.**
@@ -91,7 +90,6 @@ Please inspect example NFS PV files and edit settings to match your site. You wi
 Create PV
 ```bash
 $ oc create -f templates/miq-pv-db-example.yaml
-$ oc create -f templates/miq-pv-region-example.yaml
 $ oc create -f templates/miq-pv-server-example.yaml
 ```
 Verify PV creation
@@ -100,7 +98,6 @@ $ oc get pv
 NAME       CAPACITY   ACCESSMODES   RECLAIMPOLICY   STATUS      CLAIM  REASON   AGE
 miq-pv01   15Gi        RWO           Recycle         Available                   30s
 miq-pv02   5Gi         RWO           Recycle         Available                   19s
-miq-pv03   5Gi         RWO           Recycle         Available                   14s
 ```
 
 It is strongly suggested that you validate NFS share connectivity from an OpenShift node prior attemping a deployment.
@@ -198,8 +195,6 @@ $ oc volume pods --all
 pods/manageiq-0
   pvc/manageiq-server-manageiq-0 (allocated 2GiB) as manageiq-server
     mounted at /persistent
-  pvc/manageiq-region (allocated 2GiB) as manageiq-region
-    mounted at /persistent-region
   secret/default-token-nw0qi as default-token-nw0qi
     mounted at /var/run/secrets/kubernetes.io/serviceaccount
 pods/postgresql-1-dufgp
