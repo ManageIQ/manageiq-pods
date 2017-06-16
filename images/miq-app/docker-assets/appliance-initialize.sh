@@ -37,7 +37,6 @@ case "${DEPLOYMENT_STATUS}" in
     restore_pv_data
     migrate_db
     run_hook post-upgrade
-    write_deployment_info
   ;;
   new_replica)
     echo "== Starting New Replica =="
@@ -66,9 +65,6 @@ case "${DEPLOYMENT_STATUS}" in
 
     # Restore symlinks from PV to application rootdir
     restore_pv_data
-
-    # Write deployment info file to PV
-    write_deployment_info
   ;;
   *)
     echo "Could not find a suitable deployment type, exiting.."

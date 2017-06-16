@@ -7,5 +7,5 @@
 # Source OpenShift scripting env
 [[ -s ${CONTAINER_SCRIPTS_ROOT}/container-deploy-common.sh ]] && source "${CONTAINER_SCRIPTS_ROOT}/container-deploy-common.sh"
 
-echo "Running upgrade ${FROM_VERSION} to ${TO_VERSION} post-upgrade tasks"
+echo "Running post-upgrade tasks"
 exit 0
