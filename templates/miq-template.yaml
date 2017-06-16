@@ -19,7 +19,8 @@ objects:
     name: "${NAME}-secrets"
   stringData:
     pg-password: "${DATABASE_PASSWORD}"
-    database_url: "postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_SERVICE_NAME}/${DATABASE_NAME}?encoding=utf8&pool=5&wait_timeout=5"
+    database-url: "postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_SERVICE_NAME}/${DATABASE_NAME}?encoding=utf8&pool=5&wait_timeout=5"
+    v2-key: "${V2_KEY}"
 - apiVersion: v1
   kind: Service
   metadata:
@@ -154,10 +155,16 @@ objects:
               valueFrom:
                 secretKeyRef:
                   name: "${NAME}-secrets"
-                  key: "database_url"
+                  key: "database-url"
             -
               name: "MEMCACHED_SERVICE_NAME"
               value: "${MEMCACHED_SERVICE_NAME}"
+            -
+              name: "V2_KEY"
+              valueFrom:
+                secretKeyRef:
+                  name: "${NAME}-secrets"
+                  key: "v2-key"
           resources:
             requests:
               memory: "${APPLICATION_MEM_REQ}"
@@ -375,6 +382,13 @@ parameters:
     required: true
     description: "The name assigned to all of the frontend objects defined in this template."
     value: manageiq
+  -
+    name: "V2_KEY"
+    displayName: "ManageIQ Encryption Key"
+    required: true
+    description: "Encryption Key for ManageIQ Passwords"
+    from: "[a-zA-Z0-9]{43}"
+    generate: expression
   -
     name: "DATABASE_SERVICE_NAME"
     displayName: "PostgreSQL Service Name"
