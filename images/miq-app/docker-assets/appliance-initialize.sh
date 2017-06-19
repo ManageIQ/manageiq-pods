@@ -21,32 +21,12 @@ check_svc_status ${DATABASE_SERVICE_NAME} 5432
 
 write_v2_key
 
-# Check deployment status
-check_deployment_status
+cd ${APP_ROOT}
+bin/rake evm:deployment_status
 
 # Select path of action based on DEPLOYMENT_STATUS value
-case "${DEPLOYMENT_STATUS}" in
-  redeployment)
-    echo "== Starting Re-deployment =="
-    restore_pv_data
-  ;;
-  upgrade)
-    echo "== Starting Upgrade =="
-    backup_pv_data
-    run_hook pre-upgrade
-    restore_pv_data
-    migrate_db
-    run_hook post-upgrade
-  ;;
-  new_replica)
-    echo "== Starting New Replica =="
-    /usr/bin/generate_miq_server_cert.sh
-    setup_logs
-    replica_join_region
-    sync_pv_data
-    restore_pv_data
-  ;;
-  new_deployment)
+case $? in
+  0) # new_deployment
     echo "== Starting New Deployment =="
     # Generate the certs
     /usr/bin/generate_miq_server_cert.sh
@@ -65,6 +45,26 @@ case "${DEPLOYMENT_STATUS}" in
 
     # Restore symlinks from PV to application rootdir
     restore_pv_data
+  ;;
+  1) # new_replica
+    echo "== Starting New Replica =="
+    /usr/bin/generate_miq_server_cert.sh
+    setup_logs
+    replica_join_region
+    sync_pv_data
+    restore_pv_data
+  ;;
+  2) # redeployment
+    echo "== Starting Re-deployment =="
+    restore_pv_data
+  ;;
+  3) # upgrade
+    echo "== Starting Upgrade =="
+    backup_pv_data
+    run_hook pre-upgrade
+    restore_pv_data
+    migrate_db
+    run_hook post-upgrade
   ;;
   *)
     echo "Could not find a suitable deployment type, exiting.."

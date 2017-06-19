@@ -29,36 +29,6 @@ function write_v2_key() {
 KEY
 }
 
-function check_deployment_status() {
-  echo "== Checking deployment status =="
-
-  cd "${APP_ROOT}"
-
-  SCHEMA_VERSION="$(RAILS_USE_MEMORY_STORE=true bin/rake db:version | grep "Current version" | awk '{ print $3 }')"
-  echo "Current schema version is $SCHEMA_VERSION"
-  if [ "$SCHEMA_VERSION" == "0" ]; then
-    # database has not been migrated
-    DEPLOYMENT_STATUS=new_deployment
-  else
-    RAILS_USE_MEMORY_STORE=true bin/rails r 'MiqServer.my_server.id'
-    if [ "$?" -ne "0" ]; then
-      # no server record for the current GUID
-      DEPLOYMENT_STATUS=new_replica
-    else
-      RAILS_USE_MEMORY_STORE=true bin/rake db:abort_if_pending_migrations
-      if [ "$?" -eq "0" ]; then
-        # no pending migrations
-        DEPLOYMENT_STATUS=redeployment
-      else
-        # have pending migrations
-        DEPLOYMENT_STATUS=upgrade
-      fi
-    fi
-  fi
-
-  echo "Deployment Status is ${DEPLOYMENT_STATUS}"
-}
-
 # Check service status, requires two arguments: SVC name and SVC port (injected via template)
 function check_svc_status() {
   NCAT="$(which ncat)"
