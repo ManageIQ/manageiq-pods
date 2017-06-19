@@ -21,6 +21,8 @@ check_svc_status ${DATABASE_SERVICE_NAME} 5432
 
 write_v2_key
 
+restore_pv_data
+
 cd ${APP_ROOT}
 bin/rake evm:deployment_status
 
@@ -56,7 +58,6 @@ case $? in
   ;;
   2) # redeployment
     echo "== Starting Re-deployment =="
-    restore_pv_data
   ;;
   3) # upgrade
     echo "== Starting Upgrade =="
