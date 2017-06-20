@@ -205,15 +205,6 @@ function init_appliance() {
   [ "$?" -ne "0" ] && echo "ERROR: Failed to initialize appliance, please check journal or appliance_console logs at ${APP_ROOT}/log/appliance_console.log" && exit 1
 }
 
-# Replace memcached host in EVM configuration to use assigned service pod IP
-function setup_memcached() {
-  echo "== Applying memcached config =="
-
-  sed -i~ -E "s/:memcache_server:.*/:memcache_server: ${MEMCACHED_SERVICE_NAME}:11211/gi" "${APP_ROOT}/config/settings.yml"
-
-  [ "$?" -eq "0" ] && return 0 || echo "ERROR: Failed to apply memcached configuration, please check journal or PV logs" && exit 1
-}
-
 # Run hook script to enable future code to be run anywhere needed (i.e upgrades)
 function run_hook() {
   echo "== Calling Deployment Hook =="

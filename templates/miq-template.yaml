@@ -157,6 +157,9 @@ objects:
                   name: "${NAME}-secrets"
                   key: "database-url"
             -
+              name: "MEMCACHED_SERVER"
+              value: "${MEMCACHED_SERVICE_NAME}:11211"
+            -
               name: "MEMCACHED_SERVICE_NAME"
               value: "${MEMCACHED_SERVICE_NAME}"
             -

@@ -14,8 +14,6 @@ prepare_init_env
 # Check Memcached readiness
 check_svc_status ${MEMCACHED_SERVICE_NAME} 11211
 
-setup_memcached
-
 # Check DB readiness
 check_svc_status ${DATABASE_SERVICE_NAME} 5432
 
