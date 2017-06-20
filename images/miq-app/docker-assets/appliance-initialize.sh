@@ -28,7 +28,7 @@ bin/rake evm:deployment_status
 
 # Select path of action based on DEPLOYMENT_STATUS value
 case $? in
-  0) # new_deployment
+  3) # new_deployment
     echo "== Starting New Deployment =="
     # Generate the certs
     /usr/bin/generate_miq_server_cert.sh
@@ -48,7 +48,7 @@ case $? in
     # Restore symlinks from PV to application rootdir
     restore_pv_data
   ;;
-  1) # new_replica
+  4) # new_replica
     echo "== Starting New Replica =="
     /usr/bin/generate_miq_server_cert.sh
     setup_logs
@@ -56,10 +56,10 @@ case $? in
     sync_pv_data
     restore_pv_data
   ;;
-  2) # redeployment
+  5) # redeployment
     echo "== Starting Re-deployment =="
   ;;
-  3) # upgrade
+  6) # upgrade
     echo "== Starting Upgrade =="
     backup_pv_data
     run_hook pre-upgrade
