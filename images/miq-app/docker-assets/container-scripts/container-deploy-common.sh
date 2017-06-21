@@ -2,9 +2,6 @@
 
 [[ -s /etc/default/evm ]] && source /etc/default/evm
 
-# This file is created by the write_deployment_info during initial deployment
-PV_DEPLOY_INFO_FILE="${APP_ROOT_PERSISTENT_REGION}/.deployment_info"
-
 # This directory is used to store server specific data to be persisted
 PV_CONTAINER_DATA_DIR="${APP_ROOT_PERSISTENT}/server-data"
 
@@ -17,17 +14,11 @@ PV_LOG_DIR="${PV_CONTAINER_DEPLOY_DIR}/log"
 # Directory used to backup server specific PV data before performing an upgrade
 PV_BACKUP_DIR="${PV_CONTAINER_DEPLOY_DIR}/backup"
 
-# This directory is used to store shared region application data to be persisted (keys, etc)
-PV_CONTAINER_DATA_REGION_DIR="${APP_ROOT_PERSISTENT_REGION}/region-data"
-
 # This file is supplied by the app docker image with default files/dirs to persist on PV
 DATA_PERSIST_FILE="/container.data.persist"
 
 # Set log timestamp for running instance
 PV_LOG_TIMESTAMP="$(date +%s)"
-
-# VMDB shared REGION app_root directory on PV
-PV_REGION_VMDB="${PV_CONTAINER_DATA_REGION_DIR}/var/www/miq/vmdb"
 
 function write_v2_key() {
   echo "== Writing encryption key =="
@@ -36,54 +27,6 @@ function write_v2_key() {
 :algorithm: aes-256-cbc
 :key: ${V2_KEY}
 KEY
-}
-
-# Inspect PV for previous deployments, if a DB a config is present, restore
-# Source previous deployment info file from PV and compare data with current environment
-# Evaluate conditions and decide a target deployment type: redeploy,upgrade or new
-function check_deployment_status() {
-  echo "== Checking deployment status =="
-
-  if [[ -f ${PV_DEPLOY_INFO_FILE} ]]; then
-    echo "== Found existing deployment configuration =="
-    echo "== Restoring existing database configuration =="
-
-    # Source original deployment info variables from PV
-    source ${PV_DEPLOY_INFO_FILE}
-
-    # Obtain current running environment
-    APP_VERSION="$(cat ${APP_ROOT}/VERSION)"
-    SCHEMA_VERSION="$(cd ${APP_ROOT} && RAILS_USE_MEMORY_STORE=true bin/rake db:version | awk '{ print $3 }')"
-    # Check if we have identical EVM versions (exclude master builds)
-    if [[ ${APP_VERSION} == ${PV_APP_VERSION} && ${APP_VERSION} != master ]]; then
-      echo "== App version matches original deployment =="
-      # Check if we have same schema version for same EVM version
-      if [ "${SCHEMA_VERSION}" != "${PV_SCHEMA_VERSION}" ]; then
-        echo "ERROR: Something seems wrong, db schema version mismatch for the same app version: ${PV_SCHEMA_VERSION} <-> ${SCHEMA_VERSION}"
-        exit 1
-      fi
-      # Assuming redeployment (same APP_VERSION)
-      DEPLOYMENT_STATUS=redeployment
-    else
-      # Handle special master case
-      # Master version remains static, check DB schema status and proceed accordingly
-
-      if [[ ${APP_VERSION} == master ]]; then
-        # Go for redeployment case unless rake task returns 1 (pending migrations)
-        DEPLOYMENT_STATUS=redeployment
-        cd ${APP_ROOT} && RAILS_USE_MEMORY_STORE=true bin/rake db:abort_if_pending_migrations
-        [ "$?" -eq "1" ] && DEPLOYMENT_STATUS=upgrade
-      else
-        # Assuming regular upgrade (different APP_VERSION)
-        # Ensure APP_VERSION must be greater than stored PV_APP_VERSION on upgrades
-        check_version_gt ${APP_VERSION} ${PV_APP_VERSION}
-        DEPLOYMENT_STATUS=upgrade
-      fi
-    fi
-  else
-    echo "No pre-existing EVM configuration found on region PV"
-    DEPLOYMENT_STATUS=new_deployment
-  fi
 }
 
 # Check service status, requires two arguments: SVC name and SVC port (injected via template)
@@ -104,76 +47,10 @@ function check_svc_status() {
   echo "${SVC_NAME}:${SVC_PORT} - accepting connections"
 }
 
-# Check if upgrade version is actually greater than stored PV version
-# -V sorts alphanumeric versions within text, will always return oldest version first
-# Compare sort version result against upgrade version
-function check_version_gt() { 
-  if [[ "$(echo "$@" | tr " " "\n" | sort -V | head -n 1)" != "$1" ]]; then
-    # Version is newer return 0 and continue
-    return 0
-  else
-    echo "ERROR: Upgrade version $1 is older than PV version $2, aborting upgrade.."
-    exit 1
-  fi
-}
-
-# Check for pre-existing server data into PV, if not found, we assume a new server/replica case
-# Always skip if we are performing a new_deployment
-function check_if_new_replica() {
-  echo "== Checking for existing data on server PV =="
-
-  if [[ ! -d ${PV_CONTAINER_DATA_DIR} && ${DEPLOYMENT_STATUS} != new_deployment ]]; then
-    echo "No server data was found on PV, assuming new replica.."
-    DEPLOYMENT_STATUS=new_replica
-  fi
-}
-
 # Join the new server/replica to the remote region
 function replica_join_region() {
   echo "== Joining region =="
   cd ${APP_ROOT} && RAILS_USE_MEMORY_STORE=true bin/rake evm:join_region
-}
-
-# Populate info file based on initial deployment and store on PV
-# Output in bash format to be easily sourced
-# IMAGE_VERSION is supplied by docker environment
-function write_deployment_info() {
-  DEPLOYMENT_DATE="$(date +%F_%T)"
-  APP_VERSION="$(cat ${APP_ROOT}/VERSION)"
-  SCHEMA_VERSION="$(cd ${APP_ROOT} && RAILS_USE_MEMORY_STORE=true bin/rake db:version | awk '{ print $3 }')"
-
-  if [[ -z $APP_VERSION || -z $SCHEMA_VERSION || -z $IMAGE_VERSION ]]; then
-    echo "${PV_DEPLOY_INFO_FILE} is incomplete, one or more required variables are undefined"
-    exit 1
-  else
-    case "${DEPLOYMENT_STATUS}" in
-      redeployment)
-      ;;
-      upgrade)
-        # PV_DEPLOY_INFO_FILE must exist on upgrades
-        [ ! -f "${PV_DEPLOY_INFO_FILE}" ] && echo "ERROR: Something seems wrong, ${PV_DEPLOY_INFO_FILE} could not be found" && exit 1
-        # Backup existing PV_DEPLOY_INFO_FILE
-        cp "${PV_DEPLOY_INFO_FILE}" "${PV_BACKUP_DIR}/backup_${PV_BACKUP_TIMESTAMP}"
-        cp "${PV_DEPLOY_INFO_FILE}" "${PV_DEPLOY_INFO_FILE}~"
-        # Re-write file with upgraded deployment info
-        echo "PV_APP_VERSION=${APP_VERSION}" > "${PV_DEPLOY_INFO_FILE}"
-        echo "PV_SCHEMA_VERSION=${SCHEMA_VERSION}" >> "${PV_DEPLOY_INFO_FILE}"
-        echo "PV_IMG_VERSION=${IMAGE_VERSION}" >> "${PV_DEPLOY_INFO_FILE}"
-        echo "PV_DEPLOYMENT_DATE=${DEPLOYMENT_DATE}" >> "${PV_DEPLOY_INFO_FILE}"
-      ;;
-      new_deployment)
-        # No PV DEPLOY INFO file should exist on new deployments
-        [ -f "${PV_DEPLOY_INFO_FILE}" ] && echo "ERROR: Something seems wrong, ${PV_DEPLOY_INFO_FILE} already exists on a new deployment" && exit 1
-        echo "PV_APP_VERSION=${APP_VERSION}" > "${PV_DEPLOY_INFO_FILE}"
-        echo "PV_SCHEMA_VERSION=${SCHEMA_VERSION}" >> "${PV_DEPLOY_INFO_FILE}"
-        echo "PV_IMG_VERSION=${IMAGE_VERSION}" >> "${PV_DEPLOY_INFO_FILE}"
-        echo "PV_DEPLOYMENT_DATE=${DEPLOYMENT_DATE}" >> "${PV_DEPLOY_INFO_FILE}"
-      ;;
-      *)
-        echo "Could not find a suitable deployment status type, exiting.."
-        exit 1
-    esac
-  fi
 }
 
 # Prepare appliance initialization environment
@@ -221,9 +98,8 @@ function run_hook() {
     if [ -f "${HOOK_SCRIPT}" ]; then
       # Ensure is executable
       [ ! -x "${HOOK_SCRIPT}" ] && chmod +x "${HOOK_SCRIPT}"
-      # APP_VERSION and PV_APP_VERSION are set by check_deployment_status and passed to hook environment as FROM/TO vars
       echo "== Running ${HOOK_SCRIPT} =="
-      FROM_VERSION="${PV_APP_VERSION}" TO_VERSION="${APP_VERSION}" "${HOOK_SCRIPT}"
+      ${HOOK_SCRIPT}
       [ "$?" -ne "0" ] && echo "ERROR: ${HOOK_SCRIPT} failed, please check logs at ${PV_HOOK_SCRIPT_LOG}" && exit 1
     else
       echo "Hook script ${SCRIPT_NAME} not found, skipping"
@@ -244,7 +120,7 @@ function migrate_db() {
   ) 2>&1 | tee ${PV_MIGRATE_DB_LOG}
 }
 
-# Process DATA_PERSIST_FILE which contains the desired files/dirs to store on server and region PVs
+# Process DATA_PERSIST_FILE which contains the desired files/dirs to store on the PV
 # Use rsync to transfer files/dirs, log output and check return status
 # Ensure we always store an initial data backup on PV
 function init_pv_data() {
@@ -292,7 +168,7 @@ function backup_pv_data() {
   (
     echo "== Initializing PV data backup =="
 
-    rsync -av --exclude 'log' "${PV_CONTAINER_DATA_DIR}" "${PV_CONTAINER_DATA_REGION_DIR}" "${PV_BACKUP_DIR}/backup_${PV_BACKUP_TIMESTAMP}"
+    rsync -av --exclude 'log' "${PV_CONTAINER_DATA_DIR}" "${PV_BACKUP_DIR}/backup_${PV_BACKUP_TIMESTAMP}"
 
     [ "$?" -ne "0" ] && echo "WARNING: Some files might not have been copied please check logs at ${PV_DATA_BACKUP_LOG}"
   ) 2>&1 | tee "${PV_DATA_BACKUP_LOG}"

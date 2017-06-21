@@ -88,16 +88,6 @@ objects:
     resources:
       requests:
         storage: ${DATABASE_VOLUME_CAPACITY}
-- apiVersion: v1
-  kind: PersistentVolumeClaim
-  metadata:
-    name: "${NAME}-region"
-  spec:
-    accessModes:
-      - ReadWriteOnce
-    resources:
-      requests:
-        storage: ${APPLICATION_REGION_VOLUME_CAPACITY}
 - apiVersion: apps/v1beta1
   kind: "StatefulSet"
   metadata:
@@ -137,9 +127,6 @@ objects:
               -
                 name: "${NAME}-server"
                 mountPath: "/persistent"
-              -
-                name: "${NAME}-region"
-                mountPath: "/persistent-region"
           env:
             -
               name: "APPLICATION_INIT_DELAY"
@@ -181,11 +168,6 @@ objects:
                   - /opt/manageiq/container-scripts/sync-pv-data
         serviceAccount: miq-anyuid
         serviceAccountName: miq-anyuid
-        volumes:
-         -
-           name: "${NAME}-region"
-           persistentVolumeClaim:
-             claimName: ${NAME}-region
         terminationGracePeriodSeconds: 90
     volumeClaimTemplates:
       - metadata:
@@ -559,12 +541,6 @@ parameters:
     displayName: "Application Volume Capacity"
     required: true
     description: "Volume space available for application data."
-    value: "5Gi"
-  -
-    name: "APPLICATION_REGION_VOLUME_CAPACITY"
-    displayName: "Application Region Volume Capacity"
-    required: true
-    description: "Volume space available for region application data."
     value: "5Gi"
   -
     name: "DATABASE_VOLUME_CAPACITY"
