@@ -56,7 +56,7 @@ objects:
 - apiVersion: v1
   kind: Route
   metadata:
-    name: ${NAME}
+    name: "${HTTPD_SERVICE_NAME}"
   spec:
     host: ${APPLICATION_DOMAIN}
     port:
@@ -65,7 +65,7 @@ objects:
       termination: passthrough
     to:
       kind: Service
-      name: ${NAME}
+      name: "${HTTPD_SERVICE_NAME}"
 - apiVersion: v1
   kind: ImageStream
   metadata:
@@ -492,6 +492,86 @@ objects:
         serviceAccount: miq-privileged
         serviceAccountName: miq-privileged
 
+
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    name: httpd
+    annotations:
+      description: "Keeps track of the httpd image changes"
+  spec:
+    dockerImageRepository: "${HTTPD_IMG_NAME}"
+- apiVersion: v1
+  kind: "Service"
+  metadata:
+    name: "${HTTPD_SERVICE_NAME}"
+    annotations:
+      description: "Exposes the httpd server"
+      service.alpha.openshift.io/dependencies: '[{"name":"${NAME}","namespace":"","kind":"Service"}]'
+  spec:
+    ports:
+      - name: "http"
+        port: 80
+        targetPort: 80
+      - name: "https"
+        port: 443
+        targetPort: 443
+    selector:
+      name: "httpd"
+- apiVersion: v1
+  kind: "DeploymentConfig"
+  metadata:
+    name: "${HTTPD_SERVICE_NAME}"
+    annotations:
+      description: "Defines how to deploy httpd"
+  spec:
+    strategy:
+      type: "Recreate"
+    triggers:
+      - type: "ImageChange"
+        imageChangeParams:
+          automatic: true
+          containerNames:
+            - "httpd"
+          from:
+            kind: "ImageStreamTag"
+            name: "httpd:${HTTPD_IMG_TAG}"
+      - type: "ConfigChange"
+    replicas: 1
+    selector:
+      name: "${HTTPD_SERVICE_NAME}"
+    template:
+      metadata:
+        name: "${HTTPD_SERVICE_NAME}"
+        labels:
+          name: "${HTTPD_SERVICE_NAME}"
+      spec:
+        volumes: []
+        containers:
+          - name: "httpd"
+            image: "${HTTPD_IMG_NAME}:${HTTPD_IMG_TAG}"
+            ports:
+              - containerPort: 80
+              - containerPort: 443
+            livenessProbe:
+              tcpSocket:
+                port: 443
+              initialDelaySeconds: 15
+              timeoutSeconds: 3
+            readinessProbe:
+              httpGet:
+                path: /
+                port: 443
+                scheme: HTTPS
+              initialDelaySeconds: 10
+              timeoutSeconds: 3
+            volumeMounts: []
+            env:
+            resources:
+              requests:
+              limits:
+
+
 parameters:
   -
     name: "NAME"
@@ -746,3 +826,17 @@ parameters:
     required: true
     description: "Volume space available for database."
     value: "15Gi"
+
+  - name: "HTTPD_SERVICE_NAME"
+    required: true
+    displayName: "Apache httpd Service Name"
+    description: "The name of the OpenShift Service exposed for the httpd container."
+    value: "httpd"
+  - name: "HTTPD_IMG_NAME"
+    displayName: "Apache httpd Image Name"
+    description: "This is the httpd image name requested to deploy."
+    value: "docker.io/manageiq/httpd"
+  - name: "HTTPD_IMG_TAG"
+    displayName: "Apache httpd Image Tag"
+    description: "This is the httpd image tag/version requested to deploy."
+    value: "latest"
