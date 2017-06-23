@@ -64,7 +64,7 @@ _**As admin**_
 $ oc adm policy add-scc-to-user anyuid system:serviceaccount:<your-namespace>:miq-anyuid
 ```
 
-Verify that your default service account is now included in the privileged scc
+Verify that the miq-anyuid service account is now included in the anyuid scc
 ```
 $ oc describe scc anyuid | grep Users
 Users:					system:serviceaccount:<your-namespace>:miq-anyuid
