@@ -478,7 +478,10 @@ objects:
             env:
             resources:
               requests:
+                memory: "${HTTPD_MEM_REQ}"
+                cpu: "${HTTPD_CPU_REQ}"
               limits:
+                memory: "${HTTPD_MEM_LIMIT}"
 
 
 parameters:
@@ -717,3 +720,18 @@ parameters:
     displayName: "Apache httpd Image Tag"
     description: "This is the httpd image tag/version requested to deploy."
     value: "latest"
+  - name: "HTTPD_CPU_REQ"
+    displayName: "Apache httpd Min CPU Requested"
+    required: true
+    description: "Minimum amount of CPU time the httpd container will need (expressed in millicores)."
+    value: "500m"
+  - name: "HTTPD_MEM_REQ"
+    displayName: "Apache httpd Min RAM Requested"
+    required: true
+    description: "Minimum amount of memory the httpd container will need."
+    value: "512Mi"
+  - name: "HTTPD_MEM_LIMIT"
+    displayName: "Apache httpd Max RAM Limit"
+    required: true
+    description: "Maximum amount of memory the httpd container can consume."
+    value: "8192Mi"
