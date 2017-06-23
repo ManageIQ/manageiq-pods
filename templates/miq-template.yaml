@@ -16,7 +16,7 @@ objects:
 - apiVersion: v1
   kind: ServiceAccount
   metadata:
-    name: miq-sysadmin
+    name: miq-privileged
 - apiVersion: v1
   kind: Secret
   metadata:
@@ -441,6 +441,8 @@ objects:
             protocol: TCP
           - containerPort: 443
             protocol: TCP
+          securityContext:
+            privileged: true
           env:
             -
               name: "ADMIN_PASSWORD"
@@ -484,8 +486,8 @@ objects:
               cpu: "${ANSIBLE_CPU_REQ}"
             limits:
               memory: "${ANSIBLE_MEM_LIMIT}"
-        serviceAccount: miq-sysadmin
-        serviceAccountName: miq-sysadmin
+        serviceAccount: miq-privileged
+        serviceAccountName: miq-privileged
 
 parameters:
   -
