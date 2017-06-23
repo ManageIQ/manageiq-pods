@@ -114,6 +114,9 @@ objects:
               name: "APPLICATION_INIT_DELAY"
               value: "${APPLICATION_INIT_DELAY}"
             -
+              name: "DATABASE_SERVICE_NAME"
+              value: "${DATABASE_SERVICE_NAME}"
+            -
               name: "DATABASE_REGION"
               value: "${DATABASE_REGION}"
             -
