@@ -159,7 +159,10 @@ objects:
               value: "${ANSIBLE_SERVICE_NAME}"
             -
               name: "ANSIBLE_ADMIN_PASSWORD"
-              value: "${ANSIBLE_ADMIN_PASSWORD}"
+              valueFrom:
+                secretKeyRef:
+                  name: "${ANSIBLE_SERVICE_NAME}-secrets"
+                  key: "admin-password"
           resources:
             requests:
               memory: "${APPLICATION_MEM_REQ}"
