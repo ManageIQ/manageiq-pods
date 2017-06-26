@@ -11,7 +11,7 @@ ENV TERM=xterm \
     APP_ROOT_PERSISTENT=/persistent \
     APP_ROOT_PERSISTENT_REGION=/persistent-region \
     APPLIANCE_ROOT=/opt/manageiq/manageiq-appliance \
-    SUI_ROOT=/opt/manageiq/manageiq-ui-service \ 
+    SUI_ROOT=/opt/manageiq/manageiq-ui-service \
     CONTAINER_SCRIPTS_ROOT=/opt/manageiq/container-scripts \
     IMAGE_VERSION=${REF}
 
@@ -31,38 +31,38 @@ LABEL name="manageiq" \
 ## Install EPEL repo, yum necessary packages for the build without docs, clean all caches
 RUN yum -y install centos-release-scl-rh && \
     yum -y install --setopt=tsflags=nodocs \
+                   chrony                  \
                    cmake                   \
+                   cronie                  \
                    file                    \
                    gcc-c++                 \
                    git                     \
+                   http-parser             \
+                   httpd                   \
+                   initscripts             \
                    libcurl-devel           \
                    libtool                 \
                    libxslt-devel           \
-                   net-tools               \
-                   nodejs                  \
-                   openscap-scanner        \
-                   patch                   \
-                   rh-postgresql95-postgresql-libs \
-                   rh-postgresql95-postgresql-devel  \
-                   sqlite-devel            \
-                   sysvinit-tools          \
-                   which                   \
-                   httpd                   \
-                   mod_ssl                 \
+                   logrotate               \
+                   lvm2                    \
                    mod_auth_kerb           \
                    mod_authnz_pam          \
                    mod_intercept_form_submit \
                    mod_lookup_identity     \
-                   initscripts             \
-                   npm                     \
-                   chrony                  \
-                   psmisc                  \
-                   lvm2                    \
-                   openldap-clients        \
-                   cronie                  \
-                   logrotate               \
+                   mod_ssl                 \
+                   net-tools               \
                    nmap-ncat               \
-                   http-parser             \
+                   nodejs                  \
+                   npm                     \
+                   openldap-clients        \
+                   openscap-scanner        \
+                   patch                   \
+                   psmisc                  \
+                   rh-postgresql95-postgresql-devel  \
+                   rh-postgresql95-postgresql-libs \
+                   sqlite-devel            \
+                   sysvinit-tools          \
+                   which                   \
                    &&                      \
     yum clean all
 
