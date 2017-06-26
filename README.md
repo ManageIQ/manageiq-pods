@@ -64,10 +64,28 @@ _**As admin**_
 $ oc adm policy add-scc-to-user anyuid system:serviceaccount:<your-namespace>:miq-anyuid
 ```
 
-Verify that your default service account is now included in the privileged scc
+Verify that the miq-anyuid service account is now included in the anyuid scc
 ```
 $ oc describe scc anyuid | grep Users
 Users:					system:serviceaccount:<your-namespace>:miq-anyuid
+```
+
+### Add the miq-privileged service account to the privileged security context
+
+_**Note:**_ The current Embedded Ansible image requires a privileged pod.
+
+The miq-privileged service account for your namespace must be aded to the privileged SCC so that the embedded-ansible pod can function correctly.
+
+_**As admin**_
+
+```bash
+$ oc adm policy add-scc-to-user privileged system:serviceaccount:<your-namespace>:miq-privileged
+```
+
+Verify that the miq-privileged service account is now included in the privileged scc
+```
+$ oc describe scc privileged | grep Users
+Users:					system:serviceaccount:<your-namespace>:miq-privileged
 ```
 
 ### Make persistent volumes to host the MIQ database and application data
