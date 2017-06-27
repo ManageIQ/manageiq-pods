@@ -24,13 +24,13 @@ restore_pv_data
 cd ${APP_ROOT}
 bin/rake evm:deployment_status
 
+# Generate httpd certificate
+/usr/bin/generate_miq_server_cert.sh
+
 # Select path of action based on DEPLOYMENT_STATUS value
 case $? in
   3) # new_deployment
     echo "== Starting New Deployment =="
-    # Generate the certs
-    /usr/bin/generate_miq_server_cert.sh
-
     # Setup logs on PV before init
     setup_logs
 
@@ -48,7 +48,6 @@ case $? in
   ;;
   4) # new_replica
     echo "== Starting New Replica =="
-    /usr/bin/generate_miq_server_cert.sh
     setup_logs
     replica_join_region
     sync_pv_data
