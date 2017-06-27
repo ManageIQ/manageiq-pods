@@ -21,13 +21,11 @@ write_v2_key
 
 restore_pv_data
 
-cd ${APP_ROOT}
-bin/rake evm:deployment_status
-
 # Generate httpd certificate
 /usr/bin/generate_miq_server_cert.sh
 
-# Select path of action based on DEPLOYMENT_STATUS value
+cd ${APP_ROOT}
+bin/rake evm:deployment_status
 case $? in
   3) # new_deployment
     echo "== Starting New Deployment =="
