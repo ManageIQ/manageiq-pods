@@ -573,6 +573,8 @@ objects:
                 cpu: "${HTTPD_CPU_REQ}"
               limits:
                 memory: "${HTTPD_MEM_LIMIT}"
+        serviceAccount: miq-anyuid
+        serviceAccountName: miq-anyuid
 
 
 parameters:
