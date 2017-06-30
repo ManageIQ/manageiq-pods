@@ -11,12 +11,6 @@ sleep "${APPLICATION_INIT_DELAY}"
 # Prepare initialization environment
 prepare_init_env
 
-# Check Memcached readiness
-check_svc_status ${MEMCACHED_SERVICE_NAME} 11211
-
-# Check DB readiness
-check_svc_status ${DATABASE_SERVICE_NAME} 5432
-
 write_v2_key
 
 restore_pv_data

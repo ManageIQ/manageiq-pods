@@ -2,6 +2,7 @@
 
 /usr/sbin/crond &
 
+check-dependent-services.sh
 appliance-initialize.sh
 
 [[ -s /etc/default/evm ]] && source /etc/default/evm
