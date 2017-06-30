@@ -335,7 +335,7 @@ objects:
     strategy:
       type: "Recreate"
     serviceName: "${ANSIBLE_SERVICE_NAME}"
-    replicas: 1
+    replicas: 0
     template:
       metadata:
         labels:
