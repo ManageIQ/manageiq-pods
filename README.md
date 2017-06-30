@@ -52,22 +52,23 @@ $ oc new-project <project_name> \
    
    _At a minimum, only `<project_name>` is required._
 
-### Add the miq-anyuid service account to the anyuid security context
+### Add the miq-anyuid and miq-orchestrator service accounts to the anyuid security context
 
 _**Note:**_ The current MIQ image requires the root user.
 
-The miq-anyuid service account for your namespace (project) must be added to the anyuid SCC before pods using the service account can run as root.
+These service accounts for your namespace (project) must be added to the anyuid SCC before pods using the service accounts can run as root.
 
 _**As admin**_
 
 ```bash
 $ oc adm policy add-scc-to-user anyuid system:serviceaccount:<your-namespace>:miq-anyuid
+$ oc adm policy add-scc-to-user anyuid system:serviceaccount:<your-namespace>:miq-orchestrator
 ```
 
-Verify that the miq-anyuid service account is now included in the anyuid scc
+Verify that the service accounts are now included in the anyuid scc
 ```
 $ oc describe scc anyuid | grep Users
-Users:					system:serviceaccount:<your-namespace>:miq-anyuid
+Users:					system:serviceaccount:<your-namespace>:miq-anyuid,system:serviceaccount:<your-namespace>:miq-orchestrator
 ```
 
 ### Add the miq-privileged service account to the privileged security context
@@ -86,6 +87,18 @@ Verify that the miq-privileged service account is now included in the privileged
 ```
 $ oc describe scc privileged | grep Users
 Users:					system:serviceaccount:<your-namespace>:miq-privileged
+```
+
+### Add the view and edit roles to the orchestrator service account
+
+This will allow the ManageIQ pod to scale other pods up and down.
+In particular we use this to scale the Ansible pod when the Embedded Ansible role is enabled.
+
+_**As basic user**_
+
+```bash
+oc policy add-role-to-user view system:serviceaccount:<your-namespace>:miq-orchestrator -n <your-namespace>
+oc policy add-role-to-user edit system:serviceaccount:<your-namespace>:miq-orchestrator -n <your-namespace>
 ```
 
 ### Make persistent volumes to host the MIQ database and application data
