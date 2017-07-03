@@ -122,6 +122,7 @@ EXPOSE 80 443
 COPY docker-assets/entrypoint /usr/bin
 COPY docker-assets/container.data.persist /
 COPY docker-assets/appliance-initialize.sh /bin
+COPY docker-assets/check-dependent-services.sh /bin
 ADD  docker-assets/container-scripts ${CONTAINER_SCRIPTS_ROOT}
 
 RUN wget -O /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64
