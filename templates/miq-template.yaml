@@ -667,6 +667,8 @@ objects:
               timeoutSeconds: 3
             volumeMounts: []
             env:
+              - name: "MANAGEIQ_SERVICE_NAME"
+                value: "${NAME}"
             resources:
               requests:
                 memory: "${HTTPD_MEM_REQ}"
