@@ -209,7 +209,7 @@ objects:
         terminationGracePeriodSeconds: 90
     volumeClaimTemplates:
       - metadata:
-          name: "${NAME}-backend-server"
+          name: "${NAME}-server"
           annotations:
             # Uncomment this if using dynamic volume provisioning.
             # https://docs.openshift.org/latest/install_config/persistent_storage/dynamically_provisioning_pvs.html
@@ -245,8 +245,7 @@ objects:
                 - "MIQ Server"
             initialDelaySeconds: 480
           volumeMounts:
-              -
-                name: "${NAME}-server"
+              - name: "${NAME}-server"
                 mountPath: "/persistent"
           env:
             -
