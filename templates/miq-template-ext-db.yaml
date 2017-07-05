@@ -12,6 +12,10 @@ objects:
 - apiVersion: v1
   kind: ServiceAccount
   metadata:
+    name: miq-orchestrator
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
     name: miq-anyuid
 - apiVersion: v1
   kind: ServiceAccount
@@ -131,6 +135,11 @@ objects:
                 mountPath: "/persistent"
           env:
             -
+              name: MY_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            -
               name: "APPLICATION_INIT_DELAY"
               value: "${APPLICATION_INIT_DELAY}"
             -
@@ -177,8 +186,8 @@ objects:
               exec:
                 command:
                   - /opt/manageiq/container-scripts/sync-pv-data
-        serviceAccount: miq-anyuid
-        serviceAccountName: miq-anyuid
+        serviceAccount: miq-orchestrator
+        serviceAccountName: miq-orchestrator
         terminationGracePeriodSeconds: 90
     volumeClaimTemplates:
       - metadata:
@@ -417,7 +426,7 @@ objects:
     strategy:
       type: "Recreate"
     serviceName: "${ANSIBLE_SERVICE_NAME}"
-    replicas: 1
+    replicas: 0
     template:
       metadata:
         labels:
