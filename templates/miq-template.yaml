@@ -303,8 +303,8 @@ objects:
               exec:
                 command:
                   - /opt/manageiq/container-scripts/sync-pv-data
-        serviceAccount: miq-anyuid
-        serviceAccountName: miq-anyuid
+        serviceAccount: miq-orchestrator
+        serviceAccountName: miq-orchestrator
         terminationGracePeriodSeconds: 90
     volumeClaimTemplates:
       - metadata:
