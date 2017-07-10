@@ -32,7 +32,7 @@ RUN yum -y install centos-release-scl-rh && \
                    &&                      \
     yum clean all
 
-## GIT clone manageiq-appliance and service UI repo (SUI)
+## GIT clone service UI repo (SUI)
 RUN mkdir -p ${SUI_ROOT} && \
     curl -L https://github.com/ManageIQ/manageiq-ui-service/tarball/${REF} | tar vxz -C ${SUI_ROOT} --strip 1
 
