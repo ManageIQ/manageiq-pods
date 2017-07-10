@@ -237,6 +237,7 @@ objects:
                 - pidof
                 - "MIQ Server"
             initialDelaySeconds: 480
+            timeoutSeconds: 3
           volumeMounts:
               -
                 name: "${NAME}-server"
