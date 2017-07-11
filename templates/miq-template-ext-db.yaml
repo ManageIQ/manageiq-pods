@@ -64,8 +64,8 @@ objects:
     to:
       kind: Service
       name: "${HTTPD_SERVICE_NAME}"
-- apiVersion: apps/v1beta1
-  kind: StatefulSet
+- apiVersion: v1
+  kind: DeploymentConfig
   metadata:
     name: "${NAME}"
     annotations:
@@ -97,12 +97,11 @@ objects:
           ports:
           - containerPort: 80
             protocol: TCP
-          volumeMounts:
-          - name: "${NAME}-server"
-            mountPath: "/persistent"
           env:
           - name: ALLOW_INSECURE_SESSION
             value: 'true'
+          - name: GUID
+            value: "${GUID}"
           - name: APPLICATION_ADMIN_PASSWORD
             valueFrom:
               secretKeyRef:
@@ -132,103 +131,9 @@ objects:
               cpu: "${APPLICATION_CPU_REQ}"
             limits:
               memory: "${APPLICATION_MEM_LIMIT}"
-          lifecycle:
-            preStop:
-              exec:
-                command:
-                - "/opt/manageiq/container-scripts/sync-pv-data"
         serviceAccount: miq-orchestrator
         serviceAccountName: miq-orchestrator
         terminationGracePeriodSeconds: 90
-    volumeClaimTemplates:
-    - metadata:
-        name: "${NAME}-server"
-        annotations:
-      spec:
-        accessModes:
-        - ReadWriteOnce
-        resources:
-          requests:
-            storage: "${APPLICATION_VOLUME_CAPACITY}"
-- apiVersion: v1
-  kind: Service
-  metadata:
-    annotations:
-      description: Headless service for ManageIQ backend pods
-    name: "${NAME}-backend"
-  spec:
-    clusterIP: None
-    selector:
-      name: "${NAME}-backend"
-- apiVersion: apps/v1beta1
-  kind: StatefulSet
-  metadata:
-    name: "${NAME}-backend"
-    annotations:
-      description: Defines how to deploy the ManageIQ appliance
-  spec:
-    serviceName: "${NAME}-backend"
-    replicas: 0
-    template:
-      metadata:
-        labels:
-          name: "${NAME}-backend"
-        name: "${NAME}-backend"
-      spec:
-        containers:
-        - name: manageiq
-          image: "${APPLICATION_IMG_NAME}:${BACKEND_APPLICATION_IMG_TAG}"
-          livenessProbe:
-            exec:
-              command:
-              - pidof
-              - MIQ Server
-            initialDelaySeconds: 480
-            timeoutSeconds: 3
-          volumeMounts:
-          - name: "${NAME}-server"
-            mountPath: "/persistent"
-          env:
-          - name: APPLICATION_INIT_DELAY
-            value: "${APPLICATION_INIT_DELAY}"
-          - name: DATABASE_URL
-            valueFrom:
-              secretKeyRef:
-                name: "${NAME}-secrets"
-                key: database-url
-          - name: MIQ_SERVER_DEFAULT_ROLES
-            value: database_operations,event,reporting,scheduler,smartstate,ems_operations,ems_inventory,automate
-          - name: FRONTEND_SERVICE_NAME
-            value: "${NAME}"
-          - name: V2_KEY
-            valueFrom:
-              secretKeyRef:
-                name: "${NAME}-secrets"
-                key: v2-key
-          resources:
-            requests:
-              memory: "${APPLICATION_MEM_REQ}"
-              cpu: "${APPLICATION_CPU_REQ}"
-            limits:
-              memory: "${APPLICATION_MEM_LIMIT}"
-          lifecycle:
-            preStop:
-              exec:
-                command:
-                - "/opt/manageiq/container-scripts/sync-pv-data"
-        serviceAccount: miq-orchestrator
-        serviceAccountName: miq-orchestrator
-        terminationGracePeriodSeconds: 90
-    volumeClaimTemplates:
-    - metadata:
-        name: "${NAME}-server"
-        annotations:
-      spec:
-        accessModes:
-        - ReadWriteOnce
-        resources:
-          requests:
-            storage: "${APPLICATION_VOLUME_CAPACITY}"
 - apiVersion: v1
   kind: Service
   metadata:
@@ -611,6 +516,12 @@ parameters:
   required: true
   description: The name assigned to all of the frontend objects defined in this template.
   value: manageiq
+- name: GUID
+  displayName: ManageIQ Application GUID
+  required: true
+  description: The global identifier string for this ManageIQ application
+  from: "[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}"
+  generate: expression
 - name: V2_KEY
   displayName: ManageIQ Encryption Key
   required: true
@@ -721,10 +632,6 @@ parameters:
   displayName: Front end Application Image Tag
   description: This is the ManageIQ Frontend Application image tag/version requested to deploy.
   value: frontend-latest
-- name: BACKEND_APPLICATION_IMG_TAG
-  displayName: Back end Application Image Tag
-  description: This is the ManageIQ Backend Application image tag/version requested to deploy.
-  value: backend-latest
 - name: APPLICATION_DOMAIN
   displayName: Application Hostname
   description: The exposed hostname that will route to the application service, if left blank a value will be defaulted.

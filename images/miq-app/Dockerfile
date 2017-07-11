@@ -8,7 +8,6 @@ ARG REF=master
 ENV TERM=xterm \
     CONTAINER=true \
     APP_ROOT=/var/www/miq/vmdb \
-    APP_ROOT_PERSISTENT=/persistent \
     APPLIANCE_ROOT=/opt/manageiq/manageiq-appliance \
     CONTAINER_SCRIPTS_ROOT=/opt/manageiq/container-scripts \
     IMAGE_VERSION=${REF}
@@ -73,7 +72,6 @@ RUN mkdir -p ${APP_ROOT} && \
 ## Setup environment
 RUN ${APPLIANCE_ROOT}/setup && \
     mkdir ${APP_ROOT}/log/apache && \
-    mkdir ${APP_ROOT_PERSISTENT} && \
     mkdir -p ${CONTAINER_SCRIPTS_ROOT} && \
     cp ${APP_ROOT}/config/cable.yml.sample ${APP_ROOT}/config/cable.yml
 
@@ -101,7 +99,6 @@ RUN source /etc/default/evm && \
 
 ## Copy OpenShift and appliance-initialize scripts
 COPY docker-assets/entrypoint /usr/bin
-COPY docker-assets/container.data.persist /
 COPY docker-assets/appliance-initialize.sh /bin
 COPY docker-assets/check-dependent-services.sh /bin
 ADD  docker-assets/container-scripts ${CONTAINER_SCRIPTS_ROOT}
