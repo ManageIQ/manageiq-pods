@@ -129,15 +129,19 @@ objects:
         RewriteCond %{REQUEST_URI}     ^/ws        [NC]
         RewriteCond %{HTTP:UPGRADE}    ^websocket$ [NC]
         RewriteCond %{HTTP:CONNECTION} ^Upgrade$   [NC]
-        RewriteRule .* ws://${NAME}%{REQUEST_URI}  [P,QSA,L]
+        RewriteRule .* ws://websocket:3000%{REQUEST_URI}  [P,QSA,L]
+        ProxyPassReverse /ws ws://websocket:3000/ws
 
         # For httpd, some ErrorDocuments must by served by the httpd pod
         RewriteCond %{REQUEST_URI} !^/proxy_pages
 
         # For SAML /saml2 is only served by mod_auth_mellon in the httpd pod
         RewriteCond %{REQUEST_URI} !^/saml2
-        RewriteRule ^/ http://${NAME}%{REQUEST_URI} [P,QSA,L]
-        ProxyPassReverse / http://${NAME}/
+        RewriteRule ^/ http://ui:3000%{REQUEST_URI} [P,QSA,L]
+        ProxyPassReverse / http://ui:3000/
+
+        ProxyPass /api http://web-service:3000/api
+        ProxyPassReverse /api http://web-service:3000/api
 
         # Ensures httpd stdout/stderr are seen by docker logs.
         ErrorLog  "| /usr/bin/tee /proc/1/fd/2 /var/log/httpd/error_log"
@@ -293,22 +297,6 @@ objects:
       #
       # For details on usage please see https://github.com/ManageIQ/manageiq-pods/blob/master/README.md#configuring-external-authentication
 - apiVersion: v1
-  kind: Service
-  metadata:
-    annotations:
-      description: Exposes and load balances ManageIQ pods
-      service.alpha.openshift.io/dependencies: '[{"name":"${DATABASE_SERVICE_NAME}","namespace":"","kind":"Service"},{"name":"${MEMCACHED_SERVICE_NAME}","namespace":"","kind":"Service"}]'
-    name: "${NAME}"
-  spec:
-    clusterIP: None
-    ports:
-    - name: http
-      port: 80
-      protocol: TCP
-      targetPort: 80
-    selector:
-      name: "${NAME}"
-- apiVersion: v1
   kind: Route
   metadata:
     name: "${HTTPD_SERVICE_NAME}"
@@ -335,11 +323,10 @@ objects:
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
-    name: "${NAME}"
+    name: "${NAME}-orchestrator"
     annotations:
       description: Defines how to deploy the ManageIQ appliance
   spec:
-    serviceName: "${NAME}"
     replicas: "${APPLICATION_REPLICA_COUNT}"
     template:
       metadata:
@@ -348,8 +335,8 @@ objects:
         name: "${NAME}"
       spec:
         containers:
-        - name: manageiq
-          image: "${APPLICATION_IMG_NAME}:${FRONTEND_APPLICATION_IMG_TAG}"
+        - name: manageiq-orchestrator
+          image: "${APPLICATION_IMG_NAME}:${ORCHESTRATOR_APPLICATION_IMG_TAG}"
           livenessProbe:
             exec:
               command:
@@ -357,14 +344,6 @@ objects:
               - MIQ Server
             initialDelaySeconds: 480
             timeoutSeconds: 3
-          readinessProbe:
-            tcpSocket:
-              port: 80
-            initialDelaySeconds: 200
-            timeoutSeconds: 3
-          ports:
-          - containerPort: 80
-            protocol: TCP
           env:
           - name: ALLOW_INSECURE_SESSION
             value: 'true'
@@ -793,11 +772,11 @@ parameters:
 - name: APPLICATION_IMG_NAME
   displayName: Application Image Name
   description: This is the Application image name requested to deploy.
-  value: docker.io/manageiq/manageiq-pods
-- name: FRONTEND_APPLICATION_IMG_TAG
-  displayName: Front end Application Image Tag
-  description: This is the ManageIQ Frontend Application image tag/version requested to deploy.
-  value: frontend-latest
+  value: docker.io/manageiq/manageiq-orchestrator
+- name: ORCHESTRATOR_APPLICATION_IMG_TAG
+  displayName: Orchestrator Image Tag
+  description: This is the ManageIQ orchestrator image tag/version requested to deploy.
+  value: latest
 - name: APPLICATION_DOMAIN
   displayName: Application Hostname
   description: The exposed hostname that will route to the application service, if left blank a value will be defaulted.

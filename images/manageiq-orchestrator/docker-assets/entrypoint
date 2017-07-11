@@ -1,7 +1,5 @@
 #!/bin/bash
 
-/usr/sbin/crond &
-
 check-dependent-services.sh
 appliance-initialize.sh
 

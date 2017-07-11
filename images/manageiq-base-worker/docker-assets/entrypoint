@@ -1,0 +1,13 @@
+#!/bin/bash
+
+[[ -s /etc/default/evm ]] && source /etc/default/evm
+
+[[ -s ${CONTAINER_SCRIPTS_ROOT}/container-deploy-common.sh ]] && source "${CONTAINER_SCRIPTS_ROOT}/container-deploy-common.sh"
+
+write_v2_key
+
+write_guid
+
+export DISABLE_MIQ_WORKER_HEARTBEAT=1
+
+exec bin/rails r ${APP_ROOT}/lib/workers/bin/run_single_worker.rb ${WORKER_CLASS_NAME}
