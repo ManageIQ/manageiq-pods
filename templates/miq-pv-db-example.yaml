@@ -6,8 +6,8 @@ spec:
   capacity:
     storage: 15Gi
   accessModes:
-    - ReadWriteOnce
-  nfs: 
-    path: /exports/miq-pv01
-    server: <your-nfs-host-here>
+  - ReadWriteOnce
+  nfs:
+    path: "/exports/miq-pv01"
+    server: "<your-nfs-host-here>"
   persistentVolumeReclaimPolicy: Retain
