@@ -38,6 +38,79 @@ objects:
     secret-key: "${ANSIBLE_SECRET_KEY}"
     admin-password: "${ANSIBLE_ADMIN_PASSWORD}"
 - apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: "${DATABASE_SERVICE_NAME}-configs"
+  data:
+    01_miq_overrides.conf: |
+      #------------------------------------------------------------------------------
+      # CONNECTIONS AND AUTHENTICATION
+      #------------------------------------------------------------------------------
+
+      tcp_keepalives_count = 9
+      tcp_keepalives_idle = 3
+      tcp_keepalives_interval = 75
+
+      #------------------------------------------------------------------------------
+      # RESOURCE USAGE (except WAL)
+      #------------------------------------------------------------------------------
+
+      shared_preload_libraries = 'pglogical,repmgr_funcs'
+      max_worker_processes = 10
+
+      #------------------------------------------------------------------------------
+      # WRITE AHEAD LOG
+      #------------------------------------------------------------------------------
+
+      wal_level = 'logical'
+      wal_log_hints = on
+      wal_buffers = 16MB
+      checkpoint_completion_target = 0.9
+
+      #------------------------------------------------------------------------------
+      # REPLICATION
+      #------------------------------------------------------------------------------
+
+      max_wal_senders = 10
+      wal_sender_timeout = 0
+      max_replication_slots = 10
+      hot_standby = on
+
+      #------------------------------------------------------------------------------
+      # ERROR REPORTING AND LOGGING
+      #------------------------------------------------------------------------------
+
+      log_filename = 'postgresql.log'
+      log_rotation_age = 0
+      log_min_duration_statement = 5000
+      log_connections = on
+      log_disconnections = on
+      log_line_prefix = '%t:%r:%c:%u@%d:[%p]:'
+      log_lock_waits = on
+
+      #------------------------------------------------------------------------------
+      # AUTOVACUUM PARAMETERS
+      #------------------------------------------------------------------------------
+
+      log_autovacuum_min_duration = 0
+      autovacuum_naptime = 5min
+      autovacuum_vacuum_threshold = 500
+      autovacuum_analyze_threshold = 500
+      autovacuum_vacuum_scale_factor = 0.05
+
+      #------------------------------------------------------------------------------
+      # LOCK MANAGEMENT
+      #------------------------------------------------------------------------------
+
+      deadlock_timeout = 5s
+
+      #------------------------------------------------------------------------------
+      # VERSION/PLATFORM COMPATIBILITY
+      #------------------------------------------------------------------------------
+
+      escape_string_warning = off
+      standard_conforming_strings = off
+- apiVersion: v1
   kind: Service
   metadata:
     annotations:
@@ -410,6 +483,9 @@ objects:
         - name: miq-pgdb-volume
           persistentVolumeClaim:
             claimName: "${NAME}-${DATABASE_SERVICE_NAME}"
+        - name: miq-pg-configs
+          configMap:
+            name: "${DATABASE_SERVICE_NAME}-configs"
         containers:
         - name: postgresql
           image: "${POSTGRESQL_IMG_NAME}:${POSTGRESQL_IMG_TAG}"
@@ -432,6 +508,8 @@ objects:
           volumeMounts:
           - name: miq-pgdb-volume
             mountPath: "/var/lib/pgsql/data"
+          - name: miq-pg-configs
+            mountPath: "${POSTGRESQL_CONFIG_DIR}"
           env:
           - name: POSTGRESQL_USER
             value: "${DATABASE_USER}"
@@ -446,6 +524,8 @@ objects:
             value: "${POSTGRESQL_MAX_CONNECTIONS}"
           - name: POSTGRESQL_SHARED_BUFFERS
             value: "${POSTGRESQL_SHARED_BUFFERS}"
+          - name: POSTGRESQL_CONFIG_DIR
+            value: "${POSTGRESQL_CONFIG_DIR}"
           resources:
             requests:
               memory: "${POSTGRESQL_MEM_REQ}"
@@ -691,10 +771,14 @@ parameters:
   displayName: Memcached Slab Page Size
   description: Memcached size of each slab page.
   value: 1m
+- name: POSTGRESQL_CONFIG_DIR
+  displayName: PostgreSQL Configuration Overrides
+  description: Directory used to store PostgreSQL configuration overrides.
+  value: '/etc/manageiq/postgresql.conf.d'
 - name: POSTGRESQL_MAX_CONNECTIONS
   displayName: PostgreSQL Max Connections
   description: PostgreSQL maximum number of database connections allowed.
-  value: '100'
+  value: '1000'
 - name: POSTGRESQL_SHARED_BUFFERS
   displayName: PostgreSQL Shared Buffer Amount
   description: Amount of memory dedicated for PostgreSQL shared memory buffers.
