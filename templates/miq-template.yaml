@@ -774,7 +774,7 @@ parameters:
 - name: POSTGRESQL_CONFIG_DIR
   displayName: PostgreSQL Configuration Overrides
   description: Directory used to store PostgreSQL configuration overrides.
-  value: "/etc/manageiq/postgresql.conf.d"
+  value: "/var/lib/pgsql/conf.d"
 - name: POSTGRESQL_MAX_CONNECTIONS
   displayName: PostgreSQL Max Connections
   description: PostgreSQL maximum number of database connections allowed.
