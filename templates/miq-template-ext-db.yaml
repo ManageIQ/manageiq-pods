@@ -498,6 +498,8 @@ objects:
   spec:
     strategy:
       type: Recreate
+      recreateParams:
+        timeoutSeconds: 1200
     triggers:
     - type: ImageChange
       imageChangeParams:
