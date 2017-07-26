@@ -784,7 +784,7 @@ parameters:
 - name: POSTGRESQL_SHARED_BUFFERS
   displayName: PostgreSQL Shared Buffer Amount
   description: Amount of memory dedicated for PostgreSQL shared memory buffers.
-  value: 1024MB
+  value: 1GB
 - name: ANSIBLE_SERVICE_NAME
   displayName: Ansible Service Name
   description: The name of the OpenShift Service exposed for the Ansible container.
@@ -841,7 +841,7 @@ parameters:
   displayName: PostgreSQL Min RAM Requested
   required: true
   description: Minimum amount of memory the PostgreSQL container will need.
-  value: 4096Mi
+  value: 4Gi
 - name: MEMCACHED_MEM_REQ
   displayName: Memcached Min RAM Requested
   required: true
@@ -861,7 +861,7 @@ parameters:
   displayName: PostgreSQL Max RAM Limit
   required: true
   description: Maximum amount of memory the PostgreSQL container can consume.
-  value: 8192Mi
+  value: 8Gi
 - name: MEMCACHED_MEM_LIMIT
   displayName: Memcached Max RAM Limit
   required: true
