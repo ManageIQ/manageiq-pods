@@ -44,7 +44,7 @@ RUN mv /etc/httpd/conf.d/ssl.conf{,.orig} && \
 WORKDIR ${APP_ROOT}
 RUN source /etc/default/evm && \
     export RAILS_USE_MEMORY_STORE="true" && \
-    rake update:bower && \
+    rake update:ui && \
     bin/rails log:clear tmp:clear && \
     rake evm:compile_assets && \
     # Cleanup install artifacts
