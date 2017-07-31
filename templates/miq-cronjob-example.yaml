@@ -1,0 +1,25 @@
+apiVersion: batch/v2alpha1
+kind: CronJob
+metadata:
+  name: miq-sample-cronjob
+spec:
+  schedule: "*/10 * * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: miq-sample-cronjob
+        spec:
+          containers:
+          - name: miq-tools
+            image: docker.io/fbladilo/miq-tools:latest
+            command: ["/opt/manageiq/container-scripts/sample_job"]
+            env:
+              -
+                name: "DATABASE_URL"
+                valueFrom:
+                  secretKeyRef:
+                    name: "manageiq-secrets"
+                    key: "database-url"
+          restartPolicy: Never
