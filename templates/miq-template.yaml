@@ -22,6 +22,10 @@ objects:
   metadata:
     name: miq-privileged
 - apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: miq-sysadmin
+- apiVersion: v1
   kind: Secret
   metadata:
     name: "${NAME}-secrets"
@@ -699,8 +703,8 @@ objects:
               cpu: "${HTTPD_CPU_REQ}"
             limits:
               memory: "${HTTPD_MEM_LIMIT}"
-        serviceAccount: miq-anyuid
-        serviceAccountName: miq-anyuid
+        serviceAccount: miq-sysadmin
+        serviceAccountName: miq-sysadmin
 parameters:
 - name: NAME
   displayName: Name
