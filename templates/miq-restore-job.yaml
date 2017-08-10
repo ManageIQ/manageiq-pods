@@ -9,7 +9,7 @@ spec:
     spec:
       containers:
       - name: postgresql
-        image: docker.io/fbladilo/miq-postgresql:latest
+        image: docker.io/manageiq/postgresql:latest
         command:
         - "/opt/manageiq/container-scripts/restore_db"
         env:
