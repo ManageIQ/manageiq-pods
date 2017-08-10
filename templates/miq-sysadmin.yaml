@@ -4,7 +4,7 @@ allowHostNetwork: false
 allowHostPID: false
 allowHostPorts: false
 allowPrivilegedContainer: false
-allowedCapabilities: null
+allowedCapabilities:
 apiVersion: v1
 defaultAddCapabilities:
 - SYS_ADMIN
@@ -15,10 +15,8 @@ groups:
 kind: SecurityContextConstraints
 metadata:
   annotations:
-    kubernetes.io/description: miq-sysadmin provides all features of the anyuid SCC
-      but allows users to have SYS_ADMIN capabilities. This is the required scc for
-      Pods requiring to run with systemd and the message bus.
-  creationTimestamp: null
+    kubernetes.io/description: miq-sysadmin provides all features of the anyuid SCC but allows users to have SYS_ADMIN capabilities. This is the required scc for Pods requiring to run with systemd and the message bus.
+  creationTimestamp:
   name: miq-sysadmin
 priority: 10
 readOnlyRootFilesystem: false
