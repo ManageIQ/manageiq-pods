@@ -10,22 +10,21 @@ spec:
       containers:
       - name: postgresql
         image: docker.io/fbladilo/miq-postgresql:latest
-        command: ["/opt/manageiq/container-scripts/restore_db"]
+        command:
+        - "/opt/manageiq/container-scripts/restore_db"
         env:
-          -
-            name: "DATABASE_URL"
-            valueFrom:
-              secretKeyRef:
-                name: "manageiq-secrets"
-                key: "database-url"
-          -
-            name: "BACKUP_VERSION"
-            value: "latest"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: manageiq-secrets
+              key: database-url
+        - name: BACKUP_VERSION
+          value: latest
         volumeMounts:
         - name: miq-backup-vol
-          mountPath: /backups
+          mountPath: "/backups"
         - name: miq-prod-vol
-          mountPath: /restore
+          mountPath: "/restore"
       volumes:
       - name: miq-backup-vol
         persistentVolumeClaim:

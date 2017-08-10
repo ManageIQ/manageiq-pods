@@ -10,17 +10,17 @@ spec:
       containers:
       - name: postgresql
         image: docker.io/fbladilo/miq-postgresql:latest
-        command: ["/opt/manageiq/container-scripts/backup_db"]
+        command:
+        - "/opt/manageiq/container-scripts/backup_db"
         env:
-          -
-            name: "DATABASE_URL"
-            valueFrom:
-              secretKeyRef:
-                name: "manageiq-secrets"
-                key: "database-url"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: manageiq-secrets
+              key: database-url
         volumeMounts:
         - name: miq-backup-vol
-          mountPath: /backups
+          mountPath: "/backups"
       volumes:
       - name: miq-backup-vol
         persistentVolumeClaim:
