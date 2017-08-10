@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: "manageiq-backup"
+  name: manageiq-backup
 spec:
   accessModes:
   - ReadWriteOnce
   resources:
     requests:
-      storage: "15Gi"
+      storage: 15Gi
