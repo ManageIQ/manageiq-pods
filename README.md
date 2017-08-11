@@ -307,6 +307,124 @@ Examine output and point your web browser to the reported URL/HOST.
 Per the ManageIQ project [basic configuration](http://manageiq.org/docs/get-started/basic-configuration) documentation, you can now login to the MIQ web interface
 using the default name/password: `admin`/`smartvm`.
 
+## Backup and restore of the MIQ database
+
+Backup and restore of the MIQ database can be achieved via openshift jobs. Keep in mind an extra PV will be required with enough capacity to store as many backup copies as needed.
+
+A sample backup PV is supplied on templates, adjust the default settings to your site requirements before attempting to import.
+
+### Create the backup PV
+
+_** As admin user**_
+
+`$ oc create -f miq-pv-backup-example.yaml`
+
+### Create the backup PVC
+
+_**As basic user**_
+
+`$ oc create -f miq-backup-pvc.yaml`
+
+### Verify the backup PVC was created correctly
+
+The backup and restore job samples expect PVCs to be named "manageiq-backup" and "manageiq-postgresql" to setup volumes correctly.
+
+```bash
+$ oc get pvc
+NAME                         STATUS    VOLUME    CAPACITY   ACCESSMODES   AGE
+manageiq-backup              Bound     pv05      15Gi       RWO           1d
+manageiq-postgresql          Bound     pv12      15Gi       RWO           1d
+manageiq-server-manageiq-0   Bound     pv01      5Gi        RWO           1d
+```
+
+### Backup API objects at the project level
+
+```bash
+$ oc get secret -o yaml --export=true > secrets.yaml
+$ oc get pvc -o yaml --export=true > pvc.yaml
+```
+
+The MIQ secrets object contains important data regarding your deployment such as database encryption keys and other credentials, backup and save objects in a safe location.
+
+### Launch a database backup
+
+Backups can be initiated with the database online, the job will attempt to run immediately after creation.
+ 
+`$ oc create -f miq-backup-job.yaml`
+
+The backup job will connect to the MIQ database pod and perform a full binary backup of the entire database cluster, it is based on pg_basebackup.
+
+### Check the job status and logs
+
+```bash
+$ oc get pods
+NAME                     READY     STATUS      RESTARTS   AGE
+manageiq-backup-rrkw5    0/1       Completed   0          1h
+
+$ oc logs manageiq-backup-rrkw5
+== Starting MIQ DB backup ==
+Current time is : Thu Jul 27 02:30:44 UTC 2017
+transaction log start point: 0/2C000028 on timeline 1
+86554/86554 kB (100%), 1/1 tablespace
+transaction log end point: 0/2C01FBF8
+pg_basebackup: base backup completed
+Sucessfully finished backup : Thu Jul 27 02:30:57 UTC 2017
+Backup stored at : /backups/miq_backup_20170727T023044
+```
+
+### Restoring a database backup
+
+**The database restoration must be done OFFLINE**, scale down prior attempting this procedure otherwise corruption can occur.
+
+```bash
+$ oc scale statefulset manageiq --replicas=0
+$ oc scale dc/httpd --replicas=0
+$ oc scale dc/postgresql --replicas=0
+```
+
+Notes about restore procedure:
+
+* The sample restore job will bind to the backup and production PG volumes via "manageiq-backup" and "manageiq-postgresql" PVCs by default
+* If existing data is found on the production PG volume, the restore job will *NOT* delete this data, it will rename it and place it on the same volume
+* The latest succesful DB backup will be restored by default, this can be adjusted via the BACKUP_VERSION environment variable on restore object template
+
+### Launch a database restore
+
+`$ oc create -f miq-restore-job.yaml`
+
+### Check the restore job status and logs
+
+```bash
+$ oc get pods
+NAME                     READY     STATUS      RESTARTS   AGE
+manageiq-backup-rrkw5    0/1       Completed   0          10h
+manageiq-restore-7hgzc   0/1       Completed   0          8h
+$ oc logs manageiq-restore-7hgzc
+== Checking postgresql status ==
+postgresql:5432 - no response
+== Checking for existing PG data ==
+Existing data found at : /restore/userdata
+Existing data moved to : /restore/userdata_20170727T052008
+== Starting MIQ DB restore ==
+Current time is : Thu Jul 27 05:20:11 UTC 2017
+tar: Read checkpoint 500
+tar: Read checkpoint 1000
+tar: Read checkpoint 1500
+tar: Read checkpoint 2000
+...
+Sucessfully finished DB restore : Thu Jul 27 05:20:33 UTC 2017
+```
+
+### Re-scale postgresql DC and verify proper operation
+
+`$ oc scale dc/postgresql --replicas=1`
+
+Check the PG pod logs and readiness status, if successful, proceed to re-scale rest of deployment
+
+```bash
+$ oc scale statefulset manageiq --replicas=1
+$ oc scale dc/httpd --replicas=1
+```
 
 ## Troubleshooting
 Under normal circumstances the entire first time deployment process should take around ~10 minutes, indication of issues can be seen
