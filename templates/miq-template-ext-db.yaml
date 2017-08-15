@@ -22,6 +22,10 @@ objects:
   metadata:
     name: miq-privileged
 - apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: miq-sysadmin
+- apiVersion: v1
   kind: Secret
   metadata:
     name: "${NAME}-secrets"
@@ -468,6 +472,24 @@ objects:
   spec:
     dockerImageRepository: "${HTTPD_IMG_NAME}"
 - apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: "${HTTPD_SERVICE_NAME}-configs"
+  data:
+    application.conf: |
+      # Timeout: The number of seconds before receives and sends time out.
+      Timeout 120
+
+      RewriteEngine On
+      Options SymLinksIfOwnerMatch
+
+      <VirtualHost *:80>
+        KeepAlive on
+        ProxyPreserveHost on
+        ProxyPass        / http://${NAME}/
+        ProxyPassReverse / http://${NAME}/
+      </VirtualHost>
+- apiVersion: v1
   kind: Service
   metadata:
     name: "${HTTPD_SERVICE_NAME}"
@@ -511,7 +533,10 @@ objects:
         labels:
           name: "${HTTPD_SERVICE_NAME}"
       spec:
-        volumes: []
+        volumes:
+        - name: httpd-config
+          configMap:
+            name: "${HTTPD_SERVICE_NAME}-configs"
         containers:
         - name: httpd
           image: "${HTTPD_IMG_NAME}:${HTTPD_IMG_TAG}"
@@ -529,15 +554,17 @@ objects:
               scheme: HTTP
             initialDelaySeconds: 10
             timeoutSeconds: 3
-          volumeMounts: []
+          volumeMounts:
+          - name: httpd-config
+            mountPath: "${HTTPD_CONFIG_DIR}"
           resources:
             requests:
               memory: "${HTTPD_MEM_REQ}"
               cpu: "${HTTPD_CPU_REQ}"
             limits:
               memory: "${HTTPD_MEM_LIMIT}"
-        serviceAccount: miq-anyuid
-        serviceAccountName: miq-anyuid
+        serviceAccount: miq-sysadmin
+        serviceAccountName: miq-sysadmin
 parameters:
 - name: NAME
   displayName: Name
@@ -739,6 +766,10 @@ parameters:
   displayName: Apache httpd Image Tag
   description: This is the httpd image tag/version requested to deploy.
   value: latest
+- name: HTTPD_CONFIG_DIR
+  displayName: Apache httpd Configuration Directory
+  description: Directory used to store the Apache configuration files.
+  value: "/etc/httpd/conf.d"
 - name: HTTPD_CPU_REQ
   displayName: Apache httpd Min CPU Requested
   required: true
