@@ -115,6 +115,52 @@ objects:
       escape_string_warning = off
       standard_conforming_strings = off
 - apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: "${HTTPD_SERVICE_NAME}-configs"
+  data:
+    redirects.conf: |
+      # The following redirects files must be included to handle most specific to least specific URLs.
+
+      ### Cockpit redirects
+      ProxyPreserveHost on
+      RequestHeader unset X-Forwarded-Proto
+      RequestHeader set X-Forwarded-Proto 'https' env=HTTPS
+      <LocationMatch "^/cws/cockpi(t[^/]+|t)?/socket$">
+        ProxyPassMatch "ws://${NAME}:9002/cws/cockpi$1/socket"
+      </LocationMatch>
+      ProxyPass /cws/ http://${NAME}:9002/cws/
+
+      ### API redirects
+      ProxyPass /api https://${NAME}/api
+      ProxyPassReverse /api https://${NAME}/api
+
+      ### UI redirects
+      RewriteCond %{REQUEST_URI} !^/ws
+      RewriteCond %{REQUEST_URI} !^/proxy_pages
+      RewriteCond %{REQUEST_URI} !^/saml2
+      RewriteCond %{REQUEST_URI} !^/api
+      RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_FILENAME} !-f
+      RewriteRule ^/ https://${NAME}%{REQUEST_URI} [P,QSA,L]
+      ProxyPassReverse / https://${NAME}/
+
+      ### WebSocket redirects
+      ProxyPass /ws ws://${NAME}/ws
+      ProxyPassReverse /ws ws://${NAME}/ws
+
+      ProxyPreserveHost on
+      RequestHeader set X_FORWARDED_PROTO 'https'
+
+    logging.conf: |
+      CustomLog /var/log/httpd/ssl_request.log \
+              "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %b"
+      LogLevel warn
+
+    environment.conf: |
+      SetEnvIf User-Agent ".*MSIE.*" \
+               nokeepalive ssl-unclean-shutdown \
+               downgrade-1.0 force-response-1.0
+- apiVersion: v1
   kind: Service
   metadata:
     annotations:
@@ -678,7 +724,10 @@ objects:
         labels:
           name: "${HTTPD_SERVICE_NAME}"
       spec:
-        volumes: []
+        volumes:
+        - name: httpd-config
+          configMap:
+            name: "${HTTPD_SERVICE_NAME}-configs"
         containers:
         - name: httpd
           image: "${HTTPD_IMG_NAME}:${HTTPD_IMG_TAG}"
@@ -696,7 +745,12 @@ objects:
               scheme: HTTP
             initialDelaySeconds: 10
             timeoutSeconds: 3
-          volumeMounts: []
+          volumeMounts:
+          - name: httpd-config
+            mountPath: "${HTTPD_CONFIG_DIR}"
+          env:
+          - name: MANAGEIQ_SERVICE_NAME
+            value: "${NAME}"
           resources:
             requests:
               memory: "${HTTPD_MEM_REQ}"
@@ -936,6 +990,10 @@ parameters:
   displayName: Apache httpd Image Tag
   description: This is the httpd image tag/version requested to deploy.
   value: latest
+- name: HTTPD_CONFIG_DIR
+  displayName: Apache Configuration Directory
+  description: Directory used to store the Apache configuration files.
+  value: "/etc/httpd/conf.d"
 - name: HTTPD_CPU_REQ
   displayName: Apache httpd Min CPU Requested
   required: true
