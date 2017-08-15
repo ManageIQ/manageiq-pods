@@ -4,3 +4,5 @@ oc delete all -l app=manageiq
 oc get pvc -o name |xargs oc delete
 oc delete secret -l app=manageiq
 oc delete serviceaccount miq-anyuid
+oc delete serviceaccount miq-privileged
+oc delete serviceaccount miq-orchestrator
