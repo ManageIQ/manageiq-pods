@@ -152,6 +152,9 @@ $ systemctl restart atomic-openshift-master
 
 Create the MIQ template for deployment and verify it is now available in your project
 
+If you wish to add a SSL certificate now, you can edit the application template and provide that now.  Check the Edge Termination section of [Secured Routes](https://docs.openshift.org/latest/architecture/core_concepts/routes.html#secured-routes) for more information on that.
+This can be easily changed later in the Openshift UI by navigating to *Your Project* -> Applications -> Routes -> httpd -> Actions -> Edit.
+
 _**As basic user**_
 
 ```bash
