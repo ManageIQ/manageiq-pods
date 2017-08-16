@@ -490,6 +490,34 @@ objects:
         ProxyPassReverse / http://${NAME}/
       </VirtualHost>
 - apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: "${HTTPD_SERVICE_NAME}-auth-configs"
+  data:
+    auth-configuration.conf: |
+      #
+      # External Authentication Configuration File
+      #
+      # This file declares the following:
+      #
+      #   The Authentication type, default is internal.
+      #     syntax:  type = internal
+      #
+      #     - other types could include: ipa, ldap, active_directory, saml or simply custom.
+      #
+      #   The list of files to overlay in order to enable external authentication
+      #     syntax:  file = basename target_path mode:owner:group
+      #
+      #     - basename is the name of the file in the config map.
+      #     - target_path is the path of the file to overwrite, i.e. /etc/sssd/sssd.conf
+      #     - mode:owner:group is optional and reflects the mode and ownership to set the file to.
+      #       i.e.  644:root:apache
+      #             755
+      #     - if basename has the .base64 extension, then the file is binary and will be converted
+      #       from its base64 representation in the Config Map before copied to its target_path.
+      #
+      type = internal
+- apiVersion: v1
   kind: Service
   metadata:
     name: "${HTTPD_SERVICE_NAME}"
@@ -537,6 +565,9 @@ objects:
         - name: httpd-config
           configMap:
             name: "${HTTPD_SERVICE_NAME}-configs"
+        - name: httpd-auth-config
+          configMap:
+            name: "${HTTPD_SERVICE_NAME}-auth-configs"
         containers:
         - name: httpd
           image: "${HTTPD_IMG_NAME}:${HTTPD_IMG_TAG}"
@@ -557,6 +588,8 @@ objects:
           volumeMounts:
           - name: httpd-config
             mountPath: "${HTTPD_CONFIG_DIR}"
+          - name: httpd-auth-config
+            mountPath: "${HTTPD_AUTH_CONFIG_DIR}"
           resources:
             requests:
               memory: "${HTTPD_MEM_REQ}"
@@ -770,6 +803,10 @@ parameters:
   displayName: Apache httpd Configuration Directory
   description: Directory used to store the Apache configuration files.
   value: "/etc/httpd/conf.d"
+- name: HTTPD_AUTH_CONFIG_DIR
+  displayName: External Authentication Configuration Directory
+  description: Directory used to store the exxternal authentication configuration files.
+  value: "/etc/httpd/auth-conf.d"
 - name: HTTPD_CPU_REQ
   displayName: Apache httpd Min CPU Requested
   required: true
