@@ -15,9 +15,6 @@ write_v2_key
 
 restore_pv_data
 
-# Generate httpd certificate
-/usr/bin/generate_miq_server_cert.sh
-
 cd ${APP_ROOT}
 bin/rake evm:deployment_status
 case $? in

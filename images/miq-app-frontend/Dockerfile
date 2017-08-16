@@ -17,19 +17,12 @@ LABEL name="manageiq" \
       description="ManageIQ is a management and automation platform for virtual, private, and hybrid cloud infrastructures." \
       io.k8s.display-name="ManageIQ" \
       io.k8s.description="ManageIQ is a management and automation platform for virtual, private, and hybrid cloud infrastructures." \
-      io.openshift.expose-services="443:https" \
+      io.openshift.expose-services="80:http" \
       io.openshift.tags="ManageIQ,miq,manageiq"
 
 ## Install EPEL repo, yum necessary packages for the build without docs, clean all caches
 RUN yum -y install centos-release-scl-rh && \
-    yum -y install --setopt=tsflags=nodocs \
-                   httpd                   \
-                   mod_auth_kerb           \
-                   mod_authnz_pam          \
-                   mod_intercept_form_submit \
-                   mod_lookup_identity     \
-                   mod_ssl                 \
-                   &&                      \
+    yum -y install httpd --setopt=tsflags=nodocs && \
     yum clean all
 
 ## GIT clone service UI repo (SUI)
@@ -37,8 +30,8 @@ RUN mkdir -p ${SUI_ROOT} && \
     curl -L https://github.com/ManageIQ/manageiq-ui-service/tarball/${REF} | tar vxz -C ${SUI_ROOT} --strip 1
 
 ## Setup environment
-RUN mv /etc/httpd/conf.d/ssl.conf{,.orig} && \
-    echo "# This file intentionally left blank. ManageIQ maintains its own SSL configuration" > /etc/httpd/conf.d/ssl.conf
+RUN rm -f /etc/httpd/conf.d/ssl.conf && \
+    rm -f /etc/httpd/conf.d/manageiq-http*.conf
 
 ## Change workdir to application root, build/install gems
 WORKDIR ${APP_ROOT}
@@ -61,9 +54,10 @@ RUN source /etc/default/evm && \
     yarn cache clean
 
 ## Expose required container ports
-EXPOSE 80 443
+EXPOSE 80
 
 COPY docker-assets/check-dependent-services.sh /bin
+COPY docker-assets/manageiq-http.conf /etc/httpd/conf.d
 
 ENTRYPOINT ["/usr/local/bin/dumb-init", "--single-child", "--"]
 CMD ["entrypoint"]
