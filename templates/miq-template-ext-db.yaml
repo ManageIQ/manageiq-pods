@@ -51,10 +51,6 @@ objects:
       port: 80
       protocol: TCP
       targetPort: 80
-    - name: https
-      port: 443
-      protocol: TCP
-      targetPort: 443
     selector:
       name: "${NAME}"
 - apiVersion: v1
@@ -64,9 +60,10 @@ objects:
   spec:
     host: "${APPLICATION_DOMAIN}"
     port:
-      targetPort: https
+      targetPort: http
     tls:
-      termination: passthrough
+      termination: edge
+      insecureEdgeTerminationPolicy: Redirect
     to:
       kind: Service
       name: "${HTTPD_SERVICE_NAME}"
@@ -114,20 +111,18 @@ objects:
           image: "${APPLICATION_IMG_NAME}:${FRONTEND_APPLICATION_IMG_TAG}"
           livenessProbe:
             tcpSocket:
-              port: 443
+              port: 80
             initialDelaySeconds: 480
             timeoutSeconds: 3
           readinessProbe:
             httpGet:
               path: "/"
-              port: 443
-              scheme: HTTPS
+              port: 80
+              scheme: HTTP
             initialDelaySeconds: 200
             timeoutSeconds: 3
           ports:
           - containerPort: 80
-            protocol: TCP
-          - containerPort: 443
             protocol: TCP
           volumeMounts:
           - name: "${NAME}-server"
@@ -484,9 +479,6 @@ objects:
     - name: http
       port: 80
       targetPort: 80
-    - name: https
-      port: 443
-      targetPort: 443
     selector:
       name: httpd
 - apiVersion: v1
@@ -525,23 +517,19 @@ objects:
           image: "${HTTPD_IMG_NAME}:${HTTPD_IMG_TAG}"
           ports:
           - containerPort: 80
-          - containerPort: 443
           livenessProbe:
             tcpSocket:
-              port: 443
+              port: 80
             initialDelaySeconds: 15
             timeoutSeconds: 3
           readinessProbe:
             httpGet:
               path: "/"
-              port: 443
-              scheme: HTTPS
+              port: 80
+              scheme: HTTP
             initialDelaySeconds: 10
             timeoutSeconds: 3
           volumeMounts: []
-          env:
-          - name: MANAGEIQ_SERVICE_NAME
-            value: "${NAME}"
           resources:
             requests:
               memory: "${HTTPD_MEM_REQ}"
