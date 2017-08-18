@@ -541,3 +541,101 @@ $ oc new-app --template=manageiq \
   -p APPLICATION_IMG_TAG=latest \
   ...
 ```
+
+## Configuring External Authentication
+Configuring the _httpd_ pod for external authentication is done by updating the _httpd-auth-configs_ configuration map to include all necessary config files and certificates. Upon startup, the _httpd_ pod overlays its files with the ones specified in the _auth-configuration.conf_ file in the configuration map. This is done by the entrypoint before _systemd_ starts so all services will have their updated configuration upon startup.
+
+The external authentication configuration file _auth-configuration.conf_ declares the following:
+
+* The authentication type, default is _internal_.
+* The list of files to overlay upon startup if type is other than _internal_.
+
+Syntax for the file is as follows:
+
+```
+# for comments
+type = internal
+file = basename1 target_path1 permission1
+file = basename2 target_path2 permission2
+```
+
+_internal_ is the default type, anything else is considered external. This could include strings like: ipa, ldap, active_directory, saml or simply custom.
+
+For the files to overlay on the _httpd_ pod, one _file_ directive is needed per file.
+
+* the _basename_ is the name of the source file in the configuration map.
+* _target\_path_ is the path of the file on the pod to over_write, i.e. _/etc/sssd/sssd.conf_
+* _permission_ is optional, by default files are copied using the pod's default umask, owner and group, so files are created as mode 644 owner root, group root.
+
+optional _permission_ can be specified as follows:
+
+* mode
+* mode:owner
+* mode:owner:group
+
+Reflecting the mode and ownership to set the copied files to.
+
+_Examples_:
+
+* 755
+* 640:root
+* 644:root:apache
+
+Binary files can be specified in the configuration map in their base64 encoded format with a basename having a _.base64_ extension. Such files are then converted back to binary as they are copied to their target path.
+
+When an _/etc/sssd/sssd.conf_ file is included in the configuration map, the _httpd_ pod automatically enables the sssd service upon startup.
+
+### Sample external authentication configuration:
+
+Excluding the content of the files, a SAML auth-config map data section may look like:
+
+```bash
+apiVersion: v1
+data:
+  auth-configuration.conf: |
+    #
+    # Configuration for SAML authentication
+    #
+    type = saml
+    file = manageiq-remote-user.conf        /etc/httpd/conf.d/manageiq-remote-user.conf        644
+    file = manageiq-external-auth-saml.conf /etc/httpd/conf.d/manageiq-external-auth-saml.conf 644
+    file = idp-metadata.xml                 /etc/httpd/saml2/idp-metadata.xml                  644
+    file = miqsp-key.key                    /etc/httpd/saml2/miqsp-key.key                     600:root:root
+    file = miqsp-cert.cert                  /etc/httpd/saml2/miqsp-cert.cert                   644
+    file = miqsp-metadata.xml               /etc/httpd/saml2/miqsp-metadata.xml                644
+  manageiq-remote-user.conf: |
+    RequestHeader unset X_REMOTE_USER
+    ...
+  manageiq-external-auth-saml.conf: |
+    LoadModule auth_mellon_module modules/mod_auth_mellon.so
+    ...
+  idp-metadata.xml: |
+    <EntitiesDescriptor ...
+      ...
+    </EntitiesDescriptor>
+  miqsp-key.key: |
+    -----BEGIN PRIVATE KEY-----
+       ...
+    -----END PRIVATE KEY-----
+  miqsp-cert.cert: |
+    -----BEGIN CERTIFICATE-----
+       ...
+    -----END CERTIFICATE-----
+  miqsp-metadata.xml: |
+    <EntityDescriptor ...
+       ...
+    </EntityDescriptor>
+```
+
+Support for automatically generating authentication configuration maps for _httpd_ will be provided by
+[ManageIQ/container-httpd-auth-config](https://github.com/ManageIQ/container-httpd-auth-config). Please see the [README.md](https://github.com/ManageIQ/container-httpd-auth-config/blob/master/README.md) in that repo for further details.
+
+The generated authentication configuration map can then be defined in the _httpd_ pod and further customized as follows:
+
+```bash
+$ oc edit configmaps httpd-auth-configs
+```
+
+Then rebouncing the _httpd_ pod for the new authentication configuration to take effect.
+
+

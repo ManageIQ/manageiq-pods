@@ -138,27 +138,9 @@ objects:
     name: "${HTTPD_SERVICE_NAME}-auth-configs"
   data:
     auth-configuration.conf: |
-      #
       # External Authentication Configuration File
       #
-      # This file declares the following:
-      #
-      #   The Authentication type, default is internal.
-      #     syntax:  type = internal
-      #
-      #     - other types could include: ipa, ldap, active_directory, saml or simply custom.
-      #
-      #   The list of files to overlay in order to enable external authentication
-      #     syntax:  file = basename target_path mode:owner:group
-      #
-      #     - basename is the name of the file in the config map.
-      #     - target_path is the path of the file to overwrite, i.e. /etc/sssd/sssd.conf
-      #     - mode:owner:group is optional and reflects the mode and ownership to set the file to.
-      #       i.e.  644:root:apache
-      #             755
-      #     - if basename has the .base64 extension, then the file is binary and will be converted
-      #       from its base64 representation in the Config Map before copied to its target_path.
-      #
+      # For details on usage please see https://github.com/ManageIQ/manageiq-pods/blob/master/README.md
       type = internal
 - apiVersion: v1
   kind: Service
