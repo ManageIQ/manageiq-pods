@@ -627,10 +627,7 @@ data:
     </EntityDescriptor>
 ```
 
-Support for automatically generating authentication configuration maps for _httpd_ will be provided by
-[ManageIQ/container-httpd-auth-config](https://github.com/ManageIQ/container-httpd-auth-config). Please see the [README.md](https://github.com/ManageIQ/container-httpd-auth-config/blob/master/README.md) in that repo for further details.
-
-The generated authentication configuration map can then be defined in the _httpd_ pod and further customized as follows:
+The authentication configuration map can be defined and customized in the _httpd_ pod as follows:
 
 ```bash
 $ oc edit configmaps httpd-auth-configs
