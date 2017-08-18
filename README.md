@@ -636,6 +636,6 @@ The generated authentication configuration map can then be defined in the _httpd
 $ oc edit configmaps httpd-auth-configs
 ```
 
-Then rebouncing the _httpd_ pod for the new authentication configuration to take effect.
+Then redeploy the _httpd_ pod for the new authentication configuration to take effect.
 
 
