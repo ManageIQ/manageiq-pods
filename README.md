@@ -159,21 +159,6 @@ miq-pv02   5Gi         RWO           Recycle         Available                  
 
 It is strongly suggested that you validate NFS share connectivity from an OpenShift node prior attemping a deployment.
 
-### Increase maximum number of imported images on ImageStream
-
-By default OpenShift will import 5 images per ImageStream, we build and use more than 5 images in our repos for MIQ deployments.
-
-You can modify these settings on the master node at `/etc/origin/master/master-config.yaml`, add the following at the end of the file and re-start the master service:
-
-```yaml
-...
-imagePolicyConfig:
-  maxImagesBulkImportedPerRepository: 100
-```
-```bash
-$ systemctl restart atomic-openshift-master
-```
-
 ## Deploy MIQ
 
 Create the MIQ template for deployment and verify it is now available in your project
