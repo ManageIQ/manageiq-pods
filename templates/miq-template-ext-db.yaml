@@ -71,30 +71,6 @@ objects:
     to:
       kind: Service
       name: "${HTTPD_SERVICE_NAME}"
-- apiVersion: v1
-  kind: ImageStream
-  metadata:
-    name: miq-app
-    annotations:
-      description: Keeps track of the ManageIQ image changes
-  spec:
-    dockerImageRepository: "${APPLICATION_IMG_NAME}"
-- apiVersion: v1
-  kind: ImageStream
-  metadata:
-    name: memcached
-    annotations:
-      description: Keeps track of the Memcached image changes
-  spec:
-    dockerImageRepository: "${MEMCACHED_IMG_NAME}"
-- apiVersion: v1
-  kind: ImageStream
-  metadata:
-    name: ansible
-    annotations:
-      description: Keeps track of the Ansible image changes
-  spec:
-    dockerImageRepository: "${ANSIBLE_IMG_NAME}"
 - apiVersion: apps/v1beta1
   kind: StatefulSet
   metadata:
@@ -298,14 +274,6 @@ objects:
     strategy:
       type: Recreate
     triggers:
-    - type: ImageChange
-      imageChangeParams:
-        automatic: true
-        containerNames:
-        - memcached
-        from:
-          kind: ImageStreamTag
-          name: memcached:${MEMCACHED_IMG_TAG}
     - type: ConfigChange
     replicas: 1
     selector:
@@ -464,14 +432,6 @@ objects:
         serviceAccount: miq-privileged
         serviceAccountName: miq-privileged
 - apiVersion: v1
-  kind: ImageStream
-  metadata:
-    name: httpd
-    annotations:
-      description: Keeps track of the httpd image changes
-  spec:
-    dockerImageRepository: "${HTTPD_IMG_NAME}"
-- apiVersion: v1
   kind: ConfigMap
   metadata:
     name: "${HTTPD_SERVICE_NAME}-configs"
@@ -515,14 +475,6 @@ objects:
       recreateParams:
         timeoutSeconds: 1200
     triggers:
-    - type: ImageChange
-      imageChangeParams:
-        automatic: true
-        containerNames:
-        - httpd
-        from:
-          kind: ImageStreamTag
-          name: httpd:${HTTPD_IMG_TAG}
     - type: ConfigChange
     replicas: 1
     selector:
