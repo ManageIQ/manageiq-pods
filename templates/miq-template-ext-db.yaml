@@ -494,11 +494,11 @@ objects:
   metadata:
     name: "${HTTPD_SERVICE_NAME}-auth-configs"
   data:
+    auth-type: internal
     auth-configuration.conf: |
       # External Authentication Configuration File
       #
       # For details on usage please see https://github.com/ManageIQ/manageiq-pods/blob/master/README.md
-      type = internal
 - apiVersion: v1
   kind: Service
   metadata:
@@ -578,6 +578,17 @@ objects:
               cpu: "${HTTPD_CPU_REQ}"
             limits:
               memory: "${HTTPD_MEM_LIMIT}"
+          env:
+          - name: HTTPD_AUTH_TYPE
+            valueFrom:
+              configMapKeyRef:
+                name: "${HTTPD_SERVICE_NAME}-auth-configs"
+                key: auth-type
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                - "/usr/bin/entrypoint"
         serviceAccount: miq-sysadmin
         serviceAccountName: miq-sysadmin
 parameters:

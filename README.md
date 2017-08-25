@@ -543,23 +543,25 @@ $ oc new-app --template=manageiq \
 ```
 
 ## Configuring External Authentication
-Configuring the _httpd_ pod for external authentication is done by updating the _httpd-auth-configs_ configuration map to include all necessary config files and certificates. Upon startup, the _httpd_ pod overlays its files with the ones specified in the _auth-configuration.conf_ file in the configuration map. This is done by the entrypoint before _systemd_ starts so all services will have their updated configuration upon startup.
+Configuring the _httpd_ pod for external authentication is done by updating the _httpd-auth-configs_ configuration map to include all necessary config files and certificates. Upon startup, the _httpd_ pod overlays its files with the ones specified in the _auth-configuration.conf_ file in the configuration map. This is done by the _initialize-httpd-auth_ service that runs before _httpd_.
 
-The external authentication configuration file _auth-configuration.conf_ declares the following:
+The config map includes the following:
 
-* The authentication type, default is _internal_.
-* The list of files to overlay upon startup if type is other than _internal_.
+* The authentication type _auth-type_, default is _internal_
 
-Syntax for the file is as follows:
+	_internal_ is the default type, anything else is considered external. _auth-type_ could include strings like: ipa, ldap, active_directory, saml or simply custom.
 
-```
-# for comments
-type = internal
-file = basename1 target_path1 permission1
-file = basename2 target_path2 permission2
-```
+* The external authentication configuration file _auth-configuration.conf_ which declares the list of files to overlay upon startup if _auth-type_ is other than _internal_.
 
-_internal_ is the default type, anything else is considered external. This could include strings like: ipa, ldap, active_directory, saml or simply custom.
+	Syntax for the file is as follows:
+
+	```
+	# for comments
+	file = basename1 target_path1 permission1
+	file = basename2 target_path2 permission2
+	```
+
+
 
 For the files to overlay on the _httpd_ pod, one _file_ directive is needed per file.
 
@@ -592,11 +594,11 @@ Excluding the content of the files, a SAML auth-config map data section may look
 ```bash
 apiVersion: v1
 data:
+  auth-type: saml
   auth-configuration.conf: |
     #
     # Configuration for SAML authentication
     #
-    type = saml
     file = manageiq-remote-user.conf        /etc/httpd/conf.d/manageiq-remote-user.conf        644
     file = manageiq-external-auth-saml.conf /etc/httpd/conf.d/manageiq-external-auth-saml.conf 644
     file = idp-metadata.xml                 /etc/httpd/saml2/idp-metadata.xml                  644
