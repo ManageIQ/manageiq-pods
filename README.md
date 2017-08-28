@@ -543,15 +543,15 @@ $ oc new-app --template=manageiq \
 ```
 
 ## Configuring External Authentication
-Configuring the _httpd_ pod for external authentication is done by updating the _httpd-auth-configs_ configuration map to include all necessary config files and certificates. Upon startup, the _httpd_ pod overlays its files with the ones specified in the _auth-configuration.conf_ file in the configuration map. This is done by the _initialize-httpd-auth_ service that runs before _httpd_.
+Configuring the httpd pod for external authentication is done by updating the `httpd-auth-configs` configuration map to include all necessary config files and certificates. Upon startup, the httpd pod overlays its files with the ones specified in the `auth-configuration.conf` file in the configuration map. This is done by the `initialize-httpd-auth` service that runs before httpd.
 
 The config map includes the following:
 
-* The authentication type _auth-type_, default is _internal_
+* The authentication type `auth-type`, default is `internal`
 
-	_internal_ is the default type, anything else is considered external. _auth-type_ could include strings like: ipa, ldap, active_directory, saml or simply custom.
+	`internal` is the default type, anything else is considered external. `auth-type` could include strings like: ipa, ldap, active_directory, saml or simply custom.
 
-* The external authentication configuration file _auth-configuration.conf_ which declares the list of files to overlay upon startup if _auth-type_ is other than _internal_.
+* The external authentication configuration file `auth-configuration.conf` which declares the list of files to overlay upon startup if `auth-type` is other than `internal`.
 
 	Syntax for the file is as follows:
 
@@ -563,13 +563,13 @@ The config map includes the following:
 
 
 
-For the files to overlay on the _httpd_ pod, one _file_ directive is needed per file.
+For the files to overlay on the httpd pod, one `file` directive is needed per file.
 
-* the _basename_ is the name of the source file in the configuration map.
-* _target\_path_ is the path of the file on the pod to over_write, i.e. _/etc/sssd/sssd.conf_
-* _permission_ is optional, by default files are copied using the pod's default umask, owner and group, so files are created as mode 644 owner root, group root.
+* the `basename` is the name of the source file in the configuration map.
+* `target_path` is the path of the file on the pod to overwrite, i.e. `/etc/sssd/sssd.conf`
+* `permission` is optional, by default files are copied using the pod's default umask, owner and group, so files are created as mode 644 owner root, group root.
 
-optional _permission_ can be specified as follows:
+optional `permission` can be specified as follows:
 
 * mode
 * mode:owner
@@ -583,9 +583,9 @@ _Examples_:
 * 640:root
 * 644:root:apache
 
-Binary files can be specified in the configuration map in their base64 encoded format with a basename having a _.base64_ extension. Such files are then converted back to binary as they are copied to their target path.
+Binary files can be specified in the configuration map in their base64 encoded format with a basename having a `.base64` extension. Such files are then converted back to binary as they are copied to their target path.
 
-When an _/etc/sssd/sssd.conf_ file is included in the configuration map, the _httpd_ pod automatically enables the sssd service upon startup.
+When an /etc/sssd/sssd.conf file is included in the configuration map, the httpd pod automatically enables the sssd service upon startup.
 
 ### Sample external authentication configuration:
 
@@ -629,12 +629,12 @@ data:
     </EntityDescriptor>
 ```
 
-The authentication configuration map can be defined and customized in the _httpd_ pod as follows:
+The authentication configuration map can be defined and customized in the httpd pod as follows:
 
 ```bash
 $ oc edit configmaps httpd-auth-configs
 ```
 
-Then redeploy the _httpd_ pod for the new authentication configuration to take effect.
+Then redeploy the httpd pod for the new authentication configuration to take effect.
 
 

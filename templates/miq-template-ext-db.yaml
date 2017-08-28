@@ -498,7 +498,7 @@ objects:
     auth-configuration.conf: |
       # External Authentication Configuration File
       #
-      # For details on usage please see https://github.com/ManageIQ/manageiq-pods/blob/master/README.md
+      # For details on usage please see https://github.com/ManageIQ/manageiq-pods/blob/master/README.md#configuring-external-authentication
 - apiVersion: v1
   kind: Service
   metadata:
