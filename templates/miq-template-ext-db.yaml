@@ -588,7 +588,7 @@ objects:
             postStart:
               exec:
                 command:
-                - "/usr/bin/entrypoint"
+                - "/usr/bin/save-container-environment"
         serviceAccount: miq-sysadmin
         serviceAccountName: miq-sysadmin
 parameters:
