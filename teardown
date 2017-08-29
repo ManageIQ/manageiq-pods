@@ -15,3 +15,4 @@ oc delete serviceaccount miq-sysadmin
 
 oc delete cm postgresql-configs
 oc delete cm httpd-configs
+oc delete cm httpd-auth-configs
