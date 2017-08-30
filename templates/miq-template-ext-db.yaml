@@ -46,7 +46,7 @@ objects:
   metadata:
     annotations:
       description: Exposes and load balances ManageIQ pods
-      service.alpha.openshift.io/dependencies: '[{"name":"${DATABASE_SERVICE_NAME}","namespace":"","kind":"Service"},{"name":"${MEMCACHED_SERVICE_NAME}","namespace":"","kind":"Service"}]'
+      service.alpha.openshift.io/dependencies: '[{"name":"${DATABASE_SERVICE_NAME}","namespace":"","kind":"Service"},{"name":"${MEMCACHED_SERVICE_NAME}","namespace":"","kind":"Service"},{"name":"${REDIS_SERVICE_NAME}","namespace":"","kind":"Service"}]'
     name: "${NAME}"
   spec:
     clusterIP: None
@@ -127,6 +127,10 @@ objects:
             value: "${MEMCACHED_SERVICE_NAME}:11211"
           - name: MEMCACHED_SERVICE_NAME
             value: "${MEMCACHED_SERVICE_NAME}"
+          - name: REDIS_SERVER
+            value: "${REDIS_SERVICE_NAME}:6379"
+          - name: REDIS_SERVICE_NAME
+            value: "${REDIS_SERVICE_NAME}"
           - name: V2_KEY
             valueFrom:
               secretKeyRef:
@@ -215,6 +219,8 @@ objects:
             value: "${NAME}"
           - name: MEMCACHED_SERVER
             value: "${MEMCACHED_SERVICE_NAME}:11211"
+          - name: REDIS_SERVER
+            value: "${REDIS_SERVICE_NAME}:6379"
           - name: V2_KEY
             valueFrom:
               secretKeyRef:
@@ -314,6 +320,63 @@ objects:
               cpu: "${MEMCACHED_CPU_REQ}"
             limits:
               memory: "${MEMCACHED_MEM_LIMIT}"
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: "${REDIS_SERVICE_NAME}"
+    annotations:
+      description: Exposes the redis server
+  spec:
+    ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
+    selector:
+      name: "${REDIS_SERVICE_NAME}"
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: "${REDIS_SERVICE_NAME}"
+    annotations:
+      description: Defines how to deploy redis
+  spec:
+    strategy:
+      type: Recreate
+    triggers:
+    - type: ConfigChange
+    replicas: 1
+    selector:
+      name: "${REDIS_SERVICE_NAME}"
+    template:
+      metadata:
+        name: "${REDIS_SERVICE_NAME}"
+        labels:
+          name: "${REDIS_SERVICE_NAME}"
+      spec:
+        volumes: []
+        containers:
+        - name: redis
+          image: "${REDIS_IMG_NAME}:${REDIS_IMG_TAG}"
+          ports:
+          - containerPort: 6379
+          readinessProbe:
+            timeoutSeconds: 1
+            initialDelaySeconds: 5
+            tcpSocket:
+              port: 6379
+          livenessProbe:
+            timeoutSeconds: 1
+            initialDelaySeconds: 30
+            tcpSocket:
+              port: 6379
+          volumeMounts: []
+          env:
+          resources:
+            requests:
+              memory: "${REDIS_MEM_REQ}"
+              cpu: "${REDIS_CPU_REQ}"
+            limits:
+              memory: "${REDIS_MEM_LIMIT}"
 - apiVersion: v1
   kind: Service
   metadata:
@@ -613,6 +676,11 @@ parameters:
   displayName: Memcached Slab Page Size
   description: Memcached size of each slab page.
   value: 1m
+- name: REDIS_SERVICE_NAME
+  required: true
+  displayName: Redis Service Name
+  description: The name of the OpenShift Service exposed for the Redis container.
+  value: redis
 - name: ANSIBLE_SERVICE_NAME
   displayName: Ansible Service Name
   description: The name of the OpenShift Service exposed for the Ansible container.
@@ -650,6 +718,11 @@ parameters:
   required: true
   description: Minimum amount of CPU time the Memcached container will need (expressed in millicores).
   value: 200m
+- name: REDIS_CPU_REQ
+  displayName: Redis Min CPU Requested
+  required: true
+  description: Minimum amount of CPU time the Redis container will need (expressed in millicores).
+  value: 200m
 - name: ANSIBLE_CPU_REQ
   displayName: Ansible Min CPU Requested
   required: true
@@ -664,6 +737,11 @@ parameters:
   displayName: Memcached Min RAM Requested
   required: true
   description: Minimum amount of memory the Memcached container will need.
+  value: 64Mi
+- name: REDIS_MEM_REQ
+  displayName: Redis Min RAM Requested
+  required: true
+  description: Minimum amount of memory the Redis container will need.
   value: 64Mi
 - name: ANSIBLE_MEM_REQ
   displayName: Ansible Min RAM Requested
@@ -680,6 +758,10 @@ parameters:
   required: true
   description: Maximum amount of memory the Memcached container can consume.
   value: 256Mi
+- name: REDIS_MEM_LIMIT
+  displayName: Redis Max RAM Limit
+  required: true
+  description: Maximum amount of memory the Redis container can consume.
 - name: ANSIBLE_MEM_LIMIT
   displayName: Ansible Max RAM Limit
   required: true
@@ -692,6 +774,14 @@ parameters:
 - name: MEMCACHED_IMG_TAG
   displayName: Memcached Image Tag
   description: This is the Memcached image tag/version requested to deploy.
+  value: latest
+- name: REDIS_IMG_NAME
+  displayName: Redis Image Name
+  description: This is the Redis image name requested to deploy.
+  value: docker.io/redis
+- name: REDIS_IMG_TAG
+  displayName: Redis Image Tag
+  description: This is the Redis image tag/version requested to deploy.
   value: latest
 - name: APPLICATION_IMG_NAME
   displayName: Application Image Name
