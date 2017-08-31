@@ -446,6 +446,8 @@ objects:
       <VirtualHost *:80>
         KeepAlive on
         ProxyPreserveHost on
+        ProxyPass        /ws/ ws://${NAME}/ws/
+        ProxyPassReverse /ws/ ws://${NAME}/ws/
         ProxyPass        / http://${NAME}/
         ProxyPassReverse / http://${NAME}/
       </VirtualHost>
