@@ -128,10 +128,16 @@ objects:
 
       <VirtualHost *:80>
         KeepAlive on
+        # Without ServerName mod_auth_mellon compares against http:// and not https:// from the IdP
+        ServerName https://%{REQUEST_HOST}
+
         ProxyPreserveHost on
         ProxyPass        /ws/ ws://${NAME}/ws/
         ProxyPassReverse /ws/ ws://${NAME}/ws/
-        ProxyPass        / http://${NAME}/
+
+        # For SAML /saml2 is only served by front-end httpd by mod_auth_mellon
+        RewriteCond %{REQUEST_URI} !^/saml2
+        RewriteRule ^/ http://${NAME}%{REQUEST_URI} [P,QSA,L]
         ProxyPassReverse / http://${NAME}/
       </VirtualHost>
     authentication.conf: |
