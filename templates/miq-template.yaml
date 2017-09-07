@@ -668,6 +668,9 @@ objects:
           image: "${HTTPD_IMG_NAME}:${HTTPD_IMG_TAG}"
           ports:
           - containerPort: 80
+            protocol: TCP
+          - containerPort: 3301
+            protocol: TCP
           livenessProbe:
             tcpSocket:
               port: 80
