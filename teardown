@@ -11,7 +11,7 @@ oc delete secret -l app=manageiq-ext-db
 oc delete serviceaccount miq-anyuid
 oc delete serviceaccount miq-privileged
 oc delete serviceaccount miq-orchestrator
-oc delete serviceaccount miq-sysadmin
+oc delete serviceaccount miq-httpd
 
 oc delete cm postgresql-configs
 oc delete cm httpd-configs
