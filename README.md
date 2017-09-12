@@ -90,29 +90,38 @@ $ oc describe scc privileged | grep Users
 Users:					system:serviceaccount:<your-namespace>:miq-privileged
 ```
 
-### Add the miq-sysadmin service account
+### Minishift only development environment considerations
 
-_**Note:**_ The application front-end Httpd container requires an anyuid scc with the SYS_ADMIN capability to support systemd and dbus.
+_**Note:**_ Minishift clusters are not equipped with OCI systemd hooks which are used to assist with containerized systemd deployments.
+
+An extra SCC is used on Minishift to compensate for the lack of oci-systemd-hooks. **Please SKIP this step if your cluster is equipped with oci-systemd-hooks.**
 
 __*As admin*__
 
-Create the miq-sysadmin SCC:
+Create the miq-httpd SCC:
 
 ```bash
-$ oc create -f templates/miq-sysadmin.yaml
+$ oc create -f templates/miq-scc-httpd.yaml
 ```
 
-The miq-sysadmin service account must be added to the miq-sysadmin SCC before the front-end Httpd pod can run.
+The miq-httpd service account must be added to the miq-httpd SCC before the front-end httpd pod can run.
 
 ```bash
-$ oc adm policy add-scc-to-user miq-sysadmin system:serviceaccount:<your-namespace>:miq-sysadmin
+$ oc adm policy add-scc-to-user miq-httpd system:serviceaccount:<your-namespace>:miq-httpd
 ```
 
-Verify that the miq-sysadmin service account is now included in the miq-sysadmin scc
+Verify that the miq-httpd service account is now included in the miq-httpd scc
 
 ```bash
-$ oc describe scc miq-sysadmin | grep Users
-Users:              system:serviceaccount:<your-namespace>:miq-sysadmin
+$ oc describe scc miq-httpd | grep Users
+Users:              system:serviceaccount:<your-namespace>:miq-httpd
+```
+
+Lastly, update the requested service account in the httpd DC section of the MIQ template, relevant lines below.
+
+```yaml
+        serviceAccount: miq-httpd
+        serviceAccountName: miq-httpd
 ```
 
 ### Add the view and edit roles to the orchestrator service account
