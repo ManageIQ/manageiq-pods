@@ -510,15 +510,15 @@ objects:
           ports:
           - containerPort: 80
           livenessProbe:
-            tcpSocket:
-              port: 80
+            exec:
+              command:
+              - pidof
+              - httpd
             initialDelaySeconds: 15
             timeoutSeconds: 3
           readinessProbe:
-            httpGet:
-              path: "/"
+            tcpSocket:
               port: 80
-              scheme: HTTP
             initialDelaySeconds: 10
             timeoutSeconds: 3
           volumeMounts:
