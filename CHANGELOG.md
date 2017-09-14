@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+
+## Unreleased as of Sprint 68 ending 2017-09-04
+
+### Added
+- Authentication
+  - Support the httpd authentication configuration map. [(#201)](https://github.com/ManageIQ/manageiq-pods/pull/201)
+
+### Fixed
+- Platform
+  - Create separate reverse proxying for websocket connections [(#208)](https://github.com/ManageIQ/manageiq-pods/pull/208)
+
 ## Unreleased as of Sprint 67 ending 2017-08-21
 
 ### Added
