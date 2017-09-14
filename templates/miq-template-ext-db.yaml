@@ -358,7 +358,7 @@ objects:
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
-    name: "${NAME}-${ANSIBLE_SERVICE_NAME}"
+    name: "${ANSIBLE_SERVICE_NAME}"
     annotations:
       description: Defines how to deploy the Ansible appliance
   spec:
@@ -373,7 +373,7 @@ objects:
         name: "${ANSIBLE_SERVICE_NAME}"
       spec:
         containers:
-        - name: miq-ansible
+        - name: ansible
           image: "${ANSIBLE_IMG_NAME}:${ANSIBLE_IMG_TAG}"
           livenessProbe:
             tcpSocket:
