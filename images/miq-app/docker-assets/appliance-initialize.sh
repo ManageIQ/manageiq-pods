@@ -13,6 +13,8 @@ prepare_init_env
 
 write_v2_key
 
+write_cable_yml
+
 restore_pv_data
 
 cd ${APP_ROOT}

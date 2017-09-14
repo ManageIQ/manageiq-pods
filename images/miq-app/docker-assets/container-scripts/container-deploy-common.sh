@@ -29,6 +29,15 @@ function write_v2_key() {
 KEY
 }
 
+function write_cable_yml() {
+  echo "== Writing ActionCable config =="
+  cat > /var/www/miq/vmdb/config/cable.yml << CABLE
+production:
+  adapter: redis
+  url: redis://${REDIS_SERVER}
+CABLE
+}
+
 # Check service status, requires two arguments: SVC name and SVC port (injected via template)
 function check_svc_status() {
   NCAT="$(which ncat)"
