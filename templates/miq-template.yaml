@@ -227,8 +227,6 @@ objects:
                 fieldPath: metadata.namespace
           - name: APPLICATION_INIT_DELAY
             value: "${APPLICATION_INIT_DELAY}"
-          - name: DATABASE_SERVICE_NAME
-            value: "${DATABASE_SERVICE_NAME}"
           - name: DATABASE_REGION
             value: "${DATABASE_REGION}"
           - name: DATABASE_URL
@@ -236,17 +234,11 @@ objects:
               secretKeyRef:
                 name: "${NAME}-secrets"
                 key: database-url
-          - name: MEMCACHED_SERVER
-            value: "${MEMCACHED_SERVICE_NAME}:11211"
-          - name: MEMCACHED_SERVICE_NAME
-            value: "${MEMCACHED_SERVICE_NAME}"
           - name: V2_KEY
             valueFrom:
               secretKeyRef:
                 name: "${NAME}-secrets"
                 key: v2-key
-          - name: ANSIBLE_SERVICE_NAME
-            value: "${ANSIBLE_SERVICE_NAME}"
           - name: ANSIBLE_ADMIN_PASSWORD
             valueFrom:
               secretKeyRef:
@@ -326,15 +318,11 @@ objects:
             value: database_operations,event,reporting,scheduler,smartstate,ems_operations,ems_inventory,automate
           - name: FRONTEND_SERVICE_NAME
             value: "${NAME}"
-          - name: MEMCACHED_SERVER
-            value: "${MEMCACHED_SERVICE_NAME}:11211"
           - name: V2_KEY
             valueFrom:
               secretKeyRef:
                 name: "${NAME}-secrets"
                 key: v2-key
-          - name: ANSIBLE_SERVICE_NAME
-            value: "${ANSIBLE_SERVICE_NAME}"
           - name: ANSIBLE_ADMIN_PASSWORD
             valueFrom:
               secretKeyRef:
