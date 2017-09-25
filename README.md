@@ -21,7 +21,7 @@ In order to avoid random deployment failures due to resource starvation, we reco
 * 2 x Nodes with at least 4 VCPUs and 8GB of RAM
 * 25GB of storage for MIQ PV use
 
-Other sizing considerations: 
+Other sizing considerations:
 
 * Recommendations assume MIQ will be the only application running on this cluster.
 * Alternatively, you can provision an infrastructure node to run registry/metrics/router/logging pods.
@@ -41,15 +41,15 @@ Login to OpenShift and create a project
 _**Note:**_ This section assumes you have a basic user.
 
 `$ oc login -u <user> -p <password>`
-    
+
    Next, create the project as follows:
-   
+
 ```bash
 $ oc new-project <project_name> \
 --description="<description>" \
 --display-name="<display_name>"
 ```
-   
+
    _At a minimum, only `<project_name>` is required._
 
 ### Add the miq-anyuid and miq-orchestrator service accounts to the anyuid security context
@@ -150,35 +150,72 @@ oc policy add-role-to-user edit system:serviceaccount:<your-namespace>:miq-orche
 
 ### Make persistent volumes to host the MIQ database and application data
 
-A basic (single server/replica) deployment needs at least 2 persistent volumes (PVs) to store MIQ data:
+A basic (single server/replica) deployment needs up to 2 persistent
+volumes (PVs) to store MIQ data:
 
 * Server   (Server specific appliance data)
-* Database (PostgreSQL)
+* Database (PostgreSQL, required if running database podified)
 
-Example NFS PV templates are provided, **please skip this step you have already configured persistent storage.**
+NFS PV templates are provided, **please skip this step you have
+already configured persistent storage.**
 
-For NFS backed volumes, please ensure your NFS server firewall is configured to allow traffic on port 2049 (TCP) from the OpenShift cluster.
+For NFS backed volumes, please ensure your NFS server firewall is
+configured to allow traffic on port 2049 (TCP) from the OpenShift
+cluster.
 
 _**Note:**_ Recommended permissions for the PV volumes are 777, root uid/gid owned.
 
 _**As admin:**_
 
-Please inspect example NFS PV files and edit settings to match your site. You will at a minimum need to configure the correct NFS server host and appropiate path.
+Creating the required PVs may be a one or two step process. You may
+create the initial *templates* now, and then process them and create
+the *PV*s later, or you may do all of the processing and PV creation
+in one pass
 
-Create PV
-```bash
-$ oc create -f templates/miq-pv-db-example.yaml
-$ oc create -f templates/miq-pv-server-example.yaml
+There are three parameters required to process the templates. Only
+`NFS_HOST` is required, `PV_SIZE` and `BASE_PATH` have sane defaults
+already
+
+* `PV_SIZE` - **Defaults** to the recommended PV size for the App/DB
+  template (`5Gi`/`15Gi` respectively)
+* `BASE_PATH` - **Defaults** to `/exports`
+* `NFS_HOST` - **No Default** - Hostname or IP address of the NFS
+  server
+
+_**Note**_ Repeat this process for `templates/miq-pv-db-example.yaml`
+as well if you are running your PostgreSQL database podified. The name
+of the database pv template is `manageiq-db-pv`.
+
+#### Method 1 - Create Template, Process and Create Later
+
+This method first creates the template object in OpenShift and then
+demonstrates how to process the template and fill in the required
+parameters at a later time.
+
 ```
+$ oc create -f templates/miq-pv-server-example.yaml
+# ... do stuff ...
+$ oc process manageiq-app-pv -p NFS_HOST=nfs.example.com | oc create -f -
+```
+
+
+
+#### Method 2 - Process Template and Create PV in one pass
+
+```
+# oc process templates/miq-pv-server-example.yaml -p NFS_HOST=nfs.example.com | oc create -f -
+```
+
 Verify PV creation
+
 ```bash
 $ oc get pv
-NAME       CAPACITY   ACCESSMODES   RECLAIMPOLICY   STATUS      CLAIM  REASON   AGE
-miq-pv01   15Gi        RWO           Recycle         Available                   30s
-miq-pv02   5Gi         RWO           Recycle         Available                   19s
+NAME      CAPACITY   ACCESSMODES   RECLAIMPOLICY   STATUS      CLAIM     STORAGECLASS   REASON    AGE
+miq-app   5Gi        RWO           Retain          Available                                      7s
+miq-db    15Gi       RWO           Retain          Available                                      1s
 ```
 
-It is strongly suggested that you validate NFS share connectivity from an OpenShift node prior attemping a deployment.
+It is strongly suggested that you validate NFS share connectivity from an OpenShift node prior attempting a deployment.
 
 ## Deploy MIQ
 
@@ -279,7 +316,7 @@ $ oc describe pods <miq_pod_name>
 ...
 Conditions:
   Type		Status
-  Ready 	True 
+  Ready 	True
 Volumes:
 ...
 ```
@@ -300,13 +337,13 @@ deploymentconfig "postgresql" updated
 
 Please note the config change trigger is kept enabled, if you desire to have full control of your deployments you can alternatively turn it off.
 
-## Scale MIQ 
+## Scale MIQ
 
 We use StatefulSets to allow scaling of MIQ appliances, before you attempt scaling please ensure you have enough PVs available to scale. Each new replica will consume a PV.
 
 Example scaling to 2 replicas/servers
 
-```bash 
+```bash
 $ oc scale statefulset manageiq --replicas=2
 statefulset "manageiq" scaled
 $ oc get pods
@@ -384,7 +421,7 @@ The MIQ secrets object contains important data regarding your deployment such as
 ### Launch a database backup
 
 Backups can be initiated with the database online, the job will attempt to run immediately after creation.
- 
+
 `$ oc create -f miq-backup-job.yaml`
 
 The backup job will connect to the MIQ database pod and perform a full binary backup of the entire database cluster, it is based on pg_basebackup.
@@ -421,7 +458,7 @@ Notes about restore procedure:
 
 * The sample restore job will bind to the backup and production PG volumes via "manageiq-backup" and "manageiq-postgresql" PVCs by default
 * If existing data is found on the production PG volume, the restore job will *NOT* delete this data, it will rename it and place it on the same volume
-* The latest succesful DB backup will be restored by default, this can be adjusted via the BACKUP_VERSION environment variable on restore object template
+* The latest successful DB backup will be restored by default, this can be adjusted via the BACKUP_VERSION environment variable on restore object template
 
 ### Launch a database restore
 
@@ -642,5 +679,3 @@ $ oc edit configmaps httpd-auth-configs
 ```
 
 Then redeploy the httpd pod for the new authentication configuration to take effect.
-
-
