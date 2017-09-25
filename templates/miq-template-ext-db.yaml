@@ -440,6 +440,9 @@ objects:
         ProxyPass        /ws/ ws://${NAME}/ws/
         ProxyPassReverse /ws/ ws://${NAME}/ws/
 
+        # For httpd, some ErrorDocuments must by served by the front-end httpd
+        RewriteCond %{REQUEST_URI} !^/proxy_pages
+
         # For SAML /saml2 is only served by front-end httpd by mod_auth_mellon
         RewriteCond %{REQUEST_URI} !^/saml2
         RewriteRule ^/ http://${NAME}%{REQUEST_URI} [P,QSA,L]
@@ -462,6 +465,7 @@ objects:
         KrbMethodK5Passwd          Off
         KrbAuthRealms              ${HTTPD_AUTH_KERBEROS_REALMS}
         Krb5KeyTab                 /etc/http.keytab
+        KrbServiceName             Any
         Require                    pam-account httpd-auth
 
         ErrorDocument 401 /proxy_pages/invalid_sso_credentials.js
