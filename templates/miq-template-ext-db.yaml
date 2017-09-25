@@ -483,8 +483,8 @@ objects:
   spec:
     ports:
     - name: http-auth-api
-      port: 3301
-      targetPort: 3301
+      port: 8080
+      targetPort: 8080
     selector:
       name: httpd
 - apiVersion: v1
@@ -522,7 +522,7 @@ objects:
           ports:
           - containerPort: 80
             protocol: TCP
-          - containerPort: 3301
+          - containerPort: 8080
             protocol: TCP
           livenessProbe:
             tcpSocket:
