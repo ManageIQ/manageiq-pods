@@ -90,7 +90,9 @@ $ oc describe scc privileged | grep Users
 Users:					system:serviceaccount:<your-namespace>:miq-privileged
 ```
 
-### Minishift only development environment considerations
+### Set up the miq-httpd service account
+
+#### If running without OCI systemd hooks (Minishift)
 
 _**Note:**_ Minishift clusters are not equipped with OCI systemd hooks which are used to assist with containerized systemd deployments.
 
@@ -98,30 +100,40 @@ An extra SCC is used on Minishift to compensate for the lack of oci-systemd-hook
 
 __*As admin*__
 
-Create the miq-httpd SCC:
+Create the miq-sysadmin SCC:
 
 ```bash
-$ oc create -f templates/miq-scc-httpd.yaml
+$ oc create -f templates/miq-scc-sysadmin.yaml
 ```
 
-The miq-httpd service account must be added to the miq-httpd SCC before the front-end httpd pod can run.
+The miq-httpd service account must be added to the miq-sysadmin SCC before the front-end httpd pod can run.
 
 ```bash
-$ oc adm policy add-scc-to-user miq-httpd system:serviceaccount:<your-namespace>:miq-httpd
+$ oc adm policy add-scc-to-user miq-sysadmin system:serviceaccount:<your-namespace>:miq-httpd
 ```
 
-Verify that the miq-httpd service account is now included in the miq-httpd scc
+Verify that the miq-httpd service account is now included in the miq-sysadmin scc
 
 ```bash
-$ oc describe scc miq-httpd | grep Users
+$ oc describe scc miq-sysadmin | grep Users
 Users:              system:serviceaccount:<your-namespace>:miq-httpd
 ```
 
-Lastly, update the requested service account in the httpd DC section of the MIQ template, relevant lines below.
+#### If running with OCI systemd hooks
 
-```yaml
-        serviceAccount: miq-httpd
-        serviceAccountName: miq-httpd
+__*As admin*__
+
+Add the miq-httpd service account to the anyuid SCC
+
+```bash
+$ oc adm policy add-scc-to-user anyuid system:serviceaccount:<your-namespace>:miq-httpd
+```
+
+Verify that the miq-httpd service account is now included in the anyuid scc
+
+```bash
+$ oc describe scc anyuid | grep Users
+Users:              system:serviceaccount:<your-namespace>:miq-httpd
 ```
 
 ### Add the view and edit roles to the orchestrator service account

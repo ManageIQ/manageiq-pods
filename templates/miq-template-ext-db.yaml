@@ -531,8 +531,8 @@ objects:
               exec:
                 command:
                 - "/usr/bin/save-container-environment"
-        serviceAccount: miq-anyuid
-        serviceAccountName: miq-anyuid
+        serviceAccount: miq-httpd
+        serviceAccountName: miq-httpd
 parameters:
 - name: NAME
   displayName: Name
