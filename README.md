@@ -19,7 +19,7 @@ In order to avoid random deployment failures due to resource starvation, we reco
 
 * 1 x Master node with at least 8 VCPUs and 12GB of RAM
 * 2 x Nodes with at least 4 VCPUs and 8GB of RAM
-* 25GB of storage for MIQ PV use
+* 20GB of storage for MIQ PV use
 
 Other sizing considerations:
 
@@ -215,7 +215,7 @@ miq-app   5Gi        RWO           Retain          Available                    
 miq-db    15Gi       RWO           Retain          Available                                      1s
 ```
 
-It is strongly suggested that you validate NFS share connectivity from an OpenShift node prior attempting a deployment.
+It is strongly suggested that you validate NFS share connectivity from an OpenShift node prior to attempting a deployment.
 
 ## Deploy MIQ
 
@@ -231,7 +231,7 @@ $ oc create -f templates/miq-template.yaml
 template "manageiq" created
 $ oc get templates
 NAME       DESCRIPTION                                  PARAMETERS     OBJECTS
-manageiq   ManageIQ appliance with persistent storage   23 (1 blank)   10
+manageiq   ManageIQ appliance with persistent storage   55 (1 blank)   24
 ```
 
 The supplied template provides customizable deployment parameters, use _oc process_ to see available parameters and descriptions
@@ -244,7 +244,7 @@ Deploy MIQ from template using default settings
 
 Deploy MIQ from template using customized settings
 
-`$ oc new-app --template=manageiq -p DATABASE_VOLUME_CAPACITY=2Gi,MEMORY_POSTGRESQL_LIMIT=4Gi`
+`$ oc new-app --template=manageiq -p DATABASE_VOLUME_CAPACITY=2Gi,POSTGRESQL_MEM_LIMIT=4Gi`
 
 ## Deploy MIQ using an external database
 
@@ -266,31 +266,29 @@ Launch deployment, database server IP is required, rest of settings must match y
 
 _**Note:**_ The first deployment could take several minutes as OpenShift is downloading the necessary images.
 
-### Confirm the MIQ pod is bound to the correct SCC
+### Confirm the deployed MIQ pods are bound to the correct SCC
 
-List and obtain the name of the miq-app pod
+Describe all pods and search for Security Policy
 
 ```bash
-$ oc get pod
-NAME                 READY     STATUS    RESTARTS   AGE
-manageiq-0           1/1       Running   0          2h
-memcached-1-mzeer    1/1       Running   0          3h
-postgresql-1-dufgp   1/1       Running   0          3h
+$ oc describe pods | grep -B2 "Security Policy"
+Name:			httpd-1-5pnrz
+Namespace:		miq-dev
+Security Policy:	anyuid
+--
+Name:			manageiq-0
+Namespace:		miq-dev
+Security Policy:	anyuid
+--
+Name:			memcached-1-l3030
+Namespace:		miq-dev
+Security Policy:	restricted
+--
+Name:			postgresql-1-mz623
+Namespace:		miq-dev
+Security Policy:	restricted
 ```
 
-Export the configuration of the pod.
-
-`$ oc export pod <miq_pod_name>`
-
-Examine the output. Check that `openshift.io/scc` has the value `anyuid`.
-
-```yaml
-...
-metadata:
-  annotations:
-    openshift.io/scc: anyuid
-...
-```
 ### Verify the persistent volumes are attached to postgresql and miq-app pods
 
 ```bash
@@ -307,35 +305,20 @@ pods/postgresql-1-dufgp
     mounted at /var/run/secrets/kubernetes.io/serviceaccount
 ```
 
-### Check readiness of the MIQ pod
+### Check readiness of the MIQ pods
 
 _**Note:**_ Please allow ~5 minutes once pods are in Running state for MIQ to start responding on HTTPS
 
-```bash
-$ oc describe pods <miq_pod_name>
-...
-Conditions:
-  Type		Status
-  Ready 	True
-Volumes:
-...
-```
-### Disable Image Change Triggers
-By default on initial deployments the automatic image change trigger is enabled, this could potentially start an unintended upgrade on a deployment if a newer image was found in the IS.
-
-Once you have successfully validated your MIQ deployment, disable automatic image change triggers for MIQ DCs on project.
+The READY column denotes the number of replicas and their readiness state
 
 ```bash
-$ oc set triggers dc --manual -l app=manageiq
-deploymentconfig "memcached" updated
-deploymentconfig "postgresql" updated
-
-$ oc set triggers dc --from-config --auto -l app=manageiq
-deploymentconfig "memcached" updated
-deploymentconfig "postgresql" updated
+$ oc get pods
+NAME                 READY     STATUS    RESTARTS   AGE
+httpd-1-5pnrz        1/1       Running   0          1h
+manageiq-0           1/1       Running   0          1h
+memcached-1-l3030    1/1       Running   0          1h
+postgresql-1-mz623   1/1       Running   0          1h
 ```
-
-Please note the config change trigger is kept enabled, if you desire to have full control of your deployments you can alternatively turn it off.
 
 ## Scale MIQ
 
@@ -369,8 +352,8 @@ A route should have been deployed via template for HTTPS access on the MIQ pod
 
 ```bash
 $oc get routes
-NAME       HOST/PORT                       PATH      SERVICE            TERMINATION   LABELS
-manageiq   miq.apps.e2e.bos.redhat.com             manageiq:443-tcp   passthrough   app=manageiq
+NAME      HOST/PORT                                     PATH      SERVICES   PORT      TERMINATION     WILDCARD
+httpd     miq-dev.apps.bos.redhat.com                             httpd      http      edge/Redirect   None
 ```
 Examine output and point your web browser to the reported URL/HOST.
 
