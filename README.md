@@ -352,8 +352,8 @@ A route should have been deployed via template for HTTPS access on the MIQ pod
 
 ```bash
 $oc get routes
-NAME      HOST/PORT                                     PATH      SERVICES   PORT      TERMINATION     WILDCARD
-httpd     miq-dev.apps.bos.redhat.com                             httpd      http      edge/Redirect   None
+NAME      HOST/PORT                              PATH      SERVICES   PORT      TERMINATION     WILDCARD
+httpd     miq-dev.apps.bos.redhat.com                      httpd      http      edge/Redirect   None
 ```
 Examine output and point your web browser to the reported URL/HOST.
 
