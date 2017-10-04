@@ -273,19 +273,15 @@ Describe all pods and search for Security Policy
 ```bash
 $ oc describe pods | grep -B2 "Security Policy"
 Name:			httpd-1-5pnrz
-Namespace:		miq-dev
 Security Policy:	anyuid
 --
 Name:			manageiq-0
-Namespace:		miq-dev
 Security Policy:	anyuid
 --
 Name:			memcached-1-l3030
-Namespace:		miq-dev
 Security Policy:	restricted
 --
 Name:			postgresql-1-mz623
-Namespace:		miq-dev
 Security Policy:	restricted
 ```
 
@@ -353,7 +349,7 @@ A route should have been deployed via template for HTTPS access on the MIQ pod
 ```bash
 $oc get routes
 NAME      HOST/PORT                              PATH      SERVICES   PORT      TERMINATION     WILDCARD
-httpd     miq-dev.apps.bos.redhat.com                      httpd      http      edge/Redirect   None
+httpd     miq-dev.apps.example.com                         httpd      http      edge/Redirect   None
 ```
 Examine output and point your web browser to the reported URL/HOST.
 
