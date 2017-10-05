@@ -82,6 +82,7 @@ RUN yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.n
                    logrotate               \
                    nmap-ncat               \
                    http-parser             \
+                   nfs-utils               \
                    &&                      \
     yum clean all
 
@@ -175,7 +176,7 @@ COPY docker-assets/appliance-initialize.sh /bin
 ADD  docker-assets/container-scripts ${CONTAINER_SCRIPTS_ROOT}
 
 ## Enable services on systemd
-RUN systemctl enable appliance-initialize evmserverd evminit evm-watchdog miqvmstat miqtop crond
+RUN systemctl enable appliance-initialize evmserverd evminit evm-watchdog miqvmstat miqtop crond rpcbind
 
 ## Call systemd to bring up system
 ENTRYPOINT ["entrypoint"]
