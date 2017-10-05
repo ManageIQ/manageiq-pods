@@ -613,13 +613,13 @@ objects:
 - apiVersion: v1
   kind: Service
   metadata:
-    name: "${HTTPD_AUTH_API_SERVICE_NAME}"
+    name: "${HTTPD_DBUS_API_SERVICE_NAME}"
     annotations:
-      description: Exposes the httpd server authentication api
+      description: Exposes the httpd server dbus api
       service.alpha.openshift.io/dependencies: '[{"name":"${NAME}","namespace":"","kind":"Service"}]'
   spec:
     ports:
-    - name: http-auth-api
+    - name: http-dbus-api
       port: 8080
       targetPort: 8080
     selector:
@@ -920,11 +920,11 @@ parameters:
   displayName: Apache httpd Service Name
   description: The name of the OpenShift Service exposed for the httpd container.
   value: httpd
-- name: HTTPD_AUTH_API_SERVICE_NAME
+- name: HTTPD_DBUS_API_SERVICE_NAME
   required: true
-  displayName: Apache httpd Authentication API Service Name
-  description: The name of httpd authentication api service.
-  value: httpd-auth-api
+  displayName: Apache httpd DBus API Service Name
+  description: The name of httpd dbus api service.
+  value: httpd-dbus-api
 - name: HTTPD_IMG_NAME
   displayName: Apache httpd Image Name
   description: This is the httpd image name requested to deploy.
