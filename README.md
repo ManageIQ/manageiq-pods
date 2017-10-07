@@ -623,6 +623,19 @@ _Examples_:
 
 Binary files can be specified in the configuration map in their base64 encoded format with a basename having a `.base64` extension. Such files are then converted back to binary as they are copied to their target path.
 
+### Auth-type and auth-configuration specification matrix in a configmap:
+
+* auth-type depicts the Identity Provider external authentication is being configured against.
+* auth-configuration identifies which Httpd external authentication configuration files to load.
+
+| auth-type | auth-configuration | Note |
+|-----------|--------------------|------|
+| internal  | internal           | Database / ManageIQ Ldap(s) / Amazon    |
+| ldap      | external           |     |
+| ipa       | external           |     |
+| active-directory | external | Configured against AD via SSSD as an Ldap directory |
+| active-directory | active-directory | Configured against AD domain via realm join |
+| saml | saml | Keycloak / ADFS / etc. |
 
 ### Sample external authentication configuration:
 
