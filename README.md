@@ -571,7 +571,20 @@ The config map includes the following:
 
 * The authentication type `auth-type`, default is `internal`
 
-	`internal` is the default type, anything else is considered external. `auth-type` could include strings like: ipa, ldap, active_directory, saml or simply custom.
+	This parameter drives which configuration files httpd will load upon start-up. Supported values are:
+
+	| Value    | External-Authentication Configuration |
+	| ---------|---------------------------------------|
+	| internal | Application Based Authentication (_default_) - Database, Ldap/Ldaps, Amazon |
+	| external | IPA, IPA 2-factor authentication, IPA/AD Trust, Ldap (OpenLdap, RHDS, Active Directory, etc.)
+	| active-directory | Active Directory domain realm join
+	| saml | SAML based authentication (Keycloak, ADFS, etc.)
+
+* The kerberos realms to join `auth-kerberos-realms`, default is `undefined`
+
+	When configuring external authentication against IPA, Active Directory or Ldap, this parameter defines the kerberos realm httpd is configured against, i.e. `example.com`
+
+	When specifying multiple Kerberos realms, they need to be space separated.
 
 * The external authentication configuration file `auth-configuration.conf` which declares the list of files to overlay upon startup if `auth-type` is other than `internal`.
 
@@ -617,6 +630,7 @@ Excluding the content of the files, a SAML auth-config map data section may look
 apiVersion: v1
 data:
   auth-type: saml
+  auth-kerberos-realms: example.com
   auth-configuration.conf: |
     #
     # Configuration for SAML authentication
@@ -655,6 +669,12 @@ The authentication configuration map can be defined and customized in the httpd 
 
 ```bash
 $ oc edit configmaps httpd-auth-configs
+```
+
+Or simply replaced if generated and edited externally as follows:
+
+```bash
+$ oc replace configmaps httpd-auth-configs --filename external-auth-configmap.yaml
 ```
 
 Then redeploy the httpd pod for the new authentication configuration to take effect.
