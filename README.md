@@ -571,19 +571,14 @@ The config map includes the following:
 
 * The authentication type `auth-type`, default is `internal`
 
-	`internal` is the default type, anything else is considered external. `auth-type` could include strings like: ipa, ldap, active_directory, saml or simply custom.
-
-* The httpd configuration type `auth-configuration`, default is `internal`
-
 	This parameter drives which configuration files httpd will load upon start-up. Supported values are:
-
 
 	| Value    | External-Authentication Configuration |
 	| ---------|---------------------------------------|
-	|internal | Application Based Authentication (_default_) - Database, Ldap/Ldaps, Amazon |
+	| internal | Application Based Authentication (_default_) - Database, Ldap/Ldaps, Amazon |
 	| external | IPA, IPA 2-factor authentication, IPA/AD Trust, Ldap (OpenLdap, RHDS, Active Directory, etc.)
 	| active-directory | Active Directory domain realm join
-	| saml | SAML based authentication (Keycloak, etc.)
+	| saml | SAML based authentication (Keycloak, ADFS, etc.)
 
 * The kerberos realms to join `auth-kerberos-realms`, default is `undefined`
 
@@ -627,20 +622,6 @@ Binary files can be specified in the configuration map in their base64 encoded f
 
 When an /etc/sssd/sssd.conf file is included in the configuration map, the httpd pod automatically enables the sssd service upon startup.
 
-### Auth-type and auth-configuration specification matrix in a configmap:
-
-* auth-type depicts the Identity Provider external authentication is being configured against.
-* auth-configuration identifies which Httpd external authentication configuration files to load.
-
-| auth-type | auth-configuration | Note |
-|-----------|--------------------|------|
-| internal  | internal           | Database / ManageIQ Ldap(s) / Amazon    |
-| ldap      | external           |     |
-| ipa       | external           |     |
-| active-directory | external | Configured against AD via SSSD as an Ldap directory |
-| active-directory | active-directory | Configured against AD domain via realm join |
-| saml | saml | Keycloak / ADFS / etc. |
-
 ### Sample external authentication configuration:
 
 Excluding the content of the files, a SAML auth-config map data section may look like:
@@ -649,7 +630,6 @@ Excluding the content of the files, a SAML auth-config map data section may look
 apiVersion: v1
 data:
   auth-type: saml
-  auth-configuration: saml
   auth-kerberos-realms: example.com
   auth-configuration.conf: |
     #

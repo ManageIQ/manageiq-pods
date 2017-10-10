@@ -451,7 +451,7 @@ objects:
     authentication.conf: |
       # Load appropriate authentication configuration files
       #
-      Include "conf.d/configuration-${HTTPD_AUTH_CONFIGURATION}-auth"
+      Include "conf.d/configuration-${HTTPD_AUTH_TYPE}-auth"
     configuration-internal-auth: |
       # Internal authentication
       #
@@ -592,7 +592,6 @@ objects:
     name: "${HTTPD_SERVICE_NAME}-auth-configs"
   data:
     auth-type: internal
-    auth-configuration: internal
     auth-kerberos-realms: undefined
     auth-configuration.conf: |
       # External Authentication Configuration File
@@ -692,11 +691,6 @@ objects:
               configMapKeyRef:
                 name: "${HTTPD_SERVICE_NAME}-auth-configs"
                 key: auth-type
-          - name: HTTPD_AUTH_CONFIGURATION
-            valueFrom:
-              configMapKeyRef:
-                name: "${HTTPD_SERVICE_NAME}-auth-configs"
-                key: auth-configuration
           - name: HTTPD_AUTH_KERBEROS_REALMS
             valueFrom:
               configMapKeyRef:
