@@ -575,7 +575,7 @@ The config map includes the following:
 
 * The httpd configuration type `auth-configuration`, default is `internal`
 
-	This parameter drive which configuration files httpd will load upon start-up. Supported values are:
+	This parameter drives which configuration files httpd will load upon start-up. Supported values are:
 
 
 	| Value    | External-Authentication Configuration |
@@ -585,9 +585,11 @@ The config map includes the following:
 	| active-directory | Active Directory domain realm join
 	| saml | SAML based authentication (Keycloak, etc.)
 
-* The kerberos realms joined `auth-kerberos-realms`, default is `undefined`
+* The kerberos realms to join `auth-kerberos-realms`, default is `undefined`
 
 	When configuring external authentication against IPA, Active Directory or Ldap, this parameter defines the kerberos realm httpd is configured against, i.e. `example.com`
+
+	When specifying multiple Kerberos realms, they need to be space separated.
 
 * The external authentication configuration file `auth-configuration.conf` which declares the list of files to overlay upon startup if `auth-type` is other than `internal`.
 
@@ -622,6 +624,8 @@ _Examples_:
 * 644:root:apache
 
 Binary files can be specified in the configuration map in their base64 encoded format with a basename having a `.base64` extension. Such files are then converted back to binary as they are copied to their target path.
+
+When an /etc/sssd/sssd.conf file is included in the configuration map, the httpd pod automatically enables the sssd service upon startup.
 
 ### Auth-type and auth-configuration specification matrix in a configmap:
 
