@@ -41,6 +41,7 @@ RUN yum -y install centos-release-scl-rh && \
                    http-parser             \
                    initscripts             \
                    libcurl-devel           \
+                   libguestfs-tools        \
                    libtool                 \
                    libxslt-devel           \
                    logrotate               \
