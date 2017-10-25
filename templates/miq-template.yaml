@@ -351,15 +351,15 @@ objects:
         - name: manageiq
           image: "${APPLICATION_IMG_NAME}:${FRONTEND_APPLICATION_IMG_TAG}"
           livenessProbe:
-            tcpSocket:
-              port: 80
+            exec:
+              command:
+              - pidof
+              - MIQ Server
             initialDelaySeconds: 480
             timeoutSeconds: 3
           readinessProbe:
-            httpGet:
-              path: "/"
+            tcpSocket:
               port: 80
-              scheme: HTTP
             initialDelaySeconds: 200
             timeoutSeconds: 3
           ports:
