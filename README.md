@@ -638,9 +638,9 @@ data:
     file = manageiq-remote-user.conf        /etc/httpd/conf.d/manageiq-remote-user.conf        644
     file = manageiq-external-auth-saml.conf /etc/httpd/conf.d/manageiq-external-auth-saml.conf 644
     file = idp-metadata.xml                 /etc/httpd/saml2/idp-metadata.xml                  644
-    file = miqsp-key.key                    /etc/httpd/saml2/miqsp-key.key                     600:root:root
-    file = miqsp-cert.cert                  /etc/httpd/saml2/miqsp-cert.cert                   644
-    file = miqsp-metadata.xml               /etc/httpd/saml2/miqsp-metadata.xml                644
+    file = sp-key.key                       /etc/httpd/saml2/sp-key.key                        600:root:root
+    file = sp-cert.cert                     /etc/httpd/saml2/sp-cert.cert                      644
+    file = sp-metadata.xml                  /etc/httpd/saml2/sp-metadata.xml                   644
   manageiq-remote-user.conf: |
     RequestHeader unset X_REMOTE_USER
     ...
@@ -651,15 +651,15 @@ data:
     <EntitiesDescriptor ...
       ...
     </EntitiesDescriptor>
-  miqsp-key.key: |
+  sp-key.key: |
     -----BEGIN PRIVATE KEY-----
        ...
     -----END PRIVATE KEY-----
-  miqsp-cert.cert: |
+  sp-cert.cert: |
     -----BEGIN CERTIFICATE-----
        ...
     -----END CERTIFICATE-----
-  miqsp-metadata.xml: |
+  sp-metadata.xml: |
     <EntityDescriptor ...
        ...
     </EntityDescriptor>

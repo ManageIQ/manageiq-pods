@@ -198,11 +198,11 @@ objects:
 
         MellonIdPMetadataFile      "/etc/httpd/saml2/idp-metadata.xml"
 
-        MellonSPPrivateKeyFile     "/etc/httpd/saml2/miqsp-key.key"
-        MellonSPCertFile           "/etc/httpd/saml2/miqsp-cert.cert"
-        MellonSPMetadataFile       "/etc/httpd/saml2/miqsp-metadata.xml"
+        MellonSPPrivateKeyFile     "/etc/httpd/saml2/sp-key.key"
+        MellonSPCertFile           "/etc/httpd/saml2/sp-cert.cert"
+        MellonSPMetadataFile       "/etc/httpd/saml2/sp-metadata.xml"
 
-        MellonVariable             "miq-cookie"
+        MellonVariable             "sp-cookie"
         MellonSecureCookie         On
         MellonCookiePath           "/"
 
