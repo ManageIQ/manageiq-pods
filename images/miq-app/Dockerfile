@@ -2,7 +2,7 @@ FROM manageiq/ruby
 MAINTAINER ManageIQ https://github.com/ManageIQ/manageiq-appliance-build
 
 ## Set build ARGs
-ARG REF=master
+ARG REF=gaprindashvili
 
 ## Set ENV, LANG only needed if building with docker-1.8
 ENV TERM=xterm \
@@ -16,7 +16,7 @@ ENV TERM=xterm \
 ## Atomic/OpenShift Labels
 LABEL name="manageiq" \
       vendor="ManageIQ" \
-      version="Master" \
+      version="Gaprindashvili" \
       release=${REF} \
       url="http://manageiq.org/" \
       summary="ManageIQ appliance image" \

@@ -1,8 +1,8 @@
-FROM manageiq/manageiq-pods:backend-latest
+FROM manageiq/manageiq-pods:backend-latest-gaprindashvili
 MAINTAINER ManageIQ https://github.com/ManageIQ/manageiq-appliance-build
 
 ## Set build ARGs
-ARG REF=master
+ARG REF=gaprindashvili
 
 ## Set ENV, LANG only needed if building with docker-1.8
 ENV SUI_ROOT=/opt/manageiq/manageiq-ui-service
@@ -10,7 +10,7 @@ ENV SUI_ROOT=/opt/manageiq/manageiq-ui-service
 ## Atomic/OpenShift Labels
 LABEL name="manageiq" \
       vendor="ManageIQ" \
-      version="Master" \
+      version="Gaprindashvil" \
       release=${REF} \
       url="http://manageiq.org/" \
       summary="ManageIQ appliance image" \
