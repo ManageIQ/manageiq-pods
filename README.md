@@ -679,3 +679,5 @@ $ oc replace configmaps httpd-auth-configs --filename external-auth-configmap.ya
 ```
 
 Then redeploy the httpd pod for the new authentication configuration to take effect.
+
+Support for automatically generating authentication configuration maps for the httpd pod is provided by [ManageIQ/httpd\_configmap\_generator](https://github.com/ManageIQ/httpd_configmap_generator). Please see the [README.md](https://github.com/ManageIQ/httpd_configmap_generator/blob/master/README.md) in that repo for further details.
