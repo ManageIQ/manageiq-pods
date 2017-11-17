@@ -26,8 +26,8 @@ LABEL name="manageiq" \
       io.openshift.tags="ManageIQ,miq,manageiq"
 
 # Fetch MIQ repo for http-parser
-RUN curl -sSLko /etc/yum.repos.d/manageiq-ManageIQ-Fine-epel-7.repo \
-      https://copr.fedorainfracloud.org/coprs/manageiq/ManageIQ-Fine/repo/epel-7/manageiq-ManageIQ-Fine-epel-7.repo
+RUN curl -sSLko /etc/yum.repos.d/manageiq-ManageIQ-Gaprindashvili-epel-7.repo \
+      https://copr.fedorainfracloud.org/coprs/manageiq/ManageIQ-Gaprindashvili/repo/epel-7/manageiq-ManageIQ-Gaprindashvili-epel-7.repo
 
 ## Install EPEL repo, yum necessary packages for the build without docs, clean all caches
 RUN yum -y install centos-release-scl-rh && \

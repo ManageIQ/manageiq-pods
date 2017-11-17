@@ -860,11 +860,11 @@ parameters:
 - name: FRONTEND_APPLICATION_IMG_TAG
   displayName: Front end Application Image Tag
   description: This is the ManageIQ Frontend Application image tag/version requested to deploy.
-  value: frontend-latest
+  value: frontend-latest-gaprindashvili
 - name: BACKEND_APPLICATION_IMG_TAG
   displayName: Back end Application Image Tag
   description: This is the ManageIQ Backend Application image tag/version requested to deploy.
-  value: backend-latest
+  value: backend-latest-gaprindashvili
 - name: ANSIBLE_IMG_NAME
   displayName: Ansible Image Name
   description: This is the Ansible image name requested to deploy.
