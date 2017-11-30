@@ -762,6 +762,7 @@ parameters:
   required: true
   description: Admin password that will be set on the application.
   from: "[a-zA-Z0-9]{8}"
+  generate: expression
 - name: ANSIBLE_DATABASE_NAME
   displayName: Ansible PostgreSQL database name
   required: true
