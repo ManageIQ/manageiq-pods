@@ -896,7 +896,7 @@ parameters:
   value: '0'
 - name: APPLICATION_ADMIN_PASSWORD
   displayName: Application Admin Password
-  required : true
+  required: true
   description: Admin password that will be set on the application.
   from: "[a-zA-Z0-9]{8}"
   generate: expression
