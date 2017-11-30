@@ -120,6 +120,15 @@ function migrate_db() {
   ) 2>&1 | tee ${PV_MIGRATE_DB_LOG}
 }
 
+# Set EVM admin pwd
+function set_admin_pwd() {
+ echo "== Setting admin password =="
+
+   cd ${APP_ROOT} && bin/rails runner -e production "EvmDatabase.seed_primordial; user = User.find_by_userid('admin'); user.password = ENV['APPLICATION_ADMIN_PASSWORD']; user.save; exit;"
+
+   [ "$?" -ne "0" ] && echo "ERROR: Failed to set admin password, please check appliance logs"
+}
+
 # Process DATA_PERSIST_FILE which contains the desired files/dirs to store on the PV
 # Use rsync to transfer files/dirs, log output and check return status
 # Ensure we always store an initial data backup on PV
