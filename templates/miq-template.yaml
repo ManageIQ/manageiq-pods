@@ -224,7 +224,7 @@ objects:
       OIDCClientID                 ${HTTPD_AUTH_OIDC_CLIENT_ID}
       OIDCClientSecret             ${HTTPD_AUTH_OIDC_CLIENT_SECRET}
 
-      OIDCRedirectURI              https://%{REQUEST_HOST}/oidc_login/redirect_uri
+      OIDCRedirectURI              https://${APPLICATION_DOMAIN}/oidc_login/redirect_uri
       OIDCOAuthRemoteUserClaim     username
 
       OIDCCryptoPassphrase         sp-secret
@@ -682,6 +682,8 @@ objects:
             limits:
               memory: "${HTTPD_MEM_LIMIT}"
           env:
+          - name: APPLICATION_DOMAIN
+            value: "${APPLICATION_DOMAIN}"
           - name: HTTPD_AUTH_TYPE
             valueFrom:
               configMapKeyRef:
