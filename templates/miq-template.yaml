@@ -699,16 +699,19 @@ objects:
               configMapKeyRef:
                 name: "${HTTPD_SERVICE_NAME}-auth-configs"
                 key: auth-oidc-provider-metadata-url
+                optional: true
           - name: HTTPD_AUTH_OIDC_CLIENT_ID
             valueFrom:
               configMapKeyRef:
                 name: "${HTTPD_SERVICE_NAME}-auth-configs"
                 key: auth-oidc-client-id
+                optional: true
           - name: HTTPD_AUTH_OIDC_CLIENT_SECRET
             valueFrom:
               configMapKeyRef:
                 name: "${HTTPD_SERVICE_NAME}-auth-configs"
                 key: auth-oidc-client-secret
+                optional: true
           lifecycle:
             postStart:
               exec:
