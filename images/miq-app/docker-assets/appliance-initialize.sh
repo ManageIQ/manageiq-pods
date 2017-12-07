@@ -35,7 +35,6 @@ case $? in
     # Restore symlinks from PV to application rootdir
     restore_pv_data
 
-    # Set admin pwd
     set_admin_pwd
   ;;
   4) # new_replica

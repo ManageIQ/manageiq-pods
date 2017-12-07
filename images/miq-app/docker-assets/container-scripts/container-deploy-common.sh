@@ -124,7 +124,7 @@ function migrate_db() {
 function set_admin_pwd() {
  echo "== Setting admin password =="
 
-   cd ${APP_ROOT} && bin/rails runner -e production "EvmDatabase.seed_primordial; user = User.find_by_userid('admin'); user.password = ENV['APPLICATION_ADMIN_PASSWORD']; user.save; exit;"
+   cd ${APP_ROOT} && bin/rails runner "EvmDatabase.seed_primordial; user = User.find_by_userid('admin').update_attributes!(:password => ENV['APPLICATION_ADMIN_PASSWORD'])"
 
    [ "$?" -ne "0" ] && echo "ERROR: Failed to set admin password, please check appliance logs"
 }

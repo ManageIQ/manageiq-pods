@@ -898,8 +898,7 @@ parameters:
   displayName: Application Admin Password
   required: true
   description: Admin password that will be set on the application.
-  from: "[a-zA-Z0-9]{8}"
-  generate: expression
+  value: smartvm
 - name: ANSIBLE_DATABASE_NAME
   displayName: Ansible PostgreSQL database name
   required: true
