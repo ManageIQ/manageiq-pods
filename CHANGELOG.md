@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
+## Gaprindashvili RC
+
+### Added
+- Allow setting MIQ admin password during deployment [(#250)](https://github.com/ManageIQ/manageiq-pods/pull/250)
+
 ## Gaprindashvili Beta1
 
 ### Added
