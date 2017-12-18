@@ -133,8 +133,11 @@ objects:
         ServerName https://%{REQUEST_HOST}
 
         ProxyPreserveHost on
-        ProxyPass        /ws/ ws://${NAME}/ws/
-        ProxyPassReverse /ws/ ws://${NAME}/ws/
+
+        RewriteCond %{REQUEST_URI}     ^/ws        [NC]
+        RewriteCond %{HTTP:UPGRADE}    ^websocket$ [NC]
+        RewriteCond %{HTTP:CONNECTION} ^Upgrade$   [NC]
+        RewriteRule .* ws://${NAME}%{REQUEST_URI}  [P,QSA,L]
 
         # For httpd, some ErrorDocuments must by served by the httpd pod
         RewriteCond %{REQUEST_URI} !^/proxy_pages
