@@ -10,4 +10,6 @@ write_guid
 
 export DISABLE_MIQ_WORKER_HEARTBEAT=1
 
-exec bin/rails r ${APP_ROOT}/lib/workers/bin/run_single_worker.rb ${WORKER_CLASS_NAME}
+[[ -n $EMS_IDS ]] && WORKER_OPTIONS="--ems-id=${EMS_IDS} "
+
+exec bin/rails r ${APP_ROOT}/lib/workers/bin/run_single_worker.rb ${WORKER_OPTIONS}${WORKER_CLASS_NAME}
