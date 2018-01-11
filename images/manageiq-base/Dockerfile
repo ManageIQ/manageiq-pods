@@ -1,7 +1,13 @@
 FROM manageiq/ruby
 MAINTAINER ManageIQ https://manageiq.org
 
-ARG REF=master
+ARG MIQ_REF=master
+ARG SUI_REF=master
+ARG APPLIANCE_REF=master
+
+ARG MIQ_ORG=ManageIQ
+ARG SUI_ORG=ManageIQ
+ARG APPLIANCE_ORG=ManageIQ
 
 ENV TERM=xterm \
     CONTAINER=true \
@@ -58,14 +64,14 @@ RUN yum -y install centos-release-scl-rh && \
     yum clean all
 
 RUN mkdir -p ${APPLIANCE_ROOT} && \
-    curl -L https://github.com/ManageIQ/manageiq-appliance/tarball/${REF} | tar vxz -C ${APPLIANCE_ROOT} --strip 1
+    curl -L https://github.com/${APPLIANCE_ORG}/manageiq-appliance/tarball/${APPLIANCE_REF} | tar vxz -C ${APPLIANCE_ROOT} --strip 1
 
 RUN mkdir -p ${SUI_ROOT} && \
-    curl -L https://github.com/ManageIQ/manageiq-ui-service/tarball/${REF} | tar vxz -C ${SUI_ROOT} --strip 1
+    curl -L https://github.com/${SUI_ORG}/manageiq-ui-service/tarball/${SUI_REF} | tar vxz -C ${SUI_ROOT} --strip 1
 
 RUN mkdir -p ${APP_ROOT} && \
     ln -vs ${APP_ROOT} /opt/manageiq/manageiq && \
-    curl -L https://github.com/ManageIQ/manageiq/tarball/${REF} | tar vxz -C ${APP_ROOT} --strip 1
+    curl -L https://github.com/${MIQ_ORG}/manageiq/tarball/${MIQ_REF} | tar vxz -C ${APP_ROOT} --strip 1
 
 RUN ${APPLIANCE_ROOT}/setup && \
     rm -f /etc/httpd/conf.d/* && \
