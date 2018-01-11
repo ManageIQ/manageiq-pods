@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
-## Unreleased as of Sprint 76 ending 2017-01-01
+## Unreleased as of Sprint 76 ending 2018-01-01
 
 ### Fixed
 -  Make websockets work again [(#255)](https://github.com/ManageIQ/manageiq-pods/pull/255)
