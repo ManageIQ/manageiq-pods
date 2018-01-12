@@ -35,14 +35,6 @@ objects:
     database-url: postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_SERVICE_NAME}/${DATABASE_NAME}?encoding=utf8&pool=5&wait_timeout=5
     v2-key: "${V2_KEY}"
 - apiVersion: v1
-  kind: Secret
-  metadata:
-    name: "${ANSIBLE_SERVICE_NAME}-secrets"
-  stringData:
-    rabbit-password: "${ANSIBLE_RABBITMQ_PASSWORD}"
-    secret-key: "${ANSIBLE_SECRET_KEY}"
-    admin-password: "${ANSIBLE_ADMIN_PASSWORD}"
-- apiVersion: v1
   kind: ConfigMap
   metadata:
     name: "${DATABASE_SERVICE_NAME}-configs"
@@ -396,11 +388,6 @@ objects:
               secretKeyRef:
                 name: "${NAME}-secrets"
                 key: admin-password
-          - name: ANSIBLE_ADMIN_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: "${ANSIBLE_SERVICE_NAME}-secrets"
-                key: admin-password
           resources:
             requests:
               memory: "${APPLICATION_MEM_REQ}"
@@ -480,11 +467,6 @@ objects:
               secretKeyRef:
                 name: "${NAME}-secrets"
                 key: v2-key
-          - name: ANSIBLE_ADMIN_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: "${ANSIBLE_SERVICE_NAME}-secrets"
-                key: admin-password
           resources:
             requests:
               memory: "${APPLICATION_MEM_REQ}"
@@ -661,101 +643,6 @@ objects:
 - apiVersion: v1
   kind: Service
   metadata:
-    annotations:
-      description: Exposes and load balances Ansible pods
-      service.alpha.openshift.io/dependencies: '[{"name":"${DATABASE_SERVICE_NAME}","namespace":"","kind":"Service"}]'
-    name: "${ANSIBLE_SERVICE_NAME}"
-  spec:
-    ports:
-    - name: http
-      port: 80
-      protocol: TCP
-      targetPort: 80
-    - name: https
-      port: 443
-      protocol: TCP
-      targetPort: 443
-    selector:
-      name: "${ANSIBLE_SERVICE_NAME}"
-- apiVersion: v1
-  kind: DeploymentConfig
-  metadata:
-    name: "${ANSIBLE_SERVICE_NAME}"
-    annotations:
-      description: Defines how to deploy the Ansible appliance
-  spec:
-    strategy:
-      type: Recreate
-    serviceName: "${ANSIBLE_SERVICE_NAME}"
-    replicas: 0
-    template:
-      metadata:
-        labels:
-          name: "${ANSIBLE_SERVICE_NAME}"
-        name: "${ANSIBLE_SERVICE_NAME}"
-      spec:
-        containers:
-        - name: ansible
-          image: "${ANSIBLE_IMG_NAME}:${ANSIBLE_IMG_TAG}"
-          livenessProbe:
-            tcpSocket:
-              port: 443
-            initialDelaySeconds: 480
-            timeoutSeconds: 3
-          readinessProbe:
-            httpGet:
-              path: "/"
-              port: 443
-              scheme: HTTPS
-            initialDelaySeconds: 200
-            timeoutSeconds: 3
-          ports:
-          - containerPort: 80
-            protocol: TCP
-          - containerPort: 443
-            protocol: TCP
-          securityContext:
-            privileged: true
-          env:
-          - name: ADMIN_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: "${ANSIBLE_SERVICE_NAME}-secrets"
-                key: admin-password
-          - name: RABBITMQ_USER_NAME
-            value: "${ANSIBLE_RABBITMQ_USER_NAME}"
-          - name: RABBITMQ_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: "${ANSIBLE_SERVICE_NAME}-secrets"
-                key: rabbit-password
-          - name: ANSIBLE_SECRET_KEY
-            valueFrom:
-              secretKeyRef:
-                name: "${ANSIBLE_SERVICE_NAME}-secrets"
-                key: secret-key
-          - name: DATABASE_SERVICE_NAME
-            value: "${DATABASE_SERVICE_NAME}"
-          - name: POSTGRESQL_USER
-            value: "${DATABASE_USER}"
-          - name: POSTGRESQL_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: "${NAME}-secrets"
-                key: pg-password
-          - name: POSTGRESQL_DATABASE
-            value: "${ANSIBLE_DATABASE_NAME}"
-          resources:
-            requests:
-              memory: "${ANSIBLE_MEM_REQ}"
-              cpu: "${ANSIBLE_CPU_REQ}"
-            limits:
-              memory: "${ANSIBLE_MEM_LIMIT}"
-        serviceAccount: miq-privileged
-        serviceAccountName: miq-privileged
-- apiVersion: v1
-  kind: Service
-  metadata:
     name: "${HTTPD_SERVICE_NAME}"
     annotations:
       description: Exposes the httpd server
@@ -902,11 +789,6 @@ parameters:
   required: true
   description: Admin password that will be set on the application.
   value: smartvm
-- name: ANSIBLE_DATABASE_NAME
-  displayName: Ansible PostgreSQL database name
-  required: true
-  description: The database to be used by the Ansible continer
-  value: awx
 - name: MEMCACHED_SERVICE_NAME
   required: true
   displayName: Memcached Service Name
@@ -936,33 +818,6 @@ parameters:
   displayName: PostgreSQL Shared Buffer Amount
   description: Amount of memory dedicated for PostgreSQL shared memory buffers.
   value: 1GB
-- name: ANSIBLE_SERVICE_NAME
-  displayName: Ansible Service Name
-  description: The name of the OpenShift Service exposed for the Ansible container.
-  value: ansible
-- name: ANSIBLE_ADMIN_PASSWORD
-  displayName: Ansible admin User password
-  required: true
-  description: The password for the Ansible container admin user
-  from: "[a-zA-Z0-9]{32}"
-  generate: expression
-- name: ANSIBLE_SECRET_KEY
-  displayName: Ansible Secret Key
-  required: true
-  description: Encryption key for the Ansible container
-  from: "[a-f0-9]{32}"
-  generate: expression
-- name: ANSIBLE_RABBITMQ_USER_NAME
-  displayName: RabbitMQ Username
-  required: true
-  description: Username for the Ansible RabbitMQ Server
-  value: ansible
-- name: ANSIBLE_RABBITMQ_PASSWORD
-  displayName: RabbitMQ Server Password
-  required: true
-  description: Password for the Ansible RabbitMQ Server
-  from: "[a-zA-Z0-9]{32}"
-  generate: expression
 - name: APPLICATION_CPU_REQ
   displayName: Application Min CPU Requested
   required: true
@@ -978,11 +833,6 @@ parameters:
   required: true
   description: Minimum amount of CPU time the Memcached container will need (expressed in millicores).
   value: 200m
-- name: ANSIBLE_CPU_REQ
-  displayName: Ansible Min CPU Requested
-  required: true
-  description: Minimum amount of CPU time the Ansible container will need (expressed in millicores).
-  value: 1000m
 - name: APPLICATION_MEM_REQ
   displayName: Application Min RAM Requested
   required: true
@@ -998,11 +848,6 @@ parameters:
   required: true
   description: Minimum amount of memory the Memcached container will need.
   value: 64Mi
-- name: ANSIBLE_MEM_REQ
-  displayName: Ansible Min RAM Requested
-  required: true
-  description: Minimum amount of memory the Ansible container will need.
-  value: 2048Mi
 - name: APPLICATION_MEM_LIMIT
   displayName: Application Max RAM Limit
   required: true
@@ -1018,11 +863,6 @@ parameters:
   required: true
   description: Maximum amount of memory the Memcached container can consume.
   value: 256Mi
-- name: ANSIBLE_MEM_LIMIT
-  displayName: Ansible Max RAM Limit
-  required: true
-  description: Maximum amount of memory the Ansible container can consume.
-  value: 8096Mi
 - name: POSTGRESQL_IMG_NAME
   displayName: PostgreSQL Image Name
   description: This is the PostgreSQL image name requested to deploy.
@@ -1051,14 +891,6 @@ parameters:
   displayName: Back end Application Image Tag
   description: This is the ManageIQ Backend Application image tag/version requested to deploy.
   value: backend-latest
-- name: ANSIBLE_IMG_NAME
-  displayName: Ansible Image Name
-  description: This is the Ansible image name requested to deploy.
-  value: docker.io/manageiq/embedded-ansible
-- name: ANSIBLE_IMG_TAG
-  displayName: Ansible Image Tag
-  description: This is the Ansible image tag/version requested to deploy.
-  value: latest
 - name: APPLICATION_DOMAIN
   displayName: Application Hostname
   description: The exposed hostname that will route to the application service, if left blank a value will be defaulted.
