@@ -146,6 +146,10 @@ objects:
         RewriteCond %{REQUEST_URI} !^/saml2
         RewriteRule ^/ http://${NAME}%{REQUEST_URI} [P,QSA,L]
         ProxyPassReverse / http://${NAME}/
+
+        # Ensures httpd stdout/stderr are seen by docker logs.
+        ErrorLog  "| /usr/bin/tee /proc/1/fd/2 /var/log/httpd/error_log"
+        CustomLog "| /usr/bin/tee /proc/1/fd/1 /var/log/httpd/access_log" common
       </VirtualHost>
     authentication.conf: |
       # Load appropriate authentication configuration files
