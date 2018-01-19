@@ -373,6 +373,8 @@ objects:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
+          - name: ALLOW_INSECURE_SESSION
+            value: true
           - name: APPLICATION_INIT_DELAY
             value: "${APPLICATION_INIT_DELAY}"
           - name: DATABASE_REGION
