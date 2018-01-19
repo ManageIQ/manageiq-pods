@@ -387,12 +387,13 @@ objects:
           - name: "${NAME}-server"
             mountPath: "/persistent"
           env:
-          - name: MY_POD_NAMESPACE
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.namespace
           - name: ALLOW_INSECURE_SESSION
             value: true
+          - name: APPLICATION_ADMIN_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: "${NAME}-secrets"
+                key: admin-password
           - name: DATABASE_REGION
             value: "${DATABASE_REGION}"
           - name: DATABASE_URL
@@ -400,16 +401,15 @@ objects:
               secretKeyRef:
                 name: "${NAME}-secrets"
                 key: database-url
+          - name: MY_POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
           - name: V2_KEY
             valueFrom:
               secretKeyRef:
                 name: "${NAME}-secrets"
                 key: v2-key
-          - name: APPLICATION_ADMIN_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: "${NAME}-secrets"
-                key: admin-password
           resources:
             requests:
               memory: "${APPLICATION_MEM_REQ}"
