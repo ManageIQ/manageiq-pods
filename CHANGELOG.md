@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
+## Unreleased as of Sprint 77 ending 2018-01-15
+
+### Added
+- Remove the embedded ansible objects from the template [(#256)](https://github.com/ManageIQ/manageiq-pods/pull/256)
+- Ensures httpd error_log and access_log are seen by docker or oc logs commands [(#244)](https://github.com/ManageIQ/manageiq-pods/pull/244)
+
 ## Unreleased as of Sprint 76 ending 2018-01-01
 
 ### Fixed
