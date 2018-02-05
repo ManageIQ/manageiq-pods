@@ -388,7 +388,7 @@ objects:
             mountPath: "/persistent"
           env:
           - name: ALLOW_INSECURE_SESSION
-            value: true
+            value: 'true'
           - name: APPLICATION_ADMIN_PASSWORD
             valueFrom:
               secretKeyRef:
