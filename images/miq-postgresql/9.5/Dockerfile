@@ -4,6 +4,8 @@ FROM centos/postgresql-95-centos7
 
 MAINTAINER ManageIQ https://github.com/ManageIQ/manageiq-appliance-build
 
+ENV START_HOOKS_DIR=/opt/app-root/src/postgresql-start-hook/
+
 # Switch USER to root to add required repo and packages
 USER root
 
@@ -18,8 +20,7 @@ RUN yum -y --setopt=tsflags=nodocs install rh-postgresql95-postgresql-pglogical 
 # Add pglogical openshift tag to new image
 LABEL io.openshift.tags="database,postgresql,postgresql95,rh-postgresql95,pglogical"
 
-# Modified pg startup script to add required role
-COPY docker-assets/run-postgresql /usr/bin
+ADD docker-assets/on-start.sh ${START_HOOKS_DIR}
 
 # Loosen permission bits to avoid problems running container with arbitrary UID
 RUN /usr/libexec/fix-permissions /var/lib/pgsql && \
