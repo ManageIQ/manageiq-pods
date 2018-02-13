@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
+## Unreleased as of Sprint 79 ending 2018-02-12
+
+### Fixed
+- Mount the configmap into the directory the new image expects [(#264)](https://github.com/ManageIQ/manageiq-pods/pull/264)
+- Stringify booleans kubernetes couldn't parse it [(#263)](https://github.com/ManageIQ/manageiq-pods/pull/263)
+
 ## Gaprindashvili-1 - Released 2018-01-31
 
 ### Added
@@ -23,6 +29,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - Increase PG Pod resource requirements [(#188)](https://github.com/ManageIQ/manageiq-pods/pull/188)
 - Increase default httpd recreate strategy timeout [(#187)](https://github.com/ManageIQ/manageiq-pods/pull/187)
 - Allow PG MIQ configuration overrides via configmap [(#185)](https://github.com/ManageIQ/manageiq-pods/pull/185)
+- Ensures httpd error_log and access_log are seen by docker or oc logs commands [(#244)](https://github.com/ManageIQ/manageiq-pods/pull/244)
 
 ### Fixed
 - Create separate reverse proxying for websocket connections [(#208)](https://github.com/ManageIQ/manageiq-pods/pull/208)
@@ -40,7 +47,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ### Added
 - Remove the embedded ansible objects from the template [(#256)](https://github.com/ManageIQ/manageiq-pods/pull/256)
-- Ensures httpd error_log and access_log are seen by docker or oc logs commands [(#244)](https://github.com/ManageIQ/manageiq-pods/pull/244)
 
 ## Unreleased as of Sprint 72 ending 2017-10-30
 
