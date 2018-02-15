@@ -1,4 +1,4 @@
-FROM carbonin/manageiq-base-worker:latest
+FROM manageiq/manageiq-base-worker:latest
 MAINTAINER ManageIQ https://manageiq.org
 
 LABEL name="manageiq-webserver-worker" \
