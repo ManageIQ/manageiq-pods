@@ -639,7 +639,7 @@ objects:
           - name: miq-pgdb-volume
             mountPath: "/var/lib/pgsql/data"
           - name: miq-pg-configs
-            mountPath: "/opt/app-root/src/postgresql-config/"
+            mountPath: "/opt/app-root/src/postgresql-cfg/"
           env:
           - name: POSTGRESQL_USER
             value: "${DATABASE_USER}"
