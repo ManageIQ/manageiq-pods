@@ -36,22 +36,6 @@ objects:
     v2-key: "${V2_KEY}"
     artemis-password: "${ARTEMIS_PASSWORD}"
 - apiVersion: v1
-  kind: Service
-  metadata:
-    annotations:
-      description: Exposes and load balances ManageIQ pods
-      service.alpha.openshift.io/dependencies: '[{"name":"${DATABASE_SERVICE_NAME}","namespace":"","kind":"Service"},{"name":"${MEMCACHED_SERVICE_NAME}","namespace":"","kind":"Service"}]'
-    name: "${NAME}"
-  spec:
-    clusterIP: None
-    ports:
-    - name: http
-      port: 80
-      protocol: TCP
-      targetPort: 80
-    selector:
-      name: "${NAME}"
-- apiVersion: v1
   kind: Route
   metadata:
     name: "${HTTPD_SERVICE_NAME}"
@@ -68,11 +52,10 @@ objects:
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
-    name: "${NAME}"
+    name: "${NAME}-orchestrator"
     annotations:
       description: Defines how to deploy the ManageIQ appliance
   spec:
-    serviceName: "${NAME}"
     replicas: "${APPLICATION_REPLICA_COUNT}"
     template:
       metadata:
@@ -81,8 +64,8 @@ objects:
         name: "${NAME}"
       spec:
         containers:
-        - name: manageiq
-          image: "${APPLICATION_IMG_NAME}:${FRONTEND_APPLICATION_IMG_TAG}"
+        - name: manageiq-orchestrator
+          image: "${APPLICATION_IMG_NAME}:${ORCHESTRATOR_APPLICATION_IMG_TAG}"
           livenessProbe:
             exec:
               command:
@@ -90,19 +73,9 @@ objects:
               - MIQ Server
             initialDelaySeconds: 480
             timeoutSeconds: 3
-          readinessProbe:
-            tcpSocket:
-              port: 80
-            initialDelaySeconds: 200
-            timeoutSeconds: 3
-          ports:
-          - containerPort: 80
-            protocol: TCP
           env:
           - name: ALLOW_INSECURE_SESSION
             value: 'true'
-          - name: GUID
-            value: "${GUID}"
           - name: APPLICATION_ADMIN_PASSWORD
             valueFrom:
               secretKeyRef:
@@ -110,6 +83,8 @@ objects:
                 key: admin-password
           - name: APPLICATION_INIT_DELAY
             value: "${APPLICATION_INIT_DELAY}"
+          - name: GUID
+            value: "${GUID}"
           - name: DATABASE_REGION
             value: "${DATABASE_REGION}"
           - name: DATABASE_URL
@@ -714,11 +689,11 @@ parameters:
 - name: APPLICATION_IMG_NAME
   displayName: Application Image Name
   description: This is the Application image name requested to deploy.
-  value: docker.io/manageiq/manageiq-pods
-- name: FRONTEND_APPLICATION_IMG_TAG
-  displayName: Front end Application Image Tag
-  description: This is the ManageIQ Frontend Application image tag/version requested to deploy.
-  value: frontend-latest
+  value: docker.io/manageiq/manageiq-orchestrator
+- name: ORCHESTRATOR_APPLICATION_IMG_TAG
+  displayName: Orchestrator Image Tag
+  description: This is the ManageIQ orchestrator image tag/version requested to deploy.
+  value: latest
 - name: ARTEMIS_IMG_NAME
   displayName: Artemis Image Name
   description: This is the Artemis image name requested to deploy.
