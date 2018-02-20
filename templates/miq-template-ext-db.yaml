@@ -10,22 +10,6 @@ metadata:
     iconClass: icon-rails
 objects:
 - apiVersion: v1
-  kind: ServiceAccount
-  metadata:
-    name: miq-orchestrator
-- apiVersion: v1
-  kind: ServiceAccount
-  metadata:
-    name: miq-anyuid
-- apiVersion: v1
-  kind: ServiceAccount
-  metadata:
-    name: miq-privileged
-- apiVersion: v1
-  kind: ServiceAccount
-  metadata:
-    name: miq-httpd
-- apiVersion: v1
   kind: Secret
   metadata:
     name: "${NAME}-secrets"
@@ -35,173 +19,6 @@ objects:
     database-url: postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_SERVICE_NAME}/${DATABASE_NAME}?encoding=utf8&pool=5&wait_timeout=5
     v2-key: "${V2_KEY}"
     artemis-password: "${ARTEMIS_PASSWORD}"
-- apiVersion: v1
-  kind: Route
-  metadata:
-    name: "${HTTPD_SERVICE_NAME}"
-  spec:
-    host: "${APPLICATION_DOMAIN}"
-    port:
-      targetPort: http
-    tls:
-      termination: edge
-      insecureEdgeTerminationPolicy: Redirect
-    to:
-      kind: Service
-      name: "${HTTPD_SERVICE_NAME}"
-- apiVersion: v1
-  kind: DeploymentConfig
-  metadata:
-    name: "${NAME}-orchestrator"
-    annotations:
-      description: Defines how to deploy the ManageIQ appliance
-  spec:
-    replicas: "${APPLICATION_REPLICA_COUNT}"
-    template:
-      metadata:
-        labels:
-          name: "${NAME}"
-        name: "${NAME}"
-      spec:
-        containers:
-        - name: manageiq-orchestrator
-          image: "${APPLICATION_IMG_NAME}:${ORCHESTRATOR_APPLICATION_IMG_TAG}"
-          livenessProbe:
-            exec:
-              command:
-              - pidof
-              - MIQ Server
-            initialDelaySeconds: 480
-            timeoutSeconds: 3
-          env:
-          - name: ALLOW_INSECURE_SESSION
-            value: 'true'
-          - name: APPLICATION_ADMIN_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: "${NAME}-secrets"
-                key: admin-password
-          - name: APPLICATION_INIT_DELAY
-            value: "${APPLICATION_INIT_DELAY}"
-          - name: GUID
-            value: "${GUID}"
-          - name: DATABASE_REGION
-            value: "${DATABASE_REGION}"
-          - name: DATABASE_URL
-            valueFrom:
-              secretKeyRef:
-                name: "${NAME}-secrets"
-                key: database-url
-          - name: MY_POD_NAMESPACE
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.namespace
-          - name: V2_KEY
-            valueFrom:
-              secretKeyRef:
-                name: "${NAME}-secrets"
-                key: v2-key
-          - name: ARTEMIS_USER
-            value: "${ARTEMIS_USER}"
-          - name: ARTEMIS_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: "${NAME}-secrets"
-                key: artemis-password
-          resources:
-            requests:
-              memory: "${APPLICATION_MEM_REQ}"
-              cpu: "${APPLICATION_CPU_REQ}"
-            limits:
-              memory: "${APPLICATION_MEM_LIMIT}"
-        serviceAccount: miq-orchestrator
-        serviceAccountName: miq-orchestrator
-        terminationGracePeriodSeconds: 90
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: "${MEMCACHED_SERVICE_NAME}"
-    annotations:
-      description: Exposes the memcached server
-  spec:
-    ports:
-    - name: memcached
-      port: 11211
-      targetPort: 11211
-    selector:
-      name: "${MEMCACHED_SERVICE_NAME}"
-- apiVersion: v1
-  kind: DeploymentConfig
-  metadata:
-    name: "${MEMCACHED_SERVICE_NAME}"
-    annotations:
-      description: Defines how to deploy memcached
-  spec:
-    strategy:
-      type: Recreate
-    triggers:
-    - type: ConfigChange
-    replicas: 1
-    selector:
-      name: "${MEMCACHED_SERVICE_NAME}"
-    template:
-      metadata:
-        name: "${MEMCACHED_SERVICE_NAME}"
-        labels:
-          name: "${MEMCACHED_SERVICE_NAME}"
-      spec:
-        volumes: []
-        containers:
-        - name: memcached
-          image: "${MEMCACHED_IMG_NAME}:${MEMCACHED_IMG_TAG}"
-          ports:
-          - containerPort: 11211
-          readinessProbe:
-            timeoutSeconds: 1
-            initialDelaySeconds: 5
-            tcpSocket:
-              port: 11211
-          livenessProbe:
-            timeoutSeconds: 1
-            initialDelaySeconds: 30
-            tcpSocket:
-              port: 11211
-          volumeMounts: []
-          env:
-          - name: MEMCACHED_MAX_MEMORY
-            value: "${MEMCACHED_MAX_MEMORY}"
-          - name: MEMCACHED_MAX_CONNECTIONS
-            value: "${MEMCACHED_MAX_CONNECTIONS}"
-          - name: MEMCACHED_SLAB_PAGE_SIZE
-            value: "${MEMCACHED_SLAB_PAGE_SIZE}"
-          resources:
-            requests:
-              memory: "${MEMCACHED_MEM_REQ}"
-              cpu: "${MEMCACHED_CPU_REQ}"
-            limits:
-              memory: "${MEMCACHED_MEM_LIMIT}"
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: "${DATABASE_SERVICE_NAME}"
-    annotations:
-      description: Remote database service
-  spec:
-    ports:
-    - name: postgresql
-      port: 5432
-      targetPort: "${{DATABASE_PORT}}"
-    selector: {}
-- apiVersion: v1
-  kind: Endpoints
-  metadata:
-    name: "${DATABASE_SERVICE_NAME}"
-  subsets:
-  - addresses:
-    - ip: "${DATABASE_IP}"
-    ports:
-    - port: "${{DATABASE_PORT}}"
-      name: postgresql
 - apiVersion: v1
   kind: ConfigMap
   metadata:
@@ -388,6 +205,57 @@ objects:
       #
       # For details on usage please see https://github.com/ManageIQ/manageiq-pods/blob/master/README.md#configuring-external-authentication
 - apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: artemis
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: miq-orchestrator
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: miq-anyuid
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: miq-privileged
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: miq-httpd
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: "${MEMCACHED_SERVICE_NAME}"
+    annotations:
+      description: Exposes the memcached server
+  spec:
+    ports:
+    - name: memcached
+      port: 11211
+      targetPort: 11211
+    selector:
+      name: "${MEMCACHED_SERVICE_NAME}"
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: "${DATABASE_SERVICE_NAME}"
+    annotations:
+      description: Remote database service
+  spec:
+    ports:
+    - name: postgresql
+      port: 5432
+      targetPort: "${{DATABASE_PORT}}"
+    selector: {}
+- apiVersion: v1
   kind: Service
   metadata:
     name: "${HTTPD_SERVICE_NAME}"
@@ -415,6 +283,147 @@ objects:
       targetPort: 8080
     selector:
       name: httpd
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: artemis
+    annotations:
+      description: Exposes the the artemis broker service
+  spec:
+    ports:
+    - name: stomp
+      port: 61613
+      targetPort: 61613
+    selector:
+      name: artemis
+- apiVersion: v1
+  kind: Endpoints
+  metadata:
+    name: "${DATABASE_SERVICE_NAME}"
+  subsets:
+  - addresses:
+    - ip: "${DATABASE_IP}"
+    ports:
+    - port: "${{DATABASE_PORT}}"
+      name: postgresql
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: "${NAME}-orchestrator"
+    annotations:
+      description: Defines how to deploy the ManageIQ appliance
+  spec:
+    replicas: "${APPLICATION_REPLICA_COUNT}"
+    template:
+      metadata:
+        labels:
+          name: "${NAME}"
+        name: "${NAME}"
+      spec:
+        containers:
+        - name: manageiq-orchestrator
+          image: "${APPLICATION_IMG_NAME}:${ORCHESTRATOR_APPLICATION_IMG_TAG}"
+          livenessProbe:
+            exec:
+              command:
+              - pidof
+              - MIQ Server
+            initialDelaySeconds: 480
+            timeoutSeconds: 3
+          env:
+          - name: ALLOW_INSECURE_SESSION
+            value: 'true'
+          - name: APPLICATION_ADMIN_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: "${NAME}-secrets"
+                key: admin-password
+          - name: APPLICATION_INIT_DELAY
+            value: "${APPLICATION_INIT_DELAY}"
+          - name: GUID
+            value: "${GUID}"
+          - name: DATABASE_REGION
+            value: "${DATABASE_REGION}"
+          - name: DATABASE_URL
+            valueFrom:
+              secretKeyRef:
+                name: "${NAME}-secrets"
+                key: database-url
+          - name: MY_POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: V2_KEY
+            valueFrom:
+              secretKeyRef:
+                name: "${NAME}-secrets"
+                key: v2-key
+          - name: ARTEMIS_USER
+            value: "${ARTEMIS_USER}"
+          - name: ARTEMIS_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: "${NAME}-secrets"
+                key: artemis-password
+          resources:
+            requests:
+              memory: "${APPLICATION_MEM_REQ}"
+              cpu: "${APPLICATION_CPU_REQ}"
+            limits:
+              memory: "${APPLICATION_MEM_LIMIT}"
+        serviceAccount: miq-orchestrator
+        serviceAccountName: miq-orchestrator
+        terminationGracePeriodSeconds: 90
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: "${MEMCACHED_SERVICE_NAME}"
+    annotations:
+      description: Defines how to deploy memcached
+  spec:
+    strategy:
+      type: Recreate
+    triggers:
+    - type: ConfigChange
+    replicas: 1
+    selector:
+      name: "${MEMCACHED_SERVICE_NAME}"
+    template:
+      metadata:
+        name: "${MEMCACHED_SERVICE_NAME}"
+        labels:
+          name: "${MEMCACHED_SERVICE_NAME}"
+      spec:
+        volumes: []
+        containers:
+        - name: memcached
+          image: "${MEMCACHED_IMG_NAME}:${MEMCACHED_IMG_TAG}"
+          ports:
+          - containerPort: 11211
+          readinessProbe:
+            timeoutSeconds: 1
+            initialDelaySeconds: 5
+            tcpSocket:
+              port: 11211
+          livenessProbe:
+            timeoutSeconds: 1
+            initialDelaySeconds: 30
+            tcpSocket:
+              port: 11211
+          volumeMounts: []
+          env:
+          - name: MEMCACHED_MAX_MEMORY
+            value: "${MEMCACHED_MAX_MEMORY}"
+          - name: MEMCACHED_MAX_CONNECTIONS
+            value: "${MEMCACHED_MAX_CONNECTIONS}"
+          - name: MEMCACHED_SLAB_PAGE_SIZE
+            value: "${MEMCACHED_SLAB_PAGE_SIZE}"
+          resources:
+            requests:
+              memory: "${MEMCACHED_MEM_REQ}"
+              cpu: "${MEMCACHED_CPU_REQ}"
+            limits:
+              memory: "${MEMCACHED_MEM_LIMIT}"
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
@@ -494,29 +503,6 @@ objects:
         serviceAccount: miq-httpd
         serviceAccountName: miq-httpd
 - apiVersion: v1
-  kind: Service
-  metadata:
-    name: artemis
-    annotations:
-      description: Exposes the the artemis broker service
-  spec:
-    ports:
-    - name: stomp
-      port: 61613
-      targetPort: 61613
-    selector:
-      name: artemis
-- apiVersion: v1
-  kind: PersistentVolumeClaim
-  metadata:
-    name: artemis
-  spec:
-    accessModes:
-    - ReadWriteOnce
-    resources:
-      requests:
-        storage: 1Gi
-- apiVersion: v1
   kind: DeploymentConfig
   metadata:
     name: artemis
@@ -561,6 +547,20 @@ objects:
               secretKeyRef:
                 name: "${NAME}-secrets"
                 key: artemis-password
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: "${HTTPD_SERVICE_NAME}"
+  spec:
+    host: "${APPLICATION_DOMAIN}"
+    port:
+      targetPort: http
+    tls:
+      termination: edge
+      insecureEdgeTerminationPolicy: Redirect
+    to:
+      kind: Service
+      name: "${HTTPD_SERVICE_NAME}"
 parameters:
 - name: NAME
   displayName: Name
