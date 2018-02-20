@@ -10,22 +10,6 @@ metadata:
     iconClass: icon-rails
 objects:
 - apiVersion: v1
-  kind: ServiceAccount
-  metadata:
-    name: miq-orchestrator
-- apiVersion: v1
-  kind: ServiceAccount
-  metadata:
-    name: miq-anyuid
-- apiVersion: v1
-  kind: ServiceAccount
-  metadata:
-    name: miq-privileged
-- apiVersion: v1
-  kind: ServiceAccount
-  metadata:
-    name: miq-httpd
-- apiVersion: v1
   kind: Secret
   metadata:
     name: "${NAME}-secrets"
@@ -298,20 +282,6 @@ objects:
       #
       # For details on usage please see https://github.com/ManageIQ/manageiq-pods/blob/master/README.md#configuring-external-authentication
 - apiVersion: v1
-  kind: Route
-  metadata:
-    name: "${HTTPD_SERVICE_NAME}"
-  spec:
-    host: "${APPLICATION_DOMAIN}"
-    port:
-      targetPort: http
-    tls:
-      termination: edge
-      insecureEdgeTerminationPolicy: Redirect
-    to:
-      kind: Service
-      name: "${HTTPD_SERVICE_NAME}"
-- apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
     name: "${NAME}-${DATABASE_SERVICE_NAME}"
@@ -322,13 +292,104 @@ objects:
       requests:
         storage: "${DATABASE_VOLUME_CAPACITY}"
 - apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: artemis
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: miq-orchestrator
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: miq-anyuid
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: miq-privileged
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: miq-httpd
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: "${MEMCACHED_SERVICE_NAME}"
+    annotations:
+      description: Exposes the memcached server
+  spec:
+    ports:
+    - name: memcached
+      port: 11211
+      targetPort: 11211
+    selector:
+      name: "${MEMCACHED_SERVICE_NAME}"
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: "${DATABASE_SERVICE_NAME}"
+    annotations:
+      description: Exposes the database server
+  spec:
+    ports:
+    - name: postgresql
+      port: 5432
+      targetPort: 5432
+    selector:
+      name: "${DATABASE_SERVICE_NAME}"
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: "${HTTPD_SERVICE_NAME}"
+    annotations:
+      description: Exposes the httpd server
+  spec:
+    ports:
+    - name: http
+      port: 80
+      targetPort: 80
+    selector:
+      name: httpd
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: "${HTTPD_DBUS_API_SERVICE_NAME}"
+    annotations:
+      description: Exposes the httpd server dbus api
+  spec:
+    ports:
+    - name: http-dbus-api
+      port: 8080
+      targetPort: 8080
+    selector:
+      name: httpd
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: artemis
+    annotations:
+      description: Exposes the the artemis broker service
+  spec:
+    ports:
+    - name: stomp
+      port: 61613
+      targetPort: 61613
+    selector:
+      name: artemis
+- apiVersion: v1
   kind: DeploymentConfig
   metadata:
     name: "${NAME}-orchestrator"
     annotations:
       description: Defines how to deploy the ManageIQ appliance
   spec:
-    replicas: "${APPLICATION_REPLICA_COUNT}"
+    replicas: 1
     template:
       metadata:
         labels:
@@ -390,19 +451,6 @@ objects:
         serviceAccountName: miq-orchestrator
         terminationGracePeriodSeconds: 90
 - apiVersion: v1
-  kind: Service
-  metadata:
-    name: "${MEMCACHED_SERVICE_NAME}"
-    annotations:
-      description: Exposes the memcached server
-  spec:
-    ports:
-    - name: memcached
-      port: 11211
-      targetPort: 11211
-    selector:
-      name: "${MEMCACHED_SERVICE_NAME}"
-- apiVersion: v1
   kind: DeploymentConfig
   metadata:
     name: "${MEMCACHED_SERVICE_NAME}"
@@ -452,19 +500,6 @@ objects:
               cpu: "${MEMCACHED_CPU_REQ}"
             limits:
               memory: "${MEMCACHED_MEM_LIMIT}"
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: "${DATABASE_SERVICE_NAME}"
-    annotations:
-      description: Exposes the database server
-  spec:
-    ports:
-    - name: postgresql
-      port: 5432
-      targetPort: 5432
-    selector:
-      name: "${DATABASE_SERVICE_NAME}"
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
@@ -536,34 +571,6 @@ objects:
               cpu: "${POSTGRESQL_CPU_REQ}"
             limits:
               memory: "${POSTGRESQL_MEM_LIMIT}"
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: "${HTTPD_SERVICE_NAME}"
-    annotations:
-      description: Exposes the httpd server
-      service.alpha.openshift.io/dependencies: '[{"name":"${NAME}","namespace":"","kind":"Service"}]'
-  spec:
-    ports:
-    - name: http
-      port: 80
-      targetPort: 80
-    selector:
-      name: httpd
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: "${HTTPD_DBUS_API_SERVICE_NAME}"
-    annotations:
-      description: Exposes the httpd server dbus api
-      service.alpha.openshift.io/dependencies: '[{"name":"${NAME}","namespace":"","kind":"Service"}]'
-  spec:
-    ports:
-    - name: http-dbus-api
-      port: 8080
-      targetPort: 8080
-    selector:
-      name: httpd
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
@@ -643,29 +650,6 @@ objects:
         serviceAccount: miq-httpd
         serviceAccountName: miq-httpd
 - apiVersion: v1
-  kind: Service
-  metadata:
-    name: artemis
-    annotations:
-      description: Exposes the the artemis broker service
-  spec:
-    ports:
-    - name: stomp
-      port: 61613
-      targetPort: 61613
-    selector:
-      name: artemis
-- apiVersion: v1
-  kind: PersistentVolumeClaim
-  metadata:
-    name: artemis
-  spec:
-    accessModes:
-    - ReadWriteOnce
-    resources:
-      requests:
-        storage: 1Gi
-- apiVersion: v1
   kind: DeploymentConfig
   metadata:
     name: artemis
@@ -710,6 +694,20 @@ objects:
               secretKeyRef:
                 name: "${NAME}-secrets"
                 key: artemis-password
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: "${HTTPD_SERVICE_NAME}"
+  spec:
+    host: "${APPLICATION_DOMAIN}"
+    port:
+      targetPort: http
+    tls:
+      termination: edge
+      insecureEdgeTerminationPolicy: Redirect
+    to:
+      kind: Service
+      name: "${HTTPD_SERVICE_NAME}"
 parameters:
 - name: NAME
   displayName: Name
@@ -876,20 +874,11 @@ parameters:
   displayName: Application Hostname
   description: The exposed hostname that will route to the application service, if left blank a value will be defaulted.
   value: ''
-- name: APPLICATION_REPLICA_COUNT
-  displayName: Application Replica Count
-  description: This is the number of Application replicas requested to deploy.
-  value: '1'
 - name: APPLICATION_INIT_DELAY
   displayName: Application Init Delay
   required: true
   description: Delay in seconds before we attempt to initialize the application.
   value: '15'
-- name: APPLICATION_VOLUME_CAPACITY
-  displayName: Application Volume Capacity
-  required: true
-  description: Volume space available for application data.
-  value: 5Gi
 - name: DATABASE_VOLUME_CAPACITY
   displayName: Database Volume Capacity
   required: true
@@ -914,7 +903,7 @@ parameters:
   description: This is the httpd image tag/version requested to deploy.
   value: latest
 - name: HTTPD_CONFIG_DIR
-  displayName: Apache Configuration Directory
+  displayName: httpd Configuration Directory
   description: Directory used to store the Apache configuration files.
   value: "/etc/httpd/conf.d"
 - name: HTTPD_AUTH_CONFIG_DIR
