@@ -315,7 +315,7 @@ objects:
     annotations:
       description: Defines how to deploy the ManageIQ appliance
   spec:
-    replicas: "${APPLICATION_REPLICA_COUNT}"
+    replicas: 1
     template:
       metadata:
         labels:
@@ -708,10 +708,6 @@ parameters:
   displayName: Application Hostname
   description: The exposed hostname that will route to the application service, if left blank a value will be defaulted.
   value: ''
-- name: APPLICATION_REPLICA_COUNT
-  displayName: Application Replica Count
-  description: This is the number of Application replicas requested to deploy.
-  value: '1'
 - name: APPLICATION_INIT_DELAY
   displayName: Application Init Delay
   required: true
