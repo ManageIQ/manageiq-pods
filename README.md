@@ -136,18 +136,6 @@ $ oc describe scc anyuid | grep Users
 Users:              system:serviceaccount:<your-namespace>:miq-httpd
 ```
 
-### Add the view and edit roles to the orchestrator service account
-
-This will allow the ManageIQ pod to scale other pods up and down.
-In particular we use this to scale the Ansible pod when the Embedded Ansible role is enabled.
-
-_**As basic user**_
-
-```bash
-oc policy add-role-to-user view system:serviceaccount:<your-namespace>:miq-orchestrator -n <your-namespace>
-oc policy add-role-to-user edit system:serviceaccount:<your-namespace>:miq-orchestrator -n <your-namespace>
-```
-
 ### Make persistent volumes to host the MIQ database and application data
 
 A basic (single server/replica) deployment needs up to 2 persistent
