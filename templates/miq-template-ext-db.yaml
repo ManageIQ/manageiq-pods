@@ -340,8 +340,6 @@ objects:
               secretKeyRef:
                 name: "${NAME}-secrets"
                 key: admin-password
-          - name: APPLICATION_INIT_DELAY
-            value: "${APPLICATION_INIT_DELAY}"
           - name: GUID
             value: "${GUID}"
           - name: DATABASE_REGION
@@ -708,11 +706,6 @@ parameters:
   displayName: Application Hostname
   description: The exposed hostname that will route to the application service, if left blank a value will be defaulted.
   value: ''
-- name: APPLICATION_INIT_DELAY
-  displayName: Application Init Delay
-  required: true
-  description: Delay in seconds before we attempt to initialize the application.
-  value: '15'
 - name: HTTPD_SERVICE_NAME
   required: true
   displayName: Apache httpd Service Name
