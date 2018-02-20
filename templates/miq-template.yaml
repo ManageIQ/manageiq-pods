@@ -903,7 +903,7 @@ parameters:
   description: This is the httpd image tag/version requested to deploy.
   value: latest
 - name: HTTPD_CONFIG_DIR
-  displayName: Apache Configuration Directory
+  displayName: httpd Configuration Directory
   description: Directory used to store the Apache configuration files.
   value: "/etc/httpd/conf.d"
 - name: HTTPD_AUTH_CONFIG_DIR
