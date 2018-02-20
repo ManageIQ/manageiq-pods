@@ -16,3 +16,6 @@ oc delete serviceaccount miq-httpd
 oc delete cm postgresql-configs
 oc delete cm httpd-configs
 oc delete cm httpd-auth-configs
+
+oc delete rolebinding edit
+oc delete rolebinding view

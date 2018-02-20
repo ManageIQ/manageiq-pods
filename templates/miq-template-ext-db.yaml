@@ -235,6 +235,24 @@ objects:
   metadata:
     name: miq-httpd
 - apiVersion: v1
+  kind: RoleBinding
+  metadata:
+    name: view
+  roleRef:
+    name: view
+  subjects:
+  - kind: ServiceAccount
+    name: miq-orchestrator
+- apiVersion: v1
+  kind: RoleBinding
+  metadata:
+    name: edit
+  roleRef:
+    name: edit
+  subjects:
+  - kind: ServiceAccount
+    name: miq-orchestrator
+- apiVersion: v1
   kind: Service
   metadata:
     name: "${MEMCACHED_SERVICE_NAME}"

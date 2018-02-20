@@ -134,18 +134,6 @@ $ oc describe scc anyuid | grep Users
 Users:              system:serviceaccount:<your-namespace>:miq-httpd
 ```
 
-### Add the view and edit roles to the orchestrator service account
-
-This will allow the ManageIQ orchestrator pod to dynamically create deployments and other objects at runtime.
-This is how background workers are managed.
-
-_**As basic user**_
-
-```bash
-oc policy add-role-to-user view system:serviceaccount:<your-namespace>:miq-orchestrator -n <your-namespace>
-oc policy add-role-to-user edit system:serviceaccount:<your-namespace>:miq-orchestrator -n <your-namespace>
-```
-
 ### Make a persistent volume to host the MIQ database data (if necessary)
 
 A deployment will need a persistent volume (PV) to store data only if the database is running as a pod.
