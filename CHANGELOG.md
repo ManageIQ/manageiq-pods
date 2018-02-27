@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
+## Unreleased as of Sprint 80 ending 2018-02-26
+
+### Added
+- Add rolebindings for the orchestrator to the templates [(#271)](https://github.com/ManageIQ/manageiq-pods/pull/271)
+- Remove 15 second sleep from startup time [(#270)](https://github.com/ManageIQ/manageiq-pods/pull/270)
+- Add artemis service [(#268)](https://github.com/ManageIQ/manageiq-pods/pull/268)
+- Container orchestrator [(#207)](https://github.com/ManageIQ/manageiq-pods/pull/207)
+
+### Fixed
+- Fix the external db template after merging #207 [(#269)](https://github.com/ManageIQ/manageiq-pods/pull/269)
+- Put the PG config map in the new new include location [(#267)](https://github.com/ManageIQ/manageiq-pods/pull/267)
+
 ## Unreleased as of Sprint 79 ending 2018-02-12
 
 ### Fixed
