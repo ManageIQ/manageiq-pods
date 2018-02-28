@@ -5,7 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
-## Gaprindashvili-1
+## Gaprindashvili-2
+
+### Fixed
+- Put the PG config map in the new new include location [(#267)](https://github.com/ManageIQ/manageiq-pods/pull/267)
+- Mount the configmap into the directory the new image expects [(#264)](https://github.com/ManageIQ/manageiq-pods/pull/264)
+
+## Gaprindashvili-1 - Released 2018-02-01
 
 ### Added
 - Allow setting MIQ admin password during deployment [(#250)](https://github.com/ManageIQ/manageiq-pods/pull/250)
