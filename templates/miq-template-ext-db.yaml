@@ -333,6 +333,8 @@ objects:
     annotations:
       description: Defines how to deploy the ManageIQ appliance
   spec:
+    strategy:
+      type: Recreate
     replicas: 1
     template:
       metadata:
