@@ -28,4 +28,4 @@ RUN source /etc/default/evm && \
     yarn run build && \
     yarn cache clean
 
-COPY docker-assets/manageiq-http.conf /etc/httpd/conf.d
+COPY container-assets/manageiq-http.conf /etc/httpd/conf.d

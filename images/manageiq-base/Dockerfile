@@ -93,7 +93,7 @@ RUN source /etc/default/evm && \
     rm -rvf ${APP_ROOT}/tmp/cache/assets && \
     rm -vf ${APP_ROOT}/log/*.log
 
-ADD docker-assets/container-scripts ${CONTAINER_SCRIPTS_ROOT}
+ADD container-assets/container-scripts ${CONTAINER_SCRIPTS_ROOT}
 
 RUN wget -O /usr/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 && \
     chmod +x /usr/bin/dumb-init
