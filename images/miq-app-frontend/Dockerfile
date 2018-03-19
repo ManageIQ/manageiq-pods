@@ -56,8 +56,8 @@ RUN source /etc/default/evm && \
 ## Expose required container ports
 EXPOSE 80
 
-COPY docker-assets/check-dependent-services.sh /bin
-COPY docker-assets/manageiq-http.conf /etc/httpd/conf.d
+COPY container-assets/check-dependent-services.sh /bin
+COPY container-assets/manageiq-http.conf /etc/httpd/conf.d
 
 ENTRYPOINT ["/usr/local/bin/dumb-init", "--single-child", "--"]
 CMD ["entrypoint"]

@@ -14,7 +14,7 @@ PV_LOG_DIR="${PV_CONTAINER_DEPLOY_DIR}/log"
 # Directory used to backup server specific PV data before performing an upgrade
 PV_BACKUP_DIR="${PV_CONTAINER_DEPLOY_DIR}/backup"
 
-# This file is supplied by the app docker image with default files/dirs to persist on PV
+# This file is supplied by the app container image with default files/dirs to persist on PV
 DATA_PERSIST_FILE="/container.data.persist"
 
 # Set log timestamp for running instance
