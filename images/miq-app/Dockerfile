@@ -104,6 +104,7 @@ COPY container-assets/entrypoint /usr/bin
 COPY container-assets/container.data.persist /
 COPY container-assets/appliance-initialize.sh /bin
 COPY container-assets/check-dependent-services.sh /bin
+COPY container-assets/miq_logs.conf /etc/logrotate.d
 ADD  container-assets/container-scripts ${CONTAINER_SCRIPTS_ROOT}
 
 RUN wget -O /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 && \
