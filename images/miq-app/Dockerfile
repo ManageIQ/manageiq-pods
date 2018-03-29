@@ -5,7 +5,7 @@ MAINTAINER ManageIQ https://github.com/ManageIQ/manageiq-appliance-build
 ARG REF=fine
 
 ## Set ENV, LANG only needed if building with docker-1.8
-ENV container=docker \
+ENV container=oci \
     LANG=en_US.UTF-8 \
     TERM=xterm \
     APP_ROOT=/var/www/miq/vmdb \
@@ -120,7 +120,7 @@ RUN mkdir -p ${APP_ROOT} && \
     curl -L https://github.com/ManageIQ/manageiq-appliance/tarball/${REF} | tar vxz -C ${APPLIANCE_ROOT} --strip 1 && \
     curl -L https://github.com/ManageIQ/manageiq-ui-service/tarball/${REF} | tar vxz -C ${SUI_ROOT} --strip 1
 
-## Add ManageIQ source from local directory (dockerfile development) or from Github (official build)
+## Add ManageIQ source from local directory (development) or from Github (official build)
 #ADD . ${APP_ROOT}
 RUN curl -L https://github.com/ManageIQ/manageiq/tarball/${REF} | tar vxz -C ${APP_ROOT} --strip 1
 
@@ -169,11 +169,11 @@ RUN source /etc/default/evm && \
 EXPOSE 80 443
 
 ## Copy OpenShift and appliance-initialize scripts, add systemd service unit file
-COPY docker-assets/entrypoint /usr/bin
-COPY docker-assets/container.data.persist /
-COPY docker-assets/appliance-initialize.service /usr/lib/systemd/system
-COPY docker-assets/appliance-initialize.sh /bin
-ADD  docker-assets/container-scripts ${CONTAINER_SCRIPTS_ROOT}
+COPY container-assets/entrypoint /usr/bin
+COPY container-assets/container.data.persist /
+COPY container-assets/appliance-initialize.service /usr/lib/systemd/system
+COPY container-assets/appliance-initialize.sh /bin
+ADD  container-assets/container-scripts ${CONTAINER_SCRIPTS_ROOT}
 
 ## Enable services on systemd
 RUN systemctl enable appliance-initialize evmserverd evminit evm-watchdog miqvmstat miqtop crond rpcbind

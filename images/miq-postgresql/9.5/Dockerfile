@@ -20,7 +20,7 @@ RUN yum -y --setopt=tsflags=nodocs install rh-postgresql95-postgresql-pglogical 
 # Add pglogical openshift tag to new image
 LABEL io.openshift.tags="database,postgresql,postgresql95,rh-postgresql95,pglogical"
 
-ADD docker-assets/on-start.sh ${START_HOOKS_DIR}
+ADD container-assets/on-start.sh ${START_HOOKS_DIR}
 
 # Loosen permission bits to avoid problems running container with arbitrary UID
 RUN /usr/libexec/fix-permissions /var/lib/pgsql && \

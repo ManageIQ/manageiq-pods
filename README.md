@@ -358,7 +358,7 @@ To take advantage of the newly built image you should configure the following te
 ```bash
 $ oc new-app --template=manageiq \
   -n <your-namespace> \
-  -p APPLICATION_IMG_NAME=<your-docker-registry>:5000/<your-namespace>/manageiq-pods \
+  -p APPLICATION_IMG_NAME=<your-container-registry>:5000/<your-namespace>/manageiq-pods \
   -p APPLICATION_IMG_TAG=latest \
   ...
 ```

@@ -20,7 +20,7 @@ PV_BACKUP_DIR="${PV_CONTAINER_DEPLOY_DIR}/backup"
 # This directory is used to store shared region application data to be persisted (database.yml, keys, etc)
 PV_CONTAINER_DATA_REGION_DIR="${APP_ROOT_PERSISTENT_REGION}/region-data"
 
-# This file is supplied by the app docker image with default files/dirs to persist on PV
+# This file is supplied by the app container image with default files/dirs to persist on PV
 CONTAINER_DATA_PERSIST_FILE="/container.data.persist"
 
 # Copy of CONTAINER_DATA_PERSIST_FILE that will be stored on PV and can be customized by users to add more files/dirs
@@ -147,7 +147,7 @@ function write_deployment_info() {
 # Description
 # Populate info file based on initial deployment and store on PV
 # Output in bash format to be easily sourced
-# IMAGE_VERSION is supplied by docker environment
+# IMAGE_VERSION is supplied by environment
 
 DEPLOYMENT_DATE="$(date +%F_%T)"
 APP_VERSION="$(cat ${APP_ROOT}/VERSION)"
