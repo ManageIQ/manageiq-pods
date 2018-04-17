@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# dump environment variables into a file for systemd to load
+env > /container.env.vars
+
+exec "$@"
