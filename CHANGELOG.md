@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
+## Gaprindashvili-2 released 2018-03-06
+
+### Fixed
+- Put the PG config map in the new new include location [(#267)](https://github.com/ManageIQ/manageiq-pods/pull/267)
+- Mount the configmap into the directory the new image expects [(#264)](https://github.com/ManageIQ/manageiq-pods/pull/264)
+
 ## Unreleased as of Sprint 80 ending 2018-02-26
 
 ### Added
@@ -15,12 +21,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 - Fix the external db template after merging #207 [(#269)](https://github.com/ManageIQ/manageiq-pods/pull/269)
-- Put the PG config map in the new new include location [(#267)](https://github.com/ManageIQ/manageiq-pods/pull/267)
 
 ## Unreleased as of Sprint 79 ending 2018-02-12
 
 ### Fixed
-- Mount the configmap into the directory the new image expects [(#264)](https://github.com/ManageIQ/manageiq-pods/pull/264)
 - Stringify booleans kubernetes couldn't parse it [(#263)](https://github.com/ManageIQ/manageiq-pods/pull/263)
 
 ## Gaprindashvili-1 - Released 2018-01-31
