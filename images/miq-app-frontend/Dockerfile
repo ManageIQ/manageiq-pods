@@ -1,4 +1,5 @@
-FROM manageiq/manageiq-pods:backend-latest-gaprindashvili
+# FROM manageiq/manageiq-pods:backend-latest-gaprindashvili
+FROM jvlcek/manageiq-pods:backend-gaprindashvili
 MAINTAINER ManageIQ https://github.com/ManageIQ/manageiq-appliance-build
 
 ## Set build ARGs

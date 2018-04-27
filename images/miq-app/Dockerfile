@@ -68,7 +68,9 @@ RUN mkdir -p ${APPLIANCE_ROOT} && \
 ## GIT clone manageiq
 RUN mkdir -p ${APP_ROOT} && \
     ln -vs ${APP_ROOT} /opt/manageiq/manageiq && \
-    curl -L https://github.com/ManageIQ/manageiq/tarball/${REF} | tar vxz -C ${APP_ROOT} --strip 1
+    # curl -L https://github.com/ManageIQ/manageiq/tarball/${REF} | tar vxz -C ${APP_ROOT} --strip 1
+    curl -L https://github.com/jvlcek/manageiq/tarball/podify_openidc | tar vxz -C ${APP_ROOT} --strip 1
+
 
 ## Setup environment
 RUN ${APPLIANCE_ROOT}/setup && \
