@@ -5,7 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
-## Gaprindashvili-2
+## Gaprindashvili-3
+
+### Added
+- Add rolebindings for the orchestrator to the templates [(#271)](https://github.com/ManageIQ/manageiq-pods/pull/271)
+
+## Gaprindashvili-2 - Released 2018-03-07
 
 ### Fixed
 - Put the PG config map in the new new include location [(#267)](https://github.com/ManageIQ/manageiq-pods/pull/267)
