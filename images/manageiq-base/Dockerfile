@@ -1,4 +1,4 @@
-FROM manageiq/ruby
+FROM manageiq/ruby:2.4
 MAINTAINER ManageIQ https://manageiq.org
 
 ARG MIQ_REF=master
