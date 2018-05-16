@@ -1,4 +1,4 @@
-FROM manageiq/ruby
+FROM manageiq/ruby:2.3.6
 MAINTAINER ManageIQ https://github.com/ManageIQ/manageiq-appliance-build
 
 ## Set build ARGs
