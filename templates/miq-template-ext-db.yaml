@@ -58,7 +58,6 @@ objects:
   metadata:
     annotations:
       description: Exposes and load balances ManageIQ pods
-      service.alpha.openshift.io/dependencies: '[{"name":"${DATABASE_SERVICE_NAME}","namespace":"","kind":"Service"},{"name":"${MEMCACHED_SERVICE_NAME}","namespace":"","kind":"Service"}]'
     name: "${NAME}"
   spec:
     clusterIP: None
@@ -525,7 +524,6 @@ objects:
     name: "${HTTPD_SERVICE_NAME}"
     annotations:
       description: Exposes the httpd server
-      service.alpha.openshift.io/dependencies: '[{"name":"${NAME}","namespace":"","kind":"Service"}]'
   spec:
     ports:
     - name: http
@@ -539,7 +537,6 @@ objects:
     name: "${HTTPD_DBUS_API_SERVICE_NAME}"
     annotations:
       description: Exposes the httpd server dbus api
-      service.alpha.openshift.io/dependencies: '[{"name":"${NAME}","namespace":"","kind":"Service"}]'
   spec:
     ports:
     - name: http-dbus-api
