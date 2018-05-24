@@ -124,8 +124,6 @@ objects:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
-          - name: APPLICATION_INIT_DELAY
-            value: "${APPLICATION_INIT_DELAY}"
           - name: DATABASE_REGION
             value: "${DATABASE_REGION}"
           - name: DATABASE_URL
@@ -206,8 +204,6 @@ objects:
           - name: "${NAME}-server"
             mountPath: "/persistent"
           env:
-          - name: APPLICATION_INIT_DELAY
-            value: "${APPLICATION_INIT_DELAY}"
           - name: DATABASE_URL
             valueFrom:
               secretKeyRef:
@@ -844,11 +840,6 @@ parameters:
   displayName: Application Replica Count
   description: This is the number of Application replicas requested to deploy.
   value: '1'
-- name: APPLICATION_INIT_DELAY
-  displayName: Application Init Delay
-  required: true
-  description: Delay in seconds before we attempt to initialize the application.
-  value: '15'
 - name: APPLICATION_VOLUME_CAPACITY
   displayName: Application Volume Capacity
   required: true
