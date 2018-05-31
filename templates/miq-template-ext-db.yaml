@@ -126,6 +126,13 @@ objects:
               secretKeyRef:
                 name: "${NAME}-secrets"
                 key: admin-password
+          - name: ARTEMIS_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: "${NAME}-secrets"
+                key: artemis-password
+          - name: ARTEMIS_USER
+            value: "${ARTEMIS_USER}"
           - name: DATABASE_REGION
             value: "${DATABASE_REGION}"
           - name: DATABASE_URL
