@@ -16,7 +16,7 @@ ENV TERM=xterm \
 ## Atomic/OpenShift Labels
 LABEL name="manageiq" \
       vendor="ManageIQ" \
-      version="Master" \
+      version="Hammer" \
       release=${REF} \
       url="http://manageiq.org/" \
       summary="ManageIQ appliance image" \

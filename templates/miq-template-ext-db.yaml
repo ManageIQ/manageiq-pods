@@ -818,11 +818,11 @@ parameters:
 - name: FRONTEND_APPLICATION_IMG_TAG
   displayName: Front end Application Image Tag
   description: This is the ManageIQ Frontend Application image tag/version requested to deploy.
-  value: frontend-latest-gaprindashvili
+  value: frontend-latest-hammer
 - name: BACKEND_APPLICATION_IMG_TAG
   displayName: Back end Application Image Tag
   description: This is the ManageIQ Backend Application image tag/version requested to deploy.
-  value: backend-latest-gaprindashvili
+  value: backend-latest-hammer
 - name: ARTEMIS_IMG_NAME
   displayName: Artemis Image Name
   description: This is the Artemis image name requested to deploy.

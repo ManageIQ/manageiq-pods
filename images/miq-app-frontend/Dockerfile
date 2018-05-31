@@ -1,4 +1,4 @@
-FROM carbonin/manageiq-pods:backend-latest
+FROM manageiq/manageiq-pods:backend-latest-hammer
 MAINTAINER ManageIQ https://github.com/ManageIQ/manageiq-appliance-build
 
 ## Set build ARGs
@@ -10,7 +10,7 @@ ENV SUI_ROOT=/opt/manageiq/manageiq-ui-service
 ## Atomic/OpenShift Labels
 LABEL name="manageiq" \
       vendor="ManageIQ" \
-      version="Master" \
+      version="Hammer" \
       release=${REF} \
       url="http://manageiq.org/" \
       summary="ManageIQ appliance image" \
