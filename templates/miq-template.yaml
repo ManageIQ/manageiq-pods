@@ -122,6 +122,10 @@ objects:
 
         # For SAML /saml2 is only served by mod_auth_mellon in the httpd pod
         RewriteCond %{REQUEST_URI} !^/saml2
+
+        # For OpenID-Connect /openid-connect is only served by mod_auth_openidc
+        RewriteCond %{REQUEST_URI} !^/openid-connect
+
         RewriteRule ^/ http://ui:3000%{REQUEST_URI} [P,QSA,L]
         ProxyPassReverse / http://ui:3000/
 
