@@ -89,7 +89,7 @@ objects:
       description: Defines how to deploy the ManageIQ appliance
   spec:
     serviceName: "${NAME}"
-    replicas: "${APPLICATION_REPLICA_COUNT}"
+    replicas: "${{APPLICATION_REPLICA_COUNT}}"
     template:
       metadata:
         labels:
