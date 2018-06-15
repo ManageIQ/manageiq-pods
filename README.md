@@ -568,6 +568,7 @@ The config map includes the following:
 	| external | IPA, IPA 2-factor authentication, IPA/AD Trust, Ldap (OpenLdap, RHDS, Active Directory, etc.)
 	| active-directory | Active Directory domain realm join
 	| saml | SAML based authentication (Keycloak, ADFS, etc.)
+	| oidc | OpenID-Connect based authentication (Keycloak, ADFS, etc.)
 
 * The kerberos realms to join `auth-kerberos-realms`, default is `undefined`
 
@@ -611,7 +612,7 @@ Binary files can be specified in the configuration map in their base64 encoded f
 
 When an /etc/sssd/sssd.conf file is included in the configuration map, the httpd pod automatically enables the sssd service upon startup.
 
-### Sample external authentication configuration:
+### Sample 1 external authentication configuration for SAML:
 
 Excluding the content of the files, a SAML auth-config map data section may look like:
 
@@ -652,6 +653,25 @@ data:
     <EntityDescriptor ...
        ...
     </EntityDescriptor>
+```
+
+### Sample 2 external authentication configuration for OpenID-Connect:
+
+A OpenID-COnnect auth-config map data section may look like:
+
+```bash
+data:
+  auth-type: openid-connect
+  auth-kerberos-realms:
+  auth-oidc-provider-metadata-url: http://my-keycloak-server:8080/auth/realms/miq/.well-known/openid-configuration
+  auth-oidc-client-id: my-openidc-client
+  auth-oidc-client-secret: a6760a49-b6a9-c439-d979-e87f3aa17019
+  auth-configuration.conf: |
+    # External Authentication Configuration File
+    #
+kind: ConfigMap
+metadata:
+  name: httpd-auth-configs
 ```
 
 The authentication configuration map can be defined and customized in the httpd pod as follows:
