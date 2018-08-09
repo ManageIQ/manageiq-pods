@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
+## Unreleased as of Sprint 89 ending 2018-07-02
+
+### Added
+- Adding support for OpenID-Connect [(#251)](https://github.com/ManageIQ/manageiq-pods/pull/251)
+
 ## Gaprindashvili-3 - Released 2018-05-15
 
 ### Added
