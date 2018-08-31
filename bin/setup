@@ -1,0 +1,67 @@
+#!/bin/bash
+
+project=mynamespace
+
+# Check that minishift is installed
+minishift=$(which minishift)
+if [ -z "$minishift" ];
+then
+	echo "Minishift not found, see https://github.com/minishift/minishift#getting-started for installation instructions"
+	exit 1
+fi
+
+# Ensure minishift is running
+is_running=$(minishift status | grep Minishift | awk '{print $2}')
+if [ "$is_running" != "Running" ];
+then
+	echo "You must start minishift"
+	exit 1
+fi
+
+# Make sure path to the oc binary is on our PATH
+eval $(minishift oc-env)
+
+# Login as admin
+res=$(oc login -u system:admin)
+
+res=$(oc describe scc anyuid | grep Users | awk '{print $2}' | grep miq-anyuid)
+if [ -z "$res" ];
+then
+	echo "Creating SCC miq-anyuid..."
+	res=$(oc adm policy add-scc-to-user anyuid system:serviceaccount:$project:miq-anyuid)
+fi
+
+res=$(oc describe scc anyuid | grep Users | awk '{print $2}' | grep miq-orchestrator)
+if [ -z "$res" ];
+then
+	echo "Creating SCC miq-orchestrator..."
+	res=$(oc adm policy add-scc-to-user anyuid system:serviceaccount:$project:miq-orchestrator)
+fi
+
+res=$(oc get scc miq-sysadmin 2>/dev/null)
+if [ $? -ne 0 ];
+then
+	echo "Creating SCC miq-sysadmin"
+	res=$(oc create -f templates/miq-scc-sysadmin.yaml)
+fi
+
+res=$(oc describe scc miq-sysadmin | grep Users | awk '{print $2}' | grep miq-httpd) 
+if [ -z "$res" ];
+then
+	echo "Creating SCC miq-httpd..."
+	res=$(oc adm policy add-scc-to-user miq-sysadmin system:serviceaccount:$project:miq-httpd)
+fi
+
+res=$(oc get template manageiq 2>/dev/null)
+if [ $? -ne 0 ];
+then
+	echo "Creating manageiq template..."
+	res=$(oc create -f templates/miq-template.yaml)
+fi
+
+res=$(oc get all -l app=manageiq 2>&1 >/dev/null)
+if [ "$res" = "No resources found." ];
+then
+	echo "Creating ManageIQ app..."
+	res=$(oc new-app --template=manageiq)
+fi
