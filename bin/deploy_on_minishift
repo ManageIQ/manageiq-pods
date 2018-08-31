@@ -24,35 +24,35 @@ eval $(minishift oc-env)
 # Login as admin
 $(oc login -u system:admin >/dev/null)
 
-res=$(oc describe scc anyuid | grep Users | awk '{print $2}' | grep miq-anyuid)
-if [ -z "$res" ];
+$(oc describe scc anyuid | grep Users | awk '{print $2}' | grep -q $project:miq-anyuid)
+if [ $? -ne 0 ];
 then
-	echo "Creating SCC miq-anyuid..."
+	echo "Assigning SCC anyuid to miq-anyuid Service Account..."
 	$(oc adm policy add-scc-to-user anyuid system:serviceaccount:$project:miq-anyuid >/dev/null)
 fi
 
-res=$(oc describe scc anyuid | grep Users | awk '{print $2}' | grep miq-orchestrator)
-if [ -z "$res" ];
+$(oc describe scc anyuid | grep Users | awk '{print $2}' | grep -q miq-orchestrator)
+if [ $? -ne 0 ];
 then
-	echo "Creating SCC miq-orchestrator..."
+	echo "Assigning SCC anyuid to miq-orchestrator Service Account..."
 	$(oc adm policy add-scc-to-user anyuid system:serviceaccount:$project:miq-orchestrator >/dev/null)
 fi
 
-res=$(oc get scc miq-sysadmin 2>/dev/null)
+$(oc get scc miq-sysadmin >/dev/null 2>&1)
 if [ $? -ne 0 ];
 then
 	echo "Creating SCC miq-sysadmin"
 	$(oc create -f templates/miq-scc-sysadmin.yaml >/dev/null)
 fi
 
-res=$(oc describe scc miq-sysadmin | grep Users | awk '{print $2}' | grep miq-httpd) 
-if [ -z "$res" ];
+$(oc describe scc miq-sysadmin | grep Users | awk '{print $2}' | grep -q miq-httpd) 
+if [ $? -ne 0 ];
 then
-	echo "Creating SCC miq-httpd..."
+	echo "Assigning SCC miq-sysadmin to miq-httpd Service Account..."
 	$(oc adm policy add-scc-to-user miq-sysadmin system:serviceaccount:$project:miq-httpd >/dev/null)
 fi
 
-res=$(oc get template manageiq 2>/dev/null)
+$(oc get template manageiq >/dev/null 2>&1)
 if [ $? -ne 0 ];
 then
 	echo "Creating manageiq template..."
