@@ -1,6 +1,10 @@
 #!/bin/bash
 
-project=mynamespace
+project=$PROJECT
+if [ -z "$project" ];
+then
+	project=myproject
+fi
 
 # Check that minishift is installed
 minishift=$(which minishift)
@@ -23,6 +27,12 @@ eval $(minishift oc-env)
 
 # Login as admin
 $(oc login -u system:admin >/dev/null)
+
+$(oc project $project >/dev/null 2>&1)
+if [ $? -ne 0 ];
+then
+	$(oc new-project $project >/dev/null)
+fi
 
 $(oc describe scc anyuid | grep Users | awk '{print $2}' | grep -q $project:miq-anyuid)
 if [ $? -ne 0 ];
