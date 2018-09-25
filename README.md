@@ -521,7 +521,7 @@ total size is 1585  speedup is 0.81
 It is possible to build the images from this repository (or any of other) using OpenShift:
 
 ```bash
-$ oc -n <your-namespace> new-build --context-dir=images/miq-app https://github.com/ManageIQ/manageiq-pods#master
+$ oc -n <your-namespace> new-build --context-dir=images/miq-app https://github.com/ManageIQ/manageiq-pods#hammer
 ```
 
 In addition it is also suggested to tweak the following `dockerStrategy` parameters to ensure fresh builds every time:

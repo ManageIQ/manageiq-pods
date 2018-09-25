@@ -2,7 +2,7 @@ FROM manageiq/manageiq-pods:backend-latest-hammer
 MAINTAINER ManageIQ https://github.com/ManageIQ/manageiq-appliance-build
 
 ## Set build ARGs
-ARG REF=master
+ARG REF=hammer
 
 ## Set ENV, LANG only needed if building with docker-1.8
 ENV SUI_ROOT=/opt/manageiq/manageiq-ui-service
