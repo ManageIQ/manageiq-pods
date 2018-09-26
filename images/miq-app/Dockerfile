@@ -72,7 +72,7 @@ RUN mkdir -p ${APP_ROOT} && \
 
 ## Setup environment
 RUN ${APPLIANCE_ROOT}/setup && \
-    mkdir ${APP_ROOT}/log/apache && \
+    mkdir -p ${APP_ROOT}/log/apache && \
     mkdir ${APP_ROOT_PERSISTENT} && \
     mkdir -p ${CONTAINER_SCRIPTS_ROOT} && \
     cp ${APP_ROOT}/config/cable.yml.sample ${APP_ROOT}/config/cable.yml
