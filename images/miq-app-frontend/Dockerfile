@@ -41,7 +41,7 @@ RUN source /etc/default/evm && \
     bin/rails log:clear tmp:clear && \
     rake evm:compile_assets && \
     # Cleanup install artifacts
-    npm cache clean && \
+    npm cache clean --force && \
     bower cache clean && \
     rm -rvf ${APP_ROOT}/tmp/cache/assets && \
     rm -vf ${APP_ROOT}/log/*.log

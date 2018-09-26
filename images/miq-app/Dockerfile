@@ -30,7 +30,8 @@ RUN curl -sSLko /etc/yum.repos.d/manageiq-ManageIQ-Master-epel-7.repo \
       https://copr.fedorainfracloud.org/coprs/manageiq/ManageIQ-Master/repo/epel-7/manageiq-ManageIQ-Master-epel-7.repo
 
 ## Install EPEL repo, yum necessary packages for the build without docs, clean all caches
-RUN yum -y install centos-release-scl-rh && \
+RUN yum -y install centos-release-scl-rh \
+                   https://rpm.nodesource.com/pub_8.x/el/7/x86_64/nodesource-release-el7-1.noarch.rpm && \
     yum -y install --setopt=tsflags=nodocs \
                    chrony                  \
                    cmake                   \
@@ -48,7 +49,6 @@ RUN yum -y install centos-release-scl-rh && \
                    net-tools               \
                    nmap-ncat               \
                    nodejs                  \
-                   npm                     \
                    openldap-clients        \
                    openscap-scanner        \
                    patch                   \
@@ -89,7 +89,7 @@ RUN source /etc/default/evm && \
     rake evm:compile_assets && \
     rake evm:compile_sti_loader && \
     # Cleanup install artifacts
-    npm cache clean && \
+    npm cache clean --force && \
     bower cache clean && \
     find ${RUBY_GEMS_ROOT}/gems/ -name .git | xargs rm -rvf && \
     find ${RUBY_GEMS_ROOT}/gems/ | grep "\.s\?o$" | xargs rm -rvf && \
