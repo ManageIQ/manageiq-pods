@@ -14,12 +14,20 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - Use the ruby 2.4 image [(#305)](https://github.com/ManageIQ/manageiq-pods/pull/305)
 - Updates for Hammer branch release [(#306)](https://github.com/ManageIQ/manageiq-pods/pull/306)
 - Add a simple script to deploy MIQ on minishift [(#303)](https://github.com/ManageIQ/manageiq-pods/pull/303)
+- Remove 15 second sleep from startup time [(#270)](https://github.com/ManageIQ/manageiq-pods/pull/270)
+- Add artemis service [(#268)](https://github.com/ManageIQ/manageiq-pods/pull/268)
+- Container orchestrator [(#207)](https://github.com/ManageIQ/manageiq-pods/pull/207)
+- Allow insecure session [(#261)](https://github.com/ManageIQ/manageiq-pods/pull/261)
+- Remove the embedded ansible objects from the template [(#256)](https://github.com/ManageIQ/manageiq-pods/pull/256)
+- Enhance app-frontend probes [(#239)](https://github.com/ManageIQ/manageiq-pods/pull/239)
 
 ### Changed
 - Changed template to add miq-log config map [(#301)](https://github.com/ManageIQ/manageiq-pods/pull/301)
 
 ### Fixed
 - Add the artemis username and password to the frontend pod [(#292)](https://github.com/ManageIQ/manageiq-pods/pull/292)
+- Fix the external db template after merging #207 [(#269)](https://github.com/ManageIQ/manageiq-pods/pull/269)
+- Stringify booleans kubernetes couldn't parse it [(#263)](https://github.com/ManageIQ/manageiq-pods/pull/263)
 
 ### Removed
 - Remove artemis from the templates [(#294)](https://github.com/ManageIQ/manageiq-pods/pull/294)
