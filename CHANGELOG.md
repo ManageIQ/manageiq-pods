@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ### Added
 - Use the ruby 2.4 image [(#305)](https://github.com/ManageIQ/manageiq-pods/pull/305)
-- Podify openidc hammer [(#296)](https://github.com/ManageIQ/manageiq-pods/pull/296)
+- Adding support for OpenID-Connect [(#251)](https://github.com/ManageIQ/manageiq-pods/pull/251)
 - Backport enhancements made to master since Gaprindashvili [(#291)](https://github.com/ManageIQ/manageiq-pods/pull/291)
 
 ### Fixed
