@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
+### Hammer Beta-1
+
+### Added
+- Use the ruby 2.4 image [(#305)](https://github.com/ManageIQ/manageiq-pods/pull/305)
+- Adding support for OpenID-Connect [(#251)](https://github.com/ManageIQ/manageiq-pods/pull/251)
+- Backport enhancements made to master since Gaprindashvili [(#291)](https://github.com/ManageIQ/manageiq-pods/pull/291)
+
+### Fixed
+- Changed template to add miq-log config map [(#301)](https://github.com/ManageIQ/manageiq-pods/pull/301)
+- Add the artemis username and password to the frontend pod [(#292)](https://github.com/ManageIQ/manageiq-pods/pull/292)
+
+### Removed
+- Remove artemis from the templates [(#294)](https://github.com/ManageIQ/manageiq-pods/pull/294)
+
 ## Gaprindashvili-3
 
 ### Added
