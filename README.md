@@ -228,7 +228,7 @@ Deploy MIQ from template using customized settings
 Before you attempt an external DB deployment please ensure the following conditions are satisfied :
 
 * Your OpenShift cluster can access the external PostgreSQL server
-* The external PostgreSQL server must run at a minimum version 9.4 (9.5 if replication is desired), see [SCL PG instructions for CentOS/RHEL based hosts](https://www.softwarecollections.org/en/scls/rhscl/rh-postgresql95/)
+* The external PostgreSQL server must run at a minimum version 9.5, see [SCL PG instructions for CentOS/RHEL based hosts](https://www.softwarecollections.org/en/scls/rhscl/rh-postgresql95/)
 * MIQ user, password and role have been created on the external PostgreSQL server
 * The intended MIQ database is created and ownership has been assigned to the MIQ user
 
