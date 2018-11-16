@@ -378,16 +378,13 @@ objects:
       Include "conf.d/external-auth-load-modules-conf"
 
       <Location /dashboard/kerberos_authenticate>
-        AuthType                   Kerberos
-        AuthName                   "Kerberos Login"
-        KrbMethodNegotiate         On
-        KrbMethodK5Passwd          Off
-        KrbAuthRealms              ${HTTPD_AUTH_KERBEROS_REALMS}
-        Krb5KeyTab                 /etc/http.keytab
-        KrbServiceName             Any
-        Require                    pam-account httpd-auth
-
         ErrorDocument 401 /proxy_pages/invalid_sso_credentials.js
+        AuthType           GSSAPI
+        AuthName           "GSSAPI Single Sign On Login"
+        GssapiCredStore    keytab:/etc/http.keytab
+        GssapiLocalName    on
+        Require            pam-account httpd-auth
+
       </Location>
 
       Include "conf.d/external-auth-login-form-conf"
@@ -398,13 +395,11 @@ objects:
       Include "conf.d/external-auth-load-modules-conf"
 
       <Location /dashboard/kerberos_authenticate>
-        AuthType                   Kerberos
-        AuthName                   "Kerberos Login"
-        KrbMethodNegotiate         On
-        KrbMethodK5Passwd          Off
-        KrbAuthRealms              ${HTTPD_AUTH_KERBEROS_REALMS}
-        Krb5KeyTab                 /etc/krb5.keytab
-        KrbServiceName             Any
+        AuthType           GSSAPI
+        AuthName           "GSSAPI Single Sign On Login"
+        GssapiCredStore    keytab:/etc/krb5.keytab
+        GssapiLocalName    on
+        Require            pam-account httpd-auth
         Require                    pam-account httpd-auth
 
         ErrorDocument 401 /proxy_pages/invalid_sso_credentials.js
