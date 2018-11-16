@@ -400,7 +400,6 @@ objects:
         GssapiCredStore    keytab:/etc/krb5.keytab
         GssapiLocalName    on
         Require            pam-account httpd-auth
-        Require                    pam-account httpd-auth
 
         ErrorDocument 401 /proxy_pages/invalid_sso_credentials.js
       </Location>
