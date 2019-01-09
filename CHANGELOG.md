@@ -5,26 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
-## Hammer RC-2
-
-### Fixed
-- Move from apache module mod_auth_kerb to mod_auth_gssap [(#314)](https://github.com/ManageIQ/manageiq-pods/pull/314)
-
-## Hammer Beta-1 - Released 2018-10-12
+## Hammer-1
 
 ### Added
 - Use the ruby 2.4 image [(#305)](https://github.com/ManageIQ/manageiq-pods/pull/305)
 - Adding support for OpenID-Connect [(#251)](https://github.com/ManageIQ/manageiq-pods/pull/251)
 - Backport enhancements made to master since Gaprindashvili [(#291)](https://github.com/ManageIQ/manageiq-pods/pull/291)
+- Add a simple script to deploy MIQ on minishift [(#303)](https://github.com/ManageIQ/manageiq-pods/pull/303)
+- Use the new repmgr preload library name [(#300)](https://github.com/ManageIQ/manageiq-pods/pull/300)
+- Remove 15 second sleep from startup time [(#270)](https://github.com/ManageIQ/manageiq-pods/pull/270)
+- Allow insecure session [(#261)](https://github.com/ManageIQ/manageiq-pods/pull/261)
+- Remove the embedded ansible objects from the template [(#256)](https://github.com/ManageIQ/manageiq-pods/pull/256)
 
 ### Fixed
+- Move from apache module mod_auth_kerb to mod_auth_gssap [(#314)](https://github.com/ManageIQ/manageiq-pods/pull/314)
 - Changed template to add miq-log config map [(#301)](https://github.com/ManageIQ/manageiq-pods/pull/301)
 - Add the artemis username and password to the frontend pod [(#292)](https://github.com/ManageIQ/manageiq-pods/pull/292)
+- Stringify booleans kubernetes couldn't parse it [(#263)](https://github.com/ManageIQ/manageiq-pods/pull/263)
 
 ### Removed
 - Remove artemis from the templates [(#294)](https://github.com/ManageIQ/manageiq-pods/pull/294)
 
-## Gaprindashvili-3
+## Gaprindashvili-3 - Released 2018-05-15
 
 ### Added
 - Add rolebindings for the orchestrator to the templates [(#271)](https://github.com/ManageIQ/manageiq-pods/pull/271)
@@ -53,6 +55,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - Increase PG Pod resource requirements [(#188)](https://github.com/ManageIQ/manageiq-pods/pull/188)
 - Increase default httpd recreate strategy timeout [(#187)](https://github.com/ManageIQ/manageiq-pods/pull/187)
 - Allow PG MIQ configuration overrides via configmap [(#185)](https://github.com/ManageIQ/manageiq-pods/pull/185)
+- Ensures httpd error_log and access_log are seen by docker or oc logs commands [(#244)](https://github.com/ManageIQ/manageiq-pods/pull/244)
+- Enhance app-frontend probes [(#239)](https://github.com/ManageIQ/manageiq-pods/pull/239)
 
 ### Fixed
 - Create separate reverse proxying for websocket connections [(#208)](https://github.com/ManageIQ/manageiq-pods/pull/208)
