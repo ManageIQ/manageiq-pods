@@ -2,7 +2,7 @@ FROM manageiq/ruby:2.4
 MAINTAINER ManageIQ https://github.com/ManageIQ/manageiq-appliance-build
 
 ## Set build ARGs
-ARG REF=hammer
+ARG REF=master
 
 ## Set ENV, LANG only needed if building with docker-1.8
 ENV TERM=xterm \
@@ -16,7 +16,7 @@ ENV TERM=xterm \
 ## Atomic/OpenShift Labels
 LABEL name="manageiq" \
       vendor="ManageIQ" \
-      version="Hammer" \
+      version="Master" \
       release=${REF} \
       url="http://manageiq.org/" \
       summary="ManageIQ appliance image" \
@@ -26,8 +26,8 @@ LABEL name="manageiq" \
       io.openshift.tags="ManageIQ,miq,manageiq"
 
 # Fetch MIQ repo for http-parser
-RUN curl -sSLko /etc/yum.repos.d/manageiq-ManageIQ-Hammer-epel-7.repo \
-      https://copr.fedorainfracloud.org/coprs/manageiq/ManageIQ-Hammer/repo/epel-7/manageiq-ManageIQ-Hammer-epel-7.repo
+RUN curl -sSLko /etc/yum.repos.d/manageiq-ManageIQ-Master-epel-7.repo \
+      https://copr.fedorainfracloud.org/coprs/manageiq/ManageIQ-Master/repo/epel-7/manageiq-ManageIQ-Master-epel-7.repo
 
 ## Install EPEL repo, yum necessary packages for the build without docs, clean all caches
 RUN yum -y install centos-release-scl-rh \
