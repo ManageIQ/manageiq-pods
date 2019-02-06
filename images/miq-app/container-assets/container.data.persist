@@ -1,0 +1,3 @@
+# Please list ABSOLUTE path to files or directories to persist across deployments (upgrade/redeployment)
+/var/www/miq/vmdb/GUID
+/var/www/miq/vmdb/log

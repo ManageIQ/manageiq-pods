@@ -1,0 +1,9 @@
+#!/bin/bash
+# Sync application persisted data onto PV
+
+[[ -s /etc/default/evm ]] && source /etc/default/evm
+
+# Source OpenShift scripting env
+[[ -s ${CONTAINER_SCRIPTS_ROOT}/container-deploy-common.sh ]] && source "${CONTAINER_SCRIPTS_ROOT}/container-deploy-common.sh"
+
+sync_pv_data

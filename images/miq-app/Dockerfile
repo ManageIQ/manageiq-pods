@@ -1,38 +1,37 @@
 FROM manageiq/ruby:2.4
-MAINTAINER ManageIQ https://manageiq.org
+MAINTAINER ManageIQ https://github.com/ManageIQ/manageiq-appliance-build
 
-ARG MIQ_REF=master
-ARG SUI_REF=master
-ARG APPLIANCE_REF=master
+## Set build ARGs
+ARG REF=hammer
 
-ARG MIQ_ORG=ManageIQ
-ARG SUI_ORG=ManageIQ
-ARG APPLIANCE_ORG=ManageIQ
-
+## Set ENV, LANG only needed if building with docker-1.8
 ENV TERM=xterm \
     CONTAINER=true \
     APP_ROOT=/var/www/miq/vmdb \
+    APP_ROOT_PERSISTENT=/persistent \
     APPLIANCE_ROOT=/opt/manageiq/manageiq-appliance \
-    SUI_ROOT=/opt/manageiq/manageiq-ui-service \
     CONTAINER_SCRIPTS_ROOT=/opt/manageiq/container-scripts \
     IMAGE_VERSION=${REF}
 
-LABEL name="manageiq-base" \
+## Atomic/OpenShift Labels
+LABEL name="manageiq" \
       vendor="ManageIQ" \
-      version="Master" \
+      version="Hammer" \
       release=${REF} \
-      url="https://manageiq.org/" \
-      summary="ManageIQ base application image" \
+      url="http://manageiq.org/" \
+      summary="ManageIQ appliance image" \
       description="ManageIQ is a management and automation platform for virtual, private, and hybrid cloud infrastructures." \
       io.k8s.display-name="ManageIQ" \
       io.k8s.description="ManageIQ is a management and automation platform for virtual, private, and hybrid cloud infrastructures." \
       io.openshift.tags="ManageIQ,miq,manageiq"
 
 # Fetch MIQ repo for http-parser
-RUN curl -sSLko /etc/yum.repos.d/manageiq-ManageIQ-Master-epel-7.repo \
-      https://copr.fedorainfracloud.org/coprs/manageiq/ManageIQ-Master/repo/epel-7/manageiq-ManageIQ-Master-epel-7.repo
+RUN curl -sSLko /etc/yum.repos.d/manageiq-ManageIQ-Hammer-epel-7.repo \
+      https://copr.fedorainfracloud.org/coprs/manageiq/ManageIQ-Hammer/repo/epel-7/manageiq-ManageIQ-Hammer-epel-7.repo
 
-RUN yum -y install centos-release-scl-rh && \
+## Install EPEL repo, yum necessary packages for the build without docs, clean all caches
+RUN yum -y install centos-release-scl-rh \
+                   https://rpm.nodesource.com/pub_8.x/el/7/x86_64/nodesource-release-el7-1.noarch.rpm && \
     yum -y install --setopt=tsflags=nodocs \
                    chrony                  \
                    cmake                   \
@@ -50,7 +49,6 @@ RUN yum -y install centos-release-scl-rh && \
                    net-tools               \
                    nmap-ncat               \
                    nodejs                  \
-                   npm                     \
                    openldap-clients        \
                    openscap-scanner        \
                    patch                   \
@@ -63,28 +61,36 @@ RUN yum -y install centos-release-scl-rh && \
                    &&                      \
     yum clean all
 
+## GIT clone manageiq-appliance
 RUN mkdir -p ${APPLIANCE_ROOT} && \
-    curl -L https://github.com/${APPLIANCE_ORG}/manageiq-appliance/tarball/${APPLIANCE_REF} | tar vxz -C ${APPLIANCE_ROOT} --strip 1
+    curl -L https://github.com/ManageIQ/manageiq-appliance/tarball/${REF} | tar vxz -C ${APPLIANCE_ROOT} --strip 1
 
-RUN mkdir -p ${SUI_ROOT} && \
-    curl -L https://github.com/${SUI_ORG}/manageiq-ui-service/tarball/${SUI_REF} | tar vxz -C ${SUI_ROOT} --strip 1
-
+## GIT clone manageiq
 RUN mkdir -p ${APP_ROOT} && \
     ln -vs ${APP_ROOT} /opt/manageiq/manageiq && \
-    curl -L https://github.com/${MIQ_ORG}/manageiq/tarball/${MIQ_REF} | tar vxz -C ${APP_ROOT} --strip 1
+    curl -L https://github.com/ManageIQ/manageiq/tarball/${REF} | tar vxz -C ${APP_ROOT} --strip 1
 
+## Setup environment
 RUN ${APPLIANCE_ROOT}/setup && \
-    rm -f /etc/httpd/conf.d/* && \
+    mkdir -p ${APP_ROOT}/log/apache && \
+    mkdir ${APP_ROOT_PERSISTENT} && \
     mkdir -p ${CONTAINER_SCRIPTS_ROOT} && \
     cp ${APP_ROOT}/config/cable.yml.sample ${APP_ROOT}/config/cable.yml
 
-# build and install gems
+## Change workdir to application root, build/install gems
 WORKDIR ${APP_ROOT}
 RUN source /etc/default/evm && \
     export RAILS_USE_MEMORY_STORE="true" && \
-    gem install bundler --conservative && \
+    npm install bower yarn -g && \
+    gem install bundler -v ">=1.16.2" && \
     bundle install && \
-    rake tmp:clear evm:compile_sti_loader log:clear && \
+    rake update:ui && \
+    bin/rails log:clear tmp:clear && \
+    rake evm:compile_assets && \
+    rake evm:compile_sti_loader && \
+    # Cleanup install artifacts
+    npm cache clean --force && \
+    bower cache clean && \
     find ${RUBY_GEMS_ROOT}/gems/ -name .git | xargs rm -rvf && \
     find ${RUBY_GEMS_ROOT}/gems/ | grep "\.s\?o$" | xargs rm -rvf && \
     rm -rvf ${RUBY_GEMS_ROOT}/gems/rugged-*/vendor/libgit2/build && \
@@ -93,9 +99,16 @@ RUN source /etc/default/evm && \
     rm -rvf ${APP_ROOT}/tmp/cache/assets && \
     rm -vf ${APP_ROOT}/log/*.log
 
-ADD container-assets/container-scripts ${CONTAINER_SCRIPTS_ROOT}
+## Copy OpenShift and appliance-initialize scripts
+COPY container-assets/entrypoint /usr/bin
+COPY container-assets/container.data.persist /
+COPY container-assets/appliance-initialize.sh /bin
+COPY container-assets/check-dependent-services.sh /bin
+COPY container-assets/miq_logs.conf /etc/logrotate.d
+ADD  container-assets/container-scripts ${CONTAINER_SCRIPTS_ROOT}
 
-RUN wget -O /usr/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 && \
-    chmod +x /usr/bin/dumb-init
+RUN wget -O /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 && \
+    chmod +x /usr/local/bin/dumb-init
 
-ENTRYPOINT ["/usr/bin/dumb-init", "--single-child", "--"]
+ENTRYPOINT ["/usr/local/bin/dumb-init", "--single-child", "--"]
+CMD ["entrypoint"]
