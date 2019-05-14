@@ -68,7 +68,8 @@ RUN mkdir -p ${APPLIANCE_ROOT} && \
 ## GIT clone manageiq
 RUN mkdir -p ${APP_ROOT} && \
     ln -vs ${APP_ROOT} /opt/manageiq/manageiq && \
-    curl -L https://github.com/ManageIQ/manageiq/tarball/${REF} | tar vxz -C ${APP_ROOT} --strip 1
+    curl -L https://github.com/ManageIQ/manageiq/tarball/${REF} | tar vxz -C ${APP_ROOT} --strip 1 && \
+    echo "`date +'%Y%m%d%H%M%S'`_`git ls-remote https://github.com/ManageIQ/manageiq.git ${REF} | cut -c 1-7`" > ${APP_ROOT}/BUILD
 
 ## Setup environment
 RUN ${APPLIANCE_ROOT}/setup && \
