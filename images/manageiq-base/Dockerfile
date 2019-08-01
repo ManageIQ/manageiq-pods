@@ -28,10 +28,6 @@ LABEL name="manageiq-base" \
       io.k8s.description="ManageIQ is a management and automation platform for virtual, private, and hybrid cloud infrastructures." \
       io.openshift.tags="ManageIQ,miq,manageiq"
 
-# Fetch MIQ repo for http-parser
-RUN curl -sSLko /etc/yum.repos.d/manageiq-ManageIQ-Master-epel-7.repo \
-      https://copr.fedorainfracloud.org/coprs/manageiq/ManageIQ-Master/repo/epel-7/manageiq-ManageIQ-Master-epel-7.repo
-
 RUN yum -y install https://rpm.nodesource.com/pub_10.x/el/7/x86_64/nodesource-release-el7-1.noarch.rpm && \
     yum -y install --setopt=tsflags=nodocs \
                    chrony           \
