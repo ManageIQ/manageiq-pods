@@ -357,7 +357,7 @@ objects:
     auth-configuration.conf: |
       # External Authentication Configuration File
       #
-      # For details on usage please see https://github.com/ManageIQ/manageiq-pods/blob/master/README.md#configuring-external-authentication
+      # For details on usage please see https://github.com/ManageIQ/manageiq-pods/blob/ivanchuk/README.md#configuring-external-authentication
 - apiVersion: v1
   kind: Service
   metadata:
@@ -972,11 +972,11 @@ parameters:
 - name: FRONTEND_APPLICATION_IMG_TAG
   displayName: Front end Application Image Tag
   description: This is the ManageIQ Frontend Application image tag/version requested to deploy.
-  value: frontend-latest
+  value: frontend-latest-ivanchuk
 - name: BACKEND_APPLICATION_IMG_TAG
   displayName: Back end Application Image Tag
   description: This is the ManageIQ Backend Application image tag/version requested to deploy.
-  value: backend-latest
+  value: backend-latest-ivanchuk
 - name: APPLICATION_DOMAIN
   displayName: Application Hostname
   description: The exposed hostname that will route to the application service, if left blank a value will be defaulted.
