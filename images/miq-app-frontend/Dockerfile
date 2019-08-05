@@ -37,12 +37,12 @@ RUN rm -f /etc/httpd/conf.d/ssl.conf && \
 WORKDIR ${APP_ROOT}
 RUN source /etc/default/evm && \
     export RAILS_USE_MEMORY_STORE="true" && \
+    npm install yarn -g && \
     rake update:ui && \
     bin/rails log:clear tmp:clear && \
     rake evm:compile_assets && \
     # Cleanup install artifacts
     npm cache clean --force && \
-    bower cache clean && \
     rm -rvf ${APP_ROOT}/tmp/cache/assets && \
     rm -vf ${APP_ROOT}/log/*.log
 
