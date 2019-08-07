@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
-## Unreleased as of Sprint 117 - 2019-08-05
+## Ivanchuk-Beta2
 
 ### Added
 - Update ruby node and postgresql [(#326)](https://github.com/ManageIQ/manageiq-pods/pull/326)
