@@ -1,4 +1,5 @@
-FROM manageiq/manageiq-pods:backend-latest-hammer
+ARG IMAGE_REF=latest-hammer
+FROM manageiq/manageiq-pods:backend-${IMAGE_REF}
 MAINTAINER ManageIQ https://github.com/ManageIQ/manageiq-appliance-build
 
 ## Set build ARGs
