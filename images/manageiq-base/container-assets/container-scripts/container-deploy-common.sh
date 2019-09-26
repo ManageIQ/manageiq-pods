@@ -70,11 +70,11 @@ function run_hook() {
 
 # Set EVM admin pwd
 function set_admin_pwd() {
- echo "== Setting admin password =="
+  echo "== Setting admin password =="
 
-   cd ${APP_ROOT} && bin/rails runner "EvmDatabase.seed_primordial; user = User.find_by_userid('admin').update_attributes!(:password => ENV['APPLICATION_ADMIN_PASSWORD'])"
+  cd ${APP_ROOT} && bin/rails runner "EvmDatabase.seed_primordial; user = User.lookup_by_userid('admin').update_attributes!(:password => ENV['APPLICATION_ADMIN_PASSWORD'])"
 
-   [ "$?" -ne "0" ] && echo "ERROR: Failed to set admin password, please check appliance logs"
+  [ "$?" -ne "0" ] && echo "ERROR: Failed to set admin password, please check appliance logs"
 }
 
 # Execute DB migration, log output and check errors
