@@ -50,7 +50,7 @@ objects:
   stringData:
     pg-password: "${DATABASE_PASSWORD}"
     admin-password: "${APPLICATION_ADMIN_PASSWORD}"
-    database-url: postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_SERVICE_NAME}/${DATABASE_NAME}?encoding=utf8&pool=5&wait_timeout=5
+    database-url: postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}?encoding=utf8&pool=5&wait_timeout=5
     v2-key: "${V2_KEY}"
 - apiVersion: v1
   kind: Service
@@ -305,28 +305,6 @@ objects:
               cpu: "${MEMCACHED_CPU_REQ}"
             limits:
               memory: "${MEMCACHED_MEM_LIMIT}"
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: "${DATABASE_SERVICE_NAME}"
-    annotations:
-      description: Remote database service
-  spec:
-    ports:
-    - name: postgresql
-      port: 5432
-      targetPort: "${{DATABASE_PORT}}"
-    selector: {}
-- apiVersion: v1
-  kind: Endpoints
-  metadata:
-    name: "${DATABASE_SERVICE_NAME}"
-  subsets:
-  - addresses:
-    - ip: "${DATABASE_IP}"
-    ports:
-    - port: "${{DATABASE_PORT}}"
-      name: postgresql
 - apiVersion: v1
   kind: ConfigMap
   metadata:
@@ -678,11 +656,6 @@ parameters:
   description: Encryption Key for ManageIQ Passwords
   from: "[a-zA-Z0-9]{43}"
   generate: expression
-- name: DATABASE_SERVICE_NAME
-  displayName: PostgreSQL Service Name
-  required: true
-  description: The name of the OpenShift Service exposed for the PostgreSQL container.
-  value: postgresql
 - name: DATABASE_USER
   displayName: PostgreSQL User
   required: true
@@ -694,10 +667,10 @@ parameters:
   description: Password for the PostgreSQL user.
   from: "[a-zA-Z0-9]{8}"
   generate: expression
-- name: DATABASE_IP
-  displayName: PostgreSQL Server IP
+- name: DATABASE_HOST
+  displayName: PostgreSQL Server IP or host name
   required: true
-  description: PostgreSQL external server IP used to configure service.
+  description: PostgreSQL external server IP or host name used to configure the connection string.
   value: ''
 - name: DATABASE_PORT
   displayName: PostgreSQL Server Port
