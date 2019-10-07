@@ -663,7 +663,7 @@ parameters:
 - name: DATABASE_USER
   displayName: PostgreSQL User
   required: true
-  description: PostgreSQL user that will access the database.
+  description: PostgreSQL user that will access the database (Special characters need to be URL encoded).
   value: root
 - name: DATABASE_PASSWORD
   displayName: PostgreSQL Password

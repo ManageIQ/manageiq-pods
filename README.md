@@ -247,9 +247,11 @@ Import the MIQ external db template
 
 `$ oc create -f templates/miq-template-ext-db.yaml`
 
-Launch deployment, database server IP is required, rest of settings must match your remote PG server side.
+Launch deployment, database server IP or host name is required, rest of settings must match your remote PG server side.
 
-`$ oc new-app --template=manageiq-ext-db -p DATABASE_IP=<server_ip> -p DATABASE_USER=<user> -p DATABASE_PASSWORD=<password> -p DATABASE_NAME=<database_name>`
+Note: URL encode the user name, if your user name includes special characters like `@`.
+
+`$ oc new-app --template=manageiq-ext-db -p DATABASE_HOST=<server> -p DATABASE_USER=<user> -p DATABASE_PASSWORD=<password> -p DATABASE_NAME=<database_name>`
 
 ## Verifying the setup was successful
 
