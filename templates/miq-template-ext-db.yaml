@@ -147,6 +147,7 @@ objects:
               cpu: "${APPLICATION_CPU_REQ}"
             limits:
               memory: "${APPLICATION_MEM_LIMIT}"
+              cpu: "${APPLICATION_CPU_LIMIT}"
           lifecycle:
             preStop:
               exec:
@@ -224,6 +225,7 @@ objects:
               cpu: "${APPLICATION_CPU_REQ}"
             limits:
               memory: "${APPLICATION_MEM_LIMIT}"
+              cpu: "${APPLICATION_CPU_LIMIT}"
           lifecycle:
             preStop:
               exec:
@@ -305,6 +307,7 @@ objects:
               cpu: "${MEMCACHED_CPU_REQ}"
             limits:
               memory: "${MEMCACHED_MEM_LIMIT}"
+              cpu: "${MEMCACHED_CPU_LIMIT}"
 - apiVersion: v1
   kind: ConfigMap
   metadata:
@@ -606,6 +609,7 @@ objects:
               cpu: "${HTTPD_CPU_REQ}"
             limits:
               memory: "${HTTPD_MEM_LIMIT}"
+              cpu: "${HTTPD_CPU_LIMIT}"
           env:
           - name: APPLICATION_DOMAIN
             value: "${APPLICATION_DOMAIN}"
@@ -692,6 +696,50 @@ parameters:
   required: true
   description: Admin password that will be set on the application.
   value: smartvm
+- name: APPLICATION_DOMAIN
+  displayName: Application Hostname
+  description: The exposed hostname that will route to the application service, if left blank a value will be defaulted.
+  value: ''
+- name: APPLICATION_REPLICA_COUNT
+  displayName: Application Replica Count
+  description: This is the number of Application replicas requested to deploy.
+  value: '1'
+- name: APPLICATION_VOLUME_CAPACITY
+  displayName: Application Volume Capacity
+  required: true
+  description: Volume space available for application data.
+  value: 5Gi
+- name: APPLICATION_MEM_REQ
+  displayName: Application Min RAM Requested
+  required: true
+  description: Minimum amount of memory the Application container will need.
+  value: 6144Mi
+- name: APPLICATION_CPU_REQ
+  displayName: Application Min CPU Requested
+  required: true
+  description: Minimum amount of CPU time the Application container will need (expressed in millicores).
+  value: 1000m
+- name: APPLICATION_MEM_LIMIT
+  displayName: Application Max RAM Limit
+  required: true
+  description: Maximum amount of memory the Application container can consume.
+  value: 16384Mi
+- name: APPLICATION_CPU_LIMIT
+  displayName: Application Max CPU Limit
+  description: Maximum amount of CPU cores the Application container can consume.
+  value: 6000m
+- name: APPLICATION_IMG_NAME
+  displayName: Application Image Name
+  description: This is the Application image name requested to deploy.
+  value: docker.io/manageiq/manageiq-pods
+- name: FRONTEND_APPLICATION_IMG_TAG
+  displayName: Front end Application Image Tag
+  description: This is the ManageIQ Frontend Application image tag/version requested to deploy.
+  value: frontend-latest
+- name: BACKEND_APPLICATION_IMG_TAG
+  displayName: Back end Application Image Tag
+  description: This is the ManageIQ Backend Application image tag/version requested to deploy.
+  value: backend-latest
 - name: MEMCACHED_SERVICE_NAME
   required: true
   displayName: Memcached Service Name
@@ -709,36 +757,26 @@ parameters:
   displayName: Memcached Slab Page Size
   description: Memcached size of each slab page.
   value: 1m
-- name: APPLICATION_CPU_REQ
-  displayName: Application Min CPU Requested
-  required: true
-  description: Minimum amount of CPU time the Application container will need (expressed in millicores).
-  value: 1000m
 - name: MEMCACHED_CPU_REQ
   displayName: Memcached Min CPU Requested
   required: true
   description: Minimum amount of CPU time the Memcached container will need (expressed in millicores).
   value: 200m
-- name: APPLICATION_MEM_REQ
-  displayName: Application Min RAM Requested
-  required: true
-  description: Minimum amount of memory the Application container will need.
-  value: 6144Mi
 - name: MEMCACHED_MEM_REQ
   displayName: Memcached Min RAM Requested
   required: true
   description: Minimum amount of memory the Memcached container will need.
   value: 64Mi
-- name: APPLICATION_MEM_LIMIT
-  displayName: Application Max RAM Limit
-  required: true
-  description: Maximum amount of memory the Application container can consume.
-  value: 16384Mi
 - name: MEMCACHED_MEM_LIMIT
   displayName: Memcached Max RAM Limit
   required: true
   description: Maximum amount of memory the Memcached container can consume.
   value: 256Mi
+- name: MEMCACHED_CPU_LIMIT
+  displayName: Memcached Max CPU Limit
+  description: Maximum amount of CPU cores the Memcached container can consume.
+  required: true
+  value: 800m
 - name: MEMCACHED_IMG_NAME
   displayName: Memcached Image Name
   description: This is the Memcached image name requested to deploy.
@@ -747,31 +785,6 @@ parameters:
   displayName: Memcached Image Tag
   description: This is the Memcached image tag/version requested to deploy.
   value: latest
-- name: APPLICATION_IMG_NAME
-  displayName: Application Image Name
-  description: This is the Application image name requested to deploy.
-  value: docker.io/manageiq/manageiq-pods
-- name: FRONTEND_APPLICATION_IMG_TAG
-  displayName: Front end Application Image Tag
-  description: This is the ManageIQ Frontend Application image tag/version requested to deploy.
-  value: frontend-latest
-- name: BACKEND_APPLICATION_IMG_TAG
-  displayName: Back end Application Image Tag
-  description: This is the ManageIQ Backend Application image tag/version requested to deploy.
-  value: backend-latest
-- name: APPLICATION_DOMAIN
-  displayName: Application Hostname
-  description: The exposed hostname that will route to the application service, if left blank a value will be defaulted.
-  value: ''
-- name: APPLICATION_REPLICA_COUNT
-  displayName: Application Replica Count
-  description: This is the number of Application replicas requested to deploy.
-  value: '1'
-- name: APPLICATION_VOLUME_CAPACITY
-  displayName: Application Volume Capacity
-  required: true
-  description: Volume space available for application data.
-  value: 5Gi
 - name: HTTPD_SERVICE_NAME
   required: true
   displayName: Apache httpd Service Name
@@ -782,14 +795,6 @@ parameters:
   displayName: Apache httpd DBus API Service Name
   description: The name of httpd dbus api service.
   value: httpd-dbus-api
-- name: HTTPD_IMG_NAME
-  displayName: Apache httpd Image Name
-  description: This is the httpd image name requested to deploy.
-  value: docker.io/manageiq/httpd
-- name: HTTPD_IMG_TAG
-  displayName: Apache httpd Image Tag
-  description: This is the httpd image tag/version requested to deploy.
-  value: latest
 - name: HTTPD_CONFIG_DIR
   displayName: Apache httpd Configuration Directory
   description: Directory used to store the Apache configuration files.
@@ -813,3 +818,16 @@ parameters:
   required: true
   description: Maximum amount of memory the httpd container can consume.
   value: 8192Mi
+- name: HTTPD_CPU_LIMIT
+  displayName: Apache httpd Max CPU limit
+  required: true
+  description: Maximum amount of CPU cores the httpd container can consume.
+  value: 2000m
+- name: HTTPD_IMG_NAME
+  displayName: Apache httpd Image Name
+  description: This is the httpd image name requested to deploy.
+  value: docker.io/manageiq/httpd
+- name: HTTPD_IMG_TAG
+  displayName: Apache httpd Image Tag
+  description: This is the httpd image tag/version requested to deploy.
+  value: latest
