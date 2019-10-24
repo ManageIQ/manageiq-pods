@@ -10,6 +10,9 @@ MIQ_ORG=${MIQ_ORG:-ManageIQ}
 SUI_ORG=${SUI_ORG:-ManageIQ}
 APPLIANCE_ORG=${APPLIANCE_ORG:-ManageIQ}
 
+NPM_REGISTRY_OVERRIDE=${NPM_REGISTRY_OVERRIDE:-""}
+NPM_REGISTRY_RESET=${NPM_REGISTRY_RESET:-false}
+
 while getopts "t:d:r:nhp" opt; do
   case $opt in
     d) IMAGE_DIR=$OPTARG ;;
@@ -31,8 +34,6 @@ if [ -z "$REPO" ]; then
   exit 1
 fi
 
-build_images="manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker"
-
 set -e
 
 pushd $IMAGE_DIR
@@ -51,11 +52,21 @@ pushd $IMAGE_DIR
   echo "Building manageiq-base: $cmd"
   $cmd manageiq-base
 
+  build_images="manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker"
   for image in $build_images; do
     cmd="docker build -t $REPO/$image:$TAG --build-arg FROM_REPO=$REPO --build-arg FROM_TAG=$TAG $image"
     echo "Building $image: $cmd"
     $cmd
   done
+
+  cmd="docker build --tag $REPO/manageiq-ui-worker:$TAG \
+                    --build-arg FROM_REPO=$REPO \
+                    --build-arg FROM_TAG=$TAG \
+                    --build-arg NPM_REGISTRY_OVERRIDE=${NPM_REGISTRY_OVERRIDE} \
+                    --build-arg NPM_REGISTRY_RESET=${NPM_REGISTRY_RESET} \
+                    manageiq-ui-worker"
+  echo "Building manageiq-ui-worker: $cmd"
+  $cmd
 popd
 
 if [ -n "$PUSH" ]; then
