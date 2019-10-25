@@ -32,35 +32,34 @@ LABEL name="manageiq-base" \
 RUN curl -sSLko /etc/yum.repos.d/manageiq-ManageIQ-Master-epel-7.repo \
       https://copr.fedorainfracloud.org/coprs/manageiq/ManageIQ-Master/repo/epel-7/manageiq-ManageIQ-Master-epel-7.repo
 
-RUN yum -y install centos-release-scl-rh && \
+RUN yum -y install https://rpm.nodesource.com/pub_10.x/el/7/x86_64/nodesource-release-el7-1.noarch.rpm && \
     yum -y install --setopt=tsflags=nodocs \
-                   chrony                  \
-                   cmake                   \
-                   cronie                  \
-                   file                    \
-                   gcc-c++                 \
-                   git                     \
-                   http-parser             \
-                   initscripts             \
-                   libcurl-devel           \
-                   libtool                 \
-                   libxslt-devel           \
-                   logrotate               \
-                   lvm2                    \
-                   net-tools               \
-                   nmap-ncat               \
-                   nodejs                  \
-                   npm                     \
-                   openldap-clients        \
-                   openscap-scanner        \
-                   patch                   \
-                   psmisc                  \
-                   rh-postgresql95-postgresql-devel  \
-                   rh-postgresql95-postgresql-libs \
-                   sqlite-devel            \
-                   sysvinit-tools          \
-                   which                   \
-                   &&                      \
+                   chrony           \
+                   cmake            \
+                   cronie           \
+                   file             \
+                   gcc-c++          \
+                   git              \
+                   http-parser      \
+                   initscripts      \
+                   libcurl-devel    \
+                   libpq            \
+                   libtool          \
+                   libxslt-devel    \
+                   logrotate        \
+                   lvm2             \
+                   net-tools        \
+                   nmap-ncat        \
+                   nodejs           \
+                   openldap-clients \
+                   openscap-scanner \
+                   patch            \
+                   psmisc           \
+                   postgresql-devel \
+                   sqlite-devel     \
+                   sysvinit-tools   \
+                   which            \
+                   &&               \
     yum clean all
 
 RUN mkdir -p ${APPLIANCE_ROOT} && \
