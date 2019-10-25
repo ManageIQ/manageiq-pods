@@ -82,7 +82,7 @@ RUN ${APPLIANCE_ROOT}/setup && \
 WORKDIR ${APP_ROOT}
 RUN source /etc/default/evm && \
     export RAILS_USE_MEMORY_STORE="true" && \
-    gem install bundler --conservative && \
+    gem install bundler -v ">=1.16.2" && \
     bundle install && \
     rake tmp:clear evm:compile_sti_loader log:clear && \
     find ${RUBY_GEMS_ROOT}/gems/ -name .git | xargs rm -rvf && \
