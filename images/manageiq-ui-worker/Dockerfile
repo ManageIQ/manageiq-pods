@@ -12,19 +12,21 @@ RUN yum -y install httpd --setopt=tsflags=nodocs && \
 # Compile assets for ManageIQ UI
 RUN source /etc/default/evm && \
     export RAILS_USE_MEMORY_STORE="true" && \
-    npm install bower yarn -g && \
+    npm install -g yarn && \
     rake update:ui && \
-    rake evm:compile_assets && \
+    RAILS_ENV=production rake evm:compile_assets && \
+    rake evm:compile_sti_loader && \
     bin/rails log:clear tmp:clear && \
-    npm cache clean && \
-    bower cache clean && \
+    npm cache clean --force && \
     rm -rvf ${APP_ROOT}/tmp/cache/assets && \
     rm -vf ${APP_ROOT}/log/*.log
 
 # Build service UI
 RUN source /etc/default/evm && \
     cd ${SUI_ROOT} && \
-    yarn install --production && \
+    yarn cache clean && \
+    yarn install && \
+    yarn run available-languages && \
     yarn run build && \
     yarn cache clean
 
