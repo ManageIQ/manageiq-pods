@@ -73,6 +73,7 @@ RUN mkdir -p ${APP_ROOT} && \
     curl -L https://github.com/${MIQ_ORG}/manageiq/tarball/${MIQ_REF} | tar vxz -C ${APP_ROOT} --strip 1
 
 RUN ${APPLIANCE_ROOT}/setup && \
+    mkdir -p ${APP_ROOT}/log/apache && \
     rm -f /etc/httpd/conf.d/* && \
     mkdir -p ${CONTAINER_SCRIPTS_ROOT} && \
     cp ${APP_ROOT}/config/cable.yml.sample ${APP_ROOT}/config/cable.yml
