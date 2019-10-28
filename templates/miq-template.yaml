@@ -88,7 +88,6 @@ objects:
       # RESOURCE USAGE (except WAL)
       #------------------------------------------------------------------------------
 
-      shared_preload_libraries = 'pglogical,repmgr'
       max_worker_processes = 10
 
       #------------------------------------------------------------------------------
@@ -670,7 +669,7 @@ objects:
             name: "${DATABASE_SERVICE_NAME}-configs"
         containers:
         - name: postgresql
-          image: "${POSTGRESQL_IMG_NAME}:${POSTGRESQL_IMG_TAG}"
+          image: docker.io/centos/postgresql-10-centos7:latest
           ports:
           - containerPort: 5432
           readinessProbe:
@@ -949,14 +948,6 @@ parameters:
   required: true
   description: Maximum amount of memory the Memcached container can consume.
   value: 256Mi
-- name: POSTGRESQL_IMG_NAME
-  displayName: PostgreSQL Image Name
-  description: This is the PostgreSQL image name requested to deploy.
-  value: docker.io/manageiq/postgresql
-- name: POSTGRESQL_IMG_TAG
-  displayName: PostgreSQL Image Tag
-  description: This is the PostgreSQL image tag/version requested to deploy.
-  value: latest
 - name: MEMCACHED_IMG_NAME
   displayName: Memcached Image Name
   description: This is the Memcached image name requested to deploy.
