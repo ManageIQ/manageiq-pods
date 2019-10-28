@@ -18,7 +18,6 @@ objects:
     admin-password: "${APPLICATION_ADMIN_PASSWORD}"
     database-url: postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_SERVICE_NAME}/${DATABASE_NAME}?encoding=utf8&pool=5&wait_timeout=5
     v2-key: "${V2_KEY}"
-    artemis-password: "${ARTEMIS_PASSWORD}"
 - apiVersion: v1
   kind: ConfigMap
   metadata:
@@ -239,16 +238,6 @@ objects:
       #
       # For details on usage please see https://github.com/ManageIQ/manageiq-pods/blob/master/README.md#configuring-external-authentication
 - apiVersion: v1
-  kind: PersistentVolumeClaim
-  metadata:
-    name: artemis
-  spec:
-    accessModes:
-    - ReadWriteOnce
-    resources:
-      requests:
-        storage: 1Gi
-- apiVersion: v1
   kind: ServiceAccount
   metadata:
     name: miq-orchestrator
@@ -334,19 +323,6 @@ objects:
     selector:
       name: httpd
 - apiVersion: v1
-  kind: Service
-  metadata:
-    name: artemis
-    annotations:
-      description: Exposes the the artemis broker service
-  spec:
-    ports:
-    - name: stomp
-      port: 61613
-      targetPort: 61613
-    selector:
-      name: artemis
-- apiVersion: v1
   kind: Endpoints
   metadata:
     name: "${DATABASE_SERVICE_NAME}"
@@ -408,13 +384,6 @@ objects:
               secretKeyRef:
                 name: "${NAME}-secrets"
                 key: v2-key
-          - name: ARTEMIS_USER
-            value: "${ARTEMIS_USER}"
-          - name: ARTEMIS_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: "${NAME}-secrets"
-                key: artemis-password
           resources:
             requests:
               memory: "${APPLICATION_MEM_REQ}"
@@ -573,51 +542,6 @@ objects:
         serviceAccount: miq-httpd
         serviceAccountName: miq-httpd
 - apiVersion: v1
-  kind: DeploymentConfig
-  metadata:
-    name: artemis
-    annotations:
-      description: Defines how to deploy the artemis server
-  spec:
-    strategy:
-      type: Recreate
-    triggers:
-    - type: ConfigChange
-    replicas: 1
-    selector:
-      name: artemis
-    template:
-      metadata:
-        name: artemis
-        labels:
-          name: artemis
-      spec:
-        volumes:
-        - name: artemis-volume
-          persistentVolumeClaim:
-            claimName: artemis
-        containers:
-        - name: artemis
-          image: "${ARTEMIS_IMG_NAME}:${ARTEMIS_IMG_TAG}"
-          ports:
-          - containerPort: 61613
-          readinessProbe:
-            timeoutSeconds: 1
-            initialDelaySeconds: 10
-            tcpSocket:
-              port: 61613
-          volumeMounts:
-          - name: artemis-volume
-            mountPath: "/var/lib/artemis"
-          env:
-          - name: ARTEMIS_USER
-            value: "${ARTEMIS_USER}"
-          - name: ARTEMIS_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: "${NAME}-secrets"
-                key: artemis-password
-- apiVersion: v1
   kind: Route
   metadata:
     name: "${HTTPD_SERVICE_NAME}"
@@ -690,17 +614,6 @@ parameters:
   required: true
   description: Admin password that will be set on the application.
   value: smartvm
-- name: ARTEMIS_USER
-  displayName: Artemis broker username
-  required: true
-  description: Username for the artemis broker server.
-  value: artemis
-- name: ARTEMIS_PASSWORD
-  displayName: Artemis broker password
-  required: true
-  description: Password for the artemis broker server.
-  from: "[a-zA-Z0-9]{8}"
-  generate: expression
 - name: MEMCACHED_SERVICE_NAME
   required: true
   displayName: Memcached Service Name
@@ -763,14 +676,6 @@ parameters:
 - name: ORCHESTRATOR_APPLICATION_IMG_TAG
   displayName: Orchestrator Image Tag
   description: This is the ManageIQ orchestrator image tag/version requested to deploy.
-  value: latest
-- name: ARTEMIS_IMG_NAME
-  displayName: Artemis Image Name
-  description: This is the Artemis image name requested to deploy.
-  value: docker.io/carbonin/artemis
-- name: ARTEMIS_IMG_TAG
-  displayName: Artemis Image Tag
-  description: This is the Artemis image tag/version requested to deploy.
   value: latest
 - name: APPLICATION_DOMAIN
   displayName: Application Hostname
