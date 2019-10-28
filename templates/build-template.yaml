@@ -1,0 +1,196 @@
+apiVersion: v1
+kind: Template
+labels:
+  template: manageiq-build-configs
+metadata:
+  name: manageiq-build-configs
+objects:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    name: manageiq-base
+  spec:
+    source:
+      type: Git
+      git:
+        uri: ${SOURCE_REPOSITORY_URL}
+        ref: ${SOURCE_REPOSITORY_REF}
+      contextDir: images/manageiq-base
+    strategy:
+      type: Docker
+      dockerStrategy:
+        buildArgs:
+          - name: MIQ_ORG
+            value: ${MIQ_ORG}
+          - name: MIQ_REF
+            value: ${MIQ_REF}
+          - name: APPLIANCE_ORG
+            value: ${APPLIANCE_ORG}
+          - name: APPLIANCE_REF
+            value: ${APPLIANCE_REF}
+        forcePull: true
+        noCache: true
+    output:
+      to:
+        kind: ImageStreamTag
+        name: manageiq-base:latest
+        namespace: ${IMAGE_NAMESPACE}
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    name: manageiq-base
+  spec:
+    tags:
+    - name: latest
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    name: manageiq-orchestrator
+  spec:
+    source:
+      type: Git
+      git:
+        uri: ${SOURCE_REPOSITORY_URL}
+        ref: ${SOURCE_REPOSITORY_REF}
+      contextDir: images/manageiq-orchestrator
+    strategy:
+      type: Docker
+      dockerStrategy:
+        forcePull: true
+        from:
+          kind: ImageStreamTag
+          name: manageiq-base:latest
+          namespace: ${IMAGE_NAMESPACE}
+    output:
+      to:
+        kind: ImageStreamTag
+        name: manageiq-orchestrator:latest
+        namespace: ${IMAGE_NAMESPACE}
+    triggers:
+      - type: imageChange
+        imageChange: {}
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    name: manageiq-orchestrator
+  spec:
+    tags:
+    - name: latest
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    name: manageiq-base-worker
+  spec:
+    source:
+      type: Git
+      git:
+        uri: ${SOURCE_REPOSITORY_URL}
+        ref: ${SOURCE_REPOSITORY_REF}
+      contextDir: images/manageiq-base-worker
+    strategy:
+      type: Docker
+      dockerStrategy:
+        forcePull: true
+        from:
+          kind: ImageStreamTag
+          name: manageiq-base:latest
+          namespace: ${IMAGE_NAMESPACE}
+    output:
+      to:
+        kind: ImageStreamTag
+        name: manageiq-base-worker:latest
+        namespace: ${IMAGE_NAMESPACE}
+    triggers:
+      - type: imageChange
+        imageChange: {}
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    name: manageiq-base-worker
+  spec:
+    tags:
+    - name: latest
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    name: manageiq-webserver-worker
+  spec:
+    source:
+      type: Git
+      git:
+        uri: ${SOURCE_REPOSITORY_URL}
+        ref: ${SOURCE_REPOSITORY_REF}
+      contextDir: images/manageiq-webserver-worker
+    strategy:
+      type: Docker
+      dockerStrategy:
+        forcePull: true
+        from:
+          kind: ImageStreamTag
+          name: manageiq-base-worker:latest
+          namespace: ${IMAGE_NAMESPACE}
+    output:
+      to:
+        kind: ImageStreamTag
+        name: manageiq-webserver-worker:latest
+        namespace: ${IMAGE_NAMESPACE}
+    triggers:
+      - type: imageChange
+        imageChange: {}
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    name: manageiq-webserver-worker
+  spec:
+    tags:
+    - name: latest
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    name: manageiq-ui-worker
+  spec:
+    source:
+      type: Git
+      git:
+        uri: ${SOURCE_REPOSITORY_URL}
+        ref: ${SOURCE_REPOSITORY_REF}
+      contextDir: images/manageiq-ui-worker
+    strategy:
+      type: Docker
+      dockerStrategy:
+        forcePull: true
+        from:
+          kind: ImageStreamTag
+          name: manageiq-webserver-worker:latest
+          namespace: ${IMAGE_NAMESPACE}
+    output:
+      to:
+        kind: ImageStreamTag
+        name: manageiq-ui-worker:latest
+        namespace: ${IMAGE_NAMESPACE}
+    triggers:
+      - type: imageChange
+        imageChange: {}
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    name: manageiq-ui-worker
+  spec:
+    tags:
+    - name: latest
+parameters:
+- name: IMAGE_NAMESPACE
+  value: manageiq
+- name: SOURCE_REPOSITORY_URL
+  value: https://github.com/ManageIQ/manageiq-pods
+- name: SOURCE_REPOSITORY_REF
+  value: rearch
+- name: MIQ_REF
+  value: master
+- name: MIQ_ORG
+  value: ManageIQ
+- name: APPLIANCE_REF
+  value: master
+- name: APPLIANCE_ORG
+  value: ManageIQ
+
