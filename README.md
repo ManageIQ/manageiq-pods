@@ -69,25 +69,6 @@ $ oc describe scc anyuid | grep Users
 Users:					system:serviceaccount:<your-namespace>:miq-anyuid,system:serviceaccount:<your-namespace>:miq-orchestrator
 ```
 
-### Add the miq-privileged service account to the privileged security context
-
-_**Note:**_ The current Embedded Ansible image requires a privileged pod.
-
-The miq-privileged service account for your namespace must be aded to the privileged SCC so that the embedded-ansible pod can function correctly.
-
-_**As admin**_
-
-```bash
-$ oc adm policy add-scc-to-user privileged system:serviceaccount:<your-namespace>:miq-privileged
-```
-
-Verify that the miq-privileged service account is now included in the privileged scc
-
-```
-$ oc describe scc privileged | grep Users
-Users:					system:serviceaccount:<your-namespace>:miq-privileged
-```
-
 ### Set up the miq-httpd service account
 
 #### If running without OCI systemd hooks (Minishift)

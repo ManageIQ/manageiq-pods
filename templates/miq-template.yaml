@@ -331,10 +331,6 @@ objects:
 - apiVersion: v1
   kind: ServiceAccount
   metadata:
-    name: miq-privileged
-- apiVersion: v1
-  kind: ServiceAccount
-  metadata:
     name: miq-httpd
 - apiVersion: v1
   kind: RoleBinding
