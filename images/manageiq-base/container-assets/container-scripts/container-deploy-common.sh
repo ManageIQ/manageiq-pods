@@ -38,7 +38,8 @@ function init_appliance() {
   echo "== Initializing Appliance =="
 
   pushd ${APP_ROOT}
-    bundle exec rake evm:db:region -- --region ${DATABASE_REGION}
+    REGION=${DATABASE_REGION} bundle exec rake db:migrate
+    REGION=${DATABASE_REGION} bundle exec rails runner "MiqDatabase.seed; MiqRegion.seed"
   popd
 
   [ "$?" -ne "0" ] && echo "ERROR: Failed to initialize appliance, please check journal or appliance_console logs at ${APP_ROOT}/log/appliance_console.log" && exit 1
