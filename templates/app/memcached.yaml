@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: manageiq-memcached
+objects:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: memcached
+    labels:
+      app: manageiq
+  spec:
+    ports:
+    - name: memcached
+      port: 11211
+    selector:
+      name: memcached
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: memcached
+    labels:
+      app: manageiq
+  spec:
+    triggers:
+    - type: ConfigChange
+    replicas: 1
+    selector:
+      name: memcached
+    template:
+      metadata:
+        name: memcached
+        labels:
+          name: memcached
+      spec:
+        containers:
+        - name: memcached
+          image: ${MEMCACHED_IMAGE_NAME}:${MEMCACHED_IMAGE_TAG}
+          ports:
+          - containerPort: 11211
+          readinessProbe:
+            tcpSocket:
+              port: 11211
+          livenessProbe:
+            tcpSocket:
+              port: 11211
+          env:
+          - name: MEMCACHED_MAX_MEMORY
+            value: ${MEMCACHED_MAX_MEMORY}
+          - name: MEMCACHED_MAX_CONNECTIONS
+            value: ${MEMCACHED_MAX_CONNECTIONS}
+          - name: MEMCACHED_SLAB_PAGE_SIZE
+            value: ${MEMCACHED_SLAB_PAGE_SIZE}
+          resources:
+            requests:
+              memory: ${MEMCACHED_MEM_REQ}
+              cpu: ${MEMCACHED_CPU_REQ}
+            limits:
+              memory: ${MEMCACHED_MEM_LIMIT}
+parameters:
+- name: MEMCACHED_MAX_MEMORY
+  value: '64'
+- name: MEMCACHED_MAX_CONNECTIONS
+  value: '1024'
+- name: MEMCACHED_SLAB_PAGE_SIZE
+  value: 1m
+- name: MEMCACHED_CPU_REQ
+  value: 200m
+- name: MEMCACHED_MEM_REQ
+  value: 64Mi
+- name: MEMCACHED_MEM_LIMIT
+  value: 256Mi
+- name: MEMCACHED_IMAGE_NAME
+  value: manageiq/memcached
+- name: MEMCACHED_IMAGE_TAG
+  value: latest

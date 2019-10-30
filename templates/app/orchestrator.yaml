@@ -1,0 +1,90 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: manageiq-orchestrator
+objects:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: manageiq-orchestrator
+    labels:
+      app: manageiq
+  spec:
+    strategy:
+      type: Recreate
+    replicas: 1
+    selector:
+      name: manageiq-orchestrator
+    template:
+      metadata:
+        name: manageiq-orchestrator
+        labels:
+          name: manageiq-orchestrator
+      spec:
+        containers:
+        - name: manageiq-orchestrator
+          image: ${ORCHESTRATOR_IMAGE_NAMESPACE}/${ORCHESTRATOR_IMAGE_NAME}:${ORCHESTRATOR_IMAGE_TAG}
+          livenessProbe:
+            exec:
+              command:
+              - pidof
+              - MIQ Server
+            initialDelaySeconds: 480
+            timeoutSeconds: 3
+          env:
+          - name: ALLOW_INSECURE_SESSION
+            value: 'true'
+          - name: APPLICATION_ADMIN_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: manageiq-secrets
+                key: admin-password
+          - name: GUID
+            value: ${GUID}
+          - name: DATABASE_REGION
+            value: ${DATABASE_REGION}
+          - name: DATABASE_URL
+            valueFrom:
+              secretKeyRef:
+                name: manageiq-secrets
+                key: database-url
+          - name: MY_POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: V2_KEY
+            valueFrom:
+              secretKeyRef:
+                name: manageiq-secrets
+                key: v2-key
+          - name: CONTAINER_IMAGE_NAMESPACE
+            value: ${ORCHESTRATOR_IMAGE_NAMESPACE}
+          resources:
+            requests:
+              memory: ${ORCHESTRATOR_MEM_REQ}
+              cpu: ${ORCHESTRATOR_CPU_REQ}
+            limits:
+              memory: ${ORCHESTRATOR_MEM_LIMIT}
+        serviceAccount: miq-orchestrator
+        serviceAccountName: miq-orchestrator
+        terminationGracePeriodSeconds: 90
+      triggers:
+      - type: ConfigChange
+parameters:
+- name: DATABASE_REGION
+  value: '0'
+- name: GUID
+  from: "[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}"
+  generate: expression
+- name: ORCHESTRATOR_IMAGE_NAMESPACE
+  value: manageiq
+- name: ORCHESTRATOR_IMAGE_NAME
+  value: manageiq-orchestrator
+- name: ORCHESTRATOR_IMAGE_TAG
+  value: latest
+- name: ORCHESTRATOR_CPU_REQ
+  value: 1000m
+- name: ORCHESTRATOR_MEM_REQ
+  value: 6144Mi
+- name: ORCHESTRATOR_MEM_LIMIT
+  value: 16384Mi

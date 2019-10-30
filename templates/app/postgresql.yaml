@@ -1,0 +1,193 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: manageiq-postgresql
+objects:
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: postgresql-configs
+    labels:
+      app: manageiq
+  data:
+    01_miq_overrides.conf: |
+      #------------------------------------------------------------------------------
+      # CONNECTIONS AND AUTHENTICATION
+      #------------------------------------------------------------------------------
+
+      tcp_keepalives_count = 9
+      tcp_keepalives_idle = 3
+      tcp_keepalives_interval = 75
+
+      #------------------------------------------------------------------------------
+      # RESOURCE USAGE (except WAL)
+      #------------------------------------------------------------------------------
+
+      max_worker_processes = 10
+
+      #------------------------------------------------------------------------------
+      # WRITE AHEAD LOG
+      #------------------------------------------------------------------------------
+
+      wal_level = 'logical'
+      wal_log_hints = on
+      wal_buffers = 16MB
+      checkpoint_completion_target = 0.9
+
+      #------------------------------------------------------------------------------
+      # REPLICATION
+      #------------------------------------------------------------------------------
+
+      max_wal_senders = 10
+      wal_sender_timeout = 0
+      max_replication_slots = 10
+      hot_standby = on
+
+      #------------------------------------------------------------------------------
+      # ERROR REPORTING AND LOGGING
+      #------------------------------------------------------------------------------
+
+      log_filename = 'postgresql.log'
+      log_rotation_age = 0
+      log_min_duration_statement = 5000
+      log_connections = on
+      log_disconnections = on
+      log_line_prefix = '%t:%r:%c:%u@%d:[%p]:'
+      log_lock_waits = on
+
+      #------------------------------------------------------------------------------
+      # AUTOVACUUM PARAMETERS
+      #------------------------------------------------------------------------------
+
+      log_autovacuum_min_duration = 0
+      autovacuum_naptime = 5min
+      autovacuum_vacuum_threshold = 500
+      autovacuum_analyze_threshold = 500
+      autovacuum_vacuum_scale_factor = 0.05
+
+      #------------------------------------------------------------------------------
+      # LOCK MANAGEMENT
+      #------------------------------------------------------------------------------
+
+      deadlock_timeout = 5s
+
+      #------------------------------------------------------------------------------
+      # VERSION/PLATFORM COMPATIBILITY
+      #------------------------------------------------------------------------------
+
+      escape_string_warning = off
+      standard_conforming_strings = off
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: postgresql
+    labels:
+      app: manageiq
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${DATABASE_VOLUME_CAPACITY}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: postgresql
+    labels:
+      app: manageiq
+  spec:
+    ports:
+    - name: postgresql
+      port: 5432
+    selector:
+      name: postgresql
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: postgresql
+    labels:
+      app: manageiq
+  spec:
+    strategy:
+      type: Recreate
+    triggers:
+    - type: ConfigChange
+    replicas: 1
+    selector:
+      name: postgresql
+    template:
+      metadata:
+        name: postgresql
+        labels:
+          name: postgresql
+      spec:
+        volumes:
+        - name: miq-pgdb-volume
+          persistentVolumeClaim:
+            claimName: postgresql
+        - name: miq-pg-configs
+          configMap:
+            name: postgresql-configs
+        containers:
+        - name: postgresql
+          image: ${POSTGRESQL_IMG_NAME}:${POSTGRESQL_IMG_TAG}
+          ports:
+          - containerPort: 5432
+          readinessProbe:
+            initialDelaySeconds: 15
+            exec:
+              command:
+              - "/bin/sh"
+              - "-i"
+              - "-c"
+              - psql -h 127.0.0.1 -U ${POSTGRESQL_USER} -q -d ${POSTGRESQL_DATABASE} -c 'SELECT 1'
+          livenessProbe:
+            initialDelaySeconds: 60
+            tcpSocket:
+              port: 5432
+          volumeMounts:
+          - name: miq-pgdb-volume
+            mountPath: /var/lib/pgsql/data
+          - name: miq-pg-configs
+            mountPath: /opt/app-root/src/postgresql-cfg/
+          env:
+          - name: POSTGRESQL_USER
+            value: ${DATABASE_USER}
+          - name: POSTGRESQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: manageiq-secrets
+                key: pg-password
+          - name: POSTGRESQL_DATABASE
+            value: ${DATABASE_NAME}
+          - name: POSTGRESQL_MAX_CONNECTIONS
+            value: ${POSTGRESQL_MAX_CONNECTIONS}
+          - name: POSTGRESQL_SHARED_BUFFERS
+            value: ${POSTGRESQL_SHARED_BUFFERS}
+          resources:
+            requests:
+              memory: ${POSTGRESQL_MEM_REQ}
+              cpu: ${POSTGRESQL_CPU_REQ}
+            limits:
+              memory: ${POSTGRESQL_MEM_LIMIT}
+parameters:
+- name: DATABASE_USER
+  value: root
+- name: DATABASE_NAME
+  value: vmdb_production
+- name: POSTGRESQL_MAX_CONNECTIONS
+  value: '1000'
+- name: POSTGRESQL_SHARED_BUFFERS
+  value: 1GB
+- name: POSTGRESQL_CPU_REQ
+  value: 500m
+- name: POSTGRESQL_MEM_REQ
+  value: 4Gi
+- name: POSTGRESQL_MEM_LIMIT
+  value: 8Gi
+- name: POSTGRESQL_IMG_NAME
+  value: docker.io/manageiq/postgresql
+- name: POSTGRESQL_IMG_TAG
+  value: latest
+- name: DATABASE_VOLUME_CAPACITY
+  value: 15Gi
