@@ -88,7 +88,7 @@ objects:
     - ReadWriteOnce
     resources:
       requests:
-        storage: ${DATABASE_VOLUME_CAPACITY}
+        storage: "${DATABASE_VOLUME_CAPACITY}"
 - apiVersion: v1
   kind: Service
   metadata:
@@ -130,7 +130,7 @@ objects:
             name: postgresql-configs
         containers:
         - name: postgresql
-          image: ${POSTGRESQL_IMG_NAME}:${POSTGRESQL_IMG_TAG}
+          image: "${POSTGRESQL_IMG_NAME}:${POSTGRESQL_IMG_TAG}"
           ports:
           - containerPort: 5432
           readinessProbe:
@@ -147,29 +147,29 @@ objects:
               port: 5432
           volumeMounts:
           - name: miq-pgdb-volume
-            mountPath: /var/lib/pgsql/data
+            mountPath: "/var/lib/pgsql/data"
           - name: miq-pg-configs
-            mountPath: /opt/app-root/src/postgresql-cfg/
+            mountPath: "/opt/app-root/src/postgresql-cfg/"
           env:
           - name: POSTGRESQL_USER
-            value: ${DATABASE_USER}
+            value: "${DATABASE_USER}"
           - name: POSTGRESQL_PASSWORD
             valueFrom:
               secretKeyRef:
                 name: manageiq-secrets
                 key: pg-password
           - name: POSTGRESQL_DATABASE
-            value: ${DATABASE_NAME}
+            value: "${DATABASE_NAME}"
           - name: POSTGRESQL_MAX_CONNECTIONS
-            value: ${POSTGRESQL_MAX_CONNECTIONS}
+            value: "${POSTGRESQL_MAX_CONNECTIONS}"
           - name: POSTGRESQL_SHARED_BUFFERS
-            value: ${POSTGRESQL_SHARED_BUFFERS}
+            value: "${POSTGRESQL_SHARED_BUFFERS}"
           resources:
             requests:
-              memory: ${POSTGRESQL_MEM_REQ}
-              cpu: ${POSTGRESQL_CPU_REQ}
+              memory: "${POSTGRESQL_MEM_REQ}"
+              cpu: "${POSTGRESQL_CPU_REQ}"
             limits:
-              memory: ${POSTGRESQL_MEM_LIMIT}
+              memory: "${POSTGRESQL_MEM_LIMIT}"
 parameters:
 - name: DATABASE_USER
   value: root
