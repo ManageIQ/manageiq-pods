@@ -14,7 +14,6 @@ ENV TERM=xterm \
     APP_ROOT=/var/www/miq/vmdb \
     APPLIANCE_ROOT=/opt/manageiq/manageiq-appliance \
     SUI_ROOT=/opt/manageiq/manageiq-ui-service \
-    CONTAINER_SCRIPTS_ROOT=/opt/manageiq/container-scripts \
     IMAGE_VERSION=${REF}
 
 LABEL name="manageiq-base" \
@@ -72,7 +71,6 @@ RUN mkdir -p ${APP_ROOT} && \
 RUN ${APPLIANCE_ROOT}/setup && \
     mkdir -p ${APP_ROOT}/log/apache && \
     rm -f /etc/httpd/conf.d/* && \
-    mkdir -p ${CONTAINER_SCRIPTS_ROOT} && \
     cp ${APP_ROOT}/config/cable.yml.sample ${APP_ROOT}/config/cable.yml
 
 # build and install gems
@@ -89,8 +87,6 @@ RUN source /etc/default/evm && \
     rm -rvf /root/.bundle/cache && \
     rm -rvf ${APP_ROOT}/tmp/cache/assets && \
     rm -vf ${APP_ROOT}/log/*.log
-
-ADD container-assets/container-scripts ${CONTAINER_SCRIPTS_ROOT}
 
 RUN wget -O /usr/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 && \
     chmod +x /usr/bin/dumb-init
