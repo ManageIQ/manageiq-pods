@@ -24,7 +24,6 @@ RUN source /etc/default/evm && \
 # Build service UI
 RUN source /etc/default/evm && \
     cd ${SUI_ROOT} && \
-    yarn cache clean && \
     yarn install && \
     yarn run available-languages && \
     yarn run build && \
