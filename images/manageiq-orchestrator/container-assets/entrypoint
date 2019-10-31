@@ -1,6 +1,6 @@
 #!/bin/bash
 
-[[ -s /etc/default/evm ]] && source /etc/default/evm
+[[ -s ${APP_ROOT}/container_env ]] && source ${APP_ROOT}/container_env
 
 function check_svc_status() {
   local SVC_NAME=$1 SVC_PORT=$2
@@ -17,7 +17,7 @@ function check_svc_status() {
 }
 
 check_svc_status ${MEMCACHED_SERVICE_HOST} ${MEMCACHED_SERVICE_PORT}
-check_svc_status ${POSTGRESQL_SERVICE_HOST} ${POSTGRESQL_SERVICE_PORT}
+check_svc_status ${DATABASE_HOSTNAME} ${DATABASE_PORT}
 
 echo "== Writing encryption key =="
 cat > /var/www/miq/vmdb/certs/v2_key << KEY

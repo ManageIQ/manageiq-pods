@@ -1,6 +1,6 @@
 #!/bin/bash
 
-[[ -s /etc/default/evm ]] && source /etc/default/evm
+[[ -s ${APP_ROOT}/container_env ]] && source ${APP_ROOT}/container_env
 
 echo "== Writing encryption key =="
 cat > /var/www/miq/vmdb/certs/v2_key << KEY

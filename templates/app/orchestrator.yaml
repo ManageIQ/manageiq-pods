@@ -43,11 +43,28 @@ objects:
             value: "${GUID}"
           - name: DATABASE_REGION
             value: "${DATABASE_REGION}"
-          - name: DATABASE_URL
+          - name: DATABASE_HOSTNAME
             valueFrom:
               secretKeyRef:
-                name: manageiq-secrets
-                key: database-url
+                name: postgresql-secrets
+                key: hostname
+          - name: DATABASE_NAME
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: dbname
+          - name: DATABASE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: password
+          - name: DATABASE_PORT
+            value: "${DATABASE_PORT}"
+          - name: DATABASE_USER
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: username
           - name: MY_POD_NAMESPACE
             valueFrom:
               fieldRef:
@@ -71,6 +88,8 @@ objects:
       triggers:
       - type: ConfigChange
 parameters:
+- name: DATABASE_PORT
+  value: "5432"
 - name: DATABASE_REGION
   value: '0'
 - name: GUID
