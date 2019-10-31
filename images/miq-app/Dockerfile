@@ -77,22 +77,14 @@ RUN ${APPLIANCE_ROOT}/setup && \
 WORKDIR ${APP_ROOT}
 RUN source /etc/default/evm && \
     export RAILS_USE_MEMORY_STORE="true" && \
-    npm install bower yarn -g && \
     gem install bundler -v ">=1.16.2" && \
     bundle install && \
-    rake update:ui && \
     bin/rails log:clear tmp:clear && \
-    rake evm:compile_assets && \
-    rake evm:compile_sti_loader && \
-    # Cleanup install artifacts
-    npm cache clean --force && \
-    bower cache clean && \
     find ${RUBY_GEMS_ROOT}/gems/ -name .git | xargs rm -rvf && \
     find ${RUBY_GEMS_ROOT}/gems/ | grep "\.o$" | xargs rm -rvf && \
     rm -rvf ${RUBY_GEMS_ROOT}/gems/rugged-*/vendor/libgit2/build && \
     rm -rvf ${RUBY_GEMS_ROOT}/cache/* && \
     rm -rvf /root/.bundle/cache && \
-    rm -rvf ${APP_ROOT}/tmp/cache/assets && \
     rm -vf ${APP_ROOT}/log/*.log
 
 ## Copy OpenShift and appliance-initialize scripts
