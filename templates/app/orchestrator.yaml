@@ -23,7 +23,7 @@ objects:
       spec:
         containers:
         - name: manageiq-orchestrator
-          image: ${ORCHESTRATOR_IMAGE_NAMESPACE}/${ORCHESTRATOR_IMAGE_NAME}:${ORCHESTRATOR_IMAGE_TAG}
+          image: "${ORCHESTRATOR_IMAGE_NAMESPACE}/${ORCHESTRATOR_IMAGE_NAME}:${ORCHESTRATOR_IMAGE_TAG}"
           livenessProbe:
             exec:
               command:
@@ -40,9 +40,9 @@ objects:
                 name: manageiq-secrets
                 key: admin-password
           - name: GUID
-            value: ${GUID}
+            value: "${GUID}"
           - name: DATABASE_REGION
-            value: ${DATABASE_REGION}
+            value: "${DATABASE_REGION}"
           - name: DATABASE_URL
             valueFrom:
               secretKeyRef:
@@ -58,13 +58,13 @@ objects:
                 name: manageiq-secrets
                 key: v2-key
           - name: CONTAINER_IMAGE_NAMESPACE
-            value: ${ORCHESTRATOR_IMAGE_NAMESPACE}
+            value: "${ORCHESTRATOR_IMAGE_NAMESPACE}"
           resources:
             requests:
-              memory: ${ORCHESTRATOR_MEM_REQ}
-              cpu: ${ORCHESTRATOR_CPU_REQ}
+              memory: "${ORCHESTRATOR_MEM_REQ}"
+              cpu: "${ORCHESTRATOR_CPU_REQ}"
             limits:
-              memory: ${ORCHESTRATOR_MEM_LIMIT}
+              memory: "${ORCHESTRATOR_MEM_LIMIT}"
         serviceAccount: miq-orchestrator
         serviceAccountName: miq-orchestrator
         terminationGracePeriodSeconds: 90

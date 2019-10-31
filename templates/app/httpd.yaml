@@ -277,7 +277,7 @@ objects:
             name: httpd-auth-configs
         containers:
         - name: httpd
-          image: ${HTTPD_IMAGE_NAME}:${HTTPD_IMAGE_TAG}
+          image: "${HTTPD_IMAGE_NAME}:${HTTPD_IMAGE_TAG}"
           ports:
           - containerPort: 80
             protocol: TCP
@@ -297,18 +297,18 @@ objects:
             timeoutSeconds: 3
           volumeMounts:
           - name: httpd-config
-            mountPath: /etc/httpd/conf.d
+            mountPath: "/etc/httpd/conf.d"
           - name: httpd-auth-config
-            mountPath: /etc/httpd/auth-conf.d
+            mountPath: "/etc/httpd/auth-conf.d"
           resources:
             requests:
-              memory: ${HTTPD_MEM_REQ}
-              cpu: ${HTTPD_CPU_REQ}
+              memory: "${HTTPD_MEM_REQ}"
+              cpu: "${HTTPD_CPU_REQ}"
             limits:
-              memory: ${HTTPD_MEM_LIMIT}
+              memory: "${HTTPD_MEM_LIMIT}"
           env:
           - name: APPLICATION_DOMAIN
-            value: ${APPLICATION_DOMAIN}
+            value: "${APPLICATION_DOMAIN}"
           - name: HTTPD_AUTH_TYPE
             valueFrom:
               configMapKeyRef:
@@ -351,7 +351,7 @@ objects:
     labels:
       app: manageiq
   spec:
-    host: ${APPLICATION_DOMAIN}
+    host: "${APPLICATION_DOMAIN}"
     port:
       targetPort: http
     tls:
