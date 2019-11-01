@@ -89,7 +89,7 @@ objects:
       - type: ConfigChange
 parameters:
 - name: DATABASE_PORT
-  value: "5432"
+  value: '5432'
 - name: DATABASE_REGION
   value: '0'
 - name: GUID
