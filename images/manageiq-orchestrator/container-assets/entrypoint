@@ -28,7 +28,7 @@ KEY
 
 echo "${GUID}" > ${APP_ROOT}/GUID
 
-set -e
+echo "== Checking deployment status =="
 
 cd ${APP_ROOT}
 bin/rake evm:deployment_status
@@ -37,6 +37,7 @@ case $? in
     echo "== Starting New Deployment =="
 
     pushd ${APP_ROOT}
+      set -e
       REGION=${DATABASE_REGION} bin/rake db:migrate
       REGION=${DATABASE_REGION} bin/rails runner "MiqDatabase.seed; MiqRegion.seed"
 
