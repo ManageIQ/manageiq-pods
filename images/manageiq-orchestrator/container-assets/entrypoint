@@ -23,7 +23,7 @@ echo "== Writing encryption key =="
 cat > /var/www/miq/vmdb/certs/v2_key << KEY
 ---
 :algorithm: aes-256-cbc
-:key: ${V2_KEY}
+:key: ${ENCRYPTION_KEY}
 KEY
 
 echo "${GUID}" > ${APP_ROOT}/GUID
