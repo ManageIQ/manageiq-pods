@@ -1,0 +1,63 @@
+# admin user initial password
+APPLICATION_ADMIN_PASSWORD=smartvm
+
+# Domain name for the external route
+# Used for external authentication configuration
+APPLICATION_DOMAIN=
+
+# Database connection information
+# Containerized database pod will be deployed if hostname is not provided
+# Password will be generated ([a-zA-Z0-9]{8}) if not provided
+#DATABASE_HOSTNAME=postgresql
+DATABASE_NAME=vmdb_production
+DATABASE_PORT=5432
+DATABASE_USER=root
+#DATABASE_PASSWORD=
+
+# Application region number
+DATABASE_REGION=0
+
+# Containerized database volume size
+DATABASE_VOLUME_CAPACITY=15Gi
+
+# Application encryption key
+# Will be generated ([a-zA-Z0-9]{43}) if not provided
+#ENCRYPTION_KEY=
+
+# Application server GUID
+# Will be generated ([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}) if not provided
+#GUID=
+
+# httpd pod deployment information
+HTTPD_CPU_REQ=500m
+HTTPD_IMAGE_NAME=manageiq/httpd
+HTTPD_IMAGE_TAG=latest
+HTTPD_MEM_LIMIT=8192Mi
+HTTPD_MEM_REQ=512Mi
+
+# memcached pod deployment information
+MEMCACHED_CPU_REQ=200m
+MEMCACHED_IMAGE_NAME=manageiq/memcached
+MEMCACHED_IMAGE_TAG=latest
+MEMCACHED_MAX_CONNECTIONS=1024
+MEMCACHED_MAX_MEMORY=64
+MEMCACHED_MEM_LIMIT=256Mi
+MEMCACHED_MEM_REQ=64Mi
+MEMCACHED_SLAB_PAGE_SIZE=1m
+
+# orchestrator pod deployment information
+ORCHESTRATOR_CPU_REQ=1000m
+ORCHESTRATOR_IMAGE_NAME=manageiq-orchestrator
+ORCHESTRATOR_IMAGE_NAMESPACE=manageiq
+ORCHESTRATOR_IMAGE_TAG=latest
+ORCHESTRATOR_MEM_LIMIT=16384Mi
+ORCHESTRATOR_MEM_REQ=6144Mi
+
+# database pod deployment information
+POSTGRESQL_CPU_REQ=500m
+POSTGRESQL_IMG_NAME=docker.io/manageiq/postgresql
+POSTGRESQL_IMG_TAG=latest
+POSTGRESQL_MAX_CONNECTIONS=1000
+POSTGRESQL_MEM_LIMIT=8Gi
+POSTGRESQL_MEM_REQ=4Gi
+POSTGRESQL_SHARED_BUFFERS=1GB
