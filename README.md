@@ -5,7 +5,7 @@
 
 ## Purpose
 
-This example gives a base template to deploy a multi-pod ManageIQ appliance with the DB stored in a persistent volume on OpenShift. It provides a step-by-step setup including cluster administrative tasks as well as basic user information and commands. The ultimate goal of the project is to be able to decompose the ManageIQ appliance into several containers running on a pod or a series of pods.
+This example gives a base template to deploy a multi-pod ManageIQ appliance with the DB stored in a persistent volume on OpenShift. It provides a step-by-step setup including cluster administrative tasks as well as basic user information and commands. The ultimate goal of the project is to be able to decompose the ManageIQ appliance into several containers.
 
 ### Prerequisites:
 
@@ -43,12 +43,8 @@ _**Note:**_ This section assumes you have a basic user.
    Next, create the project as follows:
 
 ```bash
-$ oc new-project <project_name> \
---description="<description>" \
---display-name="<display_name>"
+$ oc new-project <project_name>
 ```
-
-   _At a minimum, only `<project_name>` is required._
 
 ### Add the miq-anyuid and miq-orchestrator service accounts to the anyuid security context
 
@@ -177,49 +173,29 @@ It is strongly suggested that you validate NFS share connectivity from an OpenSh
 
 ## Deploy MIQ
 
-Create the MIQ template for deployment and verify it is now available in your project
-
-If you wish to add a SSL certificate now, you can edit the application template and provide that now.  Check the Edge Termination section of [Secured Routes](https://docs.openshift.org/latest/architecture/core_concepts/routes.html#secured-routes) for more information on that.
+If you wish to add a SSL certificate now, you can edit the httpd template and provide that now.  Check the Edge Termination section of [Secured Routes](https://docs.okd.io/latest/architecture/networking/routes.html#secured-routes) for more information.
 This can be easily changed later in the Openshift UI by navigating to *Your Project* -> Applications -> Routes -> httpd -> Actions -> Edit.
+
+Application parameters can be specified in a parameters file. An example file can be found [in the project root](https://github.com/ManageIQ/manageiq-pods/blob/master/parameters)
+The existing parameters file contains all the default values for template parameters. You can create a new file containing any customizations.
 
 _**As basic user**_
 
 ```bash
-$ oc create -f templates/miq-template.yaml
-template "manageiq" created
-$ oc get templates
-NAME       DESCRIPTION                                  PARAMETERS     OBJECTS
-manageiq   ManageIQ appliance with persistent storage   44 (1 blank)   18
+$ ./bin/deploy <parameters_file>
 ```
-
-The supplied template provides customizable deployment parameters, use _oc process_ to see available parameters and descriptions
-
-`$ oc process --parameters -n <your-project> manageiq`
-
-Deploy MIQ from template using default settings
-
-`$ oc new-app --template=manageiq`
-
-Deploy MIQ from template using customized settings
-
-`$ oc new-app --template=manageiq -p DATABASE_VOLUME_CAPACITY=2Gi,POSTGRESQL_MEM_LIMIT=4Gi`
 
 ## Deploy MIQ using an external database
 
-Before you attempt an external DB deployment please ensure the following conditions are satisfied :
+Before you attempt an external DB deployment please ensure the following conditions are satisfied:
 
 * Your OpenShift cluster can access the external PostgreSQL server
-* The external PostgreSQL server must run at a minimum version 9.5, see [SCL PG instructions for CentOS/RHEL based hosts](https://www.softwarecollections.org/en/scls/rhscl/rh-postgresql95/)
+* The external PostgreSQL server must run version 10
 * MIQ user, password and role have been created on the external PostgreSQL server
 * The intended MIQ database is created and ownership has been assigned to the MIQ user
 
-Import the MIQ external db template
-
-`$ oc create -f templates/miq-template-ext-db.yaml`
-
-Launch deployment, database server IP is required, rest of settings must match your remote PG server side.
-
-`$ oc new-app --template=manageiq-ext-db -p DATABASE_IP=<server_ip> -p DATABASE_USER=<user> -p DATABASE_PASSWORD=<password> -p DATABASE_NAME=<database_name>`
+To use an external database, ensure that the `DATABASE_HOSTNAME` parameter is provided in your parameters file.
+`DATABASE_NAME`, `DATABASE_PORT`, `DATABASE_USER`, and `DATABASE_PASSWORD` should also be checked and set if necessary.
 
 ## Verifying the setup was successful
 
@@ -232,7 +208,7 @@ Describe all pods and search for Security Policy
 ```bash
 $ oc describe pods | grep -B2 "Security Policy"
 Name:			httpd-1-1tmjp
-Security Policy:	miq-sysadmin
+Security Policy:	anyuid
 --
 Name:			manageiq-orchestrator-1-zs60q
 Security Policy:	anyuid
@@ -322,8 +298,7 @@ Examine output and point your web browser to the reported URL/HOST.
 
 ### Logging In
 
-Per the ManageIQ project [basic configuration](http://manageiq.org/docs/get-started/basic-configuration) documentation, you can now login to the MIQ web interface
-using the default name/password: `admin`/`smartvm`.
+Per the ManageIQ project [basic configuration](http://manageiq.org/docs/get-started/basic-configuration) documentation, you can now login to the MIQ web interface using the default username (`admin`) and either the default password (`smartvm`) of the password configured using the `APPLICATION_ADMIN_PASSWORD` parameter.
 
 ## Backup and restore of the MIQ database
 
@@ -476,75 +451,19 @@ Events:
 
 Liveness and Readiness probe failures indicate the pod is taking longer than expected to come alive/online, check pod logs.
 
-It might also be useful to transfer all logs from a pod to a directory on the host for further examination, we can use _oc rsync_ for this task.
-
-```bash
-$ oc rsync <pod-name>:/var/www/miq/vmdb/log ./pod-logs/
-receiving incremental file list
-log/
-log/.gitkeep
-log/api.log
-log/audit.log
-log/automation.log
-log/aws.log
-log/azure.log
-log/container_monitoring.log
-log/datawarehouse.log
-log/evm.log
-log/fog.log
-log/gem_list.txt
-log/kubernetes.log
-log/last_settings.txt
-log/last_startup.txt
-log/lenovo.log
-log/package_list_rpm.txt
-log/policy.log
-log/production.log
-log/rhevm.log
-log/scvmm.log
-log/vcloud.log
-log/vim.log
-log/websocket.log
-
-sent 452 bytes  received 1,247,768 bytes  832,146.67 bytes/sec
-total size is 1,246,124  speedup is 1.00
-```
-
 ## Building Images on OpenShift
-It is possible to build the images from this repository (or any of other) using OpenShift:
+It is possible to build the images used for this project in OpenShift.
+
+A template is provided which creates build configs and image streams for all of the required images.
+By default the buildconfigs are set up to pull the master branch of both this repository and the ManageIQ main repository.
+
+To deploy builds into the project `test` for a feature branch called `my_feature` which exists in your fork of manageiq and manageiq-pods you would deploy the template like this:
 
 ```bash
-$ oc -n <your-namespace> new-build --context-dir=images/<image-directory> https://github.com/ManageIQ/manageiq-pods#master
+$ oc process -f templates/helpers/build-template.yaml -p IMAGE_NAMESPACE=test -p SOURCE_REPOSITORY_URL=https://github.com/<your_fork_name>/manageiq-pods -p SOURCE_REPOSITORY_REF=my_feature -p MIQ_ORG=<your_fork_name> -p MIQ_REF=my_feature
 ```
 
-In addition it is also suggested to tweak the following `dockerStrategy` parameters to ensure fresh builds every time:
-
-```bash
-$ oc edit bc -n <your-namespace> manageiq-pods
-```
-
-```yaml
-strategy:
-  dockerStrategy:
-    forcePull: true
-    noCache: true
-```
-
-To execute new builds after the first (automatically started) you can execute:
-
-```bash
-$ oc start-build -n <your-namespace> manageiq-pods
-```
-
-To take advantage of the newly built image you should configure the following template parameters:
-
-```bash
-$ oc new-app --template=manageiq \
-  -n <your-namespace> \
-  -p APPLICATION_IMG_NAME=<your-container-registry>:5000/<your-namespace>/manageiq-pods \
-  -p APPLICATION_IMG_TAG=latest \
-  ...
-```
+You would then want to set the ORCHESTRATOR_IMAGE_NAMESPACE parameter to something like `docker-registry.default.svc:5000/test` when deploying the application. This will ensure that the newly built images are deployed.
 
 ## Configuring External Authentication
 Configuring the httpd pod for external authentication is done by updating the `httpd-auth-configs` configuration map to include all necessary config files and certificates. Upon startup, the httpd pod overlays its files with the ones specified in the `auth-configuration.conf` file in the configuration map. This is done by the `initialize-httpd-auth` service that runs before httpd.
