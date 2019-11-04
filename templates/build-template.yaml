@@ -184,7 +184,7 @@ parameters:
 - name: SOURCE_REPOSITORY_URL
   value: https://github.com/ManageIQ/manageiq-pods
 - name: SOURCE_REPOSITORY_REF
-  value: rearch
+  value: master
 - name: MIQ_REF
   value: master
 - name: MIQ_ORG
