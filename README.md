@@ -460,7 +460,7 @@ By default the buildconfigs are set up to pull the master branch of both this re
 To deploy builds into the project `test` for a feature branch called `my_feature` which exists in your fork of manageiq and manageiq-pods you would deploy the template like this:
 
 ```bash
-$ oc process -f templates/helpers/build-template.yaml -p IMAGE_NAMESPACE=test -p SOURCE_REPOSITORY_URL=https://github.com/<your_fork_name>/manageiq-pods -p SOURCE_REPOSITORY_REF=my_feature -p MIQ_ORG=<your_fork_name> -p MIQ_REF=my_feature
+$ oc process -f templates/helpers/build-template.yaml -p IMAGE_NAMESPACE=test -p SOURCE_REPOSITORY_ORG=<your_fork_name> -p SOURCE_REPOSITORY_REF=my_feature -p MIQ_ORG=<your_fork_name> -p MIQ_REF=my_feature
 ```
 
 You would then want to set the ORCHESTRATOR_IMAGE_NAMESPACE parameter to something like `docker-registry.default.svc:5000/test` when deploying the application. This will ensure that the newly built images are deployed.

@@ -13,7 +13,7 @@ objects:
     source:
       type: Git
       git:
-        uri: "${SOURCE_REPOSITORY_URL}"
+        uri: https://github.com/${SOURCE_REPOSITORY_ORG}/manageiq-pods
         ref: "${SOURCE_REPOSITORY_REF}"
       contextDir: images/manageiq-base
     strategy:
@@ -50,7 +50,7 @@ objects:
     source:
       type: Git
       git:
-        uri: "${SOURCE_REPOSITORY_URL}"
+        uri: https://github.com/${SOURCE_REPOSITORY_ORG}/manageiq-pods
         ref: "${SOURCE_REPOSITORY_REF}"
       contextDir: images/manageiq-orchestrator
     strategy:
@@ -84,7 +84,7 @@ objects:
     source:
       type: Git
       git:
-        uri: "${SOURCE_REPOSITORY_URL}"
+        uri: https://github.com/${SOURCE_REPOSITORY_ORG}/manageiq-pods
         ref: "${SOURCE_REPOSITORY_REF}"
       contextDir: images/manageiq-base-worker
     strategy:
@@ -118,7 +118,7 @@ objects:
     source:
       type: Git
       git:
-        uri: "${SOURCE_REPOSITORY_URL}"
+        uri: https://github.com/${SOURCE_REPOSITORY_ORG}/manageiq-pods
         ref: "${SOURCE_REPOSITORY_REF}"
       contextDir: images/manageiq-webserver-worker
     strategy:
@@ -152,7 +152,7 @@ objects:
     source:
       type: Git
       git:
-        uri: "${SOURCE_REPOSITORY_URL}"
+        uri: https://github.com/${SOURCE_REPOSITORY_ORG}/manageiq-pods
         ref: "${SOURCE_REPOSITORY_REF}"
       contextDir: images/manageiq-ui-worker
     strategy:
@@ -183,8 +183,8 @@ parameters:
   value: manageiq
 - name: IMAGE_TAG
   value: latest
-- name: SOURCE_REPOSITORY_URL
-  value: https://github.com/ManageIQ/manageiq-pods
+- name: SOURCE_REPOSITORY_ORG
+  value: ManageIQ
 - name: SOURCE_REPOSITORY_REF
   value: master
 - name: MIQ_REF
