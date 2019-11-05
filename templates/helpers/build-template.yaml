@@ -13,7 +13,7 @@ objects:
     source:
       type: Git
       git:
-        uri: "${SOURCE_REPOSITORY_URL}"
+        uri: https://github.com/${SOURCE_REPOSITORY_ORG}/manageiq-pods
         ref: "${SOURCE_REPOSITORY_REF}"
       contextDir: images/manageiq-base
     strategy:
@@ -33,7 +33,7 @@ objects:
     output:
       to:
         kind: ImageStreamTag
-        name: manageiq-base:latest
+        name: manageiq-base:${IMAGE_TAG}
         namespace: "${IMAGE_NAMESPACE}"
 - apiVersion: v1
   kind: ImageStream
@@ -41,7 +41,7 @@ objects:
     name: manageiq-base
   spec:
     tags:
-    - name: latest
+    - name: "${IMAGE_TAG}"
 - apiVersion: v1
   kind: BuildConfig
   metadata:
@@ -50,7 +50,7 @@ objects:
     source:
       type: Git
       git:
-        uri: "${SOURCE_REPOSITORY_URL}"
+        uri: https://github.com/${SOURCE_REPOSITORY_ORG}/manageiq-pods
         ref: "${SOURCE_REPOSITORY_REF}"
       contextDir: images/manageiq-orchestrator
     strategy:
@@ -59,12 +59,12 @@ objects:
         forcePull: true
         from:
           kind: ImageStreamTag
-          name: manageiq-base:latest
+          name: manageiq-base:${IMAGE_TAG}
           namespace: "${IMAGE_NAMESPACE}"
     output:
       to:
         kind: ImageStreamTag
-        name: manageiq-orchestrator:latest
+        name: manageiq-orchestrator:${IMAGE_TAG}
         namespace: "${IMAGE_NAMESPACE}"
     triggers:
     - type: imageChange
@@ -75,7 +75,7 @@ objects:
     name: manageiq-orchestrator
   spec:
     tags:
-    - name: latest
+    - name: "${IMAGE_TAG}"
 - apiVersion: v1
   kind: BuildConfig
   metadata:
@@ -84,7 +84,7 @@ objects:
     source:
       type: Git
       git:
-        uri: "${SOURCE_REPOSITORY_URL}"
+        uri: https://github.com/${SOURCE_REPOSITORY_ORG}/manageiq-pods
         ref: "${SOURCE_REPOSITORY_REF}"
       contextDir: images/manageiq-base-worker
     strategy:
@@ -93,12 +93,12 @@ objects:
         forcePull: true
         from:
           kind: ImageStreamTag
-          name: manageiq-base:latest
+          name: manageiq-base:${IMAGE_TAG}
           namespace: "${IMAGE_NAMESPACE}"
     output:
       to:
         kind: ImageStreamTag
-        name: manageiq-base-worker:latest
+        name: manageiq-base-worker:${IMAGE_TAG}
         namespace: "${IMAGE_NAMESPACE}"
     triggers:
     - type: imageChange
@@ -109,7 +109,7 @@ objects:
     name: manageiq-base-worker
   spec:
     tags:
-    - name: latest
+    - name: "${IMAGE_TAG}"
 - apiVersion: v1
   kind: BuildConfig
   metadata:
@@ -118,7 +118,7 @@ objects:
     source:
       type: Git
       git:
-        uri: "${SOURCE_REPOSITORY_URL}"
+        uri: https://github.com/${SOURCE_REPOSITORY_ORG}/manageiq-pods
         ref: "${SOURCE_REPOSITORY_REF}"
       contextDir: images/manageiq-webserver-worker
     strategy:
@@ -127,12 +127,12 @@ objects:
         forcePull: true
         from:
           kind: ImageStreamTag
-          name: manageiq-base-worker:latest
+          name: manageiq-base-worker:${IMAGE_TAG}
           namespace: "${IMAGE_NAMESPACE}"
     output:
       to:
         kind: ImageStreamTag
-        name: manageiq-webserver-worker:latest
+        name: manageiq-webserver-worker:${IMAGE_TAG}
         namespace: "${IMAGE_NAMESPACE}"
     triggers:
     - type: imageChange
@@ -143,7 +143,7 @@ objects:
     name: manageiq-webserver-worker
   spec:
     tags:
-    - name: latest
+    - name: "${IMAGE_TAG}"
 - apiVersion: v1
   kind: BuildConfig
   metadata:
@@ -152,7 +152,7 @@ objects:
     source:
       type: Git
       git:
-        uri: "${SOURCE_REPOSITORY_URL}"
+        uri: https://github.com/${SOURCE_REPOSITORY_ORG}/manageiq-pods
         ref: "${SOURCE_REPOSITORY_REF}"
       contextDir: images/manageiq-ui-worker
     strategy:
@@ -161,12 +161,12 @@ objects:
         forcePull: true
         from:
           kind: ImageStreamTag
-          name: manageiq-webserver-worker:latest
+          name: manageiq-webserver-worker:${IMAGE_TAG}
           namespace: "${IMAGE_NAMESPACE}"
     output:
       to:
         kind: ImageStreamTag
-        name: manageiq-ui-worker:latest
+        name: manageiq-ui-worker:${IMAGE_TAG}
         namespace: "${IMAGE_NAMESPACE}"
     triggers:
     - type: imageChange
@@ -177,12 +177,14 @@ objects:
     name: manageiq-ui-worker
   spec:
     tags:
-    - name: latest
+    - name: "${IMAGE_TAG}"
 parameters:
 - name: IMAGE_NAMESPACE
   value: manageiq
-- name: SOURCE_REPOSITORY_URL
-  value: https://github.com/ManageIQ/manageiq-pods
+- name: IMAGE_TAG
+  value: latest
+- name: SOURCE_REPOSITORY_ORG
+  value: ManageIQ
 - name: SOURCE_REPOSITORY_REF
   value: master
 - name: MIQ_REF

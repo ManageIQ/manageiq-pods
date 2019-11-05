@@ -134,14 +134,6 @@ objects:
           ports:
           - containerPort: 5432
           readinessProbe:
-            initialDelaySeconds: 15
-            exec:
-              command:
-              - "/bin/sh"
-              - "-i"
-              - "-c"
-              - psql -h 127.0.0.1 -U ${POSTGRESQL_USER} -q -d ${POSTGRESQL_DATABASE} -c 'SELECT 1'
-          livenessProbe:
             initialDelaySeconds: 60
             tcpSocket:
               port: 5432
@@ -152,14 +144,20 @@ objects:
             mountPath: "/opt/app-root/src/postgresql-cfg/"
           env:
           - name: POSTGRESQL_USER
-            value: "${DATABASE_USER}"
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: username
           - name: POSTGRESQL_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: manageiq-secrets
-                key: pg-password
+                name: postgresql-secrets
+                key: password
           - name: POSTGRESQL_DATABASE
-            value: "${DATABASE_NAME}"
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: dbname
           - name: POSTGRESQL_MAX_CONNECTIONS
             value: "${POSTGRESQL_MAX_CONNECTIONS}"
           - name: POSTGRESQL_SHARED_BUFFERS
@@ -171,10 +169,6 @@ objects:
             limits:
               memory: "${POSTGRESQL_MEM_LIMIT}"
 parameters:
-- name: DATABASE_USER
-  value: root
-- name: DATABASE_NAME
-  value: vmdb_production
 - name: POSTGRESQL_MAX_CONNECTIONS
   value: '1000'
 - name: POSTGRESQL_SHARED_BUFFERS
