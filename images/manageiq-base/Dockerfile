@@ -14,12 +14,12 @@ ENV TERM=xterm \
     APP_ROOT=/var/www/miq/vmdb \
     APPLIANCE_ROOT=/opt/manageiq/manageiq-appliance \
     SUI_ROOT=/opt/manageiq/manageiq-ui-service \
-    IMAGE_VERSION=${REF}
+    IMAGE_VERSION=${MIQ_REF}
 
 LABEL name="manageiq-base" \
       vendor="ManageIQ" \
       version="Master" \
-      release=${REF} \
+      release=${MIQ_REF} \
       url="https://manageiq.org/" \
       summary="ManageIQ base application image" \
       description="ManageIQ is a management and automation platform for virtual, private, and hybrid cloud infrastructures." \
