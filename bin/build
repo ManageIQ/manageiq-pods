@@ -2,6 +2,14 @@
 
 TAG=latest
 
+MIQ_REF=${MIQ_REF:-master}
+SUI_REF=${SUI_REF:-master}
+APPLIANCE_REF=${APPLIANCE_REF:-master}
+
+MIQ_ORG=${MIQ_ORG:-ManageIQ}
+SUI_ORG=${SUI_ORG:-ManageIQ}
+APPLIANCE_ORG=${APPLIANCE_ORG:-ManageIQ}
+
 while getopts "t:d:r:nh" opt; do
   case $opt in
     d) IMAGE_DIR=$OPTARG ;;
@@ -25,11 +33,27 @@ fi
 
 images="manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker"
 
+set -e
+
 pushd $IMAGE_DIR
   if [ -n "$NO_CACHE" ]; then
-    docker build -t $REPO/manageiq-base:$TAG --no-cache manageiq-base
+    docker build -t $REPO/manageiq-base:$TAG --no-cache \
+      --build-arg MIQ_REF=$MIQ_REF \
+      --build-arg SUI_REF=$SUI_REF \
+      --build-arg APPLIANCE_REF=$APPLIANCE_REF \
+      --build-arg MIQ_ORG=$MIQ_ORG \
+      --build-arg SUI_ORG=$SUI_ORG \
+      --build-arg APPLIANCE_ORG=$APPLIANCE_ORG \
+      manageiq-base
   else
-    docker build -t $REPO/manageiq-base:$TAG manageiq-base
+    docker build -t $REPO/manageiq-base:$TAG \
+      --build-arg MIQ_REF=$MIQ_REF \
+      --build-arg SUI_REF=$SUI_REF \
+      --build-arg APPLIANCE_REF=$APPLIANCE_REF \
+      --build-arg MIQ_ORG=$MIQ_ORG \
+      --build-arg SUI_ORG=$SUI_ORG \
+      --build-arg APPLIANCE_ORG=$APPLIANCE_ORG \
+      manageiq-base
   fi
 
   for image in $images; do
