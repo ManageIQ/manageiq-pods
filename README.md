@@ -451,19 +451,35 @@ Events:
 
 Liveness and Readiness probe failures indicate the pod is taking longer than expected to come alive/online, check pod logs.
 
-## Building Images on OpenShift
-It is possible to build the images used for this project in OpenShift.
+## Building Images
+The bin/build script will build the entire chain of images.
 
-A template is provided which creates build configs and image streams for all of the required images.
-By default the buildconfigs are set up to pull the master branch of both this repository and the ManageIQ main repository.
+The script requires at a minimum the `-d` option to specify the location of the `images` directory, (`./images` if run from the repo root) and the `-r` option to specify the resulting image repo and namespace.
 
-To deploy builds into the project `test` for a feature branch called `my_feature` which exists in your fork of manageiq and manageiq-pods you would deploy the template like this:
+For example, if you wanted to build all the images tagged as `manageiq/<image-name>:latest`, you would run the following command from the repo root.
 
 ```bash
-$ oc process -f templates/helpers/build-template.yaml -p IMAGE_NAMESPACE=test -p SOURCE_REPOSITORY_ORG=<your_fork_name> -p SOURCE_REPOSITORY_REF=my_feature -p MIQ_ORG=<your_fork_name> -p MIQ_REF=my_feature
+./bin/build -d images -r manageiq
 ```
 
-You would then want to set the ORCHESTRATOR_IMAGE_NAMESPACE parameter to something like `docker-registry.default.svc:5000/test` when deploying the application. This will ensure that the newly built images are deployed.
+Additional options are also available:
+  - `-n` Use the --no-cache option when running the manageiq-base image build
+  - `-p` Push the images after building
+  - `-t <tag>` Tag the built images with the specified tag (default: latest)
+
+Additionally the source fork and git ref for manageiq, manageiq-appliance and manageiq-ui-service can be set using the following environment variables:
+  - `MIQ_REF`
+  - `APPLIANCE_REF`
+  - `SUI_REF`
+  - `MIQ_ORG`
+  - `APPLIANCE_ORG`
+  - `SUI_ORG`
+
+A more complicated example would be to build and push all the images to the quay.io repository "test" using the source from the "feature" branch on the "example" fork of ManageIQ:
+
+```bash
+MIQ_ORG=example MIQ_REF=feature ./bin/build -d images -r quay.io/test -p
+```
 
 ## Configuring External Authentication
 Configuring the httpd pod for external authentication is done by updating the `httpd-auth-configs` configuration map to include all necessary config files and certificates. Upon startup, the httpd pod overlays its files with the ones specified in the `auth-configuration.conf` file in the configuration map. This is done by the `initialize-httpd-auth` service that runs before httpd.
