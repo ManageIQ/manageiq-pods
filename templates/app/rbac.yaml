@@ -13,21 +13,25 @@ items:
   kind: ServiceAccount
   metadata:
     name: miq-httpd
-- apiVersion: v1
+- apiVersion: rbac.authorization.k8s.io/v1
   kind: RoleBinding
   metadata:
     name: view
   roleRef:
+    kind: ClusterRole
     name: view
+    apiGroup: rbac.authorization.k8s.io
   subjects:
   - kind: ServiceAccount
     name: miq-orchestrator
-- apiVersion: v1
+- apiVersion: rbac.authorization.k8s.io/v1
   kind: RoleBinding
   metadata:
     name: edit
   roleRef:
+    kind: ClusterRole
     name: edit
+    apiGroup: rbac.authorization.k8s.io
   subjects:
   - kind: ServiceAccount
     name: miq-orchestrator

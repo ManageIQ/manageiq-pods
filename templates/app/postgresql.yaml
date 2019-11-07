@@ -101,8 +101,8 @@ objects:
       port: 5432
     selector:
       name: postgresql
-- apiVersion: v1
-  kind: DeploymentConfig
+- apiVersion: apps/v1
+  kind: Deployment
   metadata:
     name: postgresql
     labels:
@@ -110,11 +110,10 @@ objects:
   spec:
     strategy:
       type: Recreate
-    triggers:
-    - type: ConfigChange
     replicas: 1
     selector:
-      name: postgresql
+      matchLabels:
+        name: postgresql
     template:
       metadata:
         name: postgresql
