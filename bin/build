@@ -31,7 +31,7 @@ if [ -z "$REPO" ]; then
   exit 1
 fi
 
-images="manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker"
+build_images="manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker"
 
 set -e
 
@@ -56,13 +56,13 @@ pushd $IMAGE_DIR
       manageiq-base
   fi
 
-  for image in $images; do
+  for image in $build_images; do
     docker build -t $REPO/$image:$TAG --build-arg FROM_REPO=$REPO --build-arg FROM_TAG=$TAG $image
   done
 popd
 
 if [ -n "$PUSH" ]; then
-  for image in images; do
+  for image in "manageiq-base manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker"; do
     docker push $REPO/$image:$TAG
   done
 fi
