@@ -5,7 +5,7 @@ param_file=$1
 
 function apply_template() {
   local template=$1
-  oc process -f templates/app/$template --param-file=$param_file --ignore-unknown-parameters | oc apply -f -
+  oc process --local -f templates/app/$template --param-file=$param_file --ignore-unknown-parameters | oc apply -f -
 }
 
 function secret_missing() {
