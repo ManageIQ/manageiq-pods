@@ -62,7 +62,8 @@ pushd $IMAGE_DIR
 popd
 
 if [ -n "$PUSH" ]; then
-  for image in "manageiq-base manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker"; do
+  push_images="manageiq-base manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker"
+  for image in $push_images; do
     docker push $REPO/$image:$TAG
   done
 fi
