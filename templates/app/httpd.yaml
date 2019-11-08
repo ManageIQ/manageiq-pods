@@ -345,13 +345,17 @@ objects:
                 command:
                 - "/usr/bin/save-container-environment"
         serviceAccountName: miq-httpd
-- apiVersion: networking.k8s.io/v1beta1
+- apiVersion: extensions/v1beta1
   kind: Ingress
   metadata:
     name: httpd
     labels:
       app: manageiq
   spec:
+    tls:
+    - hosts:
+      - "${APPLICATION_DOMAIN}"
+      secretName: tls-secret
     rules:
     - host: "${APPLICATION_DOMAIN}"
       http:

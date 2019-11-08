@@ -5,6 +5,7 @@ oc delete all -l app=manageiq
 oc get pvc -o name |xargs oc delete
 
 oc delete secret -l app=manageiq
+oc delete secret tls-secret
 
 oc delete serviceaccount miq-anyuid
 oc delete serviceaccount miq-orchestrator
@@ -16,3 +17,5 @@ oc delete cm httpd-auth-configs
 
 oc delete rolebinding edit
 oc delete rolebinding view
+
+oc delete ingress httpd
