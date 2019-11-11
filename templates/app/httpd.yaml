@@ -276,9 +276,6 @@ objects:
             name: httpd-auth-configs
         containers:
         - name: httpd
-          securityContext:
-            capabilities:
-              add: ["SYS_ADMIN"]
           image: "${HTTPD_IMAGE_NAME}:${HTTPD_IMAGE_TAG}"
           ports:
           - containerPort: 80
