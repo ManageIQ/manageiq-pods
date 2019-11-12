@@ -173,8 +173,10 @@ It is strongly suggested that you validate NFS share connectivity from an OpenSh
 
 ## Deploy MIQ
 
-If you wish to add a SSL certificate now, you can edit the httpd template and provide that now.  Check the Edge Termination section of [Secured Routes](https://docs.okd.io/latest/architecture/networking/routes.html#secured-routes) for more information.
-This can be easily changed later in the Openshift UI by navigating to *Your Project* -> Applications -> Routes -> httpd -> Actions -> Edit.
+If you wish to add a SSL certificate now, you can use your cert and key files to create the required secret:
+```bash
+$ oc create secret tls tls-secret --cert=tls.crt --key=tls.key
+```
 
 Application parameters can be specified in a parameters file. An example file can be found [in the project root](https://github.com/ManageIQ/manageiq-pods/blob/master/parameters)
 The existing parameters file contains all the default values for template parameters. You can create a new file containing any customizations.
@@ -280,19 +282,23 @@ Additional workers for provider operations will be deployed or removed by the or
 
 _**Note:**_ The orchestrator will enforce its desired state over the worker replicas. This means that any changes made to desired replica numbers in the OpenShift UI will be quickly reverted by the orchestrator. 
 
-## POD access and routes
+## Pod access and ingress
 
 ### Get a shell on the MIQ pod
 
 `$ oc rsh <pod_name> bash -l`
 
 ### Obtain host information from route
-A route should have been deployed via template for HTTPS access on the MIQ pod
+An ingress should have been deployed via template for HTTPS access on the MIQ pod
+When an ingress is deployed in OpenShift, a route is automatically created.
 
 ```bash
-$oc get routes
-NAME      HOST/PORT                              PATH      SERVICES   PORT      TERMINATION     WILDCARD
-httpd     miq-dev.apps.example.com                         httpd      http      edge/Redirect   None
+$ oc get ingress
+NAME      HOSTS                              ADDRESS   PORTS     AGE
+httpd     miq-dev.apps.example.com                     80, 443   56s
+$ oc get routes
+NAME          HOST/PORT                          PATH      SERVICES   PORT      TERMINATION     WILDCARD
+httpd-qlvmj   miq-dev.apps.example.com           /         httpd      80        edge/Redirect   None
 ```
 Examine output and point your web browser to the reported URL/HOST.
 
