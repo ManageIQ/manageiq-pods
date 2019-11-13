@@ -173,8 +173,10 @@ It is strongly suggested that you validate NFS share connectivity from an OpenSh
 
 ## Deploy MIQ
 
-If you wish to add a SSL certificate now, you can edit the httpd template and provide that now.  Check the Edge Termination section of [Secured Routes](https://docs.okd.io/latest/architecture/networking/routes.html#secured-routes) for more information.
-This can be easily changed later in the Openshift UI by navigating to *Your Project* -> Applications -> Routes -> httpd -> Actions -> Edit.
+If you wish to add a SSL certificate now, you can use your cert and key files to create the required secret:
+```bash
+$ oc create secret tls tls-secret --cert=tls.crt --key=tls.key
+```
 
 Application parameters can be specified in a parameters file. An example file can be found [in the project root](https://github.com/ManageIQ/manageiq-pods/blob/master/parameters)
 The existing parameters file contains all the default values for template parameters. You can create a new file containing any customizations.
@@ -203,34 +205,18 @@ _**Note:**_ The first deployment could take several minutes as OpenShift is down
 
 ### Confirm the deployed MIQ pods are bound to the correct SCC
 
-Describe all pods and search for Security Policy
+Describe all pods and search for the pod name and scc
 
 ```bash
-$ oc describe pods | grep -B2 "Security Policy"
-Name:			httpd-1-1tmjp
-Security Policy:	anyuid
---
-Name:			manageiq-orchestrator-1-zs60q
-Security Policy:	anyuid
---
-Name:			memcached-1-qsjt0
-Security Policy:	restricted
---
-Name:			postgresql-1-0hhvv
-Security Policy:	restricted
-```
-
-### Verify the persistent volume is attached to postgresql pod
-
-```bash
-$ oc volume pods --all
-pods/postgresql-1-0hhvv
-  pvc/manageiq-postgresql (allocated 100GiB) as miq-pgdb-volume
-    mounted at /var/lib/pgsql/data
-  unknown as miq-pg-configs
-    mounted at /opt/app-root/src/postgresql-config/
-  secret/default-token-mjmmb as default-token-mjmmb
-    mounted at /var/run/secrets/kubernetes.io/serviceaccount
+$ oc describe pods | egrep "^Name:|openshift.io/scc"
+Name:               httpd-754985464b-4dzzx
+Annotations:        openshift.io/scc=anyuid
+Name:               manageiq-orchestrator-5997776478-vx4v9
+Annotations:        openshift.io/scc=anyuid
+Name:               memcached-696479b955-67fs6
+Annotations:        openshift.io/scc=restricted
+Name:               postgresql-5f954fdbd5-tnlmf
+Annotations:        openshift.io/scc=restricted
 ```
 
 ### Check readiness of the MIQ pods
@@ -241,11 +227,11 @@ The READY column denotes the number of replicas and their readiness state
 
 ```bash
 $ oc get pods
-NAME                            READY     STATUS    RESTARTS   AGE
-httpd-1-4qxzt                   1/1       Running   0          47s
-manageiq-orchestrator-1-xxj8f   1/1       Running   0          48s
-memcached-1-22blh               1/1       Running   0          47s
-postgresql-1-n7rc4              1/1       Running   0          47s
+NAME                                     READY     STATUS    RESTARTS   AGE
+httpd-754985464b-4dzzx                   1/1       Running   0          37s
+manageiq-orchestrator-5997776478-vx4v9   1/1       Running   0          37s
+memcached-696479b955-67fs6               1/1       Running   0          37s
+postgresql-5f954fdbd5-tnlmf              1/1       Running   0          37s
 ```
 
 Once the database has been migrated and the orchestrator pod is up and running, it will begin to start worker pods.
@@ -253,22 +239,23 @@ After a few minutes you can see the initial set of worker pods has been deployed
 
 ```bash
 $ oc get pods
-NAME                            READY     STATUS    RESTARTS   AGE
-event-handler-1-qgtkl           1/1       Running   0          3m
-generic-1-3f0l5                 1/1       Running   0          3m
-generic-1-6nc2d                 1/1       Running   0          3m
-httpd-1-4qxzt                   1/1       Running   0          6m
-manageiq-orchestrator-1-xxj8f   1/1       Running   0          6m
-memcached-1-22blh               1/1       Running   0          6m
-postgresql-1-n7rc4              1/1       Running   0          6m
-priority-1-wklns                1/1       Running   0          3m
-priority-1-x3xdn                1/1       Running   0          3m
-reporting-1-6kbjc               1/1       Running   0          3m
-reporting-1-h6g4c               1/1       Running   0          3m
-schedule-1-clp5m                1/1       Running   0          3m
-ui-1-h35wk                      1/1       Running   0          3m
-web-service-1-f6nt0             1/1       Running   0          3m
-websocket-1-mpws5               1/1       Running   0          3m
+NAME                                     READY     STATUS    RESTARTS   AGE
+event-handler-747574c54c-xpcvf           1/1       Running   0          32m
+generic-55cc84f79d-gwf5v                 1/1       Running   0          32m
+generic-55cc84f79d-w4vzs                 1/1       Running   0          32m
+httpd-754985464b-4dzzx                   1/1       Running   0          37m
+manageiq-orchestrator-5997776478-vx4v9   1/1       Running   0          37m
+memcached-696479b955-67fs6               1/1       Running   0          37m
+postgresql-5f954fdbd5-tnlmf              1/1       Running   0          37m
+priority-7b6666cdcd-5hkkm                1/1       Running   0          32m
+priority-7b6666cdcd-rcf7l                1/1       Running   0          32m
+remote-console-6958c4cc7b-5kmmj          1/1       Running   0          32m
+reporting-85c8488848-p5fb6               1/1       Running   0          32m
+reporting-85c8488848-z7kjp               1/1       Running   0          32m
+schedule-6fd7bc5688-ptsxp                1/1       Running   0          32m
+ui-5b8c86f6f9-jhd9w                      1/1       Running   0          32m
+web-service-858f55f55d-5tmcr             1/1       Running   0          32m
+
 ```
 
 ## Scale MIQ
@@ -280,19 +267,23 @@ Additional workers for provider operations will be deployed or removed by the or
 
 _**Note:**_ The orchestrator will enforce its desired state over the worker replicas. This means that any changes made to desired replica numbers in the OpenShift UI will be quickly reverted by the orchestrator. 
 
-## POD access and routes
+## Pod access and ingress
 
 ### Get a shell on the MIQ pod
 
 `$ oc rsh <pod_name> bash -l`
 
 ### Obtain host information from route
-A route should have been deployed via template for HTTPS access on the MIQ pod
+An ingress should have been deployed via template for HTTPS access on the MIQ pod
+When an ingress is deployed in OpenShift, a route is automatically created.
 
 ```bash
-$oc get routes
-NAME      HOST/PORT                              PATH      SERVICES   PORT      TERMINATION     WILDCARD
-httpd     miq-dev.apps.example.com                         httpd      http      edge/Redirect   None
+$ oc get ingress
+NAME      HOSTS                              ADDRESS   PORTS     AGE
+httpd     miq-dev.apps.example.com                     80, 443   56s
+$ oc get routes
+NAME          HOST/PORT                          PATH      SERVICES   PORT      TERMINATION     WILDCARD
+httpd-qlvmj   miq-dev.apps.example.com           /         httpd      80        edge/Redirect   None
 ```
 Examine output and point your web browser to the reported URL/HOST.
 
@@ -421,35 +412,6 @@ $ oc scale dc/httpd --replicas=1
 ## Troubleshooting
 Under normal circumstances the entire first time deployment process should take around ~10 minutes, indication of issues can be seen
 by examination of the deployment events and pod logs.
-
-### Re-trying a failed deployment
-
-_**As basic user**_
-
-
-```bash
-$ oc get pods
-NAME                              READY     STATUS    RESTARTS   AGE
-manageiq-orchestrator-1-deploy    0/1       Error     0          25m
-memcached-1-yasfq                 1/1       Running   0          24m
-postgresql-1-wfv59                1/1       Running   0          24m
-
-$ oc deploy manageiq-orchestrator --retry
-Retried #1
-Use 'oc logs -f dc/manageiq-orchestrator' to track its progress.
-```
-Allow a few seconds for the failed pod to get re-scheduled, then begin checking events and logs
-
-```bash
-$ oc describe pods <pod-name>
-...
-Events:
-  FirstSeen	LastSeen	Count	From							SubobjectPath			Type		Reason		Message
-  ---------	--------	-----	----							-------------			--------	------		-------
-15m		15m		1	{kubelet ocp-eval-node-2.e2e.bos.redhat.com}	spec.containers{manageiq}	Warning		Unhealthy	Readiness probe failed: Get http://10.1.1.5:80/: dial tcp 10.1.1.5:80: getsockopt: connection refused
-```
-
-Liveness and Readiness probe failures indicate the pod is taking longer than expected to come alive/online, check pod logs.
 
 ## Building Images
 The bin/build script will build the entire chain of images.
@@ -598,3 +560,20 @@ $ oc replace configmaps httpd-auth-configs --filename external-auth-configmap.ya
 Then redeploy the httpd pod for the new authentication configuration to take effect.
 
 Support for automatically generating authentication configuration maps for the httpd pod is provided by [ManageIQ/httpd\_configmap\_generator](https://github.com/ManageIQ/httpd_configmap_generator). Please see the [README.md](https://github.com/ManageIQ/httpd_configmap_generator/blob/master/README.md) in that repo for further details.
+
+## Kubernetes support
+
+The objects created by processing the templates in this project are also compatible with Kubernetes, but template objects themselves are not.
+For this reason, it is suggested to use the `oc` binary to process the templates and create the objects even in a kubernetes cluster (this is what the `bin/deploy` script does).
+
+Here is an example of how to deploy to a kubernetes cluster using minikube:
+
+```bash
+minikube start
+<edit parameters file as desired>
+bin/deploy parameters
+oc patch deployment httpd -p '{"spec":{"template":{"spec":{"containers":[{"name": "httpd", "securityContext":{"capabilities":{"add":["SYS_ADMIN"]}}}]}}}}'
+```
+
+It is necessary to patch the httpd deployment because it runs systemd in the container.
+In OpenShift this is handled by the oci-systemd-hooks and scc assignment, but in kubernetes we need to add the capability directly to the container.

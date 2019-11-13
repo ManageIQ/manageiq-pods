@@ -250,18 +250,17 @@ objects:
       port: 8080
     selector:
       name: httpd
-- apiVersion: v1
-  kind: DeploymentConfig
+- apiVersion: apps/v1
+  kind: Deployment
   metadata:
     name: httpd
     labels:
       app: manageiq
   spec:
-    triggers:
-    - type: ConfigChange
     replicas: 1
     selector:
-      name: httpd
+      matchLabels:
+        name: httpd
     template:
       metadata:
         name: httpd
@@ -342,24 +341,26 @@ objects:
               exec:
                 command:
                 - "/usr/bin/save-container-environment"
-        serviceAccount: miq-httpd
         serviceAccountName: miq-httpd
-- apiVersion: v1
-  kind: Route
+- apiVersion: extensions/v1beta1
+  kind: Ingress
   metadata:
     name: httpd
     labels:
       app: manageiq
   spec:
-    host: "${APPLICATION_DOMAIN}"
-    port:
-      targetPort: http
     tls:
-      termination: edge
-      insecureEdgeTerminationPolicy: Redirect
-    to:
-      kind: Service
-      name: httpd
+    - hosts:
+      - "${APPLICATION_DOMAIN}"
+      secretName: tls-secret
+    rules:
+    - host: "${APPLICATION_DOMAIN}"
+      http:
+        paths:
+        - path: "/"
+          backend:
+            serviceName: httpd
+            servicePort: 80
 parameters:
 - name: APPLICATION_DOMAIN
   value: ''

@@ -3,8 +3,8 @@ kind: Template
 metadata:
   name: manageiq-orchestrator
 objects:
-- apiVersion: v1
-  kind: DeploymentConfig
+- apiVersion: apps/v1
+  kind: Deployment
   metadata:
     name: manageiq-orchestrator
     labels:
@@ -14,7 +14,8 @@ objects:
       type: Recreate
     replicas: 1
     selector:
-      name: manageiq-orchestrator
+      matchLabels:
+        name: manageiq-orchestrator
     template:
       metadata:
         name: manageiq-orchestrator
@@ -82,11 +83,8 @@ objects:
               cpu: "${ORCHESTRATOR_CPU_REQ}"
             limits:
               memory: "${ORCHESTRATOR_MEM_LIMIT}"
-        serviceAccount: miq-orchestrator
         serviceAccountName: miq-orchestrator
         terminationGracePeriodSeconds: 90
-      triggers:
-      - type: ConfigChange
 parameters:
 - name: DATABASE_PORT
   value: '5432'
