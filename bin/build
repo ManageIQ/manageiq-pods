@@ -36,34 +36,33 @@ build_images="manageiq-base-worker manageiq-orchestrator manageiq-webserver-work
 set -e
 
 pushd $IMAGE_DIR
+  cmd="docker build --tag $REPO/manageiq-base:$TAG \
+                    --build-arg MIQ_REF=$MIQ_REF \
+                    --build-arg SUI_REF=$SUI_REF\
+                    --build-arg APPLIANCE_REF=$APPLIANCE_REF \
+                    --build-arg MIQ_ORG=$MIQ_ORG \
+                    --build-arg SUI_ORG=$SUI_ORG \
+                    --build-arg APPLIANCE_ORG=$APPLIANCE_ORG"
+
   if [ -n "$NO_CACHE" ]; then
-    docker build -t $REPO/manageiq-base:$TAG --no-cache \
-      --build-arg MIQ_REF=$MIQ_REF \
-      --build-arg SUI_REF=$SUI_REF \
-      --build-arg APPLIANCE_REF=$APPLIANCE_REF \
-      --build-arg MIQ_ORG=$MIQ_ORG \
-      --build-arg SUI_ORG=$SUI_ORG \
-      --build-arg APPLIANCE_ORG=$APPLIANCE_ORG \
-      manageiq-base
-  else
-    docker build -t $REPO/manageiq-base:$TAG \
-      --build-arg MIQ_REF=$MIQ_REF \
-      --build-arg SUI_REF=$SUI_REF \
-      --build-arg APPLIANCE_REF=$APPLIANCE_REF \
-      --build-arg MIQ_ORG=$MIQ_ORG \
-      --build-arg SUI_ORG=$SUI_ORG \
-      --build-arg APPLIANCE_ORG=$APPLIANCE_ORG \
-      manageiq-base
+    cmd+=" --no-cache"
   fi
 
+  echo "Building manageiq-base: $cmd"
+  $cmd manageiq-base
+
   for image in $build_images; do
-    docker build -t $REPO/$image:$TAG --build-arg FROM_REPO=$REPO --build-arg FROM_TAG=$TAG $image
+    cmd="docker build -t $REPO/$image:$TAG --build-arg FROM_REPO=$REPO --build-arg FROM_TAG=$TAG $image"
+    echo "Building $image: $cmd"
+    $cmd
   done
 popd
 
 if [ -n "$PUSH" ]; then
   push_images="manageiq-base manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker"
   for image in $push_images; do
-    docker push $REPO/$image:$TAG
+    cmd="docker push $REPO/$image:$TAG"
+    echo "Pushing: $cmd"
+    $cmd
   done
 fi
