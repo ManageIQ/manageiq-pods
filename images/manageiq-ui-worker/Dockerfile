@@ -5,7 +5,6 @@ FROM ${FROM_REPO}/manageiq-webserver-worker:${FROM_TAG}
 MAINTAINER ManageIQ https://manageiq.org
 
 ARG NPM_REGISTRY_OVERRIDE
-ARG NPM_REGISTRY_RESET=false
 
 LABEL name="manageiq-ui-worker" \
       summary="ManageIQ user interface worker image"
@@ -45,7 +44,7 @@ RUN source /etc/default/evm && \
 RUN source /etc/default/evm && \
     yarn cache clean && \
     cd ${APP_ROOT} && \
-    if [ "${NPM_REGISTRY_RESET}" = "true" ]; then \
+    if [ ! -z "${NPM_REGISTRY_OVERRIDE}" ]; then \
       /tmp/npm_registry/npm_yarn_registry_cleanup.sh; \
     fi && \
     rm -rf /tmp/npm_registry

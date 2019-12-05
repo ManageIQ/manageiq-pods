@@ -11,7 +11,6 @@ SUI_ORG=${SUI_ORG:-ManageIQ}
 APPLIANCE_ORG=${APPLIANCE_ORG:-ManageIQ}
 
 NPM_REGISTRY_OVERRIDE=${NPM_REGISTRY_OVERRIDE:-""}
-NPM_REGISTRY_RESET=${NPM_REGISTRY_RESET:-false}
 
 while getopts "t:d:r:nhp" opt; do
   case $opt in
@@ -63,7 +62,6 @@ pushd $IMAGE_DIR
                     --build-arg FROM_REPO=$REPO \
                     --build-arg FROM_TAG=$TAG \
                     --build-arg NPM_REGISTRY_OVERRIDE=${NPM_REGISTRY_OVERRIDE} \
-                    --build-arg NPM_REGISTRY_RESET=${NPM_REGISTRY_RESET} \
                     manageiq-ui-worker"
   echo "Building manageiq-ui-worker: $cmd"
   $cmd
