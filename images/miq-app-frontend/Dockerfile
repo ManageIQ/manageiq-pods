@@ -49,7 +49,8 @@ RUN source /etc/default/evm && \
 ## Build SUI
 RUN source /etc/default/evm && \
     cd ${SUI_ROOT} && \
-    yarn install --production && \
+    yarn install && \
+    yarn run available-languages && \
     yarn run build && \
     yarn cache clean
 
