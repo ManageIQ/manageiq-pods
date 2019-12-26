@@ -10,6 +10,8 @@ MIQ_ORG=${MIQ_ORG:-ManageIQ}
 SUI_ORG=${SUI_ORG:-ManageIQ}
 APPLIANCE_ORG=${APPLIANCE_ORG:-ManageIQ}
 
+ARCH=`uname -m`
+
 NPM_REGISTRY_OVERRIDE=${NPM_REGISTRY_OVERRIDE:-""}
 
 while getopts "t:d:r:nhp" opt; do
@@ -42,7 +44,8 @@ pushd $IMAGE_DIR
                     --build-arg APPLIANCE_REF=$APPLIANCE_REF \
                     --build-arg MIQ_ORG=$MIQ_ORG \
                     --build-arg SUI_ORG=$SUI_ORG \
-                    --build-arg APPLIANCE_ORG=$APPLIANCE_ORG"
+                    --build-arg APPLIANCE_ORG=$APPLIANCE_ORG \
+		    --build-arg ARCH=$ARCH"
 
   if [ -n "$NO_CACHE" ]; then
     cmd+=" --no-cache"
@@ -57,10 +60,11 @@ pushd $IMAGE_DIR
     echo "Building $image: $cmd"
     $cmd
   done
-
+ 
   cmd="docker build --tag $REPO/manageiq-ui-worker:$TAG \
                     --build-arg FROM_REPO=$REPO \
                     --build-arg FROM_TAG=$TAG \
+		    --build-arg ARCH=$ARCH \
                     --build-arg NPM_REGISTRY_OVERRIDE=${NPM_REGISTRY_OVERRIDE} \
                     manageiq-ui-worker"
   echo "Building manageiq-ui-worker: $cmd"

@@ -9,10 +9,13 @@ ARG MIQ_ORG=ManageIQ
 ARG SUI_ORG=ManageIQ
 ARG APPLIANCE_ORG=ManageIQ
 
+ARG ARCH=amd64
+
 ENV TERM=xterm \
     CONTAINER=true \
     APP_ROOT=/var/www/miq/vmdb \
     APPLIANCE_ROOT=/opt/manageiq/manageiq-appliance \
+    APPLIANCE_PG_DATA=/var/lib/pgsql/data \
     SUI_ROOT=/opt/manageiq/manageiq-ui-service \
     IMAGE_VERSION=${MIQ_REF}
 
@@ -27,8 +30,7 @@ LABEL name="manageiq-base" \
       io.k8s.description="ManageIQ is a management and automation platform for virtual, private, and hybrid cloud infrastructures." \
       io.openshift.tags="ManageIQ,miq,manageiq"
 
-RUN yum -y install https://rpm.nodesource.com/pub_10.x/el/7/x86_64/nodesource-release-el7-1.noarch.rpm && \
-    yum -y install --setopt=tsflags=nodocs \
+RUN yum -y install --setopt=tsflags=nodocs \
                    chrony           \
                    cmake            \
                    cronie           \
@@ -45,17 +47,30 @@ RUN yum -y install https://rpm.nodesource.com/pub_10.x/el/7/x86_64/nodesource-re
                    lvm2             \
                    net-tools        \
                    nmap-ncat        \
-                   nodejs           \
                    openldap-clients \
                    openscap-scanner \
                    patch            \
                    psmisc           \
-                   postgresql-devel \
                    sqlite-devel     \
                    sysvinit-tools   \
                    which            \
+		   wget 	    \
+		   make		    \
+		   readline-devel   \
+		   zlib-devel	    \
+		   perl-devel	    \
+		   bison	    \
+		   flex		    \
                    &&               \
     yum clean all
+
+RUN wget  https://github.com/postgres/postgres/archive/REL_10_11.tar.gz && \
+    tar -zxvf REL_10_11.tar.gz && cd postgres-REL_10_11/ && ./configure --prefix=/usr && make && make install && \
+    adduser postgres && mkdir -p ${APPLIANCE_PG_DATA} && chown postgres ${APPLIANCE_PG_DATA}
+
+RUN  curl https://nodejs.org/dist/v10.17.0/node-v10.17.0-linux-${ARCH}.tar.gz| tar zxf - -C /
+   
+ENV PATH ${PATH}:/node-v10.17.0-linux-${ARCH}/bin
 
 RUN mkdir -p ${APPLIANCE_ROOT} && \
     curl -L https://github.com/${APPLIANCE_ORG}/manageiq-appliance/tarball/${APPLIANCE_REF} | tar vxz -C ${APPLIANCE_ROOT} --strip 1
@@ -78,6 +93,7 @@ WORKDIR ${APP_ROOT}
 RUN source /etc/default/evm && \
     export RAILS_USE_MEMORY_STORE="true" && \
     gem install bundler -v ">=1.16.2" && \
+    if [ ${ARCH} = "ppc64le" ] ; then gem install sassc  -- --disable-march-tune-native ; fi && \
     bundle install && \
     rake tmp:clear evm:compile_sti_loader log:clear && \
     find ${RUBY_GEMS_ROOT}/gems/ -name .git | xargs rm -rvf && \
@@ -90,7 +106,7 @@ RUN source /etc/default/evm && \
 
 ADD container-assets/container_env ${APP_ROOT}
 
-RUN wget -O /usr/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 && \
+RUN wget -O /usr/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.2/dumb-init_1.2.2_${ARCH} && \
     chmod +x /usr/bin/dumb-init
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--single-child", "--"]
