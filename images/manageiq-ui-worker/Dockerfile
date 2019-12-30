@@ -18,9 +18,9 @@ RUN yum -y install httpd sudo --setopt=tsflags=nodocs && \
 
 COPY container-assets/npm_registry /tmp/npm_registry
 
-COPY container-assets/phantomjs_rhel_7.6.sh /tmp/phantomjs_rhel_7.6.sh
+COPY container-assets/phantomjs_centos_7.sh /tmp/phantomjs_centos_7.sh
 
-RUN if [ "${ARCH}" == "ppc64le" ] ; then sh /tmp/phantomjs_rhel_7.6.sh ; fi
+RUN if [ "${ARCH}" == "ppc64le" ] ; then sh /tmp/phantomjs_centos_7.sh ; fi
 
 # Compile assets for ManageIQ UI
 RUN source /etc/default/evm && \

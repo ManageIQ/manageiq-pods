@@ -68,9 +68,21 @@ RUN wget  https://github.com/postgres/postgres/archive/REL_10_11.tar.gz && \
     tar -zxvf REL_10_11.tar.gz && cd postgres-REL_10_11/ && ./configure --prefix=/usr && make && make install && \
     adduser postgres && mkdir -p ${APPLIANCE_PG_DATA} && chown postgres ${APPLIANCE_PG_DATA}
 
-RUN  curl https://nodejs.org/dist/v10.17.0/node-v10.17.0-linux-${ARCH}.tar.gz| tar zxf - -C /
-   
-ENV PATH ${PATH}:/node-v10.17.0-linux-${ARCH}/bin
+
+# nvm environment variables
+ENV NVM_DIR /usr/local/nvm
+ENV NODE_VERSION 10.17.0
+# install nvm
+# https://github.com/creationix/nvm#install-script
+RUN curl --silent -o- https://raw.githubusercontent.com/creationix/nvm/v0.31.2/install.sh | bash
+# install node and npm
+RUN source $NVM_DIR/nvm.sh \
+    && nvm install $NODE_VERSION \
+    && nvm alias default $NODE_VERSION \
+    && nvm use default
+# add node and npm to path so the commands are available
+ENV NODE_PATH $NVM_DIR/v$NODE_VERSION/lib/node_modules
+ENV PATH $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
 
 RUN mkdir -p ${APPLIANCE_ROOT} && \
     curl -L https://github.com/${APPLIANCE_ORG}/manageiq-appliance/tarball/${APPLIANCE_REF} | tar vxz -C ${APPLIANCE_ROOT} --strip 1
