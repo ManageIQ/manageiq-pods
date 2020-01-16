@@ -47,7 +47,7 @@ pushd $IMAGE_DIR
   
   if [[ -n "$GIT_TOKEN" ]] ; then
     SECRETS_CONTAINER=$(docker run -d --rm busybox /bin/sh -c \
-      "echo $GIT_TOKEN > git_token.txt && httpd -p 8000 -h / && sleep 600")
+      "echo $GIT_TOKEN > git_token.txt && httpd -p 8000 -h / && sleep 1200")
   fi
 
   cmd="docker build --tag $REPO/manageiq-base:$TAG \
@@ -61,7 +61,7 @@ pushd $IMAGE_DIR
                     --build-arg REPO_PREFIX=$REPO_PREFIX"
 
   if [[ -n "$GIT_TOKEN" ]] ; then
-    cmd+=" --build-arg GIT_TOKEN_AVAILABLE=true --network=container:secrets-server"
+    cmd+=" --build-arg GIT_TOKEN_AVAILABLE=true --network=container:$SECRETS_CONTAINER"
   fi
 
   if [ -n "$NO_CACHE" ]; then
