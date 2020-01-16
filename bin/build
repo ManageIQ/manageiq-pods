@@ -10,7 +10,7 @@ MIQ_ORG=${MIQ_ORG:-ManageIQ}
 SUI_ORG=${SUI_ORG:-ManageIQ}
 APPLIANCE_ORG=${APPLIANCE_ORG:-ManageIQ}
 
-REPO_PREFIX=${REPO_PREFIX:-manageiq}
+CORE_REPO_NAME=${CORE_REPO_NAME:-manageiq}
 
 GIT_HOST=${GIT_HOST:-github.com}
 GIT_TOKEN=${GIT_TOKEN:-""}
@@ -20,7 +20,7 @@ NPM_REGISTRY_OVERRIDE=${NPM_REGISTRY_OVERRIDE:-""}
 while getopts "t:d:f:g:k:r:nhp" opt; do
   case $opt in
     d) IMAGE_DIR=$OPTARG ;;
-    f) REPO_PREFIX=$OPTARG ;;
+    f) CORE_REPO_NAME=$OPTARG ;;
     g) GIT_HOST=$OPTARG ;;
     k) GIT_TOKEN=$OPTARG ;;
     n) NO_CACHE="true" ;;
@@ -58,7 +58,7 @@ pushd $IMAGE_DIR
                     --build-arg SUI_ORG=$SUI_ORG \
                     --build-arg APPLIANCE_ORG=$APPLIANCE_ORG \
                     --build-arg GIT_HOST=$GIT_HOST \
-                    --build-arg REPO_PREFIX=$REPO_PREFIX"
+                    --build-arg CORE_REPO_NAME=$CORE_REPO_NAME"
 
   if [[ -n "$GIT_TOKEN" ]] ; then
     cmd+=" --build-arg GIT_TOKEN_AVAILABLE=true --network=container:$SECRETS_CONTAINER"
