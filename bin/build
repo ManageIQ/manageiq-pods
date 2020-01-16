@@ -17,17 +17,14 @@ GIT_TOKEN=${GIT_TOKEN:-""}
 
 NPM_REGISTRY_OVERRIDE=${NPM_REGISTRY_OVERRIDE:-""}
 
-while getopts "t:d:f:g:k:r:nhp" opt; do
+while getopts "t:d:r:nhp" opt; do
   case $opt in
     d) IMAGE_DIR=$OPTARG ;;
-    f) CORE_REPO_NAME=$OPTARG ;;
-    g) GIT_HOST=$OPTARG ;;
-    k) GIT_TOKEN=$OPTARG ;;
     n) NO_CACHE="true" ;;
     p) PUSH="true" ;;
     r) REPO=$OPTARG ;;
     t) TAG=$OPTARG ;;
-    h) echo "Usage: $0 -d IMAGE_DIR -r IMAGE_REPOSITORY [-hfgknp] [ -t IMAGE_TAG ]"; exit 1
+    h) echo "Usage: $0 -d IMAGE_DIR -r IMAGE_REPOSITORY [-hnp] [ -t IMAGE_TAG ]"; exit 1
   esac
 done
 
