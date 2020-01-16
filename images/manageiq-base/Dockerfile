@@ -12,7 +12,7 @@ ARG APPLIANCE_ORG=ManageIQ
 ARG CORE_REPO_NAME=manageiq
 
 ARG GIT_HOST=github.com
-ARG GIT_TOKEN_AVAILABLE
+ARG GIT_AUTH_AVAILABLE
 
 ENV TERM=xterm \
     CONTAINER=true \
@@ -62,23 +62,23 @@ RUN yum -y install https://rpm.nodesource.com/pub_10.x/el/7/x86_64/nodesource-re
                    &&               \
     yum clean all
 
-RUN if [[ -n "$GIT_TOKEN_AVAILABLE" ]] ; then \
-      export GIT_TOKEN=$(wget -O - -q http://localhost:8000/git_token.txt) ; \
-      export GIT_HOST=${GIT_TOKEN}@${GIT_HOST} ; \
+RUN if [[ -n "$GIT_AUTH_AVAILABLE" ]] ; then \
+      export GIT_AUTH=$(wget -O - -q http://localhost:8000/git_auth.txt) ; \
+      export GIT_HOST=${GIT_AUTH}@${GIT_HOST} ; \
     fi && \
     mkdir -p ${APPLIANCE_ROOT} && \
     curl -L https://${GIT_HOST}/${APPLIANCE_ORG}/${CORE_REPO_NAME}-appliance/tarball/${APPLIANCE_REF} | tar vxz -C ${APPLIANCE_ROOT} --strip 1
 
-RUN if [[ -n "$GIT_TOKEN_AVAILABLE" ]] ; then \
-      export GIT_TOKEN=$(wget -O - -q http://localhost:8000/git_token.txt) ; \
-      export GIT_HOST=${GIT_TOKEN}@${GIT_HOST} ; \
+RUN if [[ -n "$GIT_AUTH_AVAILABLE" ]] ; then \
+      export GIT_AUTH=$(wget -O - -q http://localhost:8000/git_auth.txt) ; \
+      export GIT_HOST=${GIT_AUTH}@${GIT_HOST} ; \
     fi && \
     mkdir -p ${SUI_ROOT} && \
     curl -L https://${GIT_HOST}/${SUI_ORG}/${CORE_REPO_NAME}-ui-service/tarball/${SUI_REF} | tar vxz -C ${SUI_ROOT} --strip 1
 
-RUN if [[ -n "$GIT_TOKEN_AVAILABLE" ]] ; then \
-      export GIT_TOKEN=$(wget -O - -q http://localhost:8000/git_token.txt) ; \
-      export GIT_HOST=${GIT_TOKEN}@${GIT_HOST} ; \
+RUN if [[ -n "$GIT_AUTH_AVAILABLE" ]] ; then \
+      export GIT_AUTH=$(wget -O - -q http://localhost:8000/git_auth.txt) ; \
+      export GIT_HOST=${GIT_AUTH}@${GIT_HOST} ; \
     fi && \
     mkdir -p ${APP_ROOT} && \
     ln -vs ${APP_ROOT} /opt/manageiq/manageiq && \
