@@ -13,7 +13,7 @@ APPLIANCE_ORG=${APPLIANCE_ORG:-ManageIQ}
 CORE_REPO_NAME=${CORE_REPO_NAME:-manageiq}
 
 GIT_HOST=${GIT_HOST:-github.com}
-GIT_TOKEN=${GIT_TOKEN:-""}
+GIT_AUTH=${GIT_AUTH:-""}
 
 NPM_REGISTRY_OVERRIDE=${NPM_REGISTRY_OVERRIDE:-""}
 
@@ -42,9 +42,9 @@ set -e
 
 pushd $IMAGE_DIR
   
-  if [[ -n "$GIT_TOKEN" ]] ; then
+  if [[ -n "$GIT_AUTH" ]] ; then
     SECRETS_CONTAINER=$(docker run -d --rm busybox /bin/sh -c \
-      "echo $GIT_TOKEN > git_token.txt && httpd -p 8000 -h / && sleep 1200")
+      "echo $GIT_AUTH > git_auth.txt && httpd -p 8000 -h / && sleep 1200")
   fi
 
   cmd="docker build --tag $REPO/manageiq-base:$TAG \
@@ -57,8 +57,8 @@ pushd $IMAGE_DIR
                     --build-arg GIT_HOST=$GIT_HOST \
                     --build-arg CORE_REPO_NAME=$CORE_REPO_NAME"
 
-  if [[ -n "$GIT_TOKEN" ]] ; then
-    cmd+=" --build-arg GIT_TOKEN_AVAILABLE=true --network=container:$SECRETS_CONTAINER"
+  if [[ -n "$GIT_AUTH" ]] ; then
+    cmd+=" --build-arg GIT_AUTH_AVAILABLE=true --network=container:$SECRETS_CONTAINER"
   fi
 
   if [ -n "$NO_CACHE" ]; then
@@ -68,7 +68,7 @@ pushd $IMAGE_DIR
   echo "Building manageiq-base: $cmd"
   $cmd manageiq-base
 
-  if [[ -n "$GIT_TOKEN" ]] ; then
+  if [[ -n "$GIT_AUTH" ]] ; then
     docker kill $SECRETS_CONTAINER
   fi
 
