@@ -10,6 +10,11 @@ MIQ_ORG=${MIQ_ORG:-ManageIQ}
 SUI_ORG=${SUI_ORG:-ManageIQ}
 APPLIANCE_ORG=${APPLIANCE_ORG:-ManageIQ}
 
+CORE_REPO_NAME=${CORE_REPO_NAME:-manageiq}
+
+GIT_HOST=${GIT_HOST:-github.com}
+GIT_AUTH=${GIT_AUTH:-""}
+
 NPM_REGISTRY_OVERRIDE=${NPM_REGISTRY_OVERRIDE:-""}
 
 while getopts "t:d:r:nhp" opt; do
@@ -36,13 +41,25 @@ fi
 set -e
 
 pushd $IMAGE_DIR
+  
+  if [[ -n "$GIT_AUTH" ]] ; then
+    SECRETS_CONTAINER=$(docker run -d --rm busybox /bin/sh -c \
+      "echo $GIT_AUTH > git_auth.txt && httpd -p 8000 -h / && sleep 1200")
+  fi
+
   cmd="docker build --tag $REPO/manageiq-base:$TAG \
                     --build-arg MIQ_REF=$MIQ_REF \
                     --build-arg SUI_REF=$SUI_REF\
                     --build-arg APPLIANCE_REF=$APPLIANCE_REF \
                     --build-arg MIQ_ORG=$MIQ_ORG \
                     --build-arg SUI_ORG=$SUI_ORG \
-                    --build-arg APPLIANCE_ORG=$APPLIANCE_ORG"
+                    --build-arg APPLIANCE_ORG=$APPLIANCE_ORG \
+                    --build-arg GIT_HOST=$GIT_HOST \
+                    --build-arg CORE_REPO_NAME=$CORE_REPO_NAME"
+
+  if [[ -n "$GIT_AUTH" ]] ; then
+    cmd+=" --build-arg GIT_AUTH_AVAILABLE=true --network=container:$SECRETS_CONTAINER"
+  fi
 
   if [ -n "$NO_CACHE" ]; then
     cmd+=" --no-cache"
@@ -50,6 +67,10 @@ pushd $IMAGE_DIR
 
   echo "Building manageiq-base: $cmd"
   $cmd manageiq-base
+
+  if [[ -n "$GIT_AUTH" ]] ; then
+    docker kill $SECRETS_CONTAINER
+  fi
 
   build_images="manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker"
   for image in $build_images; do

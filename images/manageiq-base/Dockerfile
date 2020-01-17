@@ -9,6 +9,11 @@ ARG MIQ_ORG=ManageIQ
 ARG SUI_ORG=ManageIQ
 ARG APPLIANCE_ORG=ManageIQ
 
+ARG CORE_REPO_NAME=manageiq
+
+ARG GIT_HOST=github.com
+ARG GIT_AUTH_AVAILABLE
+
 ENV TERM=xterm \
     CONTAINER=true \
     APP_ROOT=/var/www/miq/vmdb \
@@ -57,16 +62,28 @@ RUN yum -y install https://rpm.nodesource.com/pub_10.x/el/7/x86_64/nodesource-re
                    &&               \
     yum clean all
 
-RUN mkdir -p ${APPLIANCE_ROOT} && \
-    curl -L https://github.com/${APPLIANCE_ORG}/manageiq-appliance/tarball/${APPLIANCE_REF} | tar vxz -C ${APPLIANCE_ROOT} --strip 1
+RUN if [[ -n "$GIT_AUTH_AVAILABLE" ]] ; then \
+      export GIT_AUTH=$(wget -O - -q http://localhost:8000/git_auth.txt) ; \
+      export GIT_HOST=${GIT_AUTH}@${GIT_HOST} ; \
+    fi && \
+    mkdir -p ${APPLIANCE_ROOT} && \
+    curl -L https://${GIT_HOST}/${APPLIANCE_ORG}/${CORE_REPO_NAME}-appliance/tarball/${APPLIANCE_REF} | tar vxz -C ${APPLIANCE_ROOT} --strip 1
 
-RUN mkdir -p ${SUI_ROOT} && \
-    curl -L https://github.com/${SUI_ORG}/manageiq-ui-service/tarball/${SUI_REF} | tar vxz -C ${SUI_ROOT} --strip 1
+RUN if [[ -n "$GIT_AUTH_AVAILABLE" ]] ; then \
+      export GIT_AUTH=$(wget -O - -q http://localhost:8000/git_auth.txt) ; \
+      export GIT_HOST=${GIT_AUTH}@${GIT_HOST} ; \
+    fi && \
+    mkdir -p ${SUI_ROOT} && \
+    curl -L https://${GIT_HOST}/${SUI_ORG}/${CORE_REPO_NAME}-ui-service/tarball/${SUI_REF} | tar vxz -C ${SUI_ROOT} --strip 1
 
-RUN mkdir -p ${APP_ROOT} && \
+RUN if [[ -n "$GIT_AUTH_AVAILABLE" ]] ; then \
+      export GIT_AUTH=$(wget -O - -q http://localhost:8000/git_auth.txt) ; \
+      export GIT_HOST=${GIT_AUTH}@${GIT_HOST} ; \
+    fi && \
+    mkdir -p ${APP_ROOT} && \
     ln -vs ${APP_ROOT} /opt/manageiq/manageiq && \
-    curl -L https://github.com/${MIQ_ORG}/manageiq/tarball/${MIQ_REF} | tar vxz -C ${APP_ROOT} --strip 1 && \
-    echo "`date +'%Y%m%d%H%M%S'`_`git ls-remote https://github.com/${MIQ_ORG}/manageiq.git ${MIQ_REF} | cut -c 1-7`" > ${APP_ROOT}/BUILD
+    curl -L https://${GIT_HOST}/${MIQ_ORG}/${CORE_REPO_NAME}/tarball/${MIQ_REF} | tar vxz -C ${APP_ROOT} --strip 1 && \
+    echo "`date +'%Y%m%d%H%M%S'`_`git ls-remote https://${GIT_HOST}/${MIQ_ORG}/${CORE_REPO_NAME}.git ${MIQ_REF} | cut -c 1-7`" > ${APP_ROOT}/BUILD
 
 RUN ${APPLIANCE_ROOT}/setup && \
     mkdir -p ${APP_ROOT}/log/apache && \
