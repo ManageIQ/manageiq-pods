@@ -6,21 +6,17 @@ MAINTAINER ManageIQ https://manageiq.org
 
 ARG NPM_REGISTRY_OVERRIDE
 
-ARG ARCH=amd64
+ARG ARCH=x86_64
 
 LABEL name="manageiq-ui-worker" \
       summary="ManageIQ user interface worker image"
 
 # Install httpd and remove the existing httpd config from manageiq-appliance
-RUN yum -y install httpd sudo --setopt=tsflags=nodocs && \
+RUN yum -y install httpd --setopt=tsflags=nodocs && \
     rm -f /etc/httpd/conf.d/* && \
     yum clean all
 
 COPY container-assets/npm_registry /tmp/npm_registry
-
-COPY container-assets/phantomjs_centos_7.sh /tmp/phantomjs_centos_7.sh
-
-RUN if [ "${ARCH}" == "ppc64le" ] ; then sh /tmp/phantomjs_centos_7.sh ; fi
 
 # Compile assets for ManageIQ UI
 RUN source /etc/default/evm && \
@@ -41,8 +37,10 @@ RUN source /etc/default/evm && \
     rm -vf ${APP_ROOT}/log/*.log
 
 # Build service UI
+# PhantomJS is required only for testing and can be by-passed here
 RUN source /etc/default/evm && \
     cd ${SUI_ROOT} && \
+    sed -i '/phantomjs/d' package.json && \
     yarn install && \
     yarn run available-languages && \
     yarn run build

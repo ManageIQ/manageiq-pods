@@ -9,7 +9,7 @@ ARG MIQ_ORG=ManageIQ
 ARG SUI_ORG=ManageIQ
 ARG APPLIANCE_ORG=ManageIQ
 
-ARG ARCH=amd64
+ARG ARCH=x86_64
 
 ENV TERM=xterm \
     CONTAINER=true \
@@ -52,22 +52,11 @@ RUN yum -y install --setopt=tsflags=nodocs \
                    patch            \
                    psmisc           \
                    sqlite-devel     \
+                   postgresql-devel \
                    sysvinit-tools   \
                    which            \
-		   wget 	    \
-		   make		    \
-		   readline-devel   \
-		   zlib-devel	    \
-		   perl-devel	    \
-		   bison	    \
-		   flex		    \
                    &&               \
     yum clean all
-
-RUN wget  https://github.com/postgres/postgres/archive/REL_10_11.tar.gz && \
-    tar -zxvf REL_10_11.tar.gz && cd postgres-REL_10_11/ && ./configure --prefix=/usr && make && make install && \
-    adduser postgres && mkdir -p ${APPLIANCE_PG_DATA} && chown postgres ${APPLIANCE_PG_DATA}
-
 
 # nvm environment variables
 ENV NVM_DIR /usr/local/nvm
