@@ -1,0 +1,23 @@
+#!/bin/bash
+set -e
+
+TAG=latest
+
+while getopts "t:r:h" opt; do
+  case $opt in
+    r) REPO=$OPTARG ;;
+    t) TAG=$OPTARG ;;
+    h) echo "Usage: $0 -r IMAGE_REPOSITORY [-h] [ -t IMAGE_TAG ]"; exit 1
+  esac
+done
+
+if [ -z "$REPO" ]; then
+  echo "Required parameter for repository (-r) is missing"
+  exit 1
+fi
+
+images=(manageiq-base manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker)
+images=( "${images[@]/#/$REPO/}" )
+images=( "${images[@]/%/:$TAG}" )
+echo "Removing ${images[@]}"
+docker rmi ${images[@]}
