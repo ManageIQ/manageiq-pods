@@ -229,6 +229,42 @@ objects:
 - apiVersion: v1
   kind: Service
   metadata:
+    labels:
+      app: manageiq
+    name: ui
+  spec:
+    ports:
+    - name: ui-3000
+      port: 3000
+    selector:
+      service: ui
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app: manageiq
+    name: web-service
+  spec:
+    ports:
+    - name: web-service-3000
+      port: 3000
+    selector:
+      service: web-service
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app: manageiq
+    name: remote-console
+  spec:
+    ports:
+    - name: remote-console-3000
+      port: 3000
+    selector:
+      service: remote-console
+- apiVersion: v1
+  kind: Service
+  metadata:
     name: httpd
     labels:
       app: manageiq
