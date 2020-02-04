@@ -10,6 +10,7 @@ ARG SUI_ORG=ManageIQ
 ARG APPLIANCE_ORG=ManageIQ
 
 ARG ARCH=x86_64
+ARG NODE_ARCH=x64
 ARG CORE_REPO_NAME=manageiq
 
 ARG GIT_HOST=github.com
@@ -19,7 +20,6 @@ ENV TERM=xterm \
     CONTAINER=true \
     APP_ROOT=/var/www/miq/vmdb \
     APPLIANCE_ROOT=/opt/manageiq/manageiq-appliance \
-    APPLIANCE_PG_DATA=/var/lib/pgsql/data \
     SUI_ROOT=/opt/manageiq/manageiq-ui-service \
     IMAGE_VERSION=${MIQ_REF}
 
@@ -55,27 +55,21 @@ RUN yum -y install --setopt=tsflags=nodocs \
                    openscap-scanner \
                    patch            \
                    psmisc           \
-                   sqlite-devel     \
                    postgresql-devel \
+                   sqlite-devel     \
                    sysvinit-tools   \
                    which            \
                    &&               \
     yum clean all
 
-# nvm environment variables
-ENV NVM_DIR /usr/local/nvm
-ENV NODE_VERSION 10.17.0
-# install nvm
-# https://github.com/creationix/nvm#install-script
-RUN curl --silent -o- https://raw.githubusercontent.com/creationix/nvm/v0.31.2/install.sh | bash
-# install node and npm
-RUN source $NVM_DIR/nvm.sh \
-    && nvm install $NODE_VERSION \
-    && nvm alias default $NODE_VERSION \
-    && nvm use default
-# add node and npm to path so the commands are available
-ENV NODE_PATH $NVM_DIR/v$NODE_VERSION/lib/node_modules
-ENV PATH $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
+ENV NODE_VERSION=v10.17.0
+ENV NODE_DISTRO=linux-${NODE_ARCH}
+
+RUN mkdir -p /usr/local/lib/nodejs && \
+    wget https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-${NODE_DISTRO}.tar.xz && \
+    tar -xJvf node-${NODE_VERSION}-${NODE_DISTRO}.tar.xz -C /usr/local/lib/nodejs
+
+ENV PATH=/usr/local/lib/nodejs/node-${NODE_VERSION}-${NODE_DISTRO}/bin:$PATH
 
 RUN if [[ -n "$GIT_AUTH_AVAILABLE" ]] ; then \
       export GIT_AUTH=$(wget -O - -q http://localhost:8000/git_auth.txt) ; \

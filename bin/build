@@ -48,6 +48,12 @@ pushd $IMAGE_DIR
       "echo $GIT_AUTH > git_auth.txt && httpd -p 8000 -h / && sleep 1200")
   fi
 
+  if [ $ARCH = "amd64" ] || [ $ARCH = "x86_64" ] ; then
+    NODE_ARCH="x64"
+  else
+    NODE_ARCH=$ARCH
+  fi
+
   cmd="docker build --tag $REPO/manageiq-base:$TAG \
                     --build-arg MIQ_REF=$MIQ_REF \
                     --build-arg SUI_REF=$SUI_REF\
@@ -57,7 +63,8 @@ pushd $IMAGE_DIR
                     --build-arg APPLIANCE_ORG=$APPLIANCE_ORG \
                     --build-arg GIT_HOST=$GIT_HOST \
                     --build-arg CORE_REPO_NAME=$CORE_REPO_NAME \
-                    --build-arg ARCH=$ARCH"
+                    --build-arg ARCH=$ARCH
+                    --build-arg NODE_ARCH=$NODE_ARCH"
 
   if [[ -n "$GIT_AUTH" ]] ; then
     cmd+=" --build-arg GIT_AUTH_AVAILABLE=true --network=container:$SECRETS_CONTAINER"
