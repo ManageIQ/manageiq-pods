@@ -35,8 +35,10 @@ RUN source /etc/default/evm && \
     rm -vf ${APP_ROOT}/log/*.log
 
 # Build service UI
+# PhantomJS is required only for testing and can be by-passed here
 RUN source /etc/default/evm && \
     cd ${SUI_ROOT} && \
+    sed -i '/phantomjs/d' package.json && \
     yarn install && \
     yarn run available-languages && \
     yarn run build

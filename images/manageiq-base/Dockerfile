@@ -9,6 +9,8 @@ ARG MIQ_ORG=ManageIQ
 ARG SUI_ORG=ManageIQ
 ARG APPLIANCE_ORG=ManageIQ
 
+ARG ARCH=x86_64
+ARG NODE_ARCH=x64
 ARG CORE_REPO_NAME=manageiq
 
 ARG GIT_HOST=github.com
@@ -32,8 +34,7 @@ LABEL name="manageiq-base" \
       io.k8s.description="ManageIQ is a management and automation platform for virtual, private, and hybrid cloud infrastructures." \
       io.openshift.tags="ManageIQ,miq,manageiq"
 
-RUN yum -y install https://rpm.nodesource.com/pub_10.x/el/7/x86_64/nodesource-release-el7-1.noarch.rpm && \
-    yum -y install --setopt=tsflags=nodocs \
+RUN yum -y install --setopt=tsflags=nodocs \
                    chrony           \
                    cmake            \
                    cronie           \
@@ -50,7 +51,6 @@ RUN yum -y install https://rpm.nodesource.com/pub_10.x/el/7/x86_64/nodesource-re
                    lvm2             \
                    net-tools        \
                    nmap-ncat        \
-                   nodejs           \
                    openldap-clients \
                    openscap-scanner \
                    patch            \
@@ -61,6 +61,14 @@ RUN yum -y install https://rpm.nodesource.com/pub_10.x/el/7/x86_64/nodesource-re
                    which            \
                    &&               \
     yum clean all
+
+ENV NODE_VERSION=v10.17.0
+ENV NODE_DISTRO=linux-${NODE_ARCH}
+
+RUN mkdir -p /usr/local/lib/nodejs && \
+    wget -qO- https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-${NODE_DISTRO}.tar.xz | tar -xJvf - -C /usr/local/lib/nodejs
+
+ENV PATH=/usr/local/lib/nodejs/node-${NODE_VERSION}-${NODE_DISTRO}/bin:$PATH
 
 RUN if [[ -n "$GIT_AUTH_AVAILABLE" ]] ; then \
       export GIT_AUTH=$(wget -O - -q http://localhost:8000/git_auth.txt) ; \
@@ -95,6 +103,7 @@ WORKDIR ${APP_ROOT}
 RUN source /etc/default/evm && \
     export RAILS_USE_MEMORY_STORE="true" && \
     gem install bundler -v ">=1.16.2" && \
+    if [ ${ARCH} = "ppc64le" ] ; then gem install sassc  -- --disable-march-tune-native ; fi && \
     bundle install && \
     rake tmp:clear evm:compile_sti_loader log:clear && \
     find ${RUBY_GEMS_ROOT}/gems/ -name .git | xargs rm -rvf && \
@@ -107,7 +116,7 @@ RUN source /etc/default/evm && \
 
 ADD container-assets/container_env ${APP_ROOT}
 
-RUN wget -O /usr/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 && \
+RUN wget -O /usr/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.2/dumb-init_1.2.2_${ARCH} && \
     chmod +x /usr/bin/dumb-init
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--single-child", "--"]
