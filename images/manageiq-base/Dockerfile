@@ -66,8 +66,7 @@ ENV NODE_VERSION=v10.17.0
 ENV NODE_DISTRO=linux-${NODE_ARCH}
 
 RUN mkdir -p /usr/local/lib/nodejs && \
-    wget https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-${NODE_DISTRO}.tar.xz && \
-    tar -xJvf node-${NODE_VERSION}-${NODE_DISTRO}.tar.xz -C /usr/local/lib/nodejs
+    wget -qO- https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-${NODE_DISTRO}.tar.xz | tar -xJvf - -C /usr/local/lib/nodejs
 
 ENV PATH=/usr/local/lib/nodejs/node-${NODE_VERSION}-${NODE_DISTRO}/bin:$PATH
 

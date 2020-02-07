@@ -63,7 +63,7 @@ pushd $IMAGE_DIR
                     --build-arg APPLIANCE_ORG=$APPLIANCE_ORG \
                     --build-arg GIT_HOST=$GIT_HOST \
                     --build-arg CORE_REPO_NAME=$CORE_REPO_NAME \
-                    --build-arg ARCH=$ARCH
+                    --build-arg ARCH=$ARCH \
                     --build-arg NODE_ARCH=$NODE_ARCH"
 
   if [[ -n "$GIT_AUTH" ]] ; then
