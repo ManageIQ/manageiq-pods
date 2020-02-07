@@ -6,8 +6,6 @@ MAINTAINER ManageIQ https://manageiq.org
 
 ARG NPM_REGISTRY_OVERRIDE
 
-ARG ARCH=x86_64
-
 LABEL name="manageiq-ui-worker" \
       summary="ManageIQ user interface worker image"
 
