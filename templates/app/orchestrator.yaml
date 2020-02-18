@@ -38,7 +38,7 @@ objects:
           - name: APPLICATION_ADMIN_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: manageiq-secrets
+                name: app-secrets
                 key: admin-password
           - name: GUID
             value: "${GUID}"
@@ -73,7 +73,7 @@ objects:
           - name: ENCRYPTION_KEY
             valueFrom:
               secretKeyRef:
-                name: manageiq-secrets
+                name: app-secrets
                 key: encryption-key
           - name: CONTAINER_IMAGE_NAMESPACE
             value: "${ORCHESTRATOR_IMAGE_NAMESPACE}"
