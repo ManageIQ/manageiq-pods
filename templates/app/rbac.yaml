@@ -1,18 +1,20 @@
 apiVersion: v1
-kind: List
-items:
+kind: Template
+metadata:
+  name: rbac
+objects:
 - apiVersion: v1
   kind: ServiceAccount
   metadata:
-    name: miq-orchestrator
+    name: "${APP_NAME}-orchestrator"
 - apiVersion: v1
   kind: ServiceAccount
   metadata:
-    name: miq-anyuid
+    name: "${APP_NAME}-anyuid"
 - apiVersion: v1
   kind: ServiceAccount
   metadata:
-    name: miq-httpd
+    name: "${APP_NAME}-httpd"
 - apiVersion: rbac.authorization.k8s.io/v1
   kind: RoleBinding
   metadata:
@@ -23,7 +25,7 @@ items:
     apiGroup: rbac.authorization.k8s.io
   subjects:
   - kind: ServiceAccount
-    name: miq-orchestrator
+    name: "${APP_NAME}-orchestrator"
 - apiVersion: rbac.authorization.k8s.io/v1
   kind: RoleBinding
   metadata:
@@ -34,4 +36,7 @@ items:
     apiGroup: rbac.authorization.k8s.io
   subjects:
   - kind: ServiceAccount
-    name: miq-orchestrator
+    name: "${APP_NAME}-orchestrator"
+parameters:
+- name: APP_NAME
+  value: manageiq

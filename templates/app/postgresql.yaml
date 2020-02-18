@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Template
 metadata:
-  name: manageiq-postgresql
+  name: "${APP_NAME}-postgresql"
 objects:
 - apiVersion: v1
   kind: ConfigMap
   metadata:
     name: postgresql-configs
     labels:
-      app: manageiq
+      app: "${APP_NAME}"
   data:
     01_miq_overrides.conf: |
       #------------------------------------------------------------------------------
@@ -82,7 +82,7 @@ objects:
   metadata:
     name: postgresql
     labels:
-      app: manageiq
+      app: "${APP_NAME}"
   spec:
     accessModes:
     - ReadWriteOnce
@@ -94,7 +94,7 @@ objects:
   metadata:
     name: postgresql
     labels:
-      app: manageiq
+      app: "${APP_NAME}"
   spec:
     ports:
     - name: postgresql
@@ -106,7 +106,7 @@ objects:
   metadata:
     name: postgresql
     labels:
-      app: manageiq
+      app: "${APP_NAME}"
   spec:
     strategy:
       type: Recreate
@@ -168,6 +168,8 @@ objects:
             limits:
               memory: "${POSTGRESQL_MEM_LIMIT}"
 parameters:
+- name: APP_NAME
+  value: manageiq
 - name: POSTGRESQL_MAX_CONNECTIONS
   value: '1000'
 - name: POSTGRESQL_SHARED_BUFFERS

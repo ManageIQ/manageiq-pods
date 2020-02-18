@@ -1,29 +1,29 @@
 apiVersion: v1
 kind: Template
 metadata:
-  name: manageiq-orchestrator
+  name: "${APP_NAME}-orchestrator"
 objects:
 - apiVersion: apps/v1
   kind: Deployment
   metadata:
-    name: manageiq-orchestrator
+    name: "${APP_NAME}-orchestrator"
     labels:
-      app: manageiq
+      app: "${APP_NAME}"
   spec:
     strategy:
       type: Recreate
     replicas: 1
     selector:
       matchLabels:
-        name: manageiq-orchestrator
+        name: "${APP_NAME}-orchestrator"
     template:
       metadata:
-        name: manageiq-orchestrator
+        name: "${APP_NAME}-orchestrator"
         labels:
-          name: manageiq-orchestrator
+          name: "${APP_NAME}-orchestrator"
       spec:
         containers:
-        - name: manageiq-orchestrator
+        - name: "${APP_NAME}-orchestrator"
           image: "${ORCHESTRATOR_IMAGE_NAMESPACE}/${ORCHESTRATOR_IMAGE_NAME}:${ORCHESTRATOR_IMAGE_TAG}"
           livenessProbe:
             exec:
@@ -35,6 +35,8 @@ objects:
           env:
           - name: ALLOW_INSECURE_SESSION
             value: 'true'
+          - name: APP_NAME
+            value: "${APP_NAME}"
           - name: APPLICATION_ADMIN_PASSWORD
             valueFrom:
               secretKeyRef:
@@ -83,9 +85,11 @@ objects:
               cpu: "${ORCHESTRATOR_CPU_REQ}"
             limits:
               memory: "${ORCHESTRATOR_MEM_LIMIT}"
-        serviceAccountName: miq-orchestrator
+        serviceAccountName: "${APP_NAME}-orchestrator"
         terminationGracePeriodSeconds: 90
 parameters:
+- name: APP_NAME
+  value: manageiq
 - name: DATABASE_PORT
   value: '5432'
 - name: DATABASE_REGION
