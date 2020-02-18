@@ -1,5 +1,4 @@
-FROM manageiq/ruby:2.5
-MAINTAINER ManageIQ https://manageiq.org
+FROM centos:7
 
 ARG MIQ_REF=master
 ARG SUI_REF=master
@@ -9,24 +8,39 @@ ARG MIQ_ORG=ManageIQ
 ARG SUI_ORG=ManageIQ
 ARG APPLIANCE_ORG=ManageIQ
 
-ARG ARCH=x86_64
-ARG NODE_ARCH=x64
 ARG CORE_REPO_NAME=manageiq
 
 ARG GIT_HOST=github.com
-ARG GIT_AUTH_AVAILABLE
+ARG GIT_AUTH
+
+RUN yum -y install --setopt=tsflags=nodocs git
+
+RUN if [[ -n "$GIT_AUTH" ]]; then export GIT_HOST=${GIT_AUTH}@${GIT_HOST}; fi
+
+RUN mkdir appliance && \
+    curl -L https://${GIT_HOST}/${APPLIANCE_ORG}/${CORE_REPO_NAME}-appliance/tarball/${APPLIANCE_REF} | tar vxz -C appliance --strip 1
+
+RUN mkdir sui && \
+    curl -L https://${GIT_HOST}/${SUI_ORG}/${CORE_REPO_NAME}-ui-service/tarball/${SUI_REF} | tar vxz -C sui --strip 1
+
+RUN mkdir app && \
+    curl -L https://${GIT_HOST}/${MIQ_ORG}/${CORE_REPO_NAME}/tarball/${MIQ_REF} | tar vxz -C app --strip 1 && \
+    echo "`date +'%Y%m%d%H%M%S'`_`git ls-remote https://${GIT_HOST}/${MIQ_ORG}/${CORE_REPO_NAME}.git ${MIQ_REF} | cut -c 1-7`" > app/BUILD
+
+FROM manageiq/ruby:2.5
+MAINTAINER ManageIQ https://manageiq.org
+
+ARG ARCH=x86_64
+ARG NODE_ARCH=x64
 
 ENV TERM=xterm \
     CONTAINER=true \
     APP_ROOT=/var/www/miq/vmdb \
     APPLIANCE_ROOT=/opt/manageiq/manageiq-appliance \
-    SUI_ROOT=/opt/manageiq/manageiq-ui-service \
-    IMAGE_VERSION=${MIQ_REF}
+    SUI_ROOT=/opt/manageiq/manageiq-ui-service
 
 LABEL name="manageiq-base" \
       vendor="ManageIQ" \
-      version="Master" \
-      release=${MIQ_REF} \
       url="https://manageiq.org/" \
       summary="ManageIQ base application image" \
       description="ManageIQ is a management and automation platform for virtual, private, and hybrid cloud infrastructures." \
@@ -70,28 +84,11 @@ RUN mkdir -p /usr/local/lib/nodejs && \
 
 ENV PATH=/usr/local/lib/nodejs/node-${NODE_VERSION}-${NODE_DISTRO}/bin:$PATH
 
-RUN if [[ -n "$GIT_AUTH_AVAILABLE" ]] ; then \
-      export GIT_AUTH=$(wget -O - -q http://localhost:8000/git_auth.txt) ; \
-      export GIT_HOST=${GIT_AUTH}@${GIT_HOST} ; \
-    fi && \
-    mkdir -p ${APPLIANCE_ROOT} && \
-    curl -L https://${GIT_HOST}/${APPLIANCE_ORG}/${CORE_REPO_NAME}-appliance/tarball/${APPLIANCE_REF} | tar vxz -C ${APPLIANCE_ROOT} --strip 1
-
-RUN if [[ -n "$GIT_AUTH_AVAILABLE" ]] ; then \
-      export GIT_AUTH=$(wget -O - -q http://localhost:8000/git_auth.txt) ; \
-      export GIT_HOST=${GIT_AUTH}@${GIT_HOST} ; \
-    fi && \
-    mkdir -p ${SUI_ROOT} && \
-    curl -L https://${GIT_HOST}/${SUI_ORG}/${CORE_REPO_NAME}-ui-service/tarball/${SUI_REF} | tar vxz -C ${SUI_ROOT} --strip 1
-
-RUN if [[ -n "$GIT_AUTH_AVAILABLE" ]] ; then \
-      export GIT_AUTH=$(wget -O - -q http://localhost:8000/git_auth.txt) ; \
-      export GIT_HOST=${GIT_AUTH}@${GIT_HOST} ; \
-    fi && \
-    mkdir -p ${APP_ROOT} && \
-    ln -vs ${APP_ROOT} /opt/manageiq/manageiq && \
-    curl -L https://${GIT_HOST}/${MIQ_ORG}/${CORE_REPO_NAME}/tarball/${MIQ_REF} | tar vxz -C ${APP_ROOT} --strip 1 && \
-    echo "`date +'%Y%m%d%H%M%S'`_`git ls-remote https://${GIT_HOST}/${MIQ_ORG}/${CORE_REPO_NAME}.git ${MIQ_REF} | cut -c 1-7`" > ${APP_ROOT}/BUILD
+RUN mkdir -p ${APP_ROOT} ${APPLIANCE_ROOT} ${SUI_ROOT} && \
+    ln -vs ${APP_ROOT} /opt/manageiq/manageiq
+COPY --from=0 app ${APP_ROOT}
+COPY --from=0 appliance ${APPLIANCE_ROOT}
+COPY --from=0 sui ${SUI_ROOT}
 
 RUN ${APPLIANCE_ROOT}/setup && \
     mkdir -p ${APP_ROOT}/log/apache && \
