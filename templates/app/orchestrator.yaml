@@ -75,12 +75,16 @@ objects:
                 key: encryption-key
           - name: CONTAINER_IMAGE_NAMESPACE
             value: "${ORCHESTRATOR_IMAGE_NAMESPACE}"
+          - name: IMAGE_PULL_SECRET
+            value: "${IMAGE_PULL_SECRET}"
           resources:
             requests:
               memory: "${ORCHESTRATOR_MEM_REQ}"
               cpu: "${ORCHESTRATOR_CPU_REQ}"
             limits:
               memory: "${ORCHESTRATOR_MEM_LIMIT}"
+        imagePullSecrets:
+        - name: "${IMAGE_PULL_SECRET}"
         serviceAccountName: "${APP_NAME}-orchestrator"
         terminationGracePeriodSeconds: 90
 parameters:
@@ -93,6 +97,8 @@ parameters:
 - name: GUID
   from: "[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}"
   generate: expression
+- name: IMAGE_PULL_SECRET
+  value: ''
 - name: ORCHESTRATOR_IMAGE_NAMESPACE
   value: manageiq
 - name: ORCHESTRATOR_IMAGE_NAME
