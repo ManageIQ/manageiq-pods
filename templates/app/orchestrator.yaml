@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Template
 metadata:
-  name: "${APP_NAME}-orchestrator"
+  name: orchestrator
 objects:
 - apiVersion: apps/v1
   kind: Deployment
   metadata:
-    name: "${APP_NAME}-orchestrator"
+    name: orchestrator
     labels:
       app: "${APP_NAME}"
   spec:
@@ -15,15 +15,15 @@ objects:
     replicas: 1
     selector:
       matchLabels:
-        name: "${APP_NAME}-orchestrator"
+        name: orchestrator
     template:
       metadata:
-        name: "${APP_NAME}-orchestrator"
+        name: orchestrator
         labels:
-          name: "${APP_NAME}-orchestrator"
+          name: orchestrator
       spec:
         containers:
-        - name: "${APP_NAME}-orchestrator"
+        - name: orchestrator
           image: "${ORCHESTRATOR_IMAGE_NAMESPACE}/${ORCHESTRATOR_IMAGE_NAME}:${ORCHESTRATOR_IMAGE_TAG}"
           livenessProbe:
             exec:
