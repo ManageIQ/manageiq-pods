@@ -46,7 +46,7 @@ _**Note:**_ This section assumes you have a basic user.
 $ oc new-project <project_name>
 ```
 
-### Add the miq-anyuid and miq-orchestrator service accounts to the anyuid security context
+### Add the anyuid and orchestrator service accounts to the anyuid security context
 
 _**Note:**_ The current MIQ images require the root user.
 
@@ -55,8 +55,8 @@ These service accounts for your namespace (project) must be added to the anyuid 
 _**As admin**_
 
 ```bash
-$ oc adm policy add-scc-to-user anyuid system:serviceaccount:<your-namespace>:miq-anyuid
-$ oc adm policy add-scc-to-user anyuid system:serviceaccount:<your-namespace>:miq-orchestrator
+$ oc adm policy add-scc-to-user anyuid system:serviceaccount:<your-namespace>:<app-name>-anyuid
+$ oc adm policy add-scc-to-user anyuid system:serviceaccount:<your-namespace>:<app-name>-orchestrator
 ```
 
 Verify that the service accounts are now included in the anyuid scc
@@ -65,7 +65,7 @@ $ oc describe scc anyuid | grep Users
 Users:					system:serviceaccount:<your-namespace>:miq-anyuid,system:serviceaccount:<your-namespace>:miq-orchestrator
 ```
 
-### Set up the miq-httpd service account
+### Set up the httpd service account
 
 #### If running without OCI systemd hooks (Minishift)
 
@@ -84,10 +84,10 @@ $ oc create -f templates/miq-scc-sysadmin.yaml
 The miq-httpd service account must be added to the miq-sysadmin SCC before the front-end httpd pod can run.
 
 ```bash
-$ oc adm policy add-scc-to-user miq-sysadmin system:serviceaccount:<your-namespace>:miq-httpd
+$ oc adm policy add-scc-to-user miq-sysadmin system:serviceaccount:<your-namespace>:<app-name>-httpd
 ```
 
-Verify that the miq-httpd service account is now included in the miq-sysadmin scc
+Verify that the service account is now included in the miq-sysadmin scc
 
 ```bash
 $ oc describe scc miq-sysadmin | grep Users
@@ -98,13 +98,13 @@ Users:              system:serviceaccount:<your-namespace>:miq-httpd
 
 __*As admin*__
 
-Add the miq-httpd service account to the anyuid SCC
+Add the httpd service account to the anyuid SCC
 
 ```bash
-$ oc adm policy add-scc-to-user anyuid system:serviceaccount:<your-namespace>:miq-httpd
+$ oc adm policy add-scc-to-user anyuid system:serviceaccount:<your-namespace>:<app-name>-httpd
 ```
 
-Verify that the miq-httpd service account is now included in the anyuid scc
+Verify that the service account is now included in the anyuid scc
 
 ```bash
 $ oc describe scc anyuid | grep Users

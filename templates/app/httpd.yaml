@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Template
 metadata:
-  name: manageiq-httpd
+  name: "${APP_NAME}-httpd"
 objects:
 - apiVersion: v1
   kind: ConfigMap
   metadata:
     name: httpd-configs
     labels:
-      app: manageiq
+      app: "${APP_NAME}"
   data:
     application.conf: |
       # Timeout: The number of seconds before receives and sends time out.
@@ -215,7 +215,7 @@ objects:
   metadata:
     name: httpd-auth-configs
     labels:
-      app: manageiq
+      app: "${APP_NAME}"
   data:
     auth-type: internal
     auth-kerberos-realms: undefined
@@ -230,7 +230,7 @@ objects:
   kind: Service
   metadata:
     labels:
-      app: manageiq
+      app: "${APP_NAME}"
     name: ui
   spec:
     ports:
@@ -242,7 +242,7 @@ objects:
   kind: Service
   metadata:
     labels:
-      app: manageiq
+      app: "${APP_NAME}"
     name: web-service
   spec:
     ports:
@@ -254,7 +254,7 @@ objects:
   kind: Service
   metadata:
     labels:
-      app: manageiq
+      app: "${APP_NAME}"
     name: remote-console
   spec:
     ports:
@@ -267,7 +267,7 @@ objects:
   metadata:
     name: httpd
     labels:
-      app: manageiq
+      app: "${APP_NAME}"
   spec:
     ports:
     - name: http
@@ -279,7 +279,7 @@ objects:
   metadata:
     name: httpd-dbus-api
     labels:
-      app: manageiq
+      app: "${APP_NAME}"
   spec:
     ports:
     - name: http-dbus-api
@@ -291,7 +291,7 @@ objects:
   metadata:
     name: httpd
     labels:
-      app: manageiq
+      app: "${APP_NAME}"
   spec:
     replicas: 1
     selector:
@@ -377,13 +377,13 @@ objects:
               exec:
                 command:
                 - "/usr/bin/save-container-environment"
-        serviceAccountName: miq-httpd
+        serviceAccountName: "${APP_NAME}-httpd"
 - apiVersion: extensions/v1beta1
   kind: Ingress
   metadata:
     name: httpd
     labels:
-      app: manageiq
+      app: "${APP_NAME}"
   spec:
     tls:
     - hosts:
@@ -398,6 +398,8 @@ objects:
             serviceName: httpd
             servicePort: 80
 parameters:
+- name: APP_NAME
+  value: manageiq
 - name: APPLICATION_DOMAIN
   value: ''
 - name: HTTPD_IMAGE_NAME

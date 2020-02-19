@@ -27,11 +27,11 @@ function create_tls_secret() {
 # or not have created the secret yet. This ensures we don't overwrite the existing
 # password with a newly generated one.
 (parameter_provided "DATABASE_PASSWORD" || secret_missing "postgresql-secrets") && apply_template "postgresql-secrets.yaml"
-(parameter_provided "ENCRYPTION_KEY" || secret_missing "manageiq-secrets") && apply_template "manageiq-secrets.yaml"
+(parameter_provided "ENCRYPTION_KEY" || secret_missing "app-secrets") && apply_template "app-secrets.yaml"
 secret_missing "tls-secret" && create_tls_secret
 
 # Orchestrator RBAC
-oc apply -f templates/app/rbac.yaml
+apply_template "rbac.yaml"
 
 # Only deploy the database if the user didn't specify an external database host
 parameter_provided "DATABASE_HOSTNAME" || apply_template "postgresql.yaml"
