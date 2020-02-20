@@ -38,6 +38,9 @@ HTTPD_IMAGE_TAG=latest
 HTTPD_MEM_LIMIT=8192Mi
 HTTPD_MEM_REQ=512Mi
 
+# Image pull secret to use for the orchestrator and worker images
+#IMAGE_PULL_SECRET=
+
 # memcached pod deployment information
 MEMCACHED_CPU_REQ=200m
 MEMCACHED_IMAGE_NAME=manageiq/memcached
