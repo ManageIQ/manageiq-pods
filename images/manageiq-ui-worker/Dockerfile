@@ -10,9 +10,9 @@ LABEL name="manageiq-ui-worker" \
       summary="ManageIQ user interface worker image"
 
 # Install httpd and remove the existing httpd config from manageiq-appliance
-RUN yum -y install httpd --setopt=tsflags=nodocs && \
+RUN dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install httpd && \
     rm -f /etc/httpd/conf.d/* && \
-    yum clean all
+    dnf clean all
 
 COPY container-assets/npm_registry /tmp/npm_registry
 

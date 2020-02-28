@@ -1,4 +1,4 @@
-FROM centos:7
+FROM registry.access.redhat.com/ubi8/ubi
 
 ARG MIQ_REF=master
 ARG SUI_REF=master
@@ -13,7 +13,7 @@ ARG CORE_REPO_NAME=manageiq
 ARG GIT_HOST=github.com
 ARG GIT_AUTH
 
-RUN yum -y install --setopt=tsflags=nodocs git
+RUN dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install git
 
 RUN if [[ -n "$GIT_AUTH" ]]; then export GIT_HOST=${GIT_AUTH}@${GIT_HOST}; fi
 
@@ -27,7 +27,7 @@ RUN mkdir app && \
     curl -L https://${GIT_HOST}/${MIQ_ORG}/${CORE_REPO_NAME}/tarball/${MIQ_REF} | tar vxz -C app --strip 1 && \
     echo "`date +'%Y%m%d%H%M%S'`_`git ls-remote https://${GIT_HOST}/${MIQ_ORG}/${CORE_REPO_NAME}.git ${MIQ_REF} | cut -c 1-7`" > app/BUILD
 
-FROM manageiq/ruby:2.5
+FROM registry.access.redhat.com/ubi8/ubi
 MAINTAINER ManageIQ https://manageiq.org
 
 ARG ARCH=x86_64
@@ -48,33 +48,42 @@ LABEL name="manageiq-base" \
       io.k8s.description="ManageIQ is a management and automation platform for virtual, private, and hybrid cloud infrastructures." \
       io.openshift.tags="ManageIQ,miq,manageiq"
 
-RUN yum -y install --setopt=tsflags=nodocs \
-                   chrony           \
-                   cmake            \
-                   cronie           \
-                   file             \
-                   gcc-c++          \
-                   git              \
-                   http-parser      \
-                   initscripts      \
-                   libcurl-devel    \
-                   libpq            \
-                   libtool          \
-                   libxslt-devel    \
-                   logrotate        \
-                   lvm2             \
-                   net-tools        \
-                   nmap-ncat        \
-                   openldap-clients \
-                   openscap-scanner \
-                   patch            \
-                   psmisc           \
-                   postgresql-devel \
-                   sqlite-devel     \
-                   sysvinit-tools   \
-                   which            \
-                   &&               \
-    yum clean all
+RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org/centos/8/BaseOS/${ARCH}/os/Packages/centos-repos-8.1-1.1911.0.8.el8.${ARCH}.rpm http://mirror.centos.org/centos/8/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-8.1-1.1911.0.8.el8.noarch.rpm && \
+    dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
+      chrony            \
+      cmake             \
+      cronie            \
+      file              \
+      gcc-c++           \
+      git               \
+      hostname          \
+      http-parser       \
+      initscripts       \
+      iproute           \
+      libcurl-devel     \
+      libpq             \
+      libtool           \
+      libxml2-devel     \
+      libxslt-devel     \
+      logrotate         \
+      lvm2              \
+      make              \
+      net-tools         \
+      nmap-ncat         \
+      openldap-clients  \
+      openscap-scanner  \
+      openssl-devel     \
+      patch             \
+      psmisc            \
+      postgresql-devel  \
+      redhat-rpm-config \
+      ruby-devel        \
+      sqlite-devel      \
+      wget              \
+      which             \
+      xz                \
+      &&                \
+    dnf clean all
 
 ENV NODE_VERSION=v10.17.0
 ENV NODE_DISTRO=linux-${NODE_ARCH}
