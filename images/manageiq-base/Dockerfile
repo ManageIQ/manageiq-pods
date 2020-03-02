@@ -56,6 +56,7 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
       file              \
       gcc-c++           \
       git               \
+      glibc-langpack-en \
       hostname          \
       http-parser       \
       initscripts       \
