@@ -1,8 +1,8 @@
 FROM registry.access.redhat.com/ubi8/ubi
 
-ARG MIQ_REF=master
-ARG SUI_REF=master
-ARG APPLIANCE_REF=master
+ARG MIQ_REF=jansa
+ARG SUI_REF=jansa
+ARG APPLIANCE_REF=jansa
 
 ARG MIQ_ORG=ManageIQ
 ARG SUI_ORG=ManageIQ
