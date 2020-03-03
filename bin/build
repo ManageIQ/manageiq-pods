@@ -1,10 +1,10 @@
 #!/bin/bash
 
-TAG=latest
+TAG=latest-jansa
 
-MIQ_REF=${MIQ_REF:-master}
-SUI_REF=${SUI_REF:-master}
-APPLIANCE_REF=${APPLIANCE_REF:-master}
+MIQ_REF=${MIQ_REF:-jansa}
+SUI_REF=${SUI_REF:-jansa}
+APPLIANCE_REF=${APPLIANCE_REF:-jansa}
 
 MIQ_ORG=${MIQ_ORG:-ManageIQ}
 SUI_ORG=${SUI_ORG:-ManageIQ}
