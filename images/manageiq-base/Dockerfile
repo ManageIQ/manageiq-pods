@@ -15,16 +15,14 @@ ARG GIT_AUTH
 
 RUN dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install git
 
-RUN if [[ -n "$GIT_AUTH" ]]; then export GIT_HOST=${GIT_AUTH}@${GIT_HOST}; fi
-
 RUN mkdir appliance && \
-    curl -L https://${GIT_HOST}/${APPLIANCE_ORG}/${CORE_REPO_NAME}-appliance/tarball/${APPLIANCE_REF} | tar vxz -C appliance --strip 1
+    if [[ -n "$GIT_AUTH" ]]; then GIT_HOST=${GIT_AUTH}@${GIT_HOST}; fi && curl -L https://${GIT_HOST}/${APPLIANCE_ORG}/${CORE_REPO_NAME}-appliance/tarball/${APPLIANCE_REF} | tar vxz -C appliance --strip 1
 
 RUN mkdir sui && \
-    curl -L https://${GIT_HOST}/${SUI_ORG}/${CORE_REPO_NAME}-ui-service/tarball/${SUI_REF} | tar vxz -C sui --strip 1
+    if [[ -n "$GIT_AUTH" ]]; then GIT_HOST=${GIT_AUTH}@${GIT_HOST}; fi && curl -L https://${GIT_HOST}/${SUI_ORG}/${CORE_REPO_NAME}-ui-service/tarball/${SUI_REF} | tar vxz -C sui --strip 1
 
 RUN mkdir app && \
-    curl -L https://${GIT_HOST}/${MIQ_ORG}/${CORE_REPO_NAME}/tarball/${MIQ_REF} | tar vxz -C app --strip 1 && \
+    if [[ -n "$GIT_AUTH" ]]; then GIT_HOST=${GIT_AUTH}@${GIT_HOST}; fi && curl -L https://${GIT_HOST}/${MIQ_ORG}/${CORE_REPO_NAME}/tarball/${MIQ_REF} | tar vxz -C app --strip 1 && \
     echo "`date +'%Y%m%d%H%M%S'`_`git ls-remote https://${GIT_HOST}/${MIQ_ORG}/${CORE_REPO_NAME}.git ${MIQ_REF} | cut -c 1-7`" > app/BUILD
 
 FROM registry.access.redhat.com/ubi8/ubi
