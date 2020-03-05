@@ -100,6 +100,7 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
       v2v-conversion-host-ansible \
       wget              \
       which             \
+      wmi               \
       xz                \
       &&                \
     dnf clean all
