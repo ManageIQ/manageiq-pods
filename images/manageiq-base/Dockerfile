@@ -58,6 +58,8 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
       cockpit-ws        \
       cockpit-ssh       \
       cronie            \
+      cyrus-sasl        \
+      cyrus-sasl-plain  \
       file              \
       gcc-c++           \
       git               \
@@ -83,6 +85,7 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
       patch             \
       psmisc            \
       postgresql-devel  \
+      qpid-proton-c-devel \
       redhat-rpm-config \
       ruby-devel        \
       sqlite-devel      \
@@ -111,7 +114,7 @@ RUN source /etc/default/evm && \
     export RAILS_USE_MEMORY_STORE="true" && \
     gem install bundler -v ">=1.16.2" && \
     if [ ${ARCH} = "ppc64le" ] ; then gem install sassc  -- --disable-march-tune-native ; fi && \
-    bundle install && \
+    bundle install --with qpid_proton && \
     rake tmp:clear evm:compile_sti_loader log:clear && \
     find ${RUBY_GEMS_ROOT}/gems/ -name .git | xargs rm -rvf && \
     find ${RUBY_GEMS_ROOT}/gems/ | grep "\.o$" | xargs rm -rvf && \
