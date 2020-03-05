@@ -90,6 +90,7 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
       OpenIPMI          \
       patch             \
       psmisc            \
+      postfix           \
       postgresql-devel  \
       qpid-proton-c-devel \
       redhat-rpm-config \
