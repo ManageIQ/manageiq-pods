@@ -55,6 +55,8 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
       ansible-runner    \
       chrony            \
       cmake             \
+      cockpit-ws        \
+      cockpit-ssh       \
       cronie            \
       file              \
       gcc-c++           \
