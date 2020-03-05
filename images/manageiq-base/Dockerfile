@@ -72,6 +72,7 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
       iproute           \
       libcurl-devel     \
       libpq             \
+      libssh2-devel     \
       libtool           \
       libxml2-devel     \
       libxslt-devel     \
