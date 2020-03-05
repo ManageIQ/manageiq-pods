@@ -78,6 +78,9 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
       logrotate         \
       lvm2              \
       make              \
+      net-snmp          \
+      net-snmp-libs     \
+      net-snmp-utils    \
       net-tools         \
       nmap-ncat         \
       nodejs            \
