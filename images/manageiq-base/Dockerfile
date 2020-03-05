@@ -61,12 +61,14 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
       cyrus-sasl        \
       cyrus-sasl-plain  \
       file              \
+      freeipmi          \
       gcc-c++           \
       git               \
       glibc-langpack-en \
       hostname          \
       http-parser       \
       initscripts       \
+      ipmitool          \
       iproute           \
       libcurl-devel     \
       libpq             \
@@ -82,6 +84,7 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
       openldap-clients  \
       openscap-scanner  \
       openssl-devel     \
+      OpenIPMI          \
       patch             \
       psmisc            \
       postgresql-devel  \
