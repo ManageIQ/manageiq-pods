@@ -31,7 +31,6 @@ FROM registry.access.redhat.com/ubi8/ubi
 MAINTAINER ManageIQ https://manageiq.org
 
 ARG ARCH=x86_64
-ARG NODE_ARCH=x64
 
 ENV TERM=xterm \
     CONTAINER=true \
@@ -49,6 +48,7 @@ LABEL name="manageiq-base" \
       io.openshift.tags="ManageIQ,miq,manageiq"
 
 RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org/centos/8/BaseOS/${ARCH}/os/Packages/centos-repos-8.1-1.1911.0.8.el8.${ARCH}.rpm http://mirror.centos.org/centos/8/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-8.1-1.1911.0.8.el8.noarch.rpm && \
+    dnf -y --disableplugin=subscription-manager module enable nodejs:12 && \
     dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
       chrony            \
       cmake             \
@@ -71,6 +71,7 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
       make              \
       net-tools         \
       nmap-ncat         \
+      nodejs            \
       openldap-clients  \
       openscap-scanner  \
       openssl-devel     \
@@ -86,13 +87,6 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
       &&                \
     dnf clean all
 
-ENV NODE_VERSION=v10.17.0
-ENV NODE_DISTRO=linux-${NODE_ARCH}
-
-RUN mkdir -p /usr/local/lib/nodejs && \
-    wget -qO- https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-${NODE_DISTRO}.tar.xz | tar -xJvf - -C /usr/local/lib/nodejs
-
-ENV PATH=/usr/local/lib/nodejs/node-${NODE_VERSION}-${NODE_DISTRO}/bin:$PATH
 
 RUN mkdir -p ${APP_ROOT} ${APPLIANCE_ROOT} ${SUI_ROOT} && \
     ln -vs ${APP_ROOT} /opt/manageiq/manageiq
