@@ -42,12 +42,6 @@ fi
 set -e
 
 pushd $IMAGE_DIR
-  if [ $ARCH = "amd64" ] || [ $ARCH = "x86_64" ] ; then
-    NODE_ARCH="x64"
-  else
-    NODE_ARCH=$ARCH
-  fi
-
   cmd="docker build --tag $REPO/manageiq-base:$TAG \
                     --build-arg MIQ_REF=$MIQ_REF \
                     --build-arg SUI_REF=$SUI_REF\
@@ -58,8 +52,7 @@ pushd $IMAGE_DIR
                     --build-arg GIT_AUTH=$GIT_AUTH \
                     --build-arg GIT_HOST=$GIT_HOST \
                     --build-arg CORE_REPO_NAME=$CORE_REPO_NAME \
-                    --build-arg ARCH=$ARCH \
-                    --build-arg NODE_ARCH=$NODE_ARCH"
+                    --build-arg ARCH=$ARCH"
 
   if [ -n "$NO_CACHE" ]; then
     cmd+=" --no-cache"
