@@ -95,6 +95,7 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
       qpid-proton-c-devel \
       redhat-rpm-config \
       ruby-devel        \
+      socat             \
       sqlite-devel      \
       v2v-conversion-host-ansible \
       wget              \
