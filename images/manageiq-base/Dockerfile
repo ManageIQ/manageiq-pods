@@ -88,6 +88,7 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
       patch             \
       postfix           \
       postgresql-devel  \
+      procps-ng         \
       python3-devel     \
       qpid-proton-c-devel \
       redhat-rpm-config \
