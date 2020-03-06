@@ -53,11 +53,9 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
     dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
       ansible           \
       ansible-runner    \
-      chrony            \
       cmake             \
       cockpit-ws        \
       cockpit-ssh       \
-      cronie            \
       cyrus-sasl        \
       cyrus-sasl-plain  \
       file              \
@@ -67,7 +65,6 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
       glibc-langpack-en \
       hostname          \
       http-parser       \
-      initscripts       \
       ipmitool          \
       iproute           \
       libcurl-devel     \
@@ -82,7 +79,6 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
       net-snmp          \
       net-snmp-libs     \
       net-snmp-utils    \
-      net-tools         \
       nmap-ncat         \
       nodejs            \
       openldap-clients  \
@@ -90,7 +86,6 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
       openssl-devel     \
       OpenIPMI          \
       patch             \
-      psmisc            \
       postfix           \
       postgresql-devel  \
       python3-devel     \
@@ -101,7 +96,6 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
       sqlite-devel      \
       v2v-conversion-host-ansible \
       wget              \
-      which             \
       wmi               \
       xz                \
       &&                \
