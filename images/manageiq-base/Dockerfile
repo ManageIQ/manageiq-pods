@@ -104,6 +104,7 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
 
 # Install python packages the same way the appliance does
 RUN curl -L https://raw.githubusercontent.com/ManageIQ/manageiq-appliance-build/master/kickstarts/partials/post/python_modules.ks.erb | bash -
+RUN curl -L https://raw.githubusercontent.com/ManageIQ/manageiq-appliance-build/master/kickstarts/partials/post/ovirt_ansible.ks.erb | bash -
 
 RUN mkdir -p ${APP_ROOT} ${APPLIANCE_ROOT} ${SUI_ROOT} && \
     ln -vs ${APP_ROOT} /opt/manageiq/manageiq
