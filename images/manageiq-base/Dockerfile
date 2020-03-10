@@ -3,10 +3,12 @@ FROM registry.access.redhat.com/ubi8/ubi
 ARG MIQ_REF=master
 ARG SUI_REF=master
 ARG APPLIANCE_REF=master
+ARG BUILD_REF=master
 
 ARG MIQ_ORG=ManageIQ
 ARG SUI_ORG=ManageIQ
 ARG APPLIANCE_ORG=ManageIQ
+ARG BUILD_ORG=ManageIQ
 
 ARG CORE_REPO_NAME=manageiq
 
@@ -24,6 +26,9 @@ RUN mkdir sui && \
 RUN mkdir app && \
     if [[ -n "$GIT_AUTH" ]]; then GIT_HOST=${GIT_AUTH}@${GIT_HOST}; fi && curl -L https://${GIT_HOST}/${MIQ_ORG}/${CORE_REPO_NAME}/tarball/${MIQ_REF} | tar vxz -C app --strip 1 && \
     echo "`date +'%Y%m%d%H%M%S'`_`git ls-remote https://${GIT_HOST}/${MIQ_ORG}/${CORE_REPO_NAME}.git ${MIQ_REF} | cut -c 1-7`" > app/BUILD
+
+RUN mkdir build && \
+    if [[ -n "$GIT_AUTH" ]]; then GIT_HOST=${GIT_AUTH}@${GIT_HOST}; fi && curl -L https://${GIT_HOST}/${BUILD_ORG}/${CORE_REPO_NAME}-appliance-build/tarball/${BUILD_REF} | tar vxz -C build --strip 1
 
 FROM registry.access.redhat.com/ubi8/ubi
 MAINTAINER ManageIQ https://manageiq.org
@@ -103,8 +108,10 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
     dnf clean all
 
 # Install python packages the same way the appliance does
-RUN curl -L https://raw.githubusercontent.com/ManageIQ/manageiq-appliance-build/master/kickstarts/partials/post/python_modules.ks.erb | bash -
-RUN curl -L https://raw.githubusercontent.com/ManageIQ/manageiq-appliance-build/master/kickstarts/partials/post/ovirt_ansible.ks.erb | bash -
+COPY --from=0 build/kickstarts/partials/post/python_modules.ks.erb /tmp/python_modules
+RUN bash /tmp/python_modules && rm -f /tmp/python_modules
+COPY --from=0 build/kickstarts/partials/post/ovirt_ansible.ks.erb /tmp/ovirt_ansible
+RUN bash /tmp/ovirt_ansible && rm -f /tmp/ovirt_ansible
 
 RUN mkdir -p ${APP_ROOT} ${APPLIANCE_ROOT} ${SUI_ROOT} && \
     ln -vs ${APP_ROOT} /opt/manageiq/manageiq

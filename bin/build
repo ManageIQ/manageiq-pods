@@ -5,10 +5,12 @@ TAG=latest
 MIQ_REF=${MIQ_REF:-master}
 SUI_REF=${SUI_REF:-master}
 APPLIANCE_REF=${APPLIANCE_REF:-master}
+BUILD_REF=${BUILD_REF:-master}
 
 MIQ_ORG=${MIQ_ORG:-ManageIQ}
 SUI_ORG=${SUI_ORG:-ManageIQ}
 APPLIANCE_ORG=${APPLIANCE_ORG:-ManageIQ}
+BUILD_ORG=${BUILD_ORG:-ManageIQ}
 
 ARCH=`uname -m`
 CORE_REPO_NAME=${CORE_REPO_NAME:-manageiq}
@@ -46,9 +48,11 @@ pushd $IMAGE_DIR
                     --build-arg MIQ_REF=$MIQ_REF \
                     --build-arg SUI_REF=$SUI_REF\
                     --build-arg APPLIANCE_REF=$APPLIANCE_REF \
+                    --build-arg BUILD_REF=$BUILD_REF \
                     --build-arg MIQ_ORG=$MIQ_ORG \
                     --build-arg SUI_ORG=$SUI_ORG \
                     --build-arg APPLIANCE_ORG=$APPLIANCE_ORG \
+                    --build-arg BUILD_ORG=$BUILD_ORG \
                     --build-arg GIT_AUTH=$GIT_AUTH \
                     --build-arg GIT_HOST=$GIT_HOST \
                     --build-arg CORE_REPO_NAME=$CORE_REPO_NAME \
