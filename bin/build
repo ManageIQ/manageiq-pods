@@ -47,6 +47,7 @@ set -e
 
 pushd $IMAGE_DIR
   cmd="docker build --tag $REPO/manageiq-base:$TAG \
+                    --pull \
                     --build-arg MIQ_REF=$MIQ_REF \
                     --build-arg SUI_REF=$SUI_REF\
                     --build-arg APPLIANCE_REF=$APPLIANCE_REF \
