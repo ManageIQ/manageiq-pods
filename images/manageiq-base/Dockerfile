@@ -138,9 +138,17 @@ RUN source /etc/default/evm && \
     if [ ${ARCH} = "ppc64le" ] ; then gem install sassc  -- --disable-march-tune-native ; fi && \
     bundle install --with qpid_proton && \
     rake tmp:clear evm:compile_sti_loader log:clear && \
-    find ${RUBY_GEMS_ROOT}/gems/ -name .git | xargs rm -rvf && \
+    RUBY_GEMS_ROOT=$(gem env gemdir) && \
+    find ${RUBY_GEMS_ROOT}/bundler/gems/**/ -maxdepth 2 -name .git -type d | xargs rm -rvf && \
     find ${RUBY_GEMS_ROOT}/gems/ | grep "\.o$" | xargs rm -rvf && \
-    rm -rvf ${RUBY_GEMS_ROOT}/gems/rugged-*/vendor/libgit2/build && \
+    find ${RUBY_GEMS_ROOT}/bundler/gems/ | grep "\.o$" | xargs rm -rvf && \
+    find ${RUBY_GEMS_ROOT}/gems/**/ -maxdepth 2 -name spec -type d | xargs rm -rvf && \
+    find ${RUBY_GEMS_ROOT}/gems/**/ -maxdepth 2 -name test -type d | xargs rm -rvf && \
+    find ${RUBY_GEMS_ROOT}/bundler/gems/**/ -maxdepth 2 -name spec -type d | xargs rm -rvf && \
+    find ${RUBY_GEMS_ROOT}/bundler/gems/**/ -maxdepth 2 -name test -type d | xargs rm -rvf && \
+    find ${RUBY_GEMS_ROOT}/gems/**/ -maxdepth 2 -name docs -type d | xargs rm -rvf && \
+    find ${RUBY_GEMS_ROOT}/bundler/gems/**/ -maxdepth 2 -name docs -type d | xargs rm -rvf && \
+    rm -rvf ${RUBY_GEMS_ROOT}/gems/rugged-*/vendor && \
     rm -rvf ${RUBY_GEMS_ROOT}/cache/* && \
     rm -rvf /root/.bundle/cache && \
     rm -rvf ${APP_ROOT}/tmp/cache/assets && \
