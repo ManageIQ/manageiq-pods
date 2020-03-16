@@ -183,6 +183,6 @@ parameters:
 - name: POSTGRESQL_IMG_NAME
   value: docker.io/manageiq/postgresql
 - name: POSTGRESQL_IMG_TAG
-  value: latest
+  value: '10'
 - name: DATABASE_VOLUME_CAPACITY
   value: 15Gi

@@ -9,7 +9,7 @@ spec:
     spec:
       containers:
       - name: postgresql
-        image: docker.io/manageiq/postgresql:latest
+        image: docker.io/manageiq/postgresql:10
         command:
         - "/opt/manageiq/container-scripts/backup_db"
         env:
