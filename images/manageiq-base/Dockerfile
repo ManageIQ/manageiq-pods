@@ -55,6 +55,7 @@ RUN curl -L https://copr.fedorainfracloud.org/coprs/manageiq/ManageIQ-Jansa/repo
 
 RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org/centos/8/BaseOS/${ARCH}/os/Packages/centos-repos-8.1-1.1911.0.8.el8.${ARCH}.rpm http://mirror.centos.org/centos/8/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-8.1-1.1911.0.8.el8.noarch.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
     dnf -y --disableplugin=subscription-manager module enable nodejs:12 && \
+    dnf -y --disableplugin=subscription-manager module enable ruby:2.6 && \
     dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
       ansible                     \
       ansible-runner              \
