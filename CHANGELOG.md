@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## Ivanchuk-3
+
+### Added
+- Add yarn available-languages to ui-service build [(#356)](https://github.com/ManageIQ/manageiq-pods/pull/356)
+
+## Ivanchuk-2
+
+### Fixed
+- Test ruby 2.5.5 [(#343)](https://github.com/ManageIQ/manageiq-pods/pull/343)
+- Template removal of pg shared_preload_librariers [(#347)](https://github.com/ManageIQ/manageiq-pods/pull/347)
+- Removed duplicate UI related work from backend [(#339)](https://github.com/ManageIQ/manageiq-pods/pull/339)
 
 ## Ivanchuk-1
 
