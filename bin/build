@@ -18,6 +18,8 @@ CORE_REPO_NAME=${CORE_REPO_NAME:-manageiq}
 GIT_HOST=${GIT_HOST:-github.com}
 GIT_AUTH=${GIT_AUTH:-""}
 
+HOOKS_SCRIPT_URL=${HOOKS_SCRIPT_URL:-""}
+
 NPM_REGISTRY_OVERRIDE=${NPM_REGISTRY_OVERRIDE:-""}
 
 while getopts "t:d:r:nhp" opt; do
@@ -55,6 +57,7 @@ pushd $IMAGE_DIR
                     --build-arg BUILD_ORG=$BUILD_ORG \
                     --build-arg GIT_AUTH=$GIT_AUTH \
                     --build-arg GIT_HOST=$GIT_HOST \
+                    --build-arg HOOKS_SCRIPT_URL=$HOOKS_SCRIPT_URL \
                     --build-arg CORE_REPO_NAME=$CORE_REPO_NAME \
                     --build-arg ARCH=$ARCH"
 
