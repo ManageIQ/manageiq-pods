@@ -28,6 +28,7 @@ function create_tls_secret() {
 # password with a newly generated one.
 (parameter_provided "DATABASE_PASSWORD" || secret_missing "postgresql-secrets") && apply_template "postgresql-secrets.yaml"
 (parameter_provided "ENCRYPTION_KEY" || secret_missing "app-secrets") && apply_template "app-secrets.yaml"
+(parameter_provided "MESSAGING_PASSWORD" || secret_missing "kafka-secrets") && apply_template "kafka-secrets.yaml"
 secret_missing "tls-secret" && create_tls_secret
 
 # Orchestrator RBAC
@@ -35,6 +36,7 @@ apply_template "rbac.yaml"
 
 # Only deploy the database if the user didn't specify an external database host
 parameter_provided "DATABASE_HOSTNAME" || apply_template "postgresql.yaml"
+parameter_provided "MESSAGING_HOSTNAME" || apply_template "kafka.yaml"
 
 apply_template "httpd.yaml"
 apply_template "memcached.yaml"
