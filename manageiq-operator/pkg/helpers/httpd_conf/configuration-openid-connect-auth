@@ -1,0 +1,17 @@
+LoadModule auth_openidc_module modules/mod_auth_openidc.so
+
+OIDCProviderMetadataURL      ${HTTPD_AUTH_OIDC_PROVIDER_METADATA_URL}
+OIDCClientID                 ${HTTPD_AUTH_OIDC_CLIENT_ID}
+OIDCClientSecret             ${HTTPD_AUTH_OIDC_CLIENT_SECRET}
+
+OIDCRedirectURI              "https://${APPLICATION_DOMAIN}/oidc_login/redirect_uri"
+OIDCOAuthRemoteUserClaim     username
+
+OIDCCryptoPassphrase         sp-secret
+
+<Location /oidc_login>
+  AuthType                   openid-connect
+  Require                    valid-user
+</Location>
+
+Include "conf.d/external-auth-openid-connect-remote-user-conf"
