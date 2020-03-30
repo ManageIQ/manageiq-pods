@@ -150,7 +150,7 @@ func GenerateHttpdResources(cr *miqv1alpha1.Manageiq, r *ReconcileManageiq) erro
 	HttpdService := miqtool.NewHttpdService(cr)
 	HttpdDbusAPIService := miqtool.NewHttpdDbusAPIService(cr)
 	HttpdDeployment := miqtool.NewHttpdDeployment(cr)
-	
+
 	UIService := miqtool.NewUIService(cr)
 	WebService := miqtool.NewWebService(cr)
 	RemoteConsoleService := miqtool.NewRemoteConsoleService(cr)

@@ -11,62 +11,58 @@ type ManageiqSpec struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
 	// Application name used for deployed objects
-	AppName string `json:"appName"` 
+	AppName string `json:"appName"`
 
 	// admin user initial password
-	ApplicationAdminPassword string `json:"applicationAdminPassword"` 
+	ApplicationAdminPassword string `json:"applicationAdminPassword"`
 
 	// Domain name for the external route
 	// Used for external authentication configuration
 	ApplicationDomain string `json:"applicationDomain"`
 
-	DatabaseName string `json:"databaseName"`
-	DatabasePort string `json:"databasePort"`
-	DatabaseUser string `json:"databaseUser"`
+	DatabaseName     string `json:"databaseName"`
+	DatabasePort     string `json:"databasePort"`
+	DatabaseUser     string `json:"databaseUser"`
 	DatabasePassword string `json:"databasePassword"`
 	// Application region number
 	DatabaseRegion string `json:"databaseRegion"`
 	// Containerized database volume size
 	DatabaseVolumeCapacity string `json:"databaseVolumeCapacity"`
 
-	HttpdCPUReq string `json:"httpdCPUReq"`
+	HttpdCPUReq    string `json:"httpdCPUReq"`
 	HttpdImageName string `json:"httpdImageName"`
-	HttpdImageTag string `json:"httpdImageTag"`
-	HttpdMemLimit string `json:"httpdMemLimit"`
-	HttpdMemReq string `json:"httpdMemReq"`
-
+	HttpdImageTag  string `json:"httpdImageTag"`
+	HttpdMemLimit  string `json:"httpdMemLimit"`
+	HttpdMemReq    string `json:"httpdMemReq"`
 
 	// memcachedpod deployment information
-	MemcachedCPUReq string `json:"memcachedCPUReq"`
-	MemcachedImageName string `json:"memcachedImageName"`
-	MemcachedImageTag string `json:"memcachedImageTag"` 
+	MemcachedCPUReq        string `json:"memcachedCPUReq"`
+	MemcachedImageName     string `json:"memcachedImageName"`
+	MemcachedImageTag      string `json:"memcachedImageTag"`
 	MemcachedMaxConnection string `json:"memcachedMaxConnection"`
-	MemcachedMaxMemory string `json:"memcachedMaxMemory"`
-	MemcachedMemLimit string `json:"memcachedMemLimit"`
-	MemcachedMemReq string `json:"memcachedMemReq"`
-	MemcachedSlabPageSize string `json:"memcachedSlabPageSize"`
+	MemcachedMaxMemory     string `json:"memcachedMaxMemory"`
+	MemcachedMemLimit      string `json:"memcachedMemLimit"`
+	MemcachedMemReq        string `json:"memcachedMemReq"`
+	MemcachedSlabPageSize  string `json:"memcachedSlabPageSize"`
 
 	//  orchestrator deployment information
-	OrchestratorCPUReq string `json:"orchestratorCPUReq"`
-	OrchestratorImageName string `json:"orchestratorImageName"`
+	OrchestratorCPUReq         string `json:"orchestratorCPUReq"`
+	OrchestratorImageName      string `json:"orchestratorImageName"`
 	OrchestratorImageNamespace string `json:"orchestratorImageNamespace"`
-	OrchestratorImageTag string `json:"orchestratorImageTag"`
-	OrchestratorMemLimit string `json:"orchestratorMemLimit"`
-	OrchestratorMemReq string `json:"orchestratorMemReq"`
+	OrchestratorImageTag       string `json:"orchestratorImageTag"`
+	OrchestratorMemLimit       string `json:"orchestratorMemLimit"`
+	OrchestratorMemReq         string `json:"orchestratorMemReq"`
 
 	// postgres database pod deployment information
-	PostgresqlCPUReq string `json:"postgresqlCPUReq"`
-	PostgresqlImgName string `json:"postgresqlImgName"`
-	PostgresqlImgTag string `json:"postgresqlImgTag"`
-	PostgresqlMaxConnections string `json:"postgresqlMaxConnections"` 
-	PostgresqlMemLimit string `json:"postgresqlMemLimit"` 
-	PostgresqlMemReq string `json:"postgresqlMemReq"`
-	PostgresqlSharedBuffers string `json:"postgresqlSharedBuffers"`
+	PostgresqlCPUReq         string `json:"postgresqlCPUReq"`
+	PostgresqlImgName        string `json:"postgresqlImgName"`
+	PostgresqlImgTag         string `json:"postgresqlImgTag"`
+	PostgresqlMaxConnections string `json:"postgresqlMaxConnections"`
+	PostgresqlMemLimit       string `json:"postgresqlMemLimit"`
+	PostgresqlMemReq         string `json:"postgresqlMemReq"`
+	PostgresqlSharedBuffers  string `json:"postgresqlSharedBuffers"`
 
 	EncryptionKey string `json:"encryptionKey"`
-
-
-
 }
 
 // ManageiqStatus defines the observed state of Manageiq
@@ -74,12 +70,11 @@ type ManageiqSpec struct {
 type ManageiqStatus struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
-	HttpdIsSetup bool `json:"httpdIssetup"`
-	MemcachedIsSetup bool `json:"memcachedIssetup"`
-	PostgresqlIsSetup bool`json:"postgresqlIssetup"`
+	HttpdIsSetup        bool `json:"httpdIssetup"`
+	MemcachedIsSetup    bool `json:"memcachedIssetup"`
+	PostgresqlIsSetup   bool `json:"postgresqlIssetup"`
 	OrchestratorIsSetup bool `json:"orchestratorISSetup"`
-	NetworkIsSetup bool `json:"networkIssetup"`
-	
+	NetworkIsSetup      bool `json:"networkIssetup"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
