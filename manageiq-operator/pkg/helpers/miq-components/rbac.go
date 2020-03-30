@@ -1,7 +1,7 @@
 package miqtools
 
 import (
-	miqv1alpha1 "github.com/manageiq-operator/pkg/apis/manageiq/v1alpha1"
+	miqv1alpha1 "github.com/manageiq/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
