@@ -99,10 +99,3 @@ $ oc create -f deploy/crds/manageiq_v1alpha1_manageiq_cr.yaml
       postgresqlMemLimit: 8Gi
       postgresqlMemReq: 200Mi
       postgresqlSharedBuffers: 1GB
-    
-
-
-
-
-
-
