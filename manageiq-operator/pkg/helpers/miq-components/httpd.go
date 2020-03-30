@@ -2,8 +2,8 @@ package miqtools
 
 import (
 	"bytes"
-	miqv1alpha1 "github.com/manageiq-operator/pkg/apis/manageiq/v1alpha1"
-	tlstools "github.com/manageiq-operator/pkg/helpers/tlstools"
+	miqv1alpha1 "github.com/manageiq/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
+	tlstools "github.com/manageiq/manageiq-pods/manageiq-operator/pkg/helpers/tlstools"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
