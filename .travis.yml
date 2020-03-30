@@ -3,8 +3,8 @@ language: ruby
 rvm:
 - 2.5.7
 - 2.6.5
-sudo: false
 cache:
   bundler: true
 script:
 - bundle exec rspec
+- [ -z "$(gofmt -l manageiq-operator)" ] || exit 1
