@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/manageiq-operator/pkg/controller/manageiq"
+	"github.com/manageiq/manageiq-pods/manageiq-operator/pkg/controller/manageiq"
 )
 
 func init() {
