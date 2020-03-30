@@ -5,14 +5,10 @@ This operator manages the lifecycle of ManageIQ application on a OCP4 cluster.
 Prerequisites
 ------
   * [go version v1.12+](https://golang.org/doc/install#install)
-  * [dep version v0.5.0+](https://golang.github.io/dep/docs/installation.html)
-  * [operator SDK CLI v0.8.0+](https://github.com/operator-framework/operator-sdk/blob/v0.8.x/doc/user/install-operator-sdk.md) 
+  * [operator SDK CLI v0.9.0+](https://github.com/operator-framework/operator-sdk/blob/v0.9.x/doc/user/install-operator-sdk.md) 
 
 Run Operator
 ------
-### Setup Path for Go
-
-On your $GOPATH, create path `$GOPATH/src/github.com`, then place this project folder on it.
 
 ### Generate k8s API and CRD
 
