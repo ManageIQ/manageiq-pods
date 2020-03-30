@@ -77,6 +77,25 @@ objects:
             value: "${ORCHESTRATOR_IMAGE_NAMESPACE}"
           - name: IMAGE_PULL_SECRET
             value: "${IMAGE_PULL_SECRET}"
+          - name: MESSAGING_HOSTNAME
+            valueFrom:
+              secretKeyRef:
+                name: kafka-secrets
+                key: hostname
+          - name: MESSAGING_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: kafka-secrets
+                key: password
+          - name: MESSAGING_PORT
+            value: "${MESSAGING_PORT}"
+          - name: MESSAGING_TYPE
+            value: "${MESSAGING_TYPE}"
+          - name: MESSAGING_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: kafka-secrets
+                key: username
           resources:
             requests:
               memory: "${ORCHESTRATOR_MEM_REQ}"
@@ -111,3 +130,5 @@ parameters:
   value: 6144Mi
 - name: ORCHESTRATOR_MEM_LIMIT
   value: 16384Mi
+- name: MESSAGING_TYPE
+  value: kafka

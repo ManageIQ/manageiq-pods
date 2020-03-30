@@ -17,6 +17,15 @@ DATABASE_PORT=5432
 DATABASE_USER=root
 #DATABASE_PASSWORD=
 
+# Kafka connection information
+# Containerized kafka pod will be deployed if hostname is not provided
+# Password will be generated ([a-zA-Z0-9]{8}) if not provided
+MESSAGING_TYPE=kafka
+#MESSAGING_HOSTNAME=kafka
+MESSAGING_PORT=9092
+MESSAGING_USERNAME=root
+#MESSAGING_PASSWORD=
+
 # Application region number
 DATABASE_REGION=0
 
@@ -67,3 +76,7 @@ POSTGRESQL_MAX_CONNECTIONS=1000
 POSTGRESQL_MEM_LIMIT=8Gi
 POSTGRESQL_MEM_REQ=4Gi
 POSTGRESQL_SHARED_BUFFERS=1GB
+
+# Kafka deployment information
+KAFKA_VOLUME_CAPACITY=1Gi
+ZOOKEEPER_VOLUME_CAPACITY=1Gi
