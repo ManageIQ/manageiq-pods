@@ -14,7 +14,7 @@ objects:
       spec:
         containers:
         - name: postgresql
-          image: docker.io/carbonin/postgresql:latest
+          image: docker.io/manageiq/postgresql:10
           command:
           - "/opt/manageiq/container-scripts/restore_db"
           env:
