@@ -1,0 +1,47 @@
+apiVersion: manageiq.org/v1alpha1
+kind: Manageiq
+metadata:
+  name: miq
+spec:
+  # Add fields here
+  appName:  # e.g. "manageiq" 
+  applicationAdminPassword: # e.g. "smartvm" 
+  applicationDomain: # e.g. "miqproject.example.com"
+
+  databaseName: # e.g. "vmdb_production"
+  databasePort: # e.g. "5432"
+  databaseUser: # e.g. "root"
+  databasePassword: # e.g. "redhat"
+  databaseRegion: # e.g. "0"
+  databaseVolumeCapacity: # e.g. 15Gi
+
+  httpdCPUReq: # e.g. 100m
+  httpdImageName: # e.g. manageiq/httpd
+  httpdImageTag: # e.g. latest
+  httpdMemLimit: # e.g. 200Mi 
+  httpdMemReq: # e.g. 100Mi
+
+  memcachedCPUReq: # e.g. 200m
+  memcachedImageName: # e.g. manageiq/memcached
+  memcachedImageTag: # e.g. latest 
+
+  memcachedMaxConnection: # e.g. "1024"
+  memcachedMaxMemory: # e.g. "64"
+  memcachedMemLimit: # e.g. 256Mi
+  memcachedMemReq: # e.g. 64Mi
+  memcachedSlabPageSize: # e.g. 1m
+
+  orchestratorCPUReq: # e.g. 100m
+  orchestratorImageName: # e.g. manageiq-orchestrator
+  orchestratorImageNamespace: # e.g. manageiq
+  orchestratorImageTag: # e.g. latest
+  orchestratorMemLimit: # e.g. 16Gi
+  orchestratorMemReq: # e.g. 150Mi
+
+  postgresqlCPUReq: # e.g. 100m
+  postgresqlImgName: # e.g. docker.io/manageiq/postgresql
+  postgresqlImgTag: # e.g. latest
+  postgresqlMaxConnections: # e.g. "1000" 
+  postgresqlMemLimit: # e.g. 8Gi
+  postgresqlMemReq: # e.g. 200Mi
+  postgresqlSharedBuffers: # e.g. 1GB
