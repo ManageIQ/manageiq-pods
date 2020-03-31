@@ -9,9 +9,7 @@ rules:
   resources:
   - pods
   - services
-  - endpoints
   - persistentvolumeclaims
-  - events
   - configmaps
   - secrets
   - serviceaccounts
@@ -36,18 +34,8 @@ rules:
   - apps
   resources:
   - deployments
-  - daemonsets
-  - replicasets
-  - statefulsets
   verbs:
   - '*'
-- apiGroups:
-  - monitoring.coreos.com
-  resources:
-  - servicemonitors
-  verbs:
-  - get
-  - create
 - apiGroups:
   - apps
   resourceNames:
@@ -60,19 +48,6 @@ rules:
   - manageiq.org
   resources:
   - '*'
-  verbs:
-  - '*'
-- apiGroups:
-  - cache.example.com
-  resources:
-  - '*'
-  verbs:
-  - '*'
-- apiGroups:
-  - manageiq.org
-  resources:
-  - '*'
-  - manageiqs
   verbs:
   - '*'
 - apiGroups:
