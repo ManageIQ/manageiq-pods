@@ -14,7 +14,23 @@ rules:
   - events
   - configmaps
   - secrets
+  - serviceaccounts
   verbs:
+  - '*'
+- apiGroups:
+  - extensions
+  resources:
+  - ingresses
+  verbs:
+  - '*'
+- apiGroups:
+  - "rbac.authorization.k8s.io"
+  resources:
+  - rolebindings
+  - clusterroles
+  - roles
+  verbs:
+  - escalate
   - '*'
 - apiGroups:
   - apps
@@ -41,7 +57,7 @@ rules:
   verbs:
   - update
 - apiGroups:
-  - manageiq.example.com
+  - manageiq.org
   resources:
   - '*'
   verbs:
@@ -57,5 +73,11 @@ rules:
   resources:
   - '*'
   - manageiqs
+  verbs:
+  - '*'
+- apiGroups:
+  - route.openshift.io
+  resources:
+  - routes/custom-host
   verbs:
   - '*'
