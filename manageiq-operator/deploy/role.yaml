@@ -53,7 +53,7 @@ rules:
   verbs:
   - '*'
 - apiGroups:
-  - manageiq.example.com
+  - manageiq.org
   resources:
   - '*'
   - manageiqs
