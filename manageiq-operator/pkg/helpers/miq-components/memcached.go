@@ -20,9 +20,9 @@ func NewMemcachedDeployment(cr *miqv1alpha1.Manageiq) *appsv1.Deployment {
 	}
 
 	var RepNum int32 = 1
-	memLimit, _ := resource.ParseQuantity(cr.Spec.MemcachedMemLimit)
-	memReq, _ := resource.ParseQuantity(cr.Spec.MemcachedMemReq)
-	cpuReq, _ := resource.ParseQuantity(cr.Spec.MemcachedCPUReq)
+	memLimit, _ := resource.ParseQuantity(cr.Spec.MemcachedMemoryLimit)
+	memReq, _ := resource.ParseQuantity(cr.Spec.MemcachedMemoryRequest)
+	cpuReq, _ := resource.ParseQuantity(cr.Spec.MemcachedCpuRequest)
 
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{

@@ -29,37 +29,37 @@ type ManageiqSpec struct {
 	// Containerized database volume size
 	DatabaseVolumeCapacity string `json:"databaseVolumeCapacity"`
 
-	HttpdCPUReq    string `json:"httpdCPUReq"`
-	HttpdImageName string `json:"httpdImageName"`
-	HttpdImageTag  string `json:"httpdImageTag"`
-	HttpdMemLimit  string `json:"httpdMemLimit"`
-	HttpdMemReq    string `json:"httpdMemReq"`
+	HttpdCpuRequest    string `json:"httpdCpuRequest"`
+	HttpdImageName     string `json:"httpdImageName"`
+	HttpdImageTag      string `json:"httpdImageTag"`
+	HttpdMemoryLimit   string `json:"httpdMemoryLimit"`
+	HttpdMemoryRequest string `json:"httpdMemoryRequest"`
 
 	// memcachedpod deployment information
-	MemcachedCPUReq        string `json:"memcachedCPUReq"`
+	MemcachedCpuRequest    string `json:"memcachedCpuRequest"`
 	MemcachedImageName     string `json:"memcachedImageName"`
 	MemcachedImageTag      string `json:"memcachedImageTag"`
 	MemcachedMaxConnection string `json:"memcachedMaxConnection"`
 	MemcachedMaxMemory     string `json:"memcachedMaxMemory"`
-	MemcachedMemLimit      string `json:"memcachedMemLimit"`
-	MemcachedMemReq        string `json:"memcachedMemReq"`
+	MemcachedMemoryLimit   string `json:"memcachedMemoryLimit"`
+	MemcachedMemoryRequest string `json:"memcachedMemoryRequest"`
 	MemcachedSlabPageSize  string `json:"memcachedSlabPageSize"`
 
 	//  orchestrator deployment information
-	OrchestratorCPUReq         string `json:"orchestratorCPUReq"`
+	OrchestratorCpuRequest     string `json:"orchestratorCpuRequest"`
 	OrchestratorImageName      string `json:"orchestratorImageName"`
 	OrchestratorImageNamespace string `json:"orchestratorImageNamespace"`
 	OrchestratorImageTag       string `json:"orchestratorImageTag"`
-	OrchestratorMemLimit       string `json:"orchestratorMemLimit"`
-	OrchestratorMemReq         string `json:"orchestratorMemReq"`
+	OrchestratorMemoryLimit    string `json:"orchestratorMemoryLimit"`
+	OrchestratorMemoryRequest  string `json:"orchestratorMemoryRequest"`
 
 	// postgres database pod deployment information
-	PostgresqlCPUReq         string `json:"postgresqlCPUReq"`
-	PostgresqlImgName        string `json:"postgresqlImgName"`
-	PostgresqlImgTag         string `json:"postgresqlImgTag"`
+	PostgresqlCpuRequest     string `json:"postgresqlCpuRequest"`
+	PostgresqlImageName      string `json:"postgresqlImageName"`
+	PostgresqlImageTag       string `json:"postgresqlImageTag"`
 	PostgresqlMaxConnections string `json:"postgresqlMaxConnections"`
-	PostgresqlMemLimit       string `json:"postgresqlMemLimit"`
-	PostgresqlMemReq         string `json:"postgresqlMemReq"`
+	PostgresqlMemoryLimit    string `json:"postgresqlMemoryLimit"`
+	PostgresqlMemoryRequest  string `json:"postgresqlMemoryRequest"`
 	PostgresqlSharedBuffers  string `json:"postgresqlSharedBuffers"`
 
 	EncryptionKey string `json:"encryptionKey"`
