@@ -151,9 +151,9 @@ func NewHttpdDeployment(cr *miqv1alpha1.Manageiq) *appsv1.Deployment {
 
 	var RepNum int32 = 1
 
-	memLimit, _ := resource.ParseQuantity(cr.Spec.HttpdMemLimit)
-	memReq, _ := resource.ParseQuantity(cr.Spec.HttpdMemReq)
-	cpuReq, _ := resource.ParseQuantity(cr.Spec.HttpdCPUReq)
+	memLimit, _ := resource.ParseQuantity(cr.Spec.HttpdMemoryLimit)
+	memReq, _ := resource.ParseQuantity(cr.Spec.HttpdMemoryRequest)
+	cpuReq, _ := resource.ParseQuantity(cr.Spec.HttpdCpuRequest)
 
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{

@@ -65,7 +65,7 @@ metadata:
 spec:
   # Add fields here
   appName:  "manageiq"
-  applicationAdminPassword: "smartvm" 
+  applicationAdminPassword: "smartvm"
   applicationDomain: "miqproject.apps-crc.testing"
 
   databaseName: "vmdb_production"
@@ -75,33 +75,33 @@ spec:
   databaseRegion: "0"
   databaseVolumeCapacity: 15Gi
 
-  httpdCPUReq: 100m
+  httpdCpuRequest: 100m
   httpdImageName: manageiq/httpd
   httpdImageTag: latest
-  httpdMemLimit: 200Mi 
-  httpdMemReq: 100Mi
+  httpdMemoryLimit: 200Mi
+  httpdMemoryRequest: 100Mi
 
-  memcachedCPUReq: 200m
+  memcachedCpuRequest: 200m
   memcachedImageName: manageiq/memcached
-  memcachedImageTag: latest 
+  memcachedImageTag: latest
   memcachedMaxConnection: "1024"
   memcachedMaxMemory: "64"
-  memcachedMemLimit: 256Mi
-  memcachedMemReq: 64Mi
+  memcachedMemoryLimit: 256Mi
+  memcachedMemoryRequest: 64Mi
   memcachedSlabPageSize: 1m
 
-  orchestratorCPUReq: 100m
+  orchestratorCpuRequest: 100m
   orchestratorImageName: manageiq-orchestrator
   orchestratorImageNamespace: manageiq
   orchestratorImageTag: latest
-  orchestratorMemLimit: 16Gi
-  orchestratorMemReq: 150Mi
+  orchestratorMemoryLimit: 16Gi
+  orchestratorMemoryRequest: 150Mi
 
-  postgresqlCPUReq: 100m
-  postgresqlImgName: docker.io/manageiq/postgresql
-  postgresqlImgTag: latest
-  postgresqlMaxConnections: "1000" 
-  postgresqlMemLimit: 8Gi
-  postgresqlMemReq: 200Mi
+  postgresqlCpuRequest: 100m
+  postgresqlImageName: docker.io/manageiq/postgresql
+  postgresqlImageTag: latest
+  postgresqlMaxConnections: "1000"
+  postgresqlMemoryLimit: 8Gi
+  postgresqlMemoryRequest: 200Mi
   postgresqlSharedBuffers: 1GB
 ```

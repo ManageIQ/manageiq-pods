@@ -85,9 +85,9 @@ func NewPostgresqlDeployment(cr *miqv1alpha1.Manageiq) *appsv1.Deployment {
 	}
 	var RepNum int32 = 1
 	var InitialDelaySecs int32 = 60
-	memLimit, _ := resource.ParseQuantity(cr.Spec.PostgresqlMemLimit)
-	memReq, _ := resource.ParseQuantity(cr.Spec.PostgresqlMemReq)
-	cpuReq, _ := resource.ParseQuantity(cr.Spec.PostgresqlCPUReq)
+	memLimit, _ := resource.ParseQuantity(cr.Spec.PostgresqlMemoryLimit)
+	memReq, _ := resource.ParseQuantity(cr.Spec.PostgresqlMemoryRequest)
+	cpuReq, _ := resource.ParseQuantity(cr.Spec.PostgresqlCpuRequest)
 
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -112,7 +112,7 @@ func NewPostgresqlDeployment(cr *miqv1alpha1.Manageiq) *appsv1.Deployment {
 					Containers: []corev1.Container{
 						corev1.Container{
 							Name:  "postgresql",
-							Image: cr.Spec.PostgresqlImgName + ":" + cr.Spec.PostgresqlImgTag,
+							Image: cr.Spec.PostgresqlImageName + ":" + cr.Spec.PostgresqlImageTag,
 							Ports: []corev1.ContainerPort{
 								corev1.ContainerPort{
 									ContainerPort: 5432,
