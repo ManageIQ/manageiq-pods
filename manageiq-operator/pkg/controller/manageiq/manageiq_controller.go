@@ -96,48 +96,33 @@ func (r *ReconcileManageiq) Reconcile(request reconcile.Request) (reconcile.Resu
 
 	currentAppName = miqInstance.Spec.AppName
 
-	if !miqInstance.Status.NetworkIsSetup {
-		err = GenerateRbacResources(miqInstance, r)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-		err = GenerateSecrets(miqInstance, r)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-		miqInstance.Status.NetworkIsSetup = true
+	err = GenerateRbacResources(miqInstance, r)
+	if err != nil {
+		return reconcile.Result{}, err
+	}
+	err = GenerateSecrets(miqInstance, r)
+	if err != nil {
+		return reconcile.Result{}, err
 	}
 
-	if !miqInstance.Status.PostgresqlIsSetup {
-		err = GeneratePostgresqlResources(miqInstance, r)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-		miqInstance.Status.PostgresqlIsSetup = true
+	err = GeneratePostgresqlResources(miqInstance, r)
+	if err != nil {
+		return reconcile.Result{}, err
 	}
 
-	if !miqInstance.Status.HttpdIsSetup {
-		err = GenerateHttpdResources(miqInstance, r)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-		miqInstance.Status.HttpdIsSetup = true
+	err = GenerateHttpdResources(miqInstance, r)
+	if err != nil {
+		return reconcile.Result{}, err
 	}
 
-	if !miqInstance.Status.MemcachedIsSetup {
-		err = GenerateMemcachedResources(miqInstance, r)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-		miqInstance.Status.MemcachedIsSetup = true
+	err = GenerateMemcachedResources(miqInstance, r)
+	if err != nil {
+		return reconcile.Result{}, err
 	}
 
-	if !miqInstance.Status.OrchestratorIsSetup {
-		err = GenerateOrchestratorResources(miqInstance, r)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-		miqInstance.Status.OrchestratorIsSetup = true
+	err = GenerateOrchestratorResources(miqInstance, r)
+	if err != nil {
+		return reconcile.Result{}, err
 	}
 
 	return reconcile.Result{}, nil
