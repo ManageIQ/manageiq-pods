@@ -4,8 +4,8 @@ metadata:
   name: miq
 spec:
   # Add fields here
-  appName:  # e.g. "manageiq" 
-  applicationAdminPassword: # e.g. "smartvm" 
+  appName: # e.g. "manageiq"
+  applicationAdminPassword: # e.g. "smartvm"
   applicationDomain: # e.g. "miqproject.example.com"
 
   databaseName: # e.g. "vmdb_production"
@@ -15,33 +15,33 @@ spec:
   databaseRegion: # e.g. "0"
   databaseVolumeCapacity: # e.g. 15Gi
 
-  httpdCPUReq: # e.g. 100m
+  httpdCpuRequest: # e.g. 100m
   httpdImageName: # e.g. manageiq/httpd
   httpdImageTag: # e.g. latest
-  httpdMemLimit: # e.g. 200Mi 
-  httpdMemReq: # e.g. 100Mi
+  httpdMemoryLimit: # e.g. 200Mi
+  httpdMemoryRequest: # e.g. 100Mi
 
-  memcachedCPUReq: # e.g. 200m
+  memcachedCpuRequest: # e.g. 200m
   memcachedImageName: # e.g. manageiq/memcached
   memcachedImageTag: # e.g. latest 
 
   memcachedMaxConnection: # e.g. "1024"
   memcachedMaxMemory: # e.g. "64"
-  memcachedMemLimit: # e.g. 256Mi
-  memcachedMemReq: # e.g. 64Mi
+  memcachedMemoryLimit: # e.g. 256Mi
+  memcachedMemoryRequest: # e.g. 64Mi
   memcachedSlabPageSize: # e.g. 1m
 
-  orchestratorCPUReq: # e.g. 100m
+  orchestratorCpuRequest: # e.g. 100m
   orchestratorImageName: # e.g. manageiq-orchestrator
   orchestratorImageNamespace: # e.g. manageiq
   orchestratorImageTag: # e.g. latest
-  orchestratorMemLimit: # e.g. 16Gi
-  orchestratorMemReq: # e.g. 150Mi
+  orchestratorMemoryLimit: # e.g. 16Gi
+  orchestratorMemoryRequest: # e.g. 150Mi
 
-  postgresqlCPUReq: # e.g. 100m
-  postgresqlImgName: # e.g. docker.io/manageiq/postgresql
-  postgresqlImgTag: # e.g. latest
+  postgresqlCpuRequest: # e.g. 100m
+  postgresqlImageName: # e.g. docker.io/manageiq/postgresql
+  postgresqlImageTag: # e.g. latest
   postgresqlMaxConnections: # e.g. "1000" 
-  postgresqlMemLimit: # e.g. 8Gi
-  postgresqlMemReq: # e.g. 200Mi
+  postgresqlMemoryLimit: # e.g. 8Gi
+  postgresqlMemoryRequest: # e.g. 200Mi
   postgresqlSharedBuffers: # e.g. 1GB

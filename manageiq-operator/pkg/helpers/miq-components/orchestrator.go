@@ -21,9 +21,9 @@ func NewOrchestratorDeployment(cr *miqv1alpha1.Manageiq) *appsv1.Deployment {
 
 	var RepNum int32 = 1
 	var termSecs int64 = 90
-	memLimit, _ := resource.ParseQuantity(cr.Spec.OrchestratorMemLimit)
-	memReq, _ := resource.ParseQuantity(cr.Spec.OrchestratorMemReq)
-	cpuReq, _ := resource.ParseQuantity(cr.Spec.OrchestratorCPUReq)
+	memLimit, _ := resource.ParseQuantity(cr.Spec.OrchestratorMemoryLimit)
+	memReq, _ := resource.ParseQuantity(cr.Spec.OrchestratorMemoryRequest)
+	cpuReq, _ := resource.ParseQuantity(cr.Spec.OrchestratorCpuRequest)
 
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
