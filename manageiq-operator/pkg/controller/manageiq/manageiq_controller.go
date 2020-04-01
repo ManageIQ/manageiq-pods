@@ -96,33 +96,23 @@ func (r *ReconcileManageiq) Reconcile(request reconcile.Request) (reconcile.Resu
 
 	currentAppName = miqInstance.Spec.AppName
 
-	err = GenerateRbacResources(miqInstance, r)
-	if err != nil {
-		return reconcile.Result{}, err
+	if e := GenerateRbacResources(miqInstance, r); e != nil {
+		return reconcile.Result{}, e
 	}
-	err = GenerateSecrets(miqInstance, r)
-	if err != nil {
-		return reconcile.Result{}, err
+	if e := GenerateSecrets(miqInstance, r); e != nil {
+		return reconcile.Result{}, e
 	}
-
-	err = GeneratePostgresqlResources(miqInstance, r)
-	if err != nil {
-		return reconcile.Result{}, err
+	if e := GeneratePostgresqlResources(miqInstance, r); e != nil {
+		return reconcile.Result{}, e
 	}
-
-	err = GenerateHttpdResources(miqInstance, r)
-	if err != nil {
-		return reconcile.Result{}, err
+	if e := GenerateHttpdResources(miqInstance, r); e != nil {
+		return reconcile.Result{}, e
 	}
-
-	err = GenerateMemcachedResources(miqInstance, r)
-	if err != nil {
-		return reconcile.Result{}, err
+	if e := GenerateMemcachedResources(miqInstance, r); e != nil {
+		return reconcile.Result{}, e
 	}
-
-	err = GenerateOrchestratorResources(miqInstance, r)
-	if err != nil {
-		return reconcile.Result{}, err
+	if e := GenerateOrchestratorResources(miqInstance, r); e != nil {
+		return reconcile.Result{}, e
 	}
 
 	return reconcile.Result{}, nil
