@@ -96,29 +96,29 @@ func (r *ReconcileManageiq) Reconcile(request reconcile.Request) (reconcile.Resu
 
 	currentAppName = miqInstance.Spec.AppName
 
-	if e := GenerateRbacResources(miqInstance, r); e != nil {
+	if e := r.generateRbacResources(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
-	if e := GenerateSecrets(miqInstance, r); e != nil {
+	if e := r.generateSecrets(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
-	if e := GeneratePostgresqlResources(miqInstance, r); e != nil {
+	if e := r.generatePostgresqlResources(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
-	if e := GenerateHttpdResources(miqInstance, r); e != nil {
+	if e := r.generateHttpdResources(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
-	if e := GenerateMemcachedResources(miqInstance, r); e != nil {
+	if e := r.generateMemcachedResources(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
-	if e := GenerateOrchestratorResources(miqInstance, r); e != nil {
+	if e := r.generateOrchestratorResources(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
 
 	return reconcile.Result{}, nil
 }
 
-func GenerateHttpdResources(cr *miqv1alpha1.Manageiq, r *ReconcileManageiq) error {
+func (r *ReconcileManageiq) generateHttpdResources(cr *miqv1alpha1.Manageiq) error {
 	HttpdIngress := miqtool.NewIngress(cr)
 	HttpdConfigMap := miqtool.NewHttpdConfigMap(cr)
 	HttpdAuthConfigMap := miqtool.NewHttpdAuthConfigMap(cr)
@@ -174,7 +174,7 @@ func GenerateHttpdResources(cr *miqv1alpha1.Manageiq, r *ReconcileManageiq) erro
 	return nil
 }
 
-func GenerateMemcachedResources(cr *miqv1alpha1.Manageiq, r *ReconcileManageiq) error {
+func (r *ReconcileManageiq) generateMemcachedResources(cr *miqv1alpha1.Manageiq) error {
 	MemcachedDeployment := miqtool.NewMemcachedDeployment(cr)
 	MemcachedService := miqtool.NewMemcachedService(cr)
 	err := Createk8sResIfNotExist(cr, MemcachedDeployment, &appsv1.Deployment{}, r)
@@ -188,7 +188,7 @@ func GenerateMemcachedResources(cr *miqv1alpha1.Manageiq, r *ReconcileManageiq) 
 	return nil
 }
 
-func GeneratePostgresqlResources(cr *miqv1alpha1.Manageiq, r *ReconcileManageiq) error {
+func (r *ReconcileManageiq) generatePostgresqlResources(cr *miqv1alpha1.Manageiq) error {
 	PostgresqlService := miqtool.NewPostgresqlService(cr)
 	PostgresqlPVC := miqtool.NewPostgresqlPVC(cr)
 	PostgresqlConfigsConfigMap := miqtool.NewPostgresqlConfigsConfigMap(cr)
@@ -217,7 +217,7 @@ func GeneratePostgresqlResources(cr *miqv1alpha1.Manageiq, r *ReconcileManageiq)
 	return nil
 }
 
-func GenerateOrchestratorResources(cr *miqv1alpha1.Manageiq, r *ReconcileManageiq) error {
+func (r *ReconcileManageiq) generateOrchestratorResources(cr *miqv1alpha1.Manageiq) error {
 	OrchestratorDeployment := miqtool.NewOrchestratorDeployment(cr)
 	err := Createk8sResIfNotExist(cr, OrchestratorDeployment, &appsv1.Deployment{}, r)
 	if err != nil {
@@ -227,7 +227,7 @@ func GenerateOrchestratorResources(cr *miqv1alpha1.Manageiq, r *ReconcileManagei
 	return nil
 }
 
-func GenerateSecrets(cr *miqv1alpha1.Manageiq, r *ReconcileManageiq) error {
+func (r *ReconcileManageiq) generateSecrets(cr *miqv1alpha1.Manageiq) error {
 
 	PostgresqlSecret := miqtool.NewPostgresqlSecret(cr)
 	AppSecret := miqtool.AppSecret(cr)
@@ -251,7 +251,7 @@ func GenerateSecrets(cr *miqv1alpha1.Manageiq, r *ReconcileManageiq) error {
 	return nil
 }
 
-func GenerateRbacResources(cr *miqv1alpha1.Manageiq, r *ReconcileManageiq) error {
+func (r *ReconcileManageiq) generateRbacResources(cr *miqv1alpha1.Manageiq) error {
 
 	HttpdServiceAccount := miqtool.HttpdServiceAccount(cr)
 	OrchestratorServiceAccount := miqtool.OrchestratorServiceAccount(cr)
