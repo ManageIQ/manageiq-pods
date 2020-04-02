@@ -70,11 +70,6 @@ type ManageiqSpec struct {
 type ManageiqStatus struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
-	HttpdIsSetup        bool `json:"httpdIssetup"`
-	MemcachedIsSetup    bool `json:"memcachedIssetup"`
-	PostgresqlIsSetup   bool `json:"postgresqlIssetup"`
-	OrchestratorIsSetup bool `json:"orchestratorISSetup"`
-	NetworkIsSetup      bool `json:"networkIssetup"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
