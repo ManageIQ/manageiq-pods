@@ -2,11 +2,12 @@ package miqtools
 
 import (
 	miqv1alpha1 "github.com/manageiq/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
-	randstring "github.com/manageiq/manageiq-pods/manageiq-operator/pkg/helpers/randstring"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	resource "k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/google/uuid"
 )
 
 func NewOrchestratorDeployment(cr *miqv1alpha1.Manageiq) *appsv1.Deployment {
@@ -78,7 +79,7 @@ func NewOrchestratorDeployment(cr *miqv1alpha1.Manageiq) *appsv1.Deployment {
 								},
 								corev1.EnvVar{
 									Name:  "GUID",
-									Value: randstring.GenerateGUID(),
+									Value: uuid.New().String(),
 								},
 
 								corev1.EnvVar{
