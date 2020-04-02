@@ -12,7 +12,6 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -89,7 +88,6 @@ func (r *ReconcileManageiq) Reconcile(request reconcile.Request) (reconcile.Resu
 	err := r.client.Get(context.TODO(), request.NamespacedName, miqInstance)
 
 	if errors.IsNotFound(err) {
-		err = CleanUpOrchestratedDeployments(miqInstance, r)
 		return reconcile.Result{}, nil
 	}
 
@@ -276,36 +274,5 @@ func (r *ReconcileManageiq) createk8sResIfNotExist(cr *miqv1alpha1.Manageiq, res
 	} else if err != nil {
 		return err
 	}
-	return nil
-}
-
-func CleanUpOrchestratedDeployments(cr *miqv1alpha1.Manageiq, r *ReconcileManageiq) error {
-	reqLogger := log.WithValues("task: ", "Clean up resources")
-	reqLogger.Info("Cleaning up orchestrated resources")
-	gracePeriod := int64(0)
-	deleteOpFunc := client.GracePeriodSeconds(gracePeriod)
-
-	DepList := &appsv1.DeploymentList{}
-
-	labelSelector := labels.SelectorFromSet(map[string]string{"app": cr.Spec.AppName})
-	listOps := &client.ListOptions{Namespace: cr.Namespace, LabelSelector: labelSelector}
-
-	err := r.client.List(context.TODO(), listOps, DepList)
-	for _, item := range DepList.Items {
-		err = r.client.Delete(context.TODO(), &item, deleteOpFunc)
-		if err != nil {
-			return err
-		}
-	}
-
-	PodList := &corev1.PodList{}
-	err = r.client.List(context.TODO(), listOps, PodList)
-	for _, item := range PodList.Items {
-		err = r.client.Delete(context.TODO(), &item, deleteOpFunc)
-		if err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
