@@ -26,7 +26,6 @@ import (
 )
 
 var log = logf.Log.WithName("controller_manageiq")
-var currentAppName string
 
 // Add creates a new Manageiq Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -93,8 +92,6 @@ func (r *ReconcileManageiq) Reconcile(request reconcile.Request) (reconcile.Resu
 		err = CleanUpOrchestratedDeployments(miqInstance, r)
 		return reconcile.Result{}, nil
 	}
-
-	currentAppName = miqInstance.Spec.AppName
 
 	if e := r.generateRbacResources(miqInstance); e != nil {
 		return reconcile.Result{}, e
@@ -310,10 +307,9 @@ func CleanUpOrchestratedDeployments(cr *miqv1alpha1.Manageiq, r *ReconcileManage
 	gracePeriod := int64(0)
 	deleteOpFunc := client.GracePeriodSeconds(gracePeriod)
 
-	label := ManageIQAppLabel(cr)
 	DepList := &appsv1.DeploymentList{}
 
-	labelSelector := labels.SelectorFromSet(label)
+	labelSelector := labels.SelectorFromSet(map[string]string{"app": cr.Spec.AppName})
 	listOps := &client.ListOptions{Namespace: cr.Namespace, LabelSelector: labelSelector}
 
 	err := r.client.List(context.TODO(), listOps, DepList)
@@ -334,10 +330,4 @@ func CleanUpOrchestratedDeployments(cr *miqv1alpha1.Manageiq, r *ReconcileManage
 	}
 
 	return nil
-}
-
-func ManageIQAppLabel(cr *miqv1alpha1.Manageiq) map[string]string {
-	return map[string]string{
-		"app": currentAppName,
-	}
 }
