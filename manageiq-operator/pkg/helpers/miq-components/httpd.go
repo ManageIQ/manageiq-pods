@@ -140,17 +140,16 @@ func NewHttpdAuthConfigMap(cr *miqv1alpha1.Manageiq) *corev1.ConfigMap {
 }
 
 func NewHttpdDeployment(cr *miqv1alpha1.Manageiq) *appsv1.Deployment {
-	DeploymentLabels := map[string]string{
+	deploymentLabels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
 
-	PodLabels := map[string]string{
+	podLabels := map[string]string{
 		"name": "httpd",
 		"app":  cr.Spec.AppName,
 	}
 
-	var RepNum int32 = 1
-
+	var repNum int32 = 1
 	memLimit, _ := resource.ParseQuantity(cr.Spec.HttpdMemoryLimit)
 	memReq, _ := resource.ParseQuantity(cr.Spec.HttpdMemoryRequest)
 	cpuReq, _ := resource.ParseQuantity(cr.Spec.HttpdCpuRequest)
@@ -159,17 +158,17 @@ func NewHttpdDeployment(cr *miqv1alpha1.Manageiq) *appsv1.Deployment {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "httpd",
 			Namespace: cr.ObjectMeta.Namespace,
-			Labels:    DeploymentLabels,
+			Labels:    deploymentLabels,
 		},
 		Spec: appsv1.DeploymentSpec{
-			Replicas: &RepNum,
+			Replicas: &repNum,
 			Selector: &metav1.LabelSelector{
-				MatchLabels: PodLabels,
+				MatchLabels: podLabels,
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:   "httpd",
-					Labels: PodLabels,
+					Labels: podLabels,
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{

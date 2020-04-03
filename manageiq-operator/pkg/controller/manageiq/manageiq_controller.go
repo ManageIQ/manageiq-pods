@@ -114,48 +114,48 @@ func (r *ReconcileManageiq) Reconcile(request reconcile.Request) (reconcile.Resu
 }
 
 func (r *ReconcileManageiq) generateHttpdResources(cr *miqv1alpha1.Manageiq) error {
-	HttpdConfigMap := miqtool.NewHttpdConfigMap(cr)
-	if err := r.createk8sResIfNotExist(cr, HttpdConfigMap, &corev1.ConfigMap{}); err != nil {
+	httpdConfigMap := miqtool.NewHttpdConfigMap(cr)
+	if err := r.createk8sResIfNotExist(cr, httpdConfigMap, &corev1.ConfigMap{}); err != nil {
 		return err
 	}
 
-	HttpdAuthConfigMap := miqtool.NewHttpdAuthConfigMap(cr)
-	if err := r.createk8sResIfNotExist(cr, HttpdAuthConfigMap, &corev1.ConfigMap{}); err != nil {
+	httpdAuthConfigMap := miqtool.NewHttpdAuthConfigMap(cr)
+	if err := r.createk8sResIfNotExist(cr, httpdAuthConfigMap, &corev1.ConfigMap{}); err != nil {
 		return err
 	}
 
-	UIService := miqtool.NewUIService(cr)
-	if err := r.createk8sResIfNotExist(cr, UIService, &corev1.Service{}); err != nil {
+	uiService := miqtool.NewUIService(cr)
+	if err := r.createk8sResIfNotExist(cr, uiService, &corev1.Service{}); err != nil {
 		return err
 	}
 
-	WebService := miqtool.NewWebService(cr)
-	if err := r.createk8sResIfNotExist(cr, WebService, &corev1.Service{}); err != nil {
+	webService := miqtool.NewWebService(cr)
+	if err := r.createk8sResIfNotExist(cr, webService, &corev1.Service{}); err != nil {
 		return err
 	}
 
-	RemoteConsoleService := miqtool.NewRemoteConsoleService(cr)
-	if err := r.createk8sResIfNotExist(cr, RemoteConsoleService, &corev1.Service{}); err != nil {
+	remoteConsoleService := miqtool.NewRemoteConsoleService(cr)
+	if err := r.createk8sResIfNotExist(cr, remoteConsoleService, &corev1.Service{}); err != nil {
 		return err
 	}
 
-	HttpdService := miqtool.NewHttpdService(cr)
-	if err := r.createk8sResIfNotExist(cr, HttpdService, &corev1.Service{}); err != nil {
+	httpdService := miqtool.NewHttpdService(cr)
+	if err := r.createk8sResIfNotExist(cr, httpdService, &corev1.Service{}); err != nil {
 		return err
 	}
 
-	HttpdDbusAPIService := miqtool.NewHttpdDbusAPIService(cr)
-	if err := r.createk8sResIfNotExist(cr, HttpdDbusAPIService, &corev1.Service{}); err != nil {
+	httpdDbusAPIService := miqtool.NewHttpdDbusAPIService(cr)
+	if err := r.createk8sResIfNotExist(cr, httpdDbusAPIService, &corev1.Service{}); err != nil {
 		return err
 	}
 
-	HttpdDeployment := miqtool.NewHttpdDeployment(cr)
-	if err := r.createk8sResIfNotExist(cr, HttpdDeployment, &appsv1.Deployment{}); err != nil {
+	httpdDeployment := miqtool.NewHttpdDeployment(cr)
+	if err := r.createk8sResIfNotExist(cr, httpdDeployment, &appsv1.Deployment{}); err != nil {
 		return err
 	}
 
-	HttpdIngress := miqtool.NewIngress(cr)
-	if err := r.createk8sResIfNotExist(cr, HttpdIngress, &extenv1beta1.Ingress{}); err != nil {
+	httpdIngress := miqtool.NewIngress(cr)
+	if err := r.createk8sResIfNotExist(cr, httpdIngress, &extenv1beta1.Ingress{}); err != nil {
 		return err
 	}
 
@@ -163,13 +163,13 @@ func (r *ReconcileManageiq) generateHttpdResources(cr *miqv1alpha1.Manageiq) err
 }
 
 func (r *ReconcileManageiq) generateMemcachedResources(cr *miqv1alpha1.Manageiq) error {
-	MemcachedDeployment := miqtool.NewMemcachedDeployment(cr)
-	if err := r.createk8sResIfNotExist(cr, MemcachedDeployment, &appsv1.Deployment{}); err != nil {
+	memcachedDeployment := miqtool.NewMemcachedDeployment(cr)
+	if err := r.createk8sResIfNotExist(cr, memcachedDeployment, &appsv1.Deployment{}); err != nil {
 		return err
 	}
 
-	MemcachedService := miqtool.NewMemcachedService(cr)
-	if err := r.createk8sResIfNotExist(cr, MemcachedService, &corev1.Service{}); err != nil {
+	memcachedService := miqtool.NewMemcachedService(cr)
+	if err := r.createk8sResIfNotExist(cr, memcachedService, &corev1.Service{}); err != nil {
 		return err
 	}
 
@@ -177,23 +177,23 @@ func (r *ReconcileManageiq) generateMemcachedResources(cr *miqv1alpha1.Manageiq)
 }
 
 func (r *ReconcileManageiq) generatePostgresqlResources(cr *miqv1alpha1.Manageiq) error {
-	PostgresqlConfigsConfigMap := miqtool.NewPostgresqlConfigsConfigMap(cr)
-	if err := r.createk8sResIfNotExist(cr, PostgresqlConfigsConfigMap, &corev1.ConfigMap{}); err != nil {
+	postgresqlConfigsConfigMap := miqtool.NewPostgresqlConfigsConfigMap(cr)
+	if err := r.createk8sResIfNotExist(cr, postgresqlConfigsConfigMap, &corev1.ConfigMap{}); err != nil {
 		return err
 	}
 
-	PostgresqlPVC := miqtool.NewPostgresqlPVC(cr)
-	if err := r.createk8sResIfNotExist(cr, PostgresqlPVC, &corev1.PersistentVolumeClaim{}); err != nil {
+	postgresqlPVC := miqtool.NewPostgresqlPVC(cr)
+	if err := r.createk8sResIfNotExist(cr, postgresqlPVC, &corev1.PersistentVolumeClaim{}); err != nil {
 		return err
 	}
 
-	PostgresqlService := miqtool.NewPostgresqlService(cr)
-	if err := r.createk8sResIfNotExist(cr, PostgresqlService, &corev1.Service{}); err != nil {
+	postgresqlService := miqtool.NewPostgresqlService(cr)
+	if err := r.createk8sResIfNotExist(cr, postgresqlService, &corev1.Service{}); err != nil {
 		return err
 	}
 
-	PostgresqlDeployment := miqtool.NewPostgresqlDeployment(cr)
-	if err := r.createk8sResIfNotExist(cr, PostgresqlDeployment, &appsv1.Deployment{}); err != nil {
+	postgresqlDeployment := miqtool.NewPostgresqlDeployment(cr)
+	if err := r.createk8sResIfNotExist(cr, postgresqlDeployment, &appsv1.Deployment{}); err != nil {
 		return err
 	}
 
@@ -201,8 +201,8 @@ func (r *ReconcileManageiq) generatePostgresqlResources(cr *miqv1alpha1.Manageiq
 }
 
 func (r *ReconcileManageiq) generateOrchestratorResources(cr *miqv1alpha1.Manageiq) error {
-	OrchestratorDeployment := miqtool.NewOrchestratorDeployment(cr)
-	if err := r.createk8sResIfNotExist(cr, OrchestratorDeployment, &appsv1.Deployment{}); err != nil {
+	orchestratorDeployment := miqtool.NewOrchestratorDeployment(cr)
+	if err := r.createk8sResIfNotExist(cr, orchestratorDeployment, &appsv1.Deployment{}); err != nil {
 		return err
 	}
 
@@ -210,18 +210,18 @@ func (r *ReconcileManageiq) generateOrchestratorResources(cr *miqv1alpha1.Manage
 }
 
 func (r *ReconcileManageiq) generateSecrets(cr *miqv1alpha1.Manageiq) error {
-	AppSecret := miqtool.AppSecret(cr)
-	if err := r.createk8sResIfNotExist(cr, AppSecret, &corev1.Secret{}); err != nil {
+	appSecret := miqtool.AppSecret(cr)
+	if err := r.createk8sResIfNotExist(cr, appSecret, &corev1.Secret{}); err != nil {
 		return err
 	}
 
-	TLSSecret := miqtool.TLSSecret(cr)
-	if err := r.createk8sResIfNotExist(cr, TLSSecret, &corev1.Secret{}); err != nil {
+	tlsSecret := miqtool.TLSSecret(cr)
+	if err := r.createk8sResIfNotExist(cr, tlsSecret, &corev1.Secret{}); err != nil {
 		return err
 	}
 
-	PostgresqlSecret := miqtool.NewPostgresqlSecret(cr)
-	if err := r.createk8sResIfNotExist(cr, PostgresqlSecret, &corev1.Secret{}); err != nil {
+	postgresqlSecret := miqtool.NewPostgresqlSecret(cr)
+	if err := r.createk8sResIfNotExist(cr, postgresqlSecret, &corev1.Secret{}); err != nil {
 		return err
 	}
 
@@ -229,28 +229,28 @@ func (r *ReconcileManageiq) generateSecrets(cr *miqv1alpha1.Manageiq) error {
 }
 
 func (r *ReconcileManageiq) generateRbacResources(cr *miqv1alpha1.Manageiq) error {
-	HttpdServiceAccount := miqtool.HttpdServiceAccount(cr)
-	if err := r.createk8sResIfNotExist(cr, HttpdServiceAccount, &corev1.ServiceAccount{}); err != nil {
+	httpdServiceAccount := miqtool.HttpdServiceAccount(cr)
+	if err := r.createk8sResIfNotExist(cr, httpdServiceAccount, &corev1.ServiceAccount{}); err != nil {
 		return err
 	}
 
-	OrchestratorServiceAccount := miqtool.OrchestratorServiceAccount(cr)
-	if err := r.createk8sResIfNotExist(cr, OrchestratorServiceAccount, &corev1.ServiceAccount{}); err != nil {
+	orchestratorServiceAccount := miqtool.OrchestratorServiceAccount(cr)
+	if err := r.createk8sResIfNotExist(cr, orchestratorServiceAccount, &corev1.ServiceAccount{}); err != nil {
 		return err
 	}
 
-	AnyuidServiceAccount := miqtool.AnyuidServiceAccount(cr)
-	if err := r.createk8sResIfNotExist(cr, AnyuidServiceAccount, &corev1.ServiceAccount{}); err != nil {
+	anyuidServiceAccount := miqtool.AnyuidServiceAccount(cr)
+	if err := r.createk8sResIfNotExist(cr, anyuidServiceAccount, &corev1.ServiceAccount{}); err != nil {
 		return err
 	}
 
-	OrchestratorViewRoleBinding := miqtool.OrchestratorViewRoleBinding(cr)
-	if err := r.createk8sResIfNotExist(cr, OrchestratorViewRoleBinding, &rbacv1.RoleBinding{}); err != nil {
+	orchestratorViewRoleBinding := miqtool.OrchestratorViewRoleBinding(cr)
+	if err := r.createk8sResIfNotExist(cr, orchestratorViewRoleBinding, &rbacv1.RoleBinding{}); err != nil {
 		return err
 	}
 
-	OrchestratorEditRoleBinding := miqtool.OrchestratorEditRoleBinding(cr)
-	if err := r.createk8sResIfNotExist(cr, OrchestratorEditRoleBinding, &rbacv1.RoleBinding{}); err != nil {
+	orchestratorEditRoleBinding := miqtool.OrchestratorEditRoleBinding(cr)
+	if err := r.createk8sResIfNotExist(cr, orchestratorEditRoleBinding, &rbacv1.RoleBinding{}); err != nil {
 		return err
 	}
 
