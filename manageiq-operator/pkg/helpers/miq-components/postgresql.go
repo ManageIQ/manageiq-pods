@@ -9,6 +9,26 @@ import (
 	intstr "k8s.io/apimachinery/pkg/util/intstr"
 )
 
+func NewPostgresqlSecret(cr *miqv1alpha1.Manageiq) *corev1.Secret {
+	labels := map[string]string{
+		"app": cr.Spec.AppName,
+	}
+	secret := map[string]string{
+		"dbname":   cr.Spec.DatabaseName,
+		"username": cr.Spec.DatabaseUser,
+		"password": cr.Spec.DatabasePassword,
+		"hostname": "postgresql",
+	}
+	return &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "postgresql-secrets",
+			Namespace: cr.ObjectMeta.Namespace,
+			Labels:    labels,
+		},
+		StringData: secret,
+	}
+}
+
 func NewPostgresqlConfigsConfigMap(cr *miqv1alpha1.Manageiq) *corev1.ConfigMap {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
