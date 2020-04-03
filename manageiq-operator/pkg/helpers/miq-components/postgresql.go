@@ -76,15 +76,15 @@ func NewPostgresqlService(cr *miqv1alpha1.Manageiq) *corev1.Service {
 }
 
 func NewPostgresqlDeployment(cr *miqv1alpha1.Manageiq) *appsv1.Deployment {
-	DeploymentLabels := map[string]string{
+	deploymentLabels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
-	PodLabels := map[string]string{
+	podLabels := map[string]string{
 		"name": "postgresql",
 		"app":  cr.Spec.AppName,
 	}
-	var RepNum int32 = 1
-	var InitialDelaySecs int32 = 60
+	var repNum int32 = 1
+	var initialDelaySecs int32 = 60
 	memLimit, _ := resource.ParseQuantity(cr.Spec.PostgresqlMemoryLimit)
 	memReq, _ := resource.ParseQuantity(cr.Spec.PostgresqlMemoryRequest)
 	cpuReq, _ := resource.ParseQuantity(cr.Spec.PostgresqlCpuRequest)
@@ -93,20 +93,20 @@ func NewPostgresqlDeployment(cr *miqv1alpha1.Manageiq) *appsv1.Deployment {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "postgresql",
 			Namespace: cr.ObjectMeta.Namespace,
-			Labels:    DeploymentLabels,
+			Labels:    deploymentLabels,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Strategy: appsv1.DeploymentStrategy{
 				Type: "Recreate",
 			},
-			Replicas: &RepNum,
+			Replicas: &repNum,
 			Selector: &metav1.LabelSelector{
-				MatchLabels: PodLabels,
+				MatchLabels: podLabels,
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:   "postgresql",
-					Labels: PodLabels,
+					Labels: podLabels,
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
@@ -120,7 +120,7 @@ func NewPostgresqlDeployment(cr *miqv1alpha1.Manageiq) *appsv1.Deployment {
 								},
 							},
 							ReadinessProbe: &corev1.Probe{
-								InitialDelaySeconds: InitialDelaySecs,
+								InitialDelaySeconds: initialDelaySecs,
 								Handler: corev1.Handler{
 									TCPSocket: &corev1.TCPSocketAction{
 										Port: intstr.FromInt(5432),
