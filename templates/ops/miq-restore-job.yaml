@@ -1,35 +1,50 @@
-apiVersion: batch/v1
-kind: Job
+apiVersion: v1
+kind: Template
 metadata:
-  name: manageiq-restore
-spec:
-  template:
-    metadata:
-      name: manageiq-restore
-    spec:
-      containers:
-      - name: postgresql
-        image: docker.io/manageiq/postgresql:10
-        command:
-        - "/opt/manageiq/container-scripts/restore_db"
-        env:
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: manageiq-secrets
-              key: database-url
-        - name: BACKUP_VERSION
-          value: latest
-        volumeMounts:
-        - name: miq-backup-vol
-          mountPath: "/backups"
-        - name: miq-prod-vol
-          mountPath: "/restore"
-      volumes:
-      - name: miq-backup-vol
-        persistentVolumeClaim:
-          claimName: manageiq-backup
-      - name: miq-prod-vol
-        persistentVolumeClaim:
-          claimName: manageiq-postgresql
-      restartPolicy: Never
+  name: database-restore
+objects:
+- apiVersion: batch/v1
+  kind: Job
+  metadata:
+    name: database-restore-${ID}
+  spec:
+    template:
+      metadata:
+        name: database-restore-${ID}
+      spec:
+        containers:
+        - name: postgresql
+          image: docker.io/manageiq/postgresql:10
+          command:
+          - "/opt/manageiq/container-scripts/restore_db"
+          env:
+          - name: BACKUP_VERSION
+            value: "${DATABASE_BACKUP_VERSION}"
+          - name: DATABASE_HOSTNAME
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: hostname
+          - name: DATABASE_PORT
+            value: "${DATABASE_PORT}"
+          volumeMounts:
+          - name: backup
+            mountPath: "/backups"
+          - name: production
+            mountPath: "/restore"
+        volumes:
+        - name: backup
+          persistentVolumeClaim:
+            claimName: postgresql-backup
+        - name: production
+          persistentVolumeClaim:
+            claimName: postgresql
+        restartPolicy: Never
+parameters:
+- name: DATABASE_BACKUP_VERSION
+  value: latest
+- name: DATABASE_PORT
+  value: '5432'
+- name: ID
+  from: "[a-z0-9]{8}"
+  generate: expression

@@ -1,2 +1,7 @@
 Gemfile.lock
-*build.log
+build.log
+manageiq-operator/build/_output/*
+parameters
+manageiq-operator/vendor/*
+
+*.swp

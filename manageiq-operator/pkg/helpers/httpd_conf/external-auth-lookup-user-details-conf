@@ -1,0 +1,10 @@
+<LocationMatch ^/dashboard/external_authenticate$|^/dashboard/kerberos_authenticate$|^/api>
+	LookupUserAttr mail        REMOTE_USER_EMAIL
+	LookupUserAttr givenname   REMOTE_USER_FIRSTNAME
+	LookupUserAttr sn          REMOTE_USER_LASTNAME
+	LookupUserAttr displayname REMOTE_USER_FULLNAME
+	LookupUserAttr domainname  REMOTE_USER_DOMAIN
+
+	LookupUserGroups           REMOTE_USER_GROUPS ":"
+	LookupDbusTimeout          5000
+</LocationMatch>

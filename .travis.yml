@@ -1,10 +1,24 @@
 ---
-language: ruby
-rvm:
-- 2.5.7
-- 2.6.5
-sudo: false
-cache:
-  bundler: true
-script:
-- bundle exec rspec
+jobs:
+- language: ruby
+  rvm: 2.6.5
+  cache:
+    bundler: true
+  script:
+  - bundle exec rspec
+- language: ruby
+  rvm: 2.5.7
+  cache:
+    bundler: true
+  script:
+  - bundle exec rspec
+- language: go
+  go: stable
+  cache:
+    directories:
+    - $HOME/.cache/go-build
+    - $HOME/gopath/pkg/mod
+  install: true
+  script:
+  - test -z "$(gofmt -l manageiq-operator)"
+  - cd manageiq-operator && go build -o build/_output/bin/manageiq-operator github.com/manageiq/manageiq-pods/manageiq-operator/cmd/manager
