@@ -177,7 +177,7 @@ func (r *ReconcileManageiq) generateMemcachedResources(cr *miqv1alpha1.Manageiq)
 }
 
 func (r *ReconcileManageiq) generatePostgresqlResources(cr *miqv1alpha1.Manageiq) error {
-	postgresqlSecret := miqtool.NewPostgresqlSecret(cr)
+	postgresqlSecret := miqtool.DefaultPostgresqlSecret(cr)
 	if err := r.createk8sResIfNotExist(cr, postgresqlSecret, &corev1.Secret{}); err != nil {
 		return err
 	}

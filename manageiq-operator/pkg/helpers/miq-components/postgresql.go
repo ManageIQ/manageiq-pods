@@ -1,6 +1,9 @@
 package miqtools
 
 import (
+	"crypto/rand"
+	"encoding/hex"
+
 	miqv1alpha1 "github.com/manageiq/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -9,24 +12,44 @@ import (
 	intstr "k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func NewPostgresqlSecret(cr *miqv1alpha1.Manageiq) *corev1.Secret {
+func DefaultPostgresqlSecret(cr *miqv1alpha1.Manageiq) *corev1.Secret {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
 	secret := map[string]string{
-		"dbname":   cr.Spec.DatabaseName,
-		"username": cr.Spec.DatabaseUser,
-		"password": cr.Spec.DatabasePassword,
+		"dbname":   "vmdb_production",
+		"username": "root",
+		"password": generateDatabasePassword(),
 		"hostname": "postgresql",
+		"port":     "5432",
 	}
+
 	return &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "postgresql-secrets",
+			Name:      postgresqlSecretName(cr),
 			Namespace: cr.ObjectMeta.Namespace,
 			Labels:    labels,
 		},
 		StringData: secret,
 	}
+}
+
+func postgresqlSecretName(cr *miqv1alpha1.Manageiq) string {
+	secretName := "postgresql-secrets"
+	if cr.Spec.DatabaseSecret != "" {
+		secretName = cr.Spec.DatabaseSecret
+	}
+
+	return secretName
+}
+
+func generateDatabasePassword() string {
+	buf := make([]byte, 8)
+	_, err := rand.Read(buf)
+	if err != nil {
+		panic(err) // out of randomness, should never happen
+	}
+	return hex.EncodeToString(buf)
 }
 
 func NewPostgresqlConfigsConfigMap(cr *miqv1alpha1.Manageiq) *corev1.ConfigMap {
@@ -152,7 +175,7 @@ func NewPostgresqlDeployment(cr *miqv1alpha1.Manageiq) *appsv1.Deployment {
 									Name: "POSTGRESQL_USER",
 									ValueFrom: &corev1.EnvVarSource{
 										SecretKeyRef: &corev1.SecretKeySelector{
-											LocalObjectReference: corev1.LocalObjectReference{Name: "postgresql-secrets"},
+											LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)},
 											Key:                  "username",
 										},
 									},
@@ -161,7 +184,7 @@ func NewPostgresqlDeployment(cr *miqv1alpha1.Manageiq) *appsv1.Deployment {
 									Name: "POSTGRESQL_PASSWORD",
 									ValueFrom: &corev1.EnvVarSource{
 										SecretKeyRef: &corev1.SecretKeySelector{
-											LocalObjectReference: corev1.LocalObjectReference{Name: "postgresql-secrets"},
+											LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)},
 											Key:                  "password",
 										},
 									},
@@ -170,7 +193,7 @@ func NewPostgresqlDeployment(cr *miqv1alpha1.Manageiq) *appsv1.Deployment {
 									Name: "POSTGRESQL_DATABASE",
 									ValueFrom: &corev1.EnvVarSource{
 										SecretKeyRef: &corev1.SecretKeySelector{
-											LocalObjectReference: corev1.LocalObjectReference{Name: "postgresql-secrets"},
+											LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)},
 											Key:                  "dbname",
 										},
 									},

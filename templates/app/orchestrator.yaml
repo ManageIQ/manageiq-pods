@@ -62,7 +62,10 @@ objects:
                 name: postgresql-secrets
                 key: password
           - name: DATABASE_PORT
-            value: "${DATABASE_PORT}"
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: port
           - name: DATABASE_USER
             valueFrom:
               secretKeyRef:
@@ -109,8 +112,6 @@ objects:
 parameters:
 - name: APP_NAME
   value: manageiq
-- name: DATABASE_PORT
-  value: '5432'
 - name: DATABASE_REGION
   value: '0'
 - name: GUID
