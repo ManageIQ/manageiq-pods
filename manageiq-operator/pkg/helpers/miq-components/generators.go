@@ -17,12 +17,8 @@ func randomBytes(n int) []byte {
 }
 
 func generateEncryptionKey() string {
-	buf := randomBytes(32)
-
-	h := sha256.New()
-	h.Write(buf)
-
-	return base64.URLEncoding.EncodeToString(h.Sum(nil))
+	sum := sha256.Sum256(randomBytes(32))
+	return base64.StdEncoding.EncodeToString(sum[:])
 }
 
 func generateDatabasePassword() string {
