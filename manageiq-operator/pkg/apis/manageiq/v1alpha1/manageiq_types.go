@@ -20,10 +20,7 @@ type ManageiqSpec struct {
 	// Used for external authentication configuration
 	ApplicationDomain string `json:"applicationDomain"`
 
-	DatabaseName     string `json:"databaseName"`
-	DatabasePort     string `json:"databasePort"`
-	DatabaseUser     string `json:"databaseUser"`
-	DatabasePassword string `json:"databasePassword"`
+	DatabaseSecret string `json:"databaseSecret"`
 	// Application region number
 	DatabaseRegion string `json:"databaseRegion"`
 	// Containerized database volume size

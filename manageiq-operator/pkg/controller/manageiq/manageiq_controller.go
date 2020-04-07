@@ -177,6 +177,11 @@ func (r *ReconcileManageiq) generateMemcachedResources(cr *miqv1alpha1.Manageiq)
 }
 
 func (r *ReconcileManageiq) generatePostgresqlResources(cr *miqv1alpha1.Manageiq) error {
+	postgresqlSecret := miqtool.DefaultPostgresqlSecret(cr)
+	if err := r.createk8sResIfNotExist(cr, postgresqlSecret, &corev1.Secret{}); err != nil {
+		return err
+	}
+
 	postgresqlConfigsConfigMap := miqtool.NewPostgresqlConfigsConfigMap(cr)
 	if err := r.createk8sResIfNotExist(cr, postgresqlConfigsConfigMap, &corev1.ConfigMap{}); err != nil {
 		return err
@@ -217,11 +222,6 @@ func (r *ReconcileManageiq) generateSecrets(cr *miqv1alpha1.Manageiq) error {
 
 	tlsSecret := miqtool.TLSSecret(cr)
 	if err := r.createk8sResIfNotExist(cr, tlsSecret, &corev1.Secret{}); err != nil {
-		return err
-	}
-
-	postgresqlSecret := miqtool.NewPostgresqlSecret(cr)
-	if err := r.createk8sResIfNotExist(cr, postgresqlSecret, &corev1.Secret{}); err != nil {
 		return err
 	}
 
