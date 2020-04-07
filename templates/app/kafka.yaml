@@ -116,7 +116,7 @@ objects:
           name: zookeeper
       spec:
         containers:
-        - image: bitnami/zookeeper:latest
+        - image: docker.io/bitnami/zookeeper:latest
           name: zookeeper
           env:
           - name: ALLOW_ANONYMOUS_LOGIN

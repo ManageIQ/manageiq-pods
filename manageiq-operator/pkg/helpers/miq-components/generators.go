@@ -21,7 +21,7 @@ func generateEncryptionKey() string {
 	return base64.StdEncoding.EncodeToString(sum[:])
 }
 
-func generateDatabasePassword() string {
+func generatePassword() string {
 	buf := randomBytes(8)
 	return hex.EncodeToString(buf)
 }
