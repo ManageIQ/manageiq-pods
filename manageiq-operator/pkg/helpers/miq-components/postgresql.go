@@ -16,7 +16,7 @@ func DefaultPostgresqlSecret(cr *miqv1alpha1.Manageiq) *corev1.Secret {
 	secret := map[string]string{
 		"dbname":   "vmdb_production",
 		"username": "root",
-		"password": generateDatabasePassword(),
+		"password": generatePassword(),
 		"hostname": "postgresql",
 		"port":     "5432",
 	}

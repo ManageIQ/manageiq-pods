@@ -59,6 +59,11 @@ type ManageiqSpec struct {
 	PostgresqlMemoryRequest  string `json:"postgresqlMemoryRequest"`
 	PostgresqlSharedBuffers  string `json:"postgresqlSharedBuffers"`
 
+	// kafka deployment information
+	KafkaSecret             string `json:"kafkaSecret"`
+	KafkaVolumeCapacity     string `json:"kafkaVolumeCapacity"`
+	ZookeeperVolumeCapacity string `json:"zookeeperVolumeCapacity"`
+
 	EncryptionKey string `json:"encryptionKey"`
 }
 
