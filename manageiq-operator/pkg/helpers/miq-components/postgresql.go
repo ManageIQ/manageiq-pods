@@ -1,9 +1,6 @@
 package miqtools
 
 import (
-	"crypto/rand"
-	"encoding/hex"
-
 	miqv1alpha1 "github.com/manageiq/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -41,15 +38,6 @@ func postgresqlSecretName(cr *miqv1alpha1.Manageiq) string {
 	}
 
 	return secretName
-}
-
-func generateDatabasePassword() string {
-	buf := make([]byte, 8)
-	_, err := rand.Read(buf)
-	if err != nil {
-		panic(err) // out of randomness, should never happen
-	}
-	return hex.EncodeToString(buf)
 }
 
 func NewPostgresqlConfigsConfigMap(cr *miqv1alpha1.Manageiq) *corev1.ConfigMap {
