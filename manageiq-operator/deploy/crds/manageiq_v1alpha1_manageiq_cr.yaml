@@ -42,3 +42,7 @@ spec:
   postgresqlMemoryLimit: # e.g. 8Gi
   postgresqlMemoryRequest: # e.g. 200Mi
   postgresqlSharedBuffers: # e.g. 1GB
+
+  kafkaSecret: kafka-secrets
+  kafkaVolumeCapacity: 1Gi
+  zookeeperVolumeCapacity: 1Gi
