@@ -51,15 +51,34 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
+	ownerHandler := &handler.EnqueueRequestForOwner{IsController: true, OwnerType: &miqv1alpha1.Manageiq{}}
 	// Watch for changes to secondary resource Deployments and requeue the owner Manageiq
-	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForOwner{
-		IsController: true,
-		OwnerType:    &miqv1alpha1.Manageiq{},
-	})
+	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, ownerHandler)
+
 	if err != nil {
 		return err
 	}
 
+	err = c.Watch(&source.Kind{Type: &corev1.Service{}}, ownerHandler)
+	if err != nil {
+		return err
+	}
+
+	err = c.Watch(&source.Kind{Type: &corev1.ConfigMap{}}, ownerHandler)
+	if err != nil {
+		return err
+	}
+
+	err = c.Watch(&source.Kind{Type: &corev1.Secret{}}, ownerHandler)
+	if err != nil {
+		return err
+	}
+
+	err = c.Watch(&source.Kind{Type: &corev1.PersistentVolumeClaim{}}, ownerHandler)
+	if err != nil {
+		return err
+	}
+	
 	return nil
 }
 
