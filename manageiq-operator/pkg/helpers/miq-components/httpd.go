@@ -391,23 +391,28 @@ func NewHttpdDbusAPIService(cr *miqv1alpha1.Manageiq) *corev1.Service {
 	}
 }
 
-func TLSSecret(cr *miqv1alpha1.Manageiq) *corev1.Secret {
+func TLSSecret(cr *miqv1alpha1.Manageiq) (*corev1.Secret, error) {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
 
-	crt, key := tlstools.GenerateCrt("server")
-	secret := map[string]string{
+	crt, key, err := tlstools.GenerateCrt("server")
+	if err != nil {
+		return nil, err
+	}
+
+	data := map[string]string{
 		"tls.crt": string(crt),
 		"tls.key": string(key),
 	}
-	return &corev1.Secret{
+	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "tls-secret",
 			Namespace: cr.ObjectMeta.Namespace,
 			Labels:    labels,
 		},
-		StringData: secret,
+		StringData: data,
 		Type:       "kubernetes.io/tls",
 	}
+	return secret, nil
 }
