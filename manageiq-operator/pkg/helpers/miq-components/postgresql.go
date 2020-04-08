@@ -51,7 +51,7 @@ func NewPostgresqlConfigsConfigMap(cr *miqv1alpha1.Manageiq) *corev1.ConfigMap {
 			Labels:    labels,
 		},
 		Data: map[string]string{
-			"01_miq_overrides.conf": readContentFromFile("pkg/cfres/postgresql_conf/01_miq_overrides.conf"),
+			"01_miq_overrides.conf": readContentFromFile("pkg/helpers/postgresql_conf/01_miq_overrides.conf"),
 		},
 	}
 }
