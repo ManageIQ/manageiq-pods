@@ -23,7 +23,8 @@ RUN mkdir appliance && \
     if [[ -n "$GIT_AUTH" ]]; then GIT_HOST=${GIT_AUTH}@${GIT_HOST}; fi && curl -L https://${GIT_HOST}/${APPLIANCE_ORG}/${CORE_REPO_NAME}-appliance/tarball/${APPLIANCE_REF} | tar vxz -C appliance --strip 1
 
 RUN mkdir sui && \
-    if [[ -n "$GIT_AUTH" ]]; then GIT_HOST=${GIT_AUTH}@${GIT_HOST}; fi && curl -L https://${GIT_HOST}/${SUI_ORG}/${CORE_REPO_NAME}-ui-service/tarball/${SUI_REF} | tar vxz -C sui --strip 1
+    if [[ -n "$GIT_AUTH" ]]; then GIT_HOST=${GIT_AUTH}@${GIT_HOST}; fi && curl -L https://${GIT_HOST}/${SUI_ORG}/${CORE_REPO_NAME}-ui-service/tarball/${SUI_REF} | tar vxz -C sui --strip 1 && \
+    echo "`git ls-remote https://${GIT_HOST}/${SUI_ORG}/${CORE_REPO_NAME}-ui-service.git ${SUI_REF} | cut -f 1`" > sui/BUILD
 
 RUN mkdir app && \
     if [[ -n "$GIT_AUTH" ]]; then GIT_HOST=${GIT_AUTH}@${GIT_HOST}; fi && curl -L https://${GIT_HOST}/${MIQ_ORG}/${CORE_REPO_NAME}/tarball/${MIQ_REF} | tar vxz -C app --strip 1 && \
