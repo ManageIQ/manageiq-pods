@@ -4,12 +4,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 // ManageiqSpec defines the desired state of Manageiq
-// +k8s:openapi-gen=true
 type ManageiqSpec struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
-	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
 	// Application name used for deployed objects
 	AppName string `json:"appName"`
 
@@ -20,6 +17,7 @@ type ManageiqSpec struct {
 	// Used for external authentication configuration
 	ApplicationDomain string `json:"applicationDomain"`
 
+	// +optional
 	DatabaseSecret string `json:"databaseSecret"`
 	// Application region number
 	DatabaseRegion string `json:"databaseRegion"`
@@ -63,6 +61,7 @@ type ManageiqSpec struct {
 	PostgresqlSharedBuffers  string `json:"postgresqlSharedBuffers"`
 
 	// kafka deployment information
+	// +optional
 	KafkaSecret             string `json:"kafkaSecret"`
 	KafkaVolumeCapacity     string `json:"kafkaVolumeCapacity"`
 	ZookeeperVolumeCapacity string `json:"zookeeperVolumeCapacity"`
@@ -71,17 +70,17 @@ type ManageiqSpec struct {
 }
 
 // ManageiqStatus defines the observed state of Manageiq
-// +k8s:openapi-gen=true
 type ManageiqStatus struct {
+	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
-	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
+	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // Manageiq is the Schema for the manageiqs API
-// +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
+// +kubebuilder:resource:path=manageiqs,scope=Namespaced
 type Manageiq struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

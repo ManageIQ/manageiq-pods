@@ -1,7 +1,7 @@
 package apis
 
 import (
-	"github.com/manageiq/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
+	"github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
 )
 
 func init() {

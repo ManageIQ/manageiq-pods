@@ -1,0 +1,46 @@
+apiVersion: manageiq.org/v1alpha1
+kind: Manageiq
+metadata:
+  name: miq
+spec:
+  # Add fields here
+  appName:  "manageiq"
+  applicationAdminPassword: "smartvm"
+  applicationDomain: "miqproject.apps-crc.testing"
+
+  databaseName: "vmdb_production"
+  databasePort: "5432"
+  databaseUser: "root"
+  databasePassword: "redhat"
+  databaseRegion: "0"
+  databaseVolumeCapacity: 15Gi
+
+  httpdCpuRequest: 100m
+  httpdImageName: manageiq/httpd
+  httpdImageTag: latest
+  httpdMemoryLimit: 200Mi
+  httpdMemoryRequest: 100Mi
+
+  memcachedCpuRequest: 200m
+  memcachedImageName: manageiq/memcached
+  memcachedImageTag: latest
+  memcachedMaxConnection: "1024"
+  memcachedMaxMemory: "64"
+  memcachedMemoryLimit: 256Mi
+  memcachedMemoryRequest: 64Mi
+  memcachedSlabPageSize: 1m
+
+  orchestratorCpuRequest: 100m
+  orchestratorImageName: manageiq-orchestrator
+  orchestratorImageNamespace: manageiq
+  orchestratorImageTag: latest
+  orchestratorMemoryLimit: 16Gi
+  orchestratorMemoryRequest: 150Mi
+
+  postgresqlCpuRequest: 100m
+  postgresqlImageName: docker.io/manageiq/postgresql
+  postgresqlImageTag: latest
+  postgresqlMaxConnections: "1000"
+  postgresqlMemoryLimit: 8Gi
+  postgresqlMemoryRequest: 200Mi
+  postgresqlSharedBuffers: 1GB
