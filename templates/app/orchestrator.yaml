@@ -99,6 +99,10 @@ objects:
               secretKeyRef:
                 name: kafka-secrets
                 key: username
+          - name: POD_UID
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.uid
           resources:
             requests:
               memory: "${ORCHESTRATOR_MEM_REQ}"
