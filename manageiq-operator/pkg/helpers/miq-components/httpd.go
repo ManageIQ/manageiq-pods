@@ -31,7 +31,7 @@ func NewIngress(cr *miqv1alpha1.Manageiq) *extensionsv1beta1.Ingress {
 					Hosts: []string{
 						cr.Spec.ApplicationDomain,
 					},
-					SecretName: "tls-secret",
+					SecretName: tlsSecretName(cr),
 				},
 			},
 			Rules: []extensionsv1beta1.IngressRule{
@@ -407,7 +407,7 @@ func TLSSecret(cr *miqv1alpha1.Manageiq) (*corev1.Secret, error) {
 	}
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "tls-secret",
+			Name:      tlsSecretName(cr),
 			Namespace: cr.ObjectMeta.Namespace,
 			Labels:    labels,
 		},
@@ -415,4 +415,13 @@ func TLSSecret(cr *miqv1alpha1.Manageiq) (*corev1.Secret, error) {
 		Type:       "kubernetes.io/tls",
 	}
 	return secret, nil
+}
+
+func tlsSecretName(cr *miqv1alpha1.Manageiq) string {
+	secretName := "tls-secret"
+	if cr.Spec.TLSSecret != "" {
+		secretName = cr.Spec.TLSSecret
+	}
+
+	return secretName
 }
