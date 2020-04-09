@@ -26,6 +26,9 @@ type ManageiqSpec struct {
 	// Containerized database volume size
 	DatabaseVolumeCapacity string `json:"databaseVolumeCapacity"`
 
+	// Secret containing the tls cert and key for the ingress
+	TLSSecret string `json:"tlsSecret"`
+
 	HttpdCpuRequest    string `json:"httpdCpuRequest"`
 	HttpdImageName     string `json:"httpdImageName"`
 	HttpdImageTag      string `json:"httpdImageTag"`
