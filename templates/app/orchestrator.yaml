@@ -99,6 +99,10 @@ objects:
               secretKeyRef:
                 name: kafka-secrets
                 key: username
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
           - name: POD_UID
             valueFrom:
               fieldRef:
