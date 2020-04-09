@@ -58,7 +58,7 @@ $ oc create -f deploy/crds/manageiq_v1alpha1_manageiq_cr.yaml
 > Deployments' resource requests here are tailered to make them fit into a crc cluster, change them according to your cluster's resource capacity*
 
 ```yaml
-apiVersion: manageiq.example.com/v1alpha1
+apiVersion: manageiq.org/v1alpha1
 kind: Manageiq
 metadata:
   name: miq
