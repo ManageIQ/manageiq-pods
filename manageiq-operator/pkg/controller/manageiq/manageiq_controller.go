@@ -262,7 +262,11 @@ func (r *ReconcileManageiq) generateSecrets(cr *miqv1alpha1.Manageiq) error {
 		return err
 	}
 
-	tlsSecret := miqtool.TLSSecret(cr)
+	tlsSecret, err := miqtool.TLSSecret(cr)
+	if err != nil {
+		return err
+	}
+
 	if err := r.createk8sResIfNotExist(cr, tlsSecret, &corev1.Secret{}); err != nil {
 		return err
 	}
