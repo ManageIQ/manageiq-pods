@@ -17,12 +17,12 @@ type ManageiqSpec struct {
 	// Used for external authentication configuration
 	ApplicationDomain string `json:"applicationDomain"`
 
-	// +optional
-	DatabaseSecret string `json:"databaseSecret"`
 	// Application region number
 	DatabaseRegion string `json:"databaseRegion"`
 	// Containerized database volume size
 	DatabaseVolumeCapacity string `json:"databaseVolumeCapacity"`
+	// +optional
+	DatabaseSecret string `json:"databaseSecret"`
 
 	// Secret containing the tls cert and key for the ingress
 	TLSSecret string `json:"tlsSecret"`
@@ -61,10 +61,10 @@ type ManageiqSpec struct {
 	PostgresqlSharedBuffers  string `json:"postgresqlSharedBuffers"`
 
 	// kafka deployment information
-	// +optional
-	KafkaSecret             string `json:"kafkaSecret"`
 	KafkaVolumeCapacity     string `json:"kafkaVolumeCapacity"`
 	ZookeeperVolumeCapacity string `json:"zookeeperVolumeCapacity"`
+	// +optional
+	KafkaSecret string `json:"kafkaSecret"`
 
 	EncryptionKey string `json:"encryptionKey"`
 }

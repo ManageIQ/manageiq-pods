@@ -63,15 +63,11 @@ kind: Manageiq
 metadata:
   name: miq
 spec:
-  # Add fields here
   appName:  "manageiq"
   applicationAdminPassword: "smartvm"
   applicationDomain: "miqproject.apps-crc.testing"
 
-  databaseName: "vmdb_production"
-  databasePort: "5432"
-  databaseUser: "root"
-  databasePassword: "redhat"
+  databaseSecret: postgresql-secrets
   databaseRegion: "0"
   databaseVolumeCapacity: 15Gi
 
@@ -104,4 +100,8 @@ spec:
   postgresqlMemoryLimit: 8Gi
   postgresqlMemoryRequest: 200Mi
   postgresqlSharedBuffers: 1GB
+
+  kafkaSecret: kafka-secrets
+  kafkaVolumeCapacity: 1Gi
+  zookeeperVolumeCapacity: 1Gi
 ```
