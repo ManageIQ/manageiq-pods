@@ -9,42 +9,33 @@ rules:
   resources:
   - pods
   - services
-  - services/finalizers
-  - endpoints
   - persistentvolumeclaims
-  - events
   - configmaps
   - secrets
+  - serviceaccounts
   verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
+  - '*'
+- apiGroups:
+  - extensions
+  resources:
+  - ingresses
+  verbs:
+  - '*'
+- apiGroups:
+  - "rbac.authorization.k8s.io"
+  resources:
+  - rolebindings
+  - clusterroles
+  - roles
+  verbs:
+  - escalate
+  - '*'
 - apiGroups:
   - apps
   resources:
   - deployments
-  - daemonsets
-  - replicasets
-  - statefulsets
   verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - monitoring.coreos.com
-  resources:
-  - servicemonitors
-  verbs:
-  - get
-  - create
+  - '*'
 - apiGroups:
   - apps
   resourceNames:
@@ -54,27 +45,14 @@ rules:
   verbs:
   - update
 - apiGroups:
-  - ""
-  resources:
-  - pods
-  verbs:
-  - get
-- apiGroups:
-  - apps
-  resources:
-  - replicasets
-  - deployments
-  verbs:
-  - get
-- apiGroups:
   - manageiq.org
   resources:
   - '*'
   verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
+  - '*'
+- apiGroups:
+  - route.openshift.io
+  resources:
+  - routes/custom-host
+  verbs:
+  - '*'
