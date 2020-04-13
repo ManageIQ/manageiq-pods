@@ -15,8 +15,7 @@ spec:
       serviceAccountName: manageiq-operator
       containers:
         - name: manageiq-operator
-          # Replace this with the built image name
-          image: REPLACE_IMAGE
+          image: docker.io/manageiq/manageiq-operator:v0.0.1
           command:
           - manageiq-operator
           imagePullPolicy: Always
