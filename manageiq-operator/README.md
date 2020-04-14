@@ -7,7 +7,7 @@ This operator manages the lifecycle of ManageIQ application on a OCP4 cluster.
 Deploy the ManageIQ CRD
 
 ```bash
-$ oc create -f deploy/crds/manageiq_v1alpha1_manageiq_crd.yaml
+$ oc create -f deploy/crds/manageiq.org_manageiqs_crd.yaml
 ```
 
 ### Option A: Run Locally(outside of cluster)
