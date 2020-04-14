@@ -8,10 +8,7 @@ spec:
   applicationAdminPassword: # e.g. "smartvm"
   applicationDomain: # e.g. "miqproject.example.com"
 
-  databaseName: # e.g. "vmdb_production"
-  databasePort: # e.g. "5432"
-  databaseUser: # e.g. "root"
-  databasePassword: # e.g. "redhat"
+  databaseSecret: postgresql-secrets
   databaseRegion: # e.g. "0"
   databaseVolumeCapacity: # e.g. 15Gi
 
@@ -45,3 +42,7 @@ spec:
   postgresqlMemoryLimit: # e.g. 8Gi
   postgresqlMemoryRequest: # e.g. 200Mi
   postgresqlSharedBuffers: # e.g. 1GB
+
+  kafkaSecret: kafka-secrets
+  kafkaVolumeCapacity: 1Gi
+  zookeeperVolumeCapacity: 1Gi

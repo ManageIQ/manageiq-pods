@@ -90,7 +90,7 @@ func NewOrchestratorDeployment(cr *miqv1alpha1.Manageiq) *appsv1.Deployment {
 									Name: "DATABASE_HOSTNAME",
 									ValueFrom: &corev1.EnvVarSource{
 										SecretKeyRef: &corev1.SecretKeySelector{
-											LocalObjectReference: corev1.LocalObjectReference{Name: "postgresql-secrets"},
+											LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)},
 											Key:                  "hostname",
 										},
 									},
@@ -99,7 +99,7 @@ func NewOrchestratorDeployment(cr *miqv1alpha1.Manageiq) *appsv1.Deployment {
 									Name: "DATABASE_NAME",
 									ValueFrom: &corev1.EnvVarSource{
 										SecretKeyRef: &corev1.SecretKeySelector{
-											LocalObjectReference: corev1.LocalObjectReference{Name: "postgresql-secrets"},
+											LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)},
 											Key:                  "dbname",
 										},
 									},
@@ -108,20 +108,25 @@ func NewOrchestratorDeployment(cr *miqv1alpha1.Manageiq) *appsv1.Deployment {
 									Name: "DATABASE_PASSWORD",
 									ValueFrom: &corev1.EnvVarSource{
 										SecretKeyRef: &corev1.SecretKeySelector{
-											LocalObjectReference: corev1.LocalObjectReference{Name: "postgresql-secrets"},
+											LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)},
 											Key:                  "password",
 										},
 									},
 								},
 								corev1.EnvVar{
-									Name:  "DATABASE_PORT",
-									Value: cr.Spec.DatabasePort,
+									Name: "DATABASE_PORT",
+									ValueFrom: &corev1.EnvVarSource{
+										SecretKeyRef: &corev1.SecretKeySelector{
+											LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)},
+											Key:                  "port",
+										},
+									},
 								},
 								corev1.EnvVar{
 									Name: "DATABASE_USER",
 									ValueFrom: &corev1.EnvVarSource{
 										SecretKeyRef: &corev1.SecretKeySelector{
-											LocalObjectReference: corev1.LocalObjectReference{Name: "postgresql-secrets"},
+											LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)},
 											Key:                  "username",
 										},
 									},
@@ -142,6 +147,18 @@ func NewOrchestratorDeployment(cr *miqv1alpha1.Manageiq) *appsv1.Deployment {
 								corev1.EnvVar{
 									Name:  "IMAGE_PULL_SECRET",
 									Value: "",
+								},
+								corev1.EnvVar{
+									Name: "POD_NAME",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.name"},
+									},
+								},
+								corev1.EnvVar{
+									Name: "POD_UID",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.uid"},
+									},
 								},
 							},
 

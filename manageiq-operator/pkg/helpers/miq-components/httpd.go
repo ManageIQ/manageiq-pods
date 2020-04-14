@@ -31,7 +31,7 @@ func NewIngress(cr *miqv1alpha1.Manageiq) *extensionsv1beta1.Ingress {
 					Hosts: []string{
 						cr.Spec.ApplicationDomain,
 					},
-					SecretName: "tls-secret",
+					SecretName: tlsSecretName(cr),
 				},
 			},
 			Rules: []extensionsv1beta1.IngressRule{
@@ -74,20 +74,20 @@ func NewHttpdConfigMap(cr *miqv1alpha1.Manageiq) *corev1.ConfigMap {
 	}
 
 	//pwd, _ := os.Getwd()
-	appconf := readContentFromFile("pkg/resources/httpd_conf/application.conf")
-	authconf := readContentFromFile("pkg/resources/httpd_conf/authentication.conf")
-	configurationInternalAuth := readContentFromFile("pkg/resources/httpd_conf/configuration-internal-auth.conf")
-	configurationExternalAuth := readContentFromFile("pkg/resources/httpd_conf/configuration-external-auth.conf")
-	configurationActiveDirectoryAuth := readContentFromFile("pkg/resources/httpd_conf/configuration-active-directory-auth")
-	configurationSamlAuth := readContentFromFile("pkg/resources/httpd_conf/configuration-saml-auth")
-	configurationOpenidConnectAuth := readContentFromFile("pkg/resources/httpd_conf/configuration-openid-connect-auth")
+	appconf := readContentFromFile("pkg/helpers/httpd_conf/application.conf")
+	authconf := readContentFromFile("pkg/helpers/httpd_conf/authentication.conf")
+	configurationInternalAuth := readContentFromFile("pkg/helpers/httpd_conf/configuration-internal-auth.conf")
+	configurationExternalAuth := readContentFromFile("pkg/helpers/httpd_conf/configuration-external-auth.conf")
+	configurationActiveDirectoryAuth := readContentFromFile("pkg/helpers/httpd_conf/configuration-active-directory-auth")
+	configurationSamlAuth := readContentFromFile("pkg/helpers/httpd_conf/configuration-saml-auth")
+	configurationOpenidConnectAuth := readContentFromFile("pkg/helpers/httpd_conf/configuration-openid-connect-auth")
 
-	externalAuthLoadModulesConf := readContentFromFile("pkg/resources/httpd_conf/external-auth-load-modules-conf")
-	externalAuthLoginFormConf := readContentFromFile("pkg/resources/httpd_conf/external-auth-login-form-conf")
-	externalAuthApplicationApiConf := readContentFromFile("pkg/resources/httpd_conf/external-auth-application-api-conf")
-	externalAuthLookupUserDetailsConf := readContentFromFile("pkg/resources/httpd_conf/external-auth-lookup-user-details-conf")
-	externalAuthRemoteUserConf := readContentFromFile("pkg/resources/httpd_conf/external-auth-remote-user-conf")
-	externalAuthOpenidConnectRemoteUserConf := readContentFromFile("pkg/resources/httpd_conf/external-auth-openid-connect-remote-user-conf")
+	externalAuthLoadModulesConf := readContentFromFile("pkg/helpers/httpd_conf/external-auth-load-modules-conf")
+	externalAuthLoginFormConf := readContentFromFile("pkg/helpers/httpd_conf/external-auth-login-form-conf")
+	externalAuthApplicationApiConf := readContentFromFile("pkg/helpers/httpd_conf/external-auth-application-api-conf")
+	externalAuthLookupUserDetailsConf := readContentFromFile("pkg/helpers/httpd_conf/external-auth-lookup-user-details-conf")
+	externalAuthRemoteUserConf := readContentFromFile("pkg/helpers/httpd_conf/external-auth-remote-user-conf")
+	externalAuthOpenidConnectRemoteUserConf := readContentFromFile("pkg/helpers/httpd_conf/external-auth-openid-connect-remote-user-conf")
 
 	data := map[string]string{
 		"application.conf":                              string(appconf),
@@ -119,7 +119,7 @@ func NewHttpdAuthConfigMap(cr *miqv1alpha1.Manageiq) *corev1.ConfigMap {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
-	authconf := readContentFromFile("pkg/resources/httpd_conf/authentication.conf")
+	authconf := readContentFromFile("pkg/helpers/httpd_conf/authentication.conf")
 	data := map[string]string{
 		"auth-type":                       "internal",
 		"auth-kerberos-realms":            "undefined",
@@ -391,23 +391,37 @@ func NewHttpdDbusAPIService(cr *miqv1alpha1.Manageiq) *corev1.Service {
 	}
 }
 
-func TLSSecret(cr *miqv1alpha1.Manageiq) *corev1.Secret {
+func TLSSecret(cr *miqv1alpha1.Manageiq) (*corev1.Secret, error) {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
 
-	crt, key := tlstools.GenerateCrt("server")
-	secret := map[string]string{
+	crt, key, err := tlstools.GenerateCrt("server")
+	if err != nil {
+		return nil, err
+	}
+
+	data := map[string]string{
 		"tls.crt": string(crt),
 		"tls.key": string(key),
 	}
-	return &corev1.Secret{
+	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "tls-secret",
+			Name:      tlsSecretName(cr),
 			Namespace: cr.ObjectMeta.Namespace,
 			Labels:    labels,
 		},
-		StringData: secret,
+		StringData: data,
 		Type:       "kubernetes.io/tls",
 	}
+	return secret, nil
+}
+
+func tlsSecretName(cr *miqv1alpha1.Manageiq) string {
+	secretName := "tls-secret"
+	if cr.Spec.TLSSecret != "" {
+		secretName = cr.Spec.TLSSecret
+	}
+
+	return secretName
 }

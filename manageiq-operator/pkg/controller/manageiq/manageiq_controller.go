@@ -106,6 +106,9 @@ func (r *ReconcileManageiq) Reconcile(request reconcile.Request) (reconcile.Resu
 	if e := r.generateMemcachedResources(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
+	if e := r.generateKafkaResources(miqInstance); err != nil {
+		return reconcile.Result{}, e
+	}
 	if e := r.generateOrchestratorResources(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
@@ -177,6 +180,11 @@ func (r *ReconcileManageiq) generateMemcachedResources(cr *miqv1alpha1.Manageiq)
 }
 
 func (r *ReconcileManageiq) generatePostgresqlResources(cr *miqv1alpha1.Manageiq) error {
+	postgresqlSecret := miqtool.DefaultPostgresqlSecret(cr)
+	if err := r.createk8sResIfNotExist(cr, postgresqlSecret, &corev1.Secret{}); err != nil {
+		return err
+	}
+
 	postgresqlConfigsConfigMap := miqtool.NewPostgresqlConfigsConfigMap(cr)
 	if err := r.createk8sResIfNotExist(cr, postgresqlConfigsConfigMap, &corev1.ConfigMap{}); err != nil {
 		return err
@@ -200,6 +208,45 @@ func (r *ReconcileManageiq) generatePostgresqlResources(cr *miqv1alpha1.Manageiq
 	return nil
 }
 
+func (r *ReconcileManageiq) generateKafkaResources(cr *miqv1alpha1.Manageiq) error {
+	secret := miqtool.DefaultKafkaSecret(cr)
+	if err := r.createk8sResIfNotExist(cr, secret, &corev1.Secret{}); err != nil {
+		return err
+	}
+
+	kafkaPVC := miqtool.KafkaPVC(cr)
+	if err := r.createk8sResIfNotExist(cr, kafkaPVC, &corev1.PersistentVolumeClaim{}); err != nil {
+		return err
+	}
+
+	zookeeperPVC := miqtool.ZookeeperPVC(cr)
+	if err := r.createk8sResIfNotExist(cr, zookeeperPVC, &corev1.PersistentVolumeClaim{}); err != nil {
+		return err
+	}
+
+	kafkaService := miqtool.KafkaService(cr)
+	if err := r.createk8sResIfNotExist(cr, kafkaService, &corev1.Service{}); err != nil {
+		return err
+	}
+
+	zookeeperService := miqtool.ZookeeperService(cr)
+	if err := r.createk8sResIfNotExist(cr, zookeeperService, &corev1.Service{}); err != nil {
+		return err
+	}
+
+	kafkaDeployment := miqtool.KafkaDeployment(cr)
+	if err := r.createk8sResIfNotExist(cr, kafkaDeployment, &appsv1.Deployment{}); err != nil {
+		return err
+	}
+
+	zookeeperDeployment := miqtool.ZookeeperDeployment(cr)
+	if err := r.createk8sResIfNotExist(cr, zookeeperDeployment, &appsv1.Deployment{}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *ReconcileManageiq) generateOrchestratorResources(cr *miqv1alpha1.Manageiq) error {
 	orchestratorDeployment := miqtool.NewOrchestratorDeployment(cr)
 	if err := r.createk8sResIfNotExist(cr, orchestratorDeployment, &appsv1.Deployment{}); err != nil {
@@ -215,13 +262,12 @@ func (r *ReconcileManageiq) generateSecrets(cr *miqv1alpha1.Manageiq) error {
 		return err
 	}
 
-	tlsSecret := miqtool.TLSSecret(cr)
-	if err := r.createk8sResIfNotExist(cr, tlsSecret, &corev1.Secret{}); err != nil {
+	tlsSecret, err := miqtool.TLSSecret(cr)
+	if err != nil {
 		return err
 	}
 
-	postgresqlSecret := miqtool.NewPostgresqlSecret(cr)
-	if err := r.createk8sResIfNotExist(cr, postgresqlSecret, &corev1.Secret{}); err != nil {
+	if err := r.createk8sResIfNotExist(cr, tlsSecret, &corev1.Secret{}); err != nil {
 		return err
 	}
 

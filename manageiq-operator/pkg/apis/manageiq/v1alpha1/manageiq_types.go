@@ -20,14 +20,14 @@ type ManageiqSpec struct {
 	// Used for external authentication configuration
 	ApplicationDomain string `json:"applicationDomain"`
 
-	DatabaseName     string `json:"databaseName"`
-	DatabasePort     string `json:"databasePort"`
-	DatabaseUser     string `json:"databaseUser"`
-	DatabasePassword string `json:"databasePassword"`
+	DatabaseSecret string `json:"databaseSecret"`
 	// Application region number
 	DatabaseRegion string `json:"databaseRegion"`
 	// Containerized database volume size
 	DatabaseVolumeCapacity string `json:"databaseVolumeCapacity"`
+
+	// Secret containing the tls cert and key for the ingress
+	TLSSecret string `json:"tlsSecret"`
 
 	HttpdCpuRequest    string `json:"httpdCpuRequest"`
 	HttpdImageName     string `json:"httpdImageName"`
@@ -61,6 +61,11 @@ type ManageiqSpec struct {
 	PostgresqlMemoryLimit    string `json:"postgresqlMemoryLimit"`
 	PostgresqlMemoryRequest  string `json:"postgresqlMemoryRequest"`
 	PostgresqlSharedBuffers  string `json:"postgresqlSharedBuffers"`
+
+	// kafka deployment information
+	KafkaSecret             string `json:"kafkaSecret"`
+	KafkaVolumeCapacity     string `json:"kafkaVolumeCapacity"`
+	ZookeeperVolumeCapacity string `json:"zookeeperVolumeCapacity"`
 
 	EncryptionKey string `json:"encryptionKey"`
 }
