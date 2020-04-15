@@ -8,7 +8,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func DefaultKafkaSecret(cr *miqv1alpha1.Manageiq) *corev1.Secret {
+func DefaultKafkaSecret(cr *miqv1alpha1.ManageIQ) *corev1.Secret {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
@@ -28,7 +28,7 @@ func DefaultKafkaSecret(cr *miqv1alpha1.Manageiq) *corev1.Secret {
 	}
 }
 
-func kafkaSecretName(cr *miqv1alpha1.Manageiq) string {
+func kafkaSecretName(cr *miqv1alpha1.ManageIQ) string {
 	secretName := "kafka-secrets"
 	if cr.Spec.KafkaSecret != "" {
 		secretName = cr.Spec.KafkaSecret
@@ -37,7 +37,7 @@ func kafkaSecretName(cr *miqv1alpha1.Manageiq) string {
 	return secretName
 }
 
-func KafkaPVC(cr *miqv1alpha1.Manageiq) *corev1.PersistentVolumeClaim {
+func KafkaPVC(cr *miqv1alpha1.ManageIQ) *corev1.PersistentVolumeClaim {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
@@ -61,7 +61,7 @@ func KafkaPVC(cr *miqv1alpha1.Manageiq) *corev1.PersistentVolumeClaim {
 	}
 }
 
-func ZookeeperPVC(cr *miqv1alpha1.Manageiq) *corev1.PersistentVolumeClaim {
+func ZookeeperPVC(cr *miqv1alpha1.ManageIQ) *corev1.PersistentVolumeClaim {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
@@ -85,7 +85,7 @@ func ZookeeperPVC(cr *miqv1alpha1.Manageiq) *corev1.PersistentVolumeClaim {
 	}
 }
 
-func KafkaService(cr *miqv1alpha1.Manageiq) *corev1.Service {
+func KafkaService(cr *miqv1alpha1.ManageIQ) *corev1.Service {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
@@ -111,7 +111,7 @@ func KafkaService(cr *miqv1alpha1.Manageiq) *corev1.Service {
 	}
 }
 
-func ZookeeperService(cr *miqv1alpha1.Manageiq) *corev1.Service {
+func ZookeeperService(cr *miqv1alpha1.ManageIQ) *corev1.Service {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
@@ -137,7 +137,7 @@ func ZookeeperService(cr *miqv1alpha1.Manageiq) *corev1.Service {
 	}
 }
 
-func KafkaDeployment(cr *miqv1alpha1.Manageiq) *appsv1.Deployment {
+func KafkaDeployment(cr *miqv1alpha1.ManageIQ) *appsv1.Deployment {
 	deploymentLabels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
@@ -227,7 +227,7 @@ func KafkaDeployment(cr *miqv1alpha1.Manageiq) *appsv1.Deployment {
 	}
 }
 
-func ZookeeperDeployment(cr *miqv1alpha1.Manageiq) *appsv1.Deployment {
+func ZookeeperDeployment(cr *miqv1alpha1.ManageIQ) *appsv1.Deployment {
 	deploymentLabels := map[string]string{
 		"app": cr.Spec.AppName,
 	}

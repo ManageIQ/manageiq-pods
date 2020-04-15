@@ -9,7 +9,7 @@ import (
 	intstr "k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func NewMemcachedDeployment(cr *miqv1alpha1.Manageiq) *appsv1.Deployment {
+func NewMemcachedDeployment(cr *miqv1alpha1.ManageIQ) *appsv1.Deployment {
 	deploymentLabels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
@@ -98,7 +98,7 @@ func NewMemcachedDeployment(cr *miqv1alpha1.Manageiq) *appsv1.Deployment {
 	}
 }
 
-func NewMemcachedService(cr *miqv1alpha1.Manageiq) *corev1.Service {
+func NewMemcachedService(cr *miqv1alpha1.ManageIQ) *corev1.Service {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
