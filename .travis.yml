@@ -21,4 +21,4 @@ jobs:
   install: true
   script:
   - test -z "$(gofmt -l manageiq-operator)"
-  - cd manageiq-operator && go build -o build/_output/bin/manageiq-operator github.com/manageiq/manageiq-pods/manageiq-operator/cmd/manager
+  - cd manageiq-operator && go build -o build/_output/bin/manageiq-operator ./cmd/manager
