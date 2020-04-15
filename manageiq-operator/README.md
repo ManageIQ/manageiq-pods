@@ -55,7 +55,9 @@ $ oc create -f deploy/crds/manageiq_v1alpha1_manageiq_cr.yaml
 
 **ManageIQ Instance Example**
 
-> Deployments' resource requests here are tailered to make them fit into a crc cluster, change them according to your cluster's resource capacity*
+> The domain here will work for a Code Ready Containers cluster. Change it to one that will work for your environment.
+
+> Additional parameters are available and documented in the Custom Resource Definition
 
 ```yaml
 apiVersion: manageiq.org/v1alpha1
@@ -63,45 +65,5 @@ kind: ManageIQ
 metadata:
   name: miq
 spec:
-  appName:  "manageiq"
-  applicationAdminPassword: "smartvm"
   applicationDomain: "miqproject.apps-crc.testing"
-
-  databaseSecret: postgresql-secrets
-  databaseRegion: "0"
-  databaseVolumeCapacity: 15Gi
-
-  httpdCpuRequest: 100m
-  httpdImageName: manageiq/httpd
-  httpdImageTag: latest
-  httpdMemoryLimit: 200Mi
-  httpdMemoryRequest: 100Mi
-
-  memcachedCpuRequest: 200m
-  memcachedImageName: manageiq/memcached
-  memcachedImageTag: latest
-  memcachedMaxConnection: "1024"
-  memcachedMaxMemory: "64"
-  memcachedMemoryLimit: 256Mi
-  memcachedMemoryRequest: 64Mi
-  memcachedSlabPageSize: 1m
-
-  orchestratorCpuRequest: 100m
-  orchestratorImageName: manageiq-orchestrator
-  orchestratorImageNamespace: manageiq
-  orchestratorImageTag: latest
-  orchestratorMemoryLimit: 16Gi
-  orchestratorMemoryRequest: 150Mi
-
-  postgresqlCpuRequest: 100m
-  postgresqlImageName: docker.io/manageiq/postgresql
-  postgresqlImageTag: latest
-  postgresqlMaxConnections: "1000"
-  postgresqlMemoryLimit: 8Gi
-  postgresqlMemoryRequest: 200Mi
-  postgresqlSharedBuffers: 1GB
-
-  kafkaSecret: kafka-secrets
-  kafkaVolumeCapacity: 1Gi
-  zookeeperVolumeCapacity: 1Gi
 ```
