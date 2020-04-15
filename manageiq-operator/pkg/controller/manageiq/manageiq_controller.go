@@ -105,6 +105,7 @@ func (r *ReconcileManageIQ) Reconcile(request reconcile.Request) (reconcile.Resu
 	// Fetch the ManageIQ instance
 	miqInstance := &miqv1alpha1.ManageIQ{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, miqInstance)
+	miqInstance.Initialize()
 
 	if errors.IsNotFound(err) {
 		return reconcile.Result{}, nil
