@@ -8,6 +8,7 @@ rules:
   - ""
   resources:
   - pods
+  - pods/finalizers
   - services
   - services/finalizers
   - persistentvolumeclaims
@@ -19,6 +20,8 @@ rules:
 - apiGroups:
   - extensions
   resources:
+  - deployments
+  - deployments/scale
   - ingresses
   verbs:
   - '*'
@@ -26,15 +29,14 @@ rules:
   - "rbac.authorization.k8s.io"
   resources:
   - rolebindings
-  - clusterroles
   - roles
   verbs:
-  - escalate
   - '*'
 - apiGroups:
   - apps
   resources:
   - deployments
+  - deployments/scale
   - replicasets
   verbs:
   - '*'
