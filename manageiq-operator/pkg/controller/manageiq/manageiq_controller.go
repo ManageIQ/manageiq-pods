@@ -26,7 +26,7 @@ import (
 
 var log = logf.Log.WithName("controller_manageiq")
 
-// Add creates a new Manageiq Controller and adds it to the Manager. The Manager will set fields on the Controller
+// Add creates a new ManageIQ Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
 	return add(mgr, newReconciler(mgr))
@@ -34,7 +34,7 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileManageiq{client: mgr.GetClient(), scheme: mgr.GetScheme()}
+	return &ReconcileManageIQ{client: mgr.GetClient(), scheme: mgr.GetScheme()}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
@@ -45,14 +45,14 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// Watch for changes to primary resource Manageiq
-	err = c.Watch(&source.Kind{Type: &miqv1alpha1.Manageiq{}}, &handler.EnqueueRequestForObject{})
+	// Watch for changes to primary resource ManageIQ
+	err = c.Watch(&source.Kind{Type: &miqv1alpha1.ManageIQ{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
 
-	ownerHandler := &handler.EnqueueRequestForOwner{IsController: true, OwnerType: &miqv1alpha1.Manageiq{}}
-	// Watch for changes to secondary resource Deployments and requeue the owner Manageiq
+	ownerHandler := &handler.EnqueueRequestForOwner{IsController: true, OwnerType: &miqv1alpha1.ManageIQ{}}
+	// Watch for changes to secondary resource Deployments and requeue the owner ManageIQ
 	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, ownerHandler)
 
 	if err != nil {
@@ -82,28 +82,28 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	return nil
 }
 
-// blank assignment to verify that ReconcileManageiq implements reconcile.Reconciler
-var _ reconcile.Reconciler = &ReconcileManageiq{}
+// blank assignment to verify that ReconcileManageIQ implements reconcile.Reconciler
+var _ reconcile.Reconciler = &ReconcileManageIQ{}
 
-// ReconcileManageiq reconciles a Manageiq object
-type ReconcileManageiq struct {
+// ReconcileManageIQ reconciles a ManageIQ object
+type ReconcileManageIQ struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
 	client client.Client
 	scheme *runtime.Scheme
 }
 
-// Reconcile reads that state of the cluster for a Manageiq object and makes changes based on the state read
-// and what is in the Manageiq.Spec
+// Reconcile reads that state of the cluster for a ManageIQ object and makes changes based on the state read
+// and what is in the ManageIQ.Spec
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
-func (r *ReconcileManageiq) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (r *ReconcileManageIQ) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
-	reqLogger.Info("Reconciling Manageiq")
+	reqLogger.Info("Reconciling ManageIQ")
 
-	// Fetch the Manageiq instance
-	miqInstance := &miqv1alpha1.Manageiq{}
+	// Fetch the ManageIQ instance
+	miqInstance := &miqv1alpha1.ManageIQ{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, miqInstance)
 
 	if errors.IsNotFound(err) {
@@ -135,7 +135,7 @@ func (r *ReconcileManageiq) Reconcile(request reconcile.Request) (reconcile.Resu
 	return reconcile.Result{}, nil
 }
 
-func (r *ReconcileManageiq) generateHttpdResources(cr *miqv1alpha1.Manageiq) error {
+func (r *ReconcileManageIQ) generateHttpdResources(cr *miqv1alpha1.ManageIQ) error {
 	httpdConfigMap := miqtool.NewHttpdConfigMap(cr)
 	if err := r.createk8sResIfNotExist(cr, httpdConfigMap, &corev1.ConfigMap{}); err != nil {
 		return err
@@ -184,7 +184,7 @@ func (r *ReconcileManageiq) generateHttpdResources(cr *miqv1alpha1.Manageiq) err
 	return nil
 }
 
-func (r *ReconcileManageiq) generateMemcachedResources(cr *miqv1alpha1.Manageiq) error {
+func (r *ReconcileManageIQ) generateMemcachedResources(cr *miqv1alpha1.ManageIQ) error {
 	memcachedDeployment := miqtool.NewMemcachedDeployment(cr)
 	if err := r.createk8sResIfNotExist(cr, memcachedDeployment, &appsv1.Deployment{}); err != nil {
 		return err
@@ -198,7 +198,7 @@ func (r *ReconcileManageiq) generateMemcachedResources(cr *miqv1alpha1.Manageiq)
 	return nil
 }
 
-func (r *ReconcileManageiq) generatePostgresqlResources(cr *miqv1alpha1.Manageiq) error {
+func (r *ReconcileManageIQ) generatePostgresqlResources(cr *miqv1alpha1.ManageIQ) error {
 	postgresqlSecret := miqtool.DefaultPostgresqlSecret(cr)
 	if err := r.createk8sResIfNotExist(cr, postgresqlSecret, &corev1.Secret{}); err != nil {
 		return err
@@ -227,7 +227,7 @@ func (r *ReconcileManageiq) generatePostgresqlResources(cr *miqv1alpha1.Manageiq
 	return nil
 }
 
-func (r *ReconcileManageiq) generateKafkaResources(cr *miqv1alpha1.Manageiq) error {
+func (r *ReconcileManageIQ) generateKafkaResources(cr *miqv1alpha1.ManageIQ) error {
 	secret := miqtool.DefaultKafkaSecret(cr)
 	if err := r.createk8sResIfNotExist(cr, secret, &corev1.Secret{}); err != nil {
 		return err
@@ -266,7 +266,7 @@ func (r *ReconcileManageiq) generateKafkaResources(cr *miqv1alpha1.Manageiq) err
 	return nil
 }
 
-func (r *ReconcileManageiq) generateOrchestratorResources(cr *miqv1alpha1.Manageiq) error {
+func (r *ReconcileManageIQ) generateOrchestratorResources(cr *miqv1alpha1.ManageIQ) error {
 	orchestratorServiceAccount := miqtool.OrchestratorServiceAccount(cr)
 	if err := r.createk8sResIfNotExist(cr, orchestratorServiceAccount, &corev1.ServiceAccount{}); err != nil {
 		return err
@@ -290,7 +290,7 @@ func (r *ReconcileManageiq) generateOrchestratorResources(cr *miqv1alpha1.Manage
 	return nil
 }
 
-func (r *ReconcileManageiq) generateSecrets(cr *miqv1alpha1.Manageiq) error {
+func (r *ReconcileManageIQ) generateSecrets(cr *miqv1alpha1.ManageIQ) error {
 	appSecret := miqtool.AppSecret(cr)
 	if err := r.createk8sResIfNotExist(cr, appSecret, &corev1.Secret{}); err != nil {
 		return err
@@ -308,7 +308,7 @@ func (r *ReconcileManageiq) generateSecrets(cr *miqv1alpha1.Manageiq) error {
 	return nil
 }
 
-func (r *ReconcileManageiq) generateRbacResources(cr *miqv1alpha1.Manageiq) error {
+func (r *ReconcileManageIQ) generateRbacResources(cr *miqv1alpha1.ManageIQ) error {
 	httpdServiceAccount := miqtool.HttpdServiceAccount(cr)
 	if err := r.createk8sResIfNotExist(cr, httpdServiceAccount, &corev1.ServiceAccount{}); err != nil {
 		return err
@@ -322,7 +322,7 @@ func (r *ReconcileManageiq) generateRbacResources(cr *miqv1alpha1.Manageiq) erro
 	return nil
 }
 
-func (r *ReconcileManageiq) createk8sResIfNotExist(cr *miqv1alpha1.Manageiq, res, restype metav1.Object) error {
+func (r *ReconcileManageIQ) createk8sResIfNotExist(cr *miqv1alpha1.ManageIQ, res, restype metav1.Object) error {
 	reqLogger := log.WithValues("task: ", "create resource")
 	if err := controllerutil.SetControllerReference(cr, res, r.scheme); err != nil {
 		return err

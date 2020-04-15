@@ -6,7 +6,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func AppSecret(cr *miqv1alpha1.Manageiq) *corev1.Secret {
+func AppSecret(cr *miqv1alpha1.ManageIQ) *corev1.Secret {
 
 	labels := map[string]string{
 		"app": cr.Spec.AppName,

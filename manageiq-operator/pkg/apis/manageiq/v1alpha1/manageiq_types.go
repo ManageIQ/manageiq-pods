@@ -4,8 +4,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// ManageiqSpec defines the desired state of Manageiq
-type ManageiqSpec struct {
+// ManageIQSpec defines the desired state of ManageIQ
+type ManageIQSpec struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Application name used for deployed objects
 	AppName string `json:"appName"`
@@ -65,8 +65,8 @@ type ManageiqSpec struct {
 	EncryptionKey string `json:"encryptionKey"`
 }
 
-// ManageiqStatus defines the observed state of Manageiq
-type ManageiqStatus struct {
+// ManageIQStatus defines the observed state of ManageIQ
+type ManageIQStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
@@ -74,26 +74,26 @@ type ManageiqStatus struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// Manageiq is the Schema for the manageiqs API
+// ManageIQ is the Schema for the manageiqs API
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=manageiqs,scope=Namespaced
-type Manageiq struct {
+type ManageIQ struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   ManageiqSpec   `json:"spec,omitempty"`
-	Status ManageiqStatus `json:"status,omitempty"`
+	Spec   ManageIQSpec   `json:"spec,omitempty"`
+	Status ManageIQStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// ManageiqList contains a list of Manageiq
-type ManageiqList struct {
+// ManageIQList contains a list of ManageIQ
+type ManageIQList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Manageiq `json:"items"`
+	Items           []ManageIQ `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Manageiq{}, &ManageiqList{})
+	SchemeBuilder.Register(&ManageIQ{}, &ManageIQList{})
 }
