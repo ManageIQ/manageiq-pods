@@ -30,7 +30,6 @@ type ManageiqSpec struct {
 	HttpdMemoryLimit   string `json:"httpdMemoryLimit"`
 	HttpdMemoryRequest string `json:"httpdMemoryRequest"`
 
-	// memcachedpod deployment information
 	MemcachedCpuRequest    string `json:"memcachedCpuRequest"`
 	MemcachedImageName     string `json:"memcachedImageName"`
 	MemcachedImageTag      string `json:"memcachedImageTag"`
@@ -40,7 +39,6 @@ type ManageiqSpec struct {
 	MemcachedMemoryRequest string `json:"memcachedMemoryRequest"`
 	MemcachedSlabPageSize  string `json:"memcachedSlabPageSize"`
 
-	//  orchestrator deployment information
 	OrchestratorCpuRequest     string `json:"orchestratorCpuRequest"`
 	OrchestratorImageName      string `json:"orchestratorImageName"`
 	OrchestratorImageNamespace string `json:"orchestratorImageNamespace"`
@@ -48,7 +46,6 @@ type ManageiqSpec struct {
 	OrchestratorMemoryLimit    string `json:"orchestratorMemoryLimit"`
 	OrchestratorMemoryRequest  string `json:"orchestratorMemoryRequest"`
 
-	// postgres database pod deployment information
 	PostgresqlCpuRequest     string `json:"postgresqlCpuRequest"`
 	PostgresqlImageName      string `json:"postgresqlImageName"`
 	PostgresqlImageTag       string `json:"postgresqlImageTag"`
@@ -57,7 +54,6 @@ type ManageiqSpec struct {
 	PostgresqlMemoryRequest  string `json:"postgresqlMemoryRequest"`
 	PostgresqlSharedBuffers  string `json:"postgresqlSharedBuffers"`
 
-	// kafka deployment information
 	KafkaVolumeCapacity     string `json:"kafkaVolumeCapacity"`
 	ZookeeperVolumeCapacity string `json:"zookeeperVolumeCapacity"`
 	// +optional

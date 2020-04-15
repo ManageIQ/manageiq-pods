@@ -64,12 +64,10 @@ spec:
             httpdMemoryRequest:
               type: string
             kafkaSecret:
-              description: kafka deployment information
               type: string
             kafkaVolumeCapacity:
               type: string
             memcachedCpuRequest:
-              description: memcachedpod deployment information
               type: string
             memcachedImageName:
               type: string
@@ -86,7 +84,6 @@ spec:
             memcachedSlabPageSize:
               type: string
             orchestratorCpuRequest:
-              description: ' orchestrator deployment information'
               type: string
             orchestratorImageName:
               type: string
@@ -99,7 +96,6 @@ spec:
             orchestratorMemoryRequest:
               type: string
             postgresqlCpuRequest:
-              description: postgres database pod deployment information
               type: string
             postgresqlImageName:
               type: string
