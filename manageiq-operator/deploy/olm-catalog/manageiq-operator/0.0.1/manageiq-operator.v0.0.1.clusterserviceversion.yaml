@@ -102,6 +102,7 @@ spec:
           - ""
           resources:
           - pods
+          - pods/finalizers
           - services
           - services/finalizers
           - persistentvolumeclaims
@@ -113,6 +114,8 @@ spec:
         - apiGroups:
           - extensions
           resources:
+          - deployments
+          - deployments/scale
           - ingresses
           verbs:
           - '*'
@@ -120,15 +123,14 @@ spec:
           - rbac.authorization.k8s.io
           resources:
           - rolebindings
-          - clusterroles
           - roles
           verbs:
-          - escalate
           - '*'
         - apiGroups:
           - apps
           resources:
           - deployments
+          - deployments/scale
           - replicasets
           verbs:
           - '*'
