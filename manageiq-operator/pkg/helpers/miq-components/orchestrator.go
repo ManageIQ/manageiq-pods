@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func NewOrchestratorDeployment(cr *miqv1alpha1.Manageiq) *appsv1.Deployment {
+func NewOrchestratorDeployment(cr *miqv1alpha1.ManageIQ) *appsv1.Deployment {
 	deploymentLabels := map[string]string{
 		"app": cr.Spec.AppName,
 	}

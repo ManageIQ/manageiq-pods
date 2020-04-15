@@ -5,8 +5,8 @@ metadata:
 spec:
   group: manageiq.org
   names:
-    kind: Manageiq
-    listKind: ManageiqList
+    kind: ManageIQ
+    listKind: ManageIQList
     plural: manageiqs
     singular: manageiq
   scope: Namespaced
@@ -14,7 +14,7 @@ spec:
     status: {}
   validation:
     openAPIV3Schema:
-      description: Manageiq is the Schema for the manageiqs API
+      description: ManageIQ is the Schema for the manageiqs API
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation
@@ -29,7 +29,7 @@ spec:
         metadata:
           type: object
         spec:
-          description: ManageiqSpec defines the desired state of Manageiq
+          description: ManageIQSpec defines the desired state of ManageIQ
           properties:
             appName:
               description: 'Important: Run "operator-sdk generate k8s" to regenerate
@@ -148,7 +148,7 @@ spec:
           - zookeeperVolumeCapacity
           type: object
         status:
-          description: ManageiqStatus defines the observed state of Manageiq
+          description: ManageIQStatus defines the observed state of ManageIQ
           type: object
   version: v1alpha1
   versions:

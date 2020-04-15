@@ -1,5 +1,5 @@
 apiVersion: manageiq.org/v1alpha1
-kind: Manageiq
+kind: ManageIQ
 metadata:
   name: miq
 spec:

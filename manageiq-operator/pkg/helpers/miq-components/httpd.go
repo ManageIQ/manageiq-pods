@@ -13,7 +13,7 @@ import (
 	"os"
 )
 
-func NewIngress(cr *miqv1alpha1.Manageiq) *extensionsv1beta1.Ingress {
+func NewIngress(cr *miqv1alpha1.ManageIQ) *extensionsv1beta1.Ingress {
 
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
@@ -67,7 +67,7 @@ func readContentFromFile(filename string) string {
 	return contents
 }
 
-func NewHttpdConfigMap(cr *miqv1alpha1.Manageiq) *corev1.ConfigMap {
+func NewHttpdConfigMap(cr *miqv1alpha1.ManageIQ) *corev1.ConfigMap {
 
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
@@ -115,7 +115,7 @@ func NewHttpdConfigMap(cr *miqv1alpha1.Manageiq) *corev1.ConfigMap {
 	}
 }
 
-func NewHttpdAuthConfigMap(cr *miqv1alpha1.Manageiq) *corev1.ConfigMap {
+func NewHttpdAuthConfigMap(cr *miqv1alpha1.ManageIQ) *corev1.ConfigMap {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
@@ -139,7 +139,7 @@ func NewHttpdAuthConfigMap(cr *miqv1alpha1.Manageiq) *corev1.ConfigMap {
 
 }
 
-func NewHttpdDeployment(cr *miqv1alpha1.Manageiq) *appsv1.Deployment {
+func NewHttpdDeployment(cr *miqv1alpha1.ManageIQ) *appsv1.Deployment {
 	deploymentLabels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
@@ -262,7 +262,7 @@ func NewHttpdDeployment(cr *miqv1alpha1.Manageiq) *appsv1.Deployment {
 	}
 }
 
-func NewUIService(cr *miqv1alpha1.Manageiq) *corev1.Service {
+func NewUIService(cr *miqv1alpha1.ManageIQ) *corev1.Service {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
@@ -287,7 +287,7 @@ func NewUIService(cr *miqv1alpha1.Manageiq) *corev1.Service {
 	}
 }
 
-func NewWebService(cr *miqv1alpha1.Manageiq) *corev1.Service {
+func NewWebService(cr *miqv1alpha1.ManageIQ) *corev1.Service {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
@@ -312,7 +312,7 @@ func NewWebService(cr *miqv1alpha1.Manageiq) *corev1.Service {
 	}
 }
 
-func NewRemoteConsoleService(cr *miqv1alpha1.Manageiq) *corev1.Service {
+func NewRemoteConsoleService(cr *miqv1alpha1.ManageIQ) *corev1.Service {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
@@ -337,7 +337,7 @@ func NewRemoteConsoleService(cr *miqv1alpha1.Manageiq) *corev1.Service {
 	}
 }
 
-func NewHttpdService(cr *miqv1alpha1.Manageiq) *corev1.Service {
+func NewHttpdService(cr *miqv1alpha1.ManageIQ) *corev1.Service {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
@@ -364,7 +364,7 @@ func NewHttpdService(cr *miqv1alpha1.Manageiq) *corev1.Service {
 	}
 }
 
-func NewHttpdDbusAPIService(cr *miqv1alpha1.Manageiq) *corev1.Service {
+func NewHttpdDbusAPIService(cr *miqv1alpha1.ManageIQ) *corev1.Service {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
@@ -391,7 +391,7 @@ func NewHttpdDbusAPIService(cr *miqv1alpha1.Manageiq) *corev1.Service {
 	}
 }
 
-func TLSSecret(cr *miqv1alpha1.Manageiq) (*corev1.Secret, error) {
+func TLSSecret(cr *miqv1alpha1.ManageIQ) (*corev1.Secret, error) {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
@@ -417,7 +417,7 @@ func TLSSecret(cr *miqv1alpha1.Manageiq) (*corev1.Secret, error) {
 	return secret, nil
 }
 
-func tlsSecretName(cr *miqv1alpha1.Manageiq) string {
+func tlsSecretName(cr *miqv1alpha1.ManageIQ) string {
 	secretName := "tls-secret"
 	if cr.Spec.TLSSecret != "" {
 		secretName = cr.Spec.TLSSecret

@@ -9,7 +9,7 @@ import (
 	intstr "k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func DefaultPostgresqlSecret(cr *miqv1alpha1.Manageiq) *corev1.Secret {
+func DefaultPostgresqlSecret(cr *miqv1alpha1.ManageIQ) *corev1.Secret {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
@@ -31,7 +31,7 @@ func DefaultPostgresqlSecret(cr *miqv1alpha1.Manageiq) *corev1.Secret {
 	}
 }
 
-func postgresqlSecretName(cr *miqv1alpha1.Manageiq) string {
+func postgresqlSecretName(cr *miqv1alpha1.ManageIQ) string {
 	secretName := "postgresql-secrets"
 	if cr.Spec.DatabaseSecret != "" {
 		secretName = cr.Spec.DatabaseSecret
@@ -40,7 +40,7 @@ func postgresqlSecretName(cr *miqv1alpha1.Manageiq) string {
 	return secretName
 }
 
-func NewPostgresqlConfigsConfigMap(cr *miqv1alpha1.Manageiq) *corev1.ConfigMap {
+func NewPostgresqlConfigsConfigMap(cr *miqv1alpha1.ManageIQ) *corev1.ConfigMap {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
@@ -56,7 +56,7 @@ func NewPostgresqlConfigsConfigMap(cr *miqv1alpha1.Manageiq) *corev1.ConfigMap {
 	}
 }
 
-func NewPostgresqlPVC(cr *miqv1alpha1.Manageiq) *corev1.PersistentVolumeClaim {
+func NewPostgresqlPVC(cr *miqv1alpha1.ManageIQ) *corev1.PersistentVolumeClaim {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
@@ -80,7 +80,7 @@ func NewPostgresqlPVC(cr *miqv1alpha1.Manageiq) *corev1.PersistentVolumeClaim {
 	}
 }
 
-func NewPostgresqlService(cr *miqv1alpha1.Manageiq) *corev1.Service {
+func NewPostgresqlService(cr *miqv1alpha1.ManageIQ) *corev1.Service {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
@@ -106,7 +106,7 @@ func NewPostgresqlService(cr *miqv1alpha1.Manageiq) *corev1.Service {
 	}
 }
 
-func NewPostgresqlDeployment(cr *miqv1alpha1.Manageiq) *appsv1.Deployment {
+func NewPostgresqlDeployment(cr *miqv1alpha1.ManageIQ) *appsv1.Deployment {
 	deploymentLabels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
