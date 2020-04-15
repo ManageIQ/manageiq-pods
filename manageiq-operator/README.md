@@ -50,7 +50,7 @@ $ oc create -f deploy/operator.yaml
 ### Create the CR to deploy ManageIQ
 
 ```bash
-$ oc create -f deploy/crds/manageiq_v1alpha1_manageiq_cr.yaml
+$ oc create -f deploy/crds/manageiq.org_v1alpha1_manageiq_cr.yaml
 ```
 
 **ManageIQ Instance Example**

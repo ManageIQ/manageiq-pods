@@ -3,45 +3,43 @@ kind: ManageIQ
 metadata:
   name: miq
 spec:
-  # Add fields here
-  appName: # e.g. "manageiq"
-  applicationAdminPassword: # e.g. "smartvm"
-  applicationDomain: # e.g. "miqproject.example.com"
+  appName:  "manageiq"
+  applicationAdminPassword: "smartvm"
+  applicationDomain: "miqproject.apps-crc.testing"
 
   databaseSecret: postgresql-secrets
-  databaseRegion: # e.g. "0"
-  databaseVolumeCapacity: # e.g. 15Gi
+  databaseRegion: "0"
+  databaseVolumeCapacity: 15Gi
 
-  httpdCpuRequest: # e.g. 100m
-  httpdImageName: # e.g. manageiq/httpd
-  httpdImageTag: # e.g. latest
-  httpdMemoryLimit: # e.g. 200Mi
-  httpdMemoryRequest: # e.g. 100Mi
+  httpdCpuRequest: 100m
+  httpdImageName: manageiq/httpd
+  httpdImageTag: latest
+  httpdMemoryLimit: 200Mi
+  httpdMemoryRequest: 100Mi
 
-  memcachedCpuRequest: # e.g. 200m
-  memcachedImageName: # e.g. manageiq/memcached
-  memcachedImageTag: # e.g. latest
+  memcachedCpuRequest: 200m
+  memcachedImageName: manageiq/memcached
+  memcachedImageTag: latest
+  memcachedMaxConnection: "1024"
+  memcachedMaxMemory: "64"
+  memcachedMemoryLimit: 256Mi
+  memcachedMemoryRequest: 64Mi
+  memcachedSlabPageSize: 1m
 
-  memcachedMaxConnection: # e.g. "1024"
-  memcachedMaxMemory: # e.g. "64"
-  memcachedMemoryLimit: # e.g. 256Mi
-  memcachedMemoryRequest: # e.g. 64Mi
-  memcachedSlabPageSize: # e.g. 1m
+  orchestratorCpuRequest: 100m
+  orchestratorImageName: manageiq-orchestrator
+  orchestratorImageNamespace: manageiq
+  orchestratorImageTag: latest
+  orchestratorMemoryLimit: 16Gi
+  orchestratorMemoryRequest: 150Mi
 
-  orchestratorCpuRequest: # e.g. 100m
-  orchestratorImageName: # e.g. manageiq-orchestrator
-  orchestratorImageNamespace: # e.g. manageiq
-  orchestratorImageTag: # e.g. latest
-  orchestratorMemoryLimit: # e.g. 16Gi
-  orchestratorMemoryRequest: # e.g. 150Mi
-
-  postgresqlCpuRequest: # e.g. 100m
-  postgresqlImageName: # e.g. docker.io/manageiq/postgresql
-  postgresqlImageTag: # e.g. latest
-  postgresqlMaxConnections: # e.g. "1000"
-  postgresqlMemoryLimit: # e.g. 8Gi
-  postgresqlMemoryRequest: # e.g. 200Mi
-  postgresqlSharedBuffers: # e.g. 1GB
+  postgresqlCpuRequest: 100m
+  postgresqlImageName: docker.io/manageiq/postgresql
+  postgresqlImageTag: latest
+  postgresqlMaxConnections: "1000"
+  postgresqlMemoryLimit: 8Gi
+  postgresqlMemoryRequest: 200Mi
+  postgresqlSharedBuffers: 1GB
 
   kafkaSecret: kafka-secrets
   kafkaVolumeCapacity: 1Gi
