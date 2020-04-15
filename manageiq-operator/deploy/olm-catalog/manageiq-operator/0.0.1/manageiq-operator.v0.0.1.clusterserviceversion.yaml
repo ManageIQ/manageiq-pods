@@ -11,41 +11,7 @@ metadata:
             "name": "miq"
           },
           "spec": {
-            "appName": null,
-            "applicationAdminPassword": null,
-            "applicationDomain": null,
-            "databaseRegion": null,
-            "databaseSecret": "postgresql-secrets",
-            "databaseVolumeCapacity": null,
-            "httpdCpuRequest": null,
-            "httpdImageName": null,
-            "httpdImageTag": null,
-            "httpdMemoryLimit": null,
-            "httpdMemoryRequest": null,
-            "kafkaSecret": "kafka-secrets",
-            "kafkaVolumeCapacity": "1Gi",
-            "memcachedCpuRequest": null,
-            "memcachedImageName": null,
-            "memcachedImageTag": null,
-            "memcachedMaxConnection": null,
-            "memcachedMaxMemory": null,
-            "memcachedMemoryLimit": null,
-            "memcachedMemoryRequest": null,
-            "memcachedSlabPageSize": null,
-            "orchestratorCpuRequest": null,
-            "orchestratorImageName": null,
-            "orchestratorImageNamespace": null,
-            "orchestratorImageTag": null,
-            "orchestratorMemoryLimit": null,
-            "orchestratorMemoryRequest": null,
-            "postgresqlCpuRequest": null,
-            "postgresqlImageName": null,
-            "postgresqlImageTag": null,
-            "postgresqlMaxConnections": null,
-            "postgresqlMemoryLimit": null,
-            "postgresqlMemoryRequest": null,
-            "postgresqlSharedBuffers": null,
-            "zookeeperVolumeCapacity": "1Gi"
+            "applicationDomain": "miqproject.apps-crc.testing"
           }
         }
       ]
