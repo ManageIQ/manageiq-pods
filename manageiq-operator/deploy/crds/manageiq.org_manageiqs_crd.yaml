@@ -96,7 +96,7 @@ spec:
               description: 'Memcached deployment memory request (default: no limit)'
               type: string
             memcachedSlabPageSize:
-              description: 'Memcached max item size (default: 1mb, min: 1k, max: 1024m)'
+              description: 'Memcached max item size (default: 1m, min: 1k, max: 1024m)'
               type: string
             orchestratorCpuRequest:
               description: 'Orchestrator deployment CPU request (default: no request)'

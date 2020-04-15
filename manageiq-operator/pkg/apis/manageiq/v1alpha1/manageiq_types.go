@@ -75,7 +75,7 @@ type ManageIQSpec struct {
 	// Memcached item memory in megabytes (default: 64)
 	// +optional
 	MemcachedMaxMemory string `json:"memcachedMaxMemory"`
-	// Memcached max item size (default: 1mb, min: 1k, max: 1024m)
+	// Memcached max item size (default: 1m, min: 1k, max: 1024m)
 	// +optional
 	MemcachedSlabPageSize string `json:"memcachedSlabPageSize"`
 
@@ -211,7 +211,7 @@ func (m *ManageIQ) Initialize() {
 	}
 
 	if spec.MemcachedSlabPageSize == "" {
-		spec.MemcachedSlabPageSize = "1mb"
+		spec.MemcachedSlabPageSize = "1m"
 	}
 
 	if spec.OrchestratorImageName == "" {
