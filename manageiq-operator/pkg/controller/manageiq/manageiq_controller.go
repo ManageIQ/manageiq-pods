@@ -267,6 +267,21 @@ func (r *ReconcileManageiq) generateKafkaResources(cr *miqv1alpha1.Manageiq) err
 }
 
 func (r *ReconcileManageiq) generateOrchestratorResources(cr *miqv1alpha1.Manageiq) error {
+	orchestratorServiceAccount := miqtool.OrchestratorServiceAccount(cr)
+	if err := r.createk8sResIfNotExist(cr, orchestratorServiceAccount, &corev1.ServiceAccount{}); err != nil {
+		return err
+	}
+
+	orchestratorRole := miqtool.OrchestratorRole(cr)
+	if err := r.createk8sResIfNotExist(cr, orchestratorRole, &rbacv1.Role{}); err != nil {
+		return err
+	}
+
+	orchestratorRoleBinding := miqtool.OrchestratorRoleBinding(cr)
+	if err := r.createk8sResIfNotExist(cr, orchestratorRoleBinding, &rbacv1.RoleBinding{}); err != nil {
+		return err
+	}
+
 	orchestratorDeployment := miqtool.NewOrchestratorDeployment(cr)
 	if err := r.createk8sResIfNotExist(cr, orchestratorDeployment, &appsv1.Deployment{}); err != nil {
 		return err
@@ -299,23 +314,8 @@ func (r *ReconcileManageiq) generateRbacResources(cr *miqv1alpha1.Manageiq) erro
 		return err
 	}
 
-	orchestratorServiceAccount := miqtool.OrchestratorServiceAccount(cr)
-	if err := r.createk8sResIfNotExist(cr, orchestratorServiceAccount, &corev1.ServiceAccount{}); err != nil {
-		return err
-	}
-
 	anyuidServiceAccount := miqtool.AnyuidServiceAccount(cr)
 	if err := r.createk8sResIfNotExist(cr, anyuidServiceAccount, &corev1.ServiceAccount{}); err != nil {
-		return err
-	}
-
-	orchestratorViewRoleBinding := miqtool.OrchestratorViewRoleBinding(cr)
-	if err := r.createk8sResIfNotExist(cr, orchestratorViewRoleBinding, &rbacv1.RoleBinding{}); err != nil {
-		return err
-	}
-
-	orchestratorEditRoleBinding := miqtool.OrchestratorEditRoleBinding(cr)
-	if err := r.createk8sResIfNotExist(cr, orchestratorEditRoleBinding, &rbacv1.RoleBinding{}); err != nil {
 		return err
 	}
 
