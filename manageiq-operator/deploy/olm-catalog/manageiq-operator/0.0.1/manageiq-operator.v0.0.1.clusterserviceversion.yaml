@@ -1,0 +1,176 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: |-
+      [
+        {
+          "apiVersion": "manageiq.org/v1alpha1",
+          "kind": "ManageIQ",
+          "metadata": {
+            "name": "miq"
+          },
+          "spec": {
+            "appName": null,
+            "applicationAdminPassword": null,
+            "applicationDomain": null,
+            "databaseRegion": null,
+            "databaseSecret": "postgresql-secrets",
+            "databaseVolumeCapacity": null,
+            "httpdCpuRequest": null,
+            "httpdImageName": null,
+            "httpdImageTag": null,
+            "httpdMemoryLimit": null,
+            "httpdMemoryRequest": null,
+            "kafkaSecret": "kafka-secrets",
+            "kafkaVolumeCapacity": "1Gi",
+            "memcachedCpuRequest": null,
+            "memcachedImageName": null,
+            "memcachedImageTag": null,
+            "memcachedMaxConnection": null,
+            "memcachedMaxMemory": null,
+            "memcachedMemoryLimit": null,
+            "memcachedMemoryRequest": null,
+            "memcachedSlabPageSize": null,
+            "orchestratorCpuRequest": null,
+            "orchestratorImageName": null,
+            "orchestratorImageNamespace": null,
+            "orchestratorImageTag": null,
+            "orchestratorMemoryLimit": null,
+            "orchestratorMemoryRequest": null,
+            "postgresqlCpuRequest": null,
+            "postgresqlImageName": null,
+            "postgresqlImageTag": null,
+            "postgresqlMaxConnections": null,
+            "postgresqlMemoryLimit": null,
+            "postgresqlMemoryRequest": null,
+            "postgresqlSharedBuffers": null,
+            "zookeeperVolumeCapacity": "1Gi"
+          }
+        }
+      ]
+    capabilities: Basic Install
+  name: manageiq-operator.v0.0.1
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - description: ManageIQ is the Schema for the manageiqs API
+      kind: ManageIQ
+      name: manageiqs.manageiq.org
+      version: v1alpha1
+  description: Placeholder description
+  displayName: Manageiq Operator
+  install:
+    spec:
+      deployments:
+      - name: manageiq-operator
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              name: manageiq-operator
+          strategy: {}
+          template:
+            metadata:
+              labels:
+                name: manageiq-operator
+            spec:
+              containers:
+              - command:
+                - manageiq-operator
+                env:
+                - name: WATCH_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.annotations['olm.targetNamespaces']
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: OPERATOR_NAME
+                  value: manageiq-operator
+                image: docker.io/manageiq/manageiq-operator:v0.0.1
+                imagePullPolicy: Always
+                name: manageiq-operator
+                resources: {}
+              serviceAccountName: manageiq-operator
+      permissions:
+      - rules:
+        - apiGroups:
+          - ""
+          resources:
+          - pods
+          - services
+          - services/finalizers
+          - persistentvolumeclaims
+          - configmaps
+          - secrets
+          - serviceaccounts
+          verbs:
+          - '*'
+        - apiGroups:
+          - extensions
+          resources:
+          - ingresses
+          verbs:
+          - '*'
+        - apiGroups:
+          - rbac.authorization.k8s.io
+          resources:
+          - rolebindings
+          - clusterroles
+          - roles
+          verbs:
+          - escalate
+          - '*'
+        - apiGroups:
+          - apps
+          resources:
+          - deployments
+          - replicasets
+          verbs:
+          - '*'
+        - apiGroups:
+          - monitoring.coreos.com
+          resources:
+          - servicemonitors
+          verbs:
+          - get
+          - create
+        - apiGroups:
+          - apps
+          resourceNames:
+          - manageiq-operator
+          resources:
+          - deployments/finalizers
+          verbs:
+          - update
+        - apiGroups:
+          - manageiq.org
+          resources:
+          - '*'
+          verbs:
+          - '*'
+        - apiGroups:
+          - route.openshift.io
+          resources:
+          - routes/custom-host
+          verbs:
+          - '*'
+        serviceAccountName: manageiq-operator
+    strategy: deployment
+  installModes:
+  - supported: true
+    type: OwnNamespace
+  - supported: true
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  maturity: alpha
+  provider: {}
+  replaces: manageiq-operator.v0.0.0
+  version: 0.0.1
