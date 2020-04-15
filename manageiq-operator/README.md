@@ -7,7 +7,7 @@ This operator manages the lifecycle of ManageIQ application on a OCP4 cluster.
 Deploy the ManageIQ CRD
 
 ```bash
-$ oc create -f deploy/crds/manageiq_v1alpha1_manageiq_crd.yaml
+$ oc create -f deploy/crds/manageiq.org_manageiqs_crd.yaml
 ```
 
 ### Option A: Run Locally(outside of cluster)
@@ -58,20 +58,16 @@ $ oc create -f deploy/crds/manageiq_v1alpha1_manageiq_cr.yaml
 > Deployments' resource requests here are tailered to make them fit into a crc cluster, change them according to your cluster's resource capacity*
 
 ```yaml
-apiVersion: manageiq.example.com/v1alpha1
+apiVersion: manageiq.org/v1alpha1
 kind: Manageiq
 metadata:
   name: miq
 spec:
-  # Add fields here
   appName:  "manageiq"
   applicationAdminPassword: "smartvm"
   applicationDomain: "miqproject.apps-crc.testing"
 
-  databaseName: "vmdb_production"
-  databasePort: "5432"
-  databaseUser: "root"
-  databasePassword: "redhat"
+  databaseSecret: postgresql-secrets
   databaseRegion: "0"
   databaseVolumeCapacity: 15Gi
 
@@ -104,4 +100,8 @@ spec:
   postgresqlMemoryLimit: 8Gi
   postgresqlMemoryRequest: 200Mi
   postgresqlSharedBuffers: 1GB
+
+  kafkaSecret: kafka-secrets
+  kafkaVolumeCapacity: 1Gi
+  zookeeperVolumeCapacity: 1Gi
 ```

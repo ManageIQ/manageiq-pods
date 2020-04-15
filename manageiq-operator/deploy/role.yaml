@@ -9,6 +9,7 @@ rules:
   resources:
   - pods
   - services
+  - services/finalizers
   - persistentvolumeclaims
   - configmaps
   - secrets
@@ -34,8 +35,16 @@ rules:
   - apps
   resources:
   - deployments
+  - replicasets
   verbs:
   - '*'
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - servicemonitors
+  verbs:
+  - get
+  - create
 - apiGroups:
   - apps
   resourceNames:

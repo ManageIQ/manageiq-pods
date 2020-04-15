@@ -4,12 +4,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 // ManageiqSpec defines the desired state of Manageiq
-// +k8s:openapi-gen=true
 type ManageiqSpec struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
-	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
 	// Application name used for deployed objects
 	AppName string `json:"appName"`
 
@@ -20,11 +17,12 @@ type ManageiqSpec struct {
 	// Used for external authentication configuration
 	ApplicationDomain string `json:"applicationDomain"`
 
-	DatabaseSecret string `json:"databaseSecret"`
 	// Application region number
 	DatabaseRegion string `json:"databaseRegion"`
 	// Containerized database volume size
 	DatabaseVolumeCapacity string `json:"databaseVolumeCapacity"`
+	// +optional
+	DatabaseSecret string `json:"databaseSecret"`
 
 	// Secret containing the tls cert and key for the ingress
 	TLSSecret string `json:"tlsSecret"`
@@ -35,7 +33,6 @@ type ManageiqSpec struct {
 	HttpdMemoryLimit   string `json:"httpdMemoryLimit"`
 	HttpdMemoryRequest string `json:"httpdMemoryRequest"`
 
-	// memcachedpod deployment information
 	MemcachedCpuRequest    string `json:"memcachedCpuRequest"`
 	MemcachedImageName     string `json:"memcachedImageName"`
 	MemcachedImageTag      string `json:"memcachedImageTag"`
@@ -45,7 +42,6 @@ type ManageiqSpec struct {
 	MemcachedMemoryRequest string `json:"memcachedMemoryRequest"`
 	MemcachedSlabPageSize  string `json:"memcachedSlabPageSize"`
 
-	//  orchestrator deployment information
 	OrchestratorCpuRequest     string `json:"orchestratorCpuRequest"`
 	OrchestratorImageName      string `json:"orchestratorImageName"`
 	OrchestratorImageNamespace string `json:"orchestratorImageNamespace"`
@@ -53,7 +49,6 @@ type ManageiqSpec struct {
 	OrchestratorMemoryLimit    string `json:"orchestratorMemoryLimit"`
 	OrchestratorMemoryRequest  string `json:"orchestratorMemoryRequest"`
 
-	// postgres database pod deployment information
 	PostgresqlCpuRequest     string `json:"postgresqlCpuRequest"`
 	PostgresqlImageName      string `json:"postgresqlImageName"`
 	PostgresqlImageTag       string `json:"postgresqlImageTag"`
@@ -62,26 +57,26 @@ type ManageiqSpec struct {
 	PostgresqlMemoryRequest  string `json:"postgresqlMemoryRequest"`
 	PostgresqlSharedBuffers  string `json:"postgresqlSharedBuffers"`
 
-	// kafka deployment information
-	KafkaSecret             string `json:"kafkaSecret"`
 	KafkaVolumeCapacity     string `json:"kafkaVolumeCapacity"`
 	ZookeeperVolumeCapacity string `json:"zookeeperVolumeCapacity"`
+	// +optional
+	KafkaSecret string `json:"kafkaSecret"`
 
 	EncryptionKey string `json:"encryptionKey"`
 }
 
 // ManageiqStatus defines the observed state of Manageiq
-// +k8s:openapi-gen=true
 type ManageiqStatus struct {
+	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
-	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
+	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // Manageiq is the Schema for the manageiqs API
-// +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
+// +kubebuilder:resource:path=manageiqs,scope=Namespaced
 type Manageiq struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

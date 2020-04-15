@@ -20,7 +20,7 @@ spec:
 
   memcachedCpuRequest: # e.g. 200m
   memcachedImageName: # e.g. manageiq/memcached
-  memcachedImageTag: # e.g. latest 
+  memcachedImageTag: # e.g. latest
 
   memcachedMaxConnection: # e.g. "1024"
   memcachedMaxMemory: # e.g. "64"
@@ -38,7 +38,7 @@ spec:
   postgresqlCpuRequest: # e.g. 100m
   postgresqlImageName: # e.g. docker.io/manageiq/postgresql
   postgresqlImageTag: # e.g. latest
-  postgresqlMaxConnections: # e.g. "1000" 
+  postgresqlMaxConnections: # e.g. "1000"
   postgresqlMemoryLimit: # e.g. 8Gi
   postgresqlMemoryRequest: # e.g. 200Mi
   postgresqlSharedBuffers: # e.g. 1GB

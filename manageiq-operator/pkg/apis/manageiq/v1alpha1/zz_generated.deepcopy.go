@@ -40,7 +40,7 @@ func (in *Manageiq) DeepCopyObject() runtime.Object {
 func (in *ManageiqList) DeepCopyInto(out *ManageiqList) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
-	out.ListMeta = in.ListMeta
+	in.ListMeta.DeepCopyInto(&out.ListMeta)
 	if in.Items != nil {
 		in, out := &in.Items, &out.Items
 		*out = make([]Manageiq, len(*in))
