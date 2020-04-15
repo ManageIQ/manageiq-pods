@@ -109,6 +109,9 @@ spec:
               type: string
             postgresqlSharedBuffers:
               type: string
+            tlsSecret:
+              description: Secret containing the tls cert and key for the ingress
+              type: string
             zookeeperVolumeCapacity:
               type: string
           required:
@@ -145,6 +148,7 @@ spec:
           - postgresqlMemoryLimit
           - postgresqlMemoryRequest
           - postgresqlSharedBuffers
+          - tlsSecret
           - zookeeperVolumeCapacity
           type: object
         status:
