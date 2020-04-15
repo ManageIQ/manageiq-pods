@@ -7,7 +7,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func HttpdServiceAccount(cr *miqv1alpha1.Manageiq) *corev1.ServiceAccount {
+func HttpdServiceAccount(cr *miqv1alpha1.ManageIQ) *corev1.ServiceAccount {
 	return &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cr.Spec.AppName + "-httpd",
@@ -16,7 +16,7 @@ func HttpdServiceAccount(cr *miqv1alpha1.Manageiq) *corev1.ServiceAccount {
 	}
 }
 
-func OrchestratorServiceAccount(cr *miqv1alpha1.Manageiq) *corev1.ServiceAccount {
+func OrchestratorServiceAccount(cr *miqv1alpha1.ManageIQ) *corev1.ServiceAccount {
 	return &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      orchestratorObjectName(cr),
@@ -25,7 +25,7 @@ func OrchestratorServiceAccount(cr *miqv1alpha1.Manageiq) *corev1.ServiceAccount
 	}
 }
 
-func AnyuidServiceAccount(cr *miqv1alpha1.Manageiq) *corev1.ServiceAccount {
+func AnyuidServiceAccount(cr *miqv1alpha1.ManageIQ) *corev1.ServiceAccount {
 	return &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cr.Spec.AppName + "-anyuid",
@@ -34,7 +34,7 @@ func AnyuidServiceAccount(cr *miqv1alpha1.Manageiq) *corev1.ServiceAccount {
 	}
 }
 
-func OrchestratorRole(cr *miqv1alpha1.Manageiq) *rbacv1.Role {
+func OrchestratorRole(cr *miqv1alpha1.ManageIQ) *rbacv1.Role {
 	return &rbacv1.Role{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      orchestratorObjectName(cr),
@@ -60,7 +60,7 @@ func OrchestratorRole(cr *miqv1alpha1.Manageiq) *rbacv1.Role {
 	}
 }
 
-func OrchestratorRoleBinding(cr *miqv1alpha1.Manageiq) *rbacv1.RoleBinding {
+func OrchestratorRoleBinding(cr *miqv1alpha1.ManageIQ) *rbacv1.RoleBinding {
 	return &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      orchestratorObjectName(cr),
@@ -80,6 +80,6 @@ func OrchestratorRoleBinding(cr *miqv1alpha1.Manageiq) *rbacv1.RoleBinding {
 	}
 }
 
-func orchestratorObjectName(cr *miqv1alpha1.Manageiq) string {
+func orchestratorObjectName(cr *miqv1alpha1.ManageIQ) string {
 	return cr.Spec.AppName + "-orchestrator"
 }

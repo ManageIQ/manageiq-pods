@@ -53,13 +53,13 @@ $ oc create -f deploy/operator.yaml
 $ oc create -f deploy/crds/manageiq_v1alpha1_manageiq_cr.yaml
 ```
 
-**Manageiq Instance Example**
+**ManageIQ Instance Example**
 
 > Deployments' resource requests here are tailered to make them fit into a crc cluster, change them according to your cluster's resource capacity*
 
 ```yaml
 apiVersion: manageiq.org/v1alpha1
-kind: Manageiq
+kind: ManageIQ
 metadata:
   name: miq
 spec:
