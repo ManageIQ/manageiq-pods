@@ -7,62 +7,131 @@ import (
 // ManageIQSpec defines the desired state of ManageIQ
 type ManageIQSpec struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
-	// Application name used for deployed objects
+
+	// Application name used for deployed objects (default: manageiq)
+	// +optional
 	AppName string `json:"appName"`
 
-	// admin user initial password
+	// Initial password for "admin" user (default: smartvm)
+	// +optional
 	ApplicationAdminPassword string `json:"applicationAdminPassword"`
 
-	// Domain name for the external route
-	// Used for external authentication configuration
+	// Domain name for the external route. Used for external authentication configuration
 	ApplicationDomain string `json:"applicationDomain"`
 
-	// Application region number
+	// Database region number (default: 0)
+	// +optional
 	DatabaseRegion string `json:"databaseRegion"`
-	// Containerized database volume size
+
+	// Database volume size (default: 15Gi)
+	// +optional
 	DatabaseVolumeCapacity string `json:"databaseVolumeCapacity"`
+
+	// Secret containing the database access information, content generated if not provided (default: postgresql-secrets)
 	// +optional
 	DatabaseSecret string `json:"databaseSecret"`
 
-	// Secret containing the tls cert and key for the ingress
+	// Secret containing the tls cert and key for the ingress, content generated if not provided (default: tls-secret)
+	// +optional
 	TLSSecret string `json:"tlsSecret"`
 
-	HttpdCpuRequest    string `json:"httpdCpuRequest"`
-	HttpdImageName     string `json:"httpdImageName"`
-	HttpdImageTag      string `json:"httpdImageTag"`
-	HttpdMemoryLimit   string `json:"httpdMemoryLimit"`
+	// Image used for the httpd deployment (default: manageiq/httpd)
+	// +optional
+	HttpdImageName string `json:"httpdImageName"`
+	// Image tag used for the httpd deployment (default: latest)
+	// +optional
+	HttpdImageTag string `json:"httpdImageTag"`
+
+	// Httpd deployment CPU request (default: no request)
+	// +optional
+	HttpdCpuRequest string `json:"httpdCpuRequest"`
+	// Httpd deployment memory limit (default: no limit)
+	// +optional
+	HttpdMemoryLimit string `json:"httpdMemoryLimit"`
+	// Httpd deployment memory request (default: no limit)
+	// +optional
 	HttpdMemoryRequest string `json:"httpdMemoryRequest"`
 
-	MemcachedCpuRequest    string `json:"memcachedCpuRequest"`
-	MemcachedImageName     string `json:"memcachedImageName"`
-	MemcachedImageTag      string `json:"memcachedImageTag"`
-	MemcachedMaxConnection string `json:"memcachedMaxConnection"`
-	MemcachedMaxMemory     string `json:"memcachedMaxMemory"`
-	MemcachedMemoryLimit   string `json:"memcachedMemoryLimit"`
+	// Image used for the memcached deployment (default: manageiq/memcached)
+	// +optional
+	MemcachedImageName string `json:"memcachedImageName"`
+	// Image tag used for the memcached deployment (default: latest)
+	// +optional
+	MemcachedImageTag string `json:"memcachedImageTag"`
+
+	// Memcached deployment CPU request (default: no request)
+	// +optional
+	MemcachedCpuRequest string `json:"memcachedCpuRequest"`
+	// Memcached deployment memory limit (default: no limit)
+	// +optional
+	MemcachedMemoryLimit string `json:"memcachedMemoryLimit"`
+	// Memcached deployment memory request (default: no limit)
+	// +optional
 	MemcachedMemoryRequest string `json:"memcachedMemoryRequest"`
-	MemcachedSlabPageSize  string `json:"memcachedSlabPageSize"`
 
-	OrchestratorCpuRequest     string `json:"orchestratorCpuRequest"`
-	OrchestratorImageName      string `json:"orchestratorImageName"`
+	// Memcached max simultaneous connections (default: 1024)
+	// +optional
+	MemcachedMaxConnection string `json:"memcachedMaxConnection"`
+	// Memcached item memory in megabytes (default: 64)
+	// +optional
+	MemcachedMaxMemory string `json:"memcachedMaxMemory"`
+	// Memcached max item size (default: 1m, min: 1k, max: 1024m)
+	// +optional
+	MemcachedSlabPageSize string `json:"memcachedSlabPageSize"`
+
+	// Image name used for the orchestrator deployment (default: manageiq-orchestrator)
+	// +optional
+	OrchestratorImageName string `json:"orchestratorImageName"`
+	// Image namespace used for the orchestrator and worker deployments (default: manageiq)
+	// +optional
 	OrchestratorImageNamespace string `json:"orchestratorImageNamespace"`
-	OrchestratorImageTag       string `json:"orchestratorImageTag"`
-	OrchestratorMemoryLimit    string `json:"orchestratorMemoryLimit"`
-	OrchestratorMemoryRequest  string `json:"orchestratorMemoryRequest"`
+	// Image tag used for the orchestrator and worker deployments (default: latest)
+	// +optional
+	OrchestratorImageTag string `json:"orchestratorImageTag"`
 
-	PostgresqlCpuRequest     string `json:"postgresqlCpuRequest"`
-	PostgresqlImageName      string `json:"postgresqlImageName"`
-	PostgresqlImageTag       string `json:"postgresqlImageTag"`
+	// Orchestrator deployment CPU request (default: no request)
+	// +optional
+	OrchestratorCpuRequest string `json:"orchestratorCpuRequest"`
+	// Orchestrator deployment memory limit (default: no limit)
+	// +optional
+	OrchestratorMemoryLimit string `json:"orchestratorMemoryLimit"`
+	// Orchestrator deployment memory request (default: no limit)
+	// +optional
+	OrchestratorMemoryRequest string `json:"orchestratorMemoryRequest"`
+
+	// Image used for the postgresql deployment (Default: docker.io/manageiq/postgresql)
+	// +optional
+	PostgresqlImageName string `json:"postgresqlImageName"`
+	// Image tag used for the postgresql deployment (Default: 10)
+	// +optional
+	PostgresqlImageTag string `json:"postgresqlImageTag"`
+
+	// PostgreSQL deployment CPU request (default: no request)
+	// +optional
+	PostgresqlCpuRequest string `json:"postgresqlCpuRequest"`
+	// PostgreSQL deployment memory limit (default: no limit)
+	// +optional
+	PostgresqlMemoryLimit string `json:"postgresqlMemoryLimit"`
+	// PostgreSQL deployment memory request (default: no limit)
+	// +optional
+	PostgresqlMemoryRequest string `json:"postgresqlMemoryRequest"`
+
+	// PostgreSQL maximum connection setting (default: 1000)
+	// +optional
 	PostgresqlMaxConnections string `json:"postgresqlMaxConnections"`
-	PostgresqlMemoryLimit    string `json:"postgresqlMemoryLimit"`
-	PostgresqlMemoryRequest  string `json:"postgresqlMemoryRequest"`
-	PostgresqlSharedBuffers  string `json:"postgresqlSharedBuffers"`
+	// PostgreSQL shared buffers setting (default: 1GB)
+	// +optional
+	PostgresqlSharedBuffers string `json:"postgresqlSharedBuffers"`
 
-	KafkaVolumeCapacity     string `json:"kafkaVolumeCapacity"`
+	// Kafka volume size (default: 1Gi)
+	// +optional
+	KafkaVolumeCapacity string `json:"kafkaVolumeCapacity"`
+	// Zookeeper volume size (default: 1Gi)
+	// +optional
 	ZookeeperVolumeCapacity string `json:"zookeeperVolumeCapacity"`
+	// Secret containing the kafka access information, content generated if not provided (default: kafka-secrets)
 	// +optional
 	KafkaSecret string `json:"kafkaSecret"`
-
-	EncryptionKey string `json:"encryptionKey"`
 }
 
 // ManageIQStatus defines the observed state of ManageIQ
@@ -96,4 +165,88 @@ type ManageIQList struct {
 
 func init() {
 	SchemeBuilder.Register(&ManageIQ{}, &ManageIQList{})
+}
+
+func (m *ManageIQ) Initialize() {
+	spec := &m.Spec
+
+	if spec.AppName == "" {
+		spec.AppName = "manageiq"
+	}
+
+	if spec.ApplicationAdminPassword == "" {
+		spec.ApplicationAdminPassword = "smartvm"
+	}
+
+	if spec.DatabaseRegion == "" {
+		spec.DatabaseRegion = "0"
+	}
+
+	if spec.DatabaseVolumeCapacity == "" {
+		spec.DatabaseVolumeCapacity = "15Gi"
+	}
+
+	if spec.HttpdImageName == "" {
+		spec.HttpdImageName = "manageiq/httpd"
+	}
+
+	if spec.HttpdImageTag == "" {
+		spec.HttpdImageTag = "latest"
+	}
+
+	if spec.MemcachedImageName == "" {
+		spec.MemcachedImageName = "manageiq/memcached"
+	}
+
+	if spec.MemcachedImageTag == "" {
+		spec.MemcachedImageTag = "latest"
+	}
+
+	if spec.MemcachedMaxConnection == "" {
+		spec.MemcachedMaxConnection = "1024"
+	}
+
+	if spec.MemcachedMaxMemory == "" {
+		spec.MemcachedMaxMemory = "64"
+	}
+
+	if spec.MemcachedSlabPageSize == "" {
+		spec.MemcachedSlabPageSize = "1m"
+	}
+
+	if spec.OrchestratorImageName == "" {
+		spec.OrchestratorImageName = "manageiq-orchestrator"
+	}
+
+	if spec.OrchestratorImageNamespace == "" {
+		spec.OrchestratorImageNamespace = "manageiq"
+	}
+
+	if spec.OrchestratorImageTag == "" {
+		spec.OrchestratorImageTag = "latest"
+	}
+
+	if spec.PostgresqlImageName == "" {
+		spec.PostgresqlImageName = "docker.io/manageiq/postgresql"
+	}
+
+	if spec.PostgresqlImageTag == "" {
+		spec.PostgresqlImageTag = "10"
+	}
+
+	if spec.PostgresqlMaxConnections == "" {
+		spec.PostgresqlMaxConnections = "1000"
+	}
+
+	if spec.PostgresqlSharedBuffers == "" {
+		spec.PostgresqlSharedBuffers = "1GB"
+	}
+
+	if spec.KafkaVolumeCapacity == "" {
+		spec.KafkaVolumeCapacity = "1Gi"
+	}
+
+	if spec.ZookeeperVolumeCapacity == "" {
+		spec.ZookeeperVolumeCapacity = "1Gi"
+	}
 }

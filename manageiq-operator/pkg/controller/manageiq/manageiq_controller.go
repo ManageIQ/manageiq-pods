@@ -105,6 +105,7 @@ func (r *ReconcileManageIQ) Reconcile(request reconcile.Request) (reconcile.Resu
 	// Fetch the ManageIQ instance
 	miqInstance := &miqv1alpha1.ManageIQ{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, miqInstance)
+	miqInstance.Initialize()
 
 	if errors.IsNotFound(err) {
 		return reconcile.Result{}, nil
@@ -171,7 +172,10 @@ func (r *ReconcileManageIQ) generateHttpdResources(cr *miqv1alpha1.ManageIQ) err
 		return err
 	}
 
-	httpdDeployment := miqtool.NewHttpdDeployment(cr)
+	httpdDeployment, err := miqtool.NewHttpdDeployment(cr)
+	if err != nil {
+		return err
+	}
 	if err := r.createk8sResIfNotExist(cr, httpdDeployment, &appsv1.Deployment{}); err != nil {
 		return err
 	}
@@ -185,7 +189,10 @@ func (r *ReconcileManageIQ) generateHttpdResources(cr *miqv1alpha1.ManageIQ) err
 }
 
 func (r *ReconcileManageIQ) generateMemcachedResources(cr *miqv1alpha1.ManageIQ) error {
-	memcachedDeployment := miqtool.NewMemcachedDeployment(cr)
+	memcachedDeployment, err := miqtool.NewMemcachedDeployment(cr)
+	if err != nil {
+		return err
+	}
 	if err := r.createk8sResIfNotExist(cr, memcachedDeployment, &appsv1.Deployment{}); err != nil {
 		return err
 	}
@@ -219,7 +226,10 @@ func (r *ReconcileManageIQ) generatePostgresqlResources(cr *miqv1alpha1.ManageIQ
 		return err
 	}
 
-	postgresqlDeployment := miqtool.NewPostgresqlDeployment(cr)
+	postgresqlDeployment, err := miqtool.NewPostgresqlDeployment(cr)
+	if err != nil {
+		return err
+	}
 	if err := r.createk8sResIfNotExist(cr, postgresqlDeployment, &appsv1.Deployment{}); err != nil {
 		return err
 	}
@@ -282,7 +292,10 @@ func (r *ReconcileManageIQ) generateOrchestratorResources(cr *miqv1alpha1.Manage
 		return err
 	}
 
-	orchestratorDeployment := miqtool.NewOrchestratorDeployment(cr)
+	orchestratorDeployment, err := miqtool.NewOrchestratorDeployment(cr)
+	if err != nil {
+		return err
+	}
 	if err := r.createk8sResIfNotExist(cr, orchestratorDeployment, &appsv1.Deployment{}); err != nil {
 		return err
 	}

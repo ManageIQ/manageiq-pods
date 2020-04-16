@@ -7,7 +7,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
-	resource "k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	intstr "k8s.io/apimachinery/pkg/util/intstr"
 	"os"
@@ -139,22 +138,77 @@ func NewHttpdAuthConfigMap(cr *miqv1alpha1.ManageIQ) *corev1.ConfigMap {
 
 }
 
-func NewHttpdDeployment(cr *miqv1alpha1.ManageIQ) *appsv1.Deployment {
+func NewHttpdDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, error) {
+	container := corev1.Container{
+		Name:  "httpd",
+		Image: cr.Spec.HttpdImageName + ":" + cr.Spec.HttpdImageTag,
+		Ports: []corev1.ContainerPort{
+			corev1.ContainerPort{
+				ContainerPort: 80,
+				Protocol:      "TCP",
+			},
+			corev1.ContainerPort{
+				ContainerPort: 8080,
+				Protocol:      "TCP",
+			},
+		},
+		LivenessProbe: &corev1.Probe{
+			Handler: corev1.Handler{
+				Exec: &corev1.ExecAction{
+					Command: []string{"pidof", "httpd"},
+				},
+			},
+			InitialDelaySeconds: 10,
+			TimeoutSeconds:      3,
+		},
+		Env: []corev1.EnvVar{
+			corev1.EnvVar{
+				Name:  "APPLICATION_DOMAIN",
+				Value: cr.Spec.ApplicationDomain,
+			},
+			corev1.EnvVar{
+				Name: "HTTPD_AUTH_TYPE",
+
+				ValueFrom: &corev1.EnvVarSource{
+					ConfigMapKeyRef: &corev1.ConfigMapKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{Name: "httpd-auth-configs"},
+						Key:                  "auth-type",
+					},
+				},
+			},
+			corev1.EnvVar{
+				Name:  "APPLICATION_DOMAIN",
+				Value: cr.Spec.ApplicationDomain,
+			},
+		},
+		VolumeMounts: []corev1.VolumeMount{
+			corev1.VolumeMount{Name: "httpd-config", MountPath: "/etc/httpd/conf.d"},
+			corev1.VolumeMount{Name: "httpd-auth-config", MountPath: "/etc/httpd/auth-conf.d"},
+		},
+		Lifecycle: &corev1.Lifecycle{
+			PostStart: &corev1.Handler{
+				Exec: &corev1.ExecAction{
+					Command: []string{"/usr/bin/save-container-environment"},
+				},
+			},
+		},
+	}
+
+	err := addResourceReqs(cr.Spec.HttpdMemoryLimit, cr.Spec.HttpdMemoryRequest, cr.Spec.HttpdCpuRequest, &container)
+	if err != nil {
+		return nil, err
+	}
+
 	deploymentLabels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
-
 	podLabels := map[string]string{
 		"name": "httpd",
 		"app":  cr.Spec.AppName,
 	}
-
 	var repNum int32 = 1
-	memLimit, _ := resource.ParseQuantity(cr.Spec.HttpdMemoryLimit)
-	memReq, _ := resource.ParseQuantity(cr.Spec.HttpdMemoryRequest)
-	cpuReq, _ := resource.ParseQuantity(cr.Spec.HttpdCpuRequest)
 
-	return &appsv1.Deployment{
+	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "httpd",
 			Namespace: cr.ObjectMeta.Namespace,
@@ -171,72 +225,7 @@ func NewHttpdDeployment(cr *miqv1alpha1.ManageIQ) *appsv1.Deployment {
 					Labels: podLabels,
 				},
 				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{
-						corev1.Container{
-							Name:  "httpd",
-							Image: cr.Spec.HttpdImageName + ":" + cr.Spec.HttpdImageTag,
-							Ports: []corev1.ContainerPort{
-								corev1.ContainerPort{
-									ContainerPort: 80,
-									Protocol:      "TCP",
-								},
-								corev1.ContainerPort{
-									ContainerPort: 8080,
-									Protocol:      "TCP",
-								},
-							},
-							LivenessProbe: &corev1.Probe{
-								Handler: corev1.Handler{
-									Exec: &corev1.ExecAction{
-										Command: []string{"pidof", "httpd"},
-									},
-								},
-								InitialDelaySeconds: 10,
-								TimeoutSeconds:      3,
-							},
-							Env: []corev1.EnvVar{
-								corev1.EnvVar{
-									Name:  "APPLICATION_DOMAIN",
-									Value: cr.Spec.ApplicationDomain,
-								},
-								corev1.EnvVar{
-									Name: "HTTPD_AUTH_TYPE",
-
-									ValueFrom: &corev1.EnvVarSource{
-										ConfigMapKeyRef: &corev1.ConfigMapKeySelector{
-											LocalObjectReference: corev1.LocalObjectReference{Name: "httpd-auth-configs"},
-											Key:                  "auth-type",
-										},
-									},
-								},
-
-								corev1.EnvVar{
-									Name:  "APPLICATION_DOMAIN",
-									Value: cr.Spec.ApplicationDomain,
-								},
-							},
-							VolumeMounts: []corev1.VolumeMount{
-								corev1.VolumeMount{Name: "httpd-config", MountPath: "/etc/httpd/conf.d"},
-								corev1.VolumeMount{Name: "httpd-auth-config", MountPath: "/etc/httpd/auth-conf.d"},
-							},
-							Resources: corev1.ResourceRequirements{
-								Limits: corev1.ResourceList{
-									"memory": memLimit,
-								},
-								Requests: corev1.ResourceList{
-									"memory": memReq,
-									"cpu":    cpuReq,
-								},
-							},
-							Lifecycle: &corev1.Lifecycle{
-								PostStart: &corev1.Handler{
-									Exec: &corev1.ExecAction{
-										Command: []string{"/usr/bin/save-container-environment"},
-									},
-								},
-							},
-						},
-					},
+					Containers: []corev1.Container{container},
 					Volumes: []corev1.Volume{
 						corev1.Volume{
 							Name: "httpd-config",
@@ -260,6 +249,8 @@ func NewHttpdDeployment(cr *miqv1alpha1.ManageIQ) *appsv1.Deployment {
 			},
 		},
 	}
+
+	return deployment, nil
 }
 
 func NewUIService(cr *miqv1alpha1.ManageIQ) *corev1.Service {
