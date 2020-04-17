@@ -30,7 +30,7 @@ objects:
               command:
               - pidof
               - MIQ Server
-            initialDelaySeconds: ${ORCHESTRATOR_INITIAL_DELAY}
+            initialDelaySeconds: ${{ORCHESTRATOR_INITIAL_DELAY}}
             timeoutSeconds: 3
           env:
           - name: ALLOW_INSECURE_SESSION
@@ -140,6 +140,6 @@ parameters:
 - name: ORCHESTRATOR_MEM_LIMIT
   value: 16384Mi
 - name: ORCHESTRATOR_INITIAL_DELAY
-  value: "480"
+  value: 480
 - name: MESSAGING_TYPE
   value: kafka
