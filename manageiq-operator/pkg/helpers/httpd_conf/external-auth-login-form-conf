@@ -1,7 +1,0 @@
-<Location /dashboard/external_authenticate>
-	InterceptFormPAMService    httpd-auth
-	InterceptFormLogin         user_name
-	InterceptFormPassword      user_password
-	InterceptFormLoginSkip     admin
-	InterceptFormClearRemoteUserForSkipped on
-</Location>

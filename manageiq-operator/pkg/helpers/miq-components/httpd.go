@@ -1,7 +1,6 @@
 package miqtools
 
 import (
-	"bytes"
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
 	tlstools "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/helpers/tlstools"
 	appsv1 "k8s.io/api/apps/v1"
@@ -9,7 +8,6 @@ import (
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	intstr "k8s.io/apimachinery/pkg/util/intstr"
-	"os"
 )
 
 func NewIngress(cr *miqv1alpha1.ManageIQ) *extensionsv1beta1.Ingress {
@@ -56,52 +54,26 @@ func NewIngress(cr *miqv1alpha1.ManageIQ) *extensionsv1beta1.Ingress {
 
 }
 
-func readContentFromFile(filename string) string {
-	filerc, _ := os.Open(filename)
-
-	defer filerc.Close()
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(filerc)
-	contents := buf.String()
-	return contents
-}
-
 func NewHttpdConfigMap(cr *miqv1alpha1.ManageIQ) *corev1.ConfigMap {
 
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
 
-	//pwd, _ := os.Getwd()
-	appconf := readContentFromFile("pkg/helpers/httpd_conf/application.conf")
-	authconf := readContentFromFile("pkg/helpers/httpd_conf/authentication.conf")
-	configurationInternalAuth := readContentFromFile("pkg/helpers/httpd_conf/configuration-internal-auth.conf")
-	configurationExternalAuth := readContentFromFile("pkg/helpers/httpd_conf/configuration-external-auth.conf")
-	configurationActiveDirectoryAuth := readContentFromFile("pkg/helpers/httpd_conf/configuration-active-directory-auth")
-	configurationSamlAuth := readContentFromFile("pkg/helpers/httpd_conf/configuration-saml-auth")
-	configurationOpenidConnectAuth := readContentFromFile("pkg/helpers/httpd_conf/configuration-openid-connect-auth")
-
-	externalAuthLoadModulesConf := readContentFromFile("pkg/helpers/httpd_conf/external-auth-load-modules-conf")
-	externalAuthLoginFormConf := readContentFromFile("pkg/helpers/httpd_conf/external-auth-login-form-conf")
-	externalAuthApplicationApiConf := readContentFromFile("pkg/helpers/httpd_conf/external-auth-application-api-conf")
-	externalAuthLookupUserDetailsConf := readContentFromFile("pkg/helpers/httpd_conf/external-auth-lookup-user-details-conf")
-	externalAuthRemoteUserConf := readContentFromFile("pkg/helpers/httpd_conf/external-auth-remote-user-conf")
-	externalAuthOpenidConnectRemoteUserConf := readContentFromFile("pkg/helpers/httpd_conf/external-auth-openid-connect-remote-user-conf")
-
 	data := map[string]string{
-		"application.conf":                              string(appconf),
-		"authentication.conf":                           string(authconf),
-		"configuration-internal-auth":                   string(configurationInternalAuth),
-		"configuration-external-auth":                   string(configurationExternalAuth),
-		"configuration-active-directory-auth":           string(configurationActiveDirectoryAuth),
-		"configuration-saml-auth":                       string(configurationSamlAuth),
-		"configuration-openid-connect-auth":             string(configurationOpenidConnectAuth),
-		"external-auth-load-modules-conf":               string(externalAuthLoadModulesConf),
-		"external-auth-login-form-conf":                 string(externalAuthLoginFormConf),
-		"external-auth-application-api-conf":            string(externalAuthApplicationApiConf),
-		"external-auth-lookup-user-details-conf":        string(externalAuthLookupUserDetailsConf),
-		"external-auth-remote-user-conf":                string(externalAuthRemoteUserConf),
-		"external-auth-openid-connect-remote-user-conf": string(externalAuthOpenidConnectRemoteUserConf),
+		"application.conf":                              httpdApplicationConf(),
+		"authentication.conf":                           httpdAuthenticationConf(),
+		"configuration-internal-auth":                   httpdInternalAuthConf(),
+		"configuration-external-auth":                   httpdExternalAuthConf(),
+		"configuration-active-directory-auth":           httpdADAuthConf(),
+		"configuration-saml-auth":                       httpdSAMLAuthConf(),
+		"configuration-openid-connect-auth":             httpdOIDCAuthConf(),
+		"external-auth-load-modules-conf":               httpdAuthLoadModulesConf(),
+		"external-auth-login-form-conf":                 httpdAuthLoginFormConf(),
+		"external-auth-application-api-conf":            httpdAuthApplicationAPIConf(),
+		"external-auth-lookup-user-details-conf":        httpdAuthLookupUserDetailsConf(),
+		"external-auth-remote-user-conf":                httpdAuthRemoteUserConf(),
+		"external-auth-openid-connect-remote-user-conf": httpdAuthOIDCRemoteUserConf(),
 	}
 
 	return &corev1.ConfigMap{
@@ -118,14 +90,13 @@ func NewHttpdAuthConfigMap(cr *miqv1alpha1.ManageIQ) *corev1.ConfigMap {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
-	authconf := readContentFromFile("pkg/helpers/httpd_conf/authentication.conf")
 	data := map[string]string{
 		"auth-type":                       "internal",
 		"auth-kerberos-realms":            "undefined",
 		"auth-oidc-provider-metadata-url": "undefined",
 		"auth-oidc-client-id":             "undefined",
 		"auth-oidc-client-secret":         "undefined",
-		"auth-configuration.conf":         string(authconf),
+		"auth-configuration.conf":         httpdAuthConfigurationConf(),
 	}
 	return &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
@@ -135,7 +106,6 @@ func NewHttpdAuthConfigMap(cr *miqv1alpha1.ManageIQ) *corev1.ConfigMap {
 		},
 		Data: data,
 	}
-
 }
 
 func NewHttpdDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, error) {
