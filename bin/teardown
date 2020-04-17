@@ -17,7 +17,7 @@ oc delete cm postgresql-configs
 oc delete cm httpd-configs
 oc delete cm httpd-auth-configs
 
-oc delete role manageiq-orchestrator
-oc delete rolebinding manageiq-orchestrator
+oc delete role $APP_NAME-orchestrator
+oc delete rolebinding $APP_NAME-orchestrator
 
 oc delete ingress httpd
