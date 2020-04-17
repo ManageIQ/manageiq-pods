@@ -140,6 +140,6 @@ parameters:
 - name: ORCHESTRATOR_MEM_LIMIT
   value: 16384Mi
 - name: ORCHESTRATOR_INITIAL_DELAY
-  value: 480
+  value: "480"
 - name: MESSAGING_TYPE
   value: kafka
