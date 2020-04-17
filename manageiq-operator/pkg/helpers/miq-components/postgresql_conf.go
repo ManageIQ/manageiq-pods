@@ -1,3 +1,7 @@
+package miqtools
+
+func postgresqlOverrideConf() string {
+	return `
 #------------------------------------------------------------------------------
 # CONNECTIONS AND AUTHENTICATION
 #------------------------------------------------------------------------------
@@ -64,3 +68,5 @@ deadlock_timeout = 5s
 
 escape_string_warning = off
 standard_conforming_strings = off
+`
+}
