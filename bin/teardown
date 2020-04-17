@@ -1,15 +1,17 @@
 #!/bin/bash
 
-oc delete all -l app=manageiq
+APP_NAME=${APP_NAME:-manageiq}
+
+oc delete all -l app=$APP_NAME
 
 oc get pvc -o name |xargs oc delete
 
-oc delete secret -l app=manageiq
+oc delete secret -l app=$APP_NAME
 oc delete secret tls-secret
 
-oc delete serviceaccount manageiq-anyuid
-oc delete serviceaccount manageiq-orchestrator
-oc delete serviceaccount manageiq-httpd
+oc delete serviceaccount $APP_NAME-anyuid
+oc delete serviceaccount $APP_NAME-orchestrator
+oc delete serviceaccount $APP_NAME-httpd
 
 oc delete cm postgresql-configs
 oc delete cm httpd-configs
