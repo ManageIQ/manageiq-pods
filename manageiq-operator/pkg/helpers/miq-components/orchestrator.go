@@ -5,11 +5,17 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"strconv"
 
 	"github.com/google/uuid"
 )
 
 func NewOrchestratorDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, error) {
+	delaySecs, err := strconv.Atoi(cr.Spec.OrchestratorInitialDelay)
+	if err != nil {
+		return nil, err
+	}
+
 	container := corev1.Container{
 		Name:  "orchestrator",
 		Image: cr.Spec.OrchestratorImageNamespace + "/" + cr.Spec.OrchestratorImageName + ":" + cr.Spec.OrchestratorImageTag,
@@ -19,7 +25,7 @@ func NewOrchestratorDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, er
 					Command: []string{"pidof", "MIQ Server"},
 				},
 			},
-			InitialDelaySeconds: 480,
+			InitialDelaySeconds: int32(delaySecs),
 			TimeoutSeconds:      3,
 		},
 		Env: []corev1.EnvVar{
@@ -126,7 +132,7 @@ func NewOrchestratorDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, er
 		},
 	}
 
-	err := addResourceReqs(cr.Spec.OrchestratorMemoryLimit, cr.Spec.OrchestratorMemoryRequest, cr.Spec.OrchestratorCpuRequest, &container)
+	err = addResourceReqs(cr.Spec.OrchestratorMemoryLimit, cr.Spec.OrchestratorMemoryRequest, cr.Spec.OrchestratorCpuRequest, &container)
 	if err != nil {
 		return nil, err
 	}

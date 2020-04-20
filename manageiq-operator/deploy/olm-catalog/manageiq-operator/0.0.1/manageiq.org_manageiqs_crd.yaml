@@ -113,6 +113,10 @@ spec:
               description: 'Image tag used for the orchestrator and worker deployments
                 (default: latest)'
               type: string
+            orchestratorInitialDelay:
+              description: 'Number of seconds to wait before starting the orchestrator
+                liveness check (default: 480)'
+              type: string
             orchestratorMemoryLimit:
               description: 'Orchestrator deployment memory limit (default: no limit)'
               type: string
