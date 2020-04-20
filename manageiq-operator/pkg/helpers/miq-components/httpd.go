@@ -131,6 +131,15 @@ func NewHttpdDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, error) {
 			InitialDelaySeconds: 10,
 			TimeoutSeconds:      3,
 		},
+		ReadinessProbe: &corev1.Probe{
+			Handler: corev1.Handler{
+				TCPSocket: &corev1.TCPSocketAction{
+					Port: intstr.FromInt(80),
+				},
+			},
+			InitialDelaySeconds: 10,
+			TimeoutSeconds:      3,
+		},
 		Env: []corev1.EnvVar{
 			corev1.EnvVar{
 				Name:  "APPLICATION_DOMAIN",
