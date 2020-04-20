@@ -88,6 +88,9 @@ type ManageIQSpec struct {
 	// Image tag used for the orchestrator and worker deployments (default: latest)
 	// +optional
 	OrchestratorImageTag string `json:"orchestratorImageTag"`
+	// Number of seconds to wait before starting the orchestrator liveness check (default: 480)
+	// +optional
+	OrchestratorInitialDelay string `json:"orchestratorInitialDelay"`
 
 	// Orchestrator deployment CPU request (default: no request)
 	// +optional
@@ -224,6 +227,10 @@ func (m *ManageIQ) Initialize() {
 
 	if spec.OrchestratorImageTag == "" {
 		spec.OrchestratorImageTag = "latest"
+	}
+
+	if spec.OrchestratorInitialDelay == "" {
+		spec.OrchestratorInitialDelay = "480"
 	}
 
 	if spec.PostgresqlImageName == "" {
