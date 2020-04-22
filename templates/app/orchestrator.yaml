@@ -30,7 +30,7 @@ objects:
               command:
               - pidof
               - MIQ Server
-            initialDelaySeconds: ${{ORCHESTRATOR_INITIAL_DELAY}}
+            initialDelaySeconds: "${{ORCHESTRATOR_INITIAL_DELAY}}"
             timeoutSeconds: 3
           env:
           - name: ALLOW_INSECURE_SESSION
