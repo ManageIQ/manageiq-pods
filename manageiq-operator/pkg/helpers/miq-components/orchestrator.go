@@ -114,6 +114,10 @@ func NewOrchestratorDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, er
 				Value: cr.Spec.OrchestratorImageNamespace,
 			},
 			corev1.EnvVar{
+				Name:  "CONTAINER_IMAGE_TAG",
+				Value: cr.Spec.OrchestratorImageTag,
+			},
+			corev1.EnvVar{
 				Name:  "IMAGE_PULL_SECRET",
 				Value: "",
 			},
