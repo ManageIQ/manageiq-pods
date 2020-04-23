@@ -51,4 +51,9 @@ RUN source /etc/default/evm && \
     fi && \
     rm -rf /tmp/npm_registry
 
+# Configure httpd to run without root privileges
+RUN chgrp root /var/run/httpd && chmod g+rwx /var/run/httpd && \
+    chgrp root /var/log/httpd && chmod g+rwx /var/log/httpd
+RUN sed -i '/^Listen 80/d' /etc/httpd/conf/httpd.conf
+
 COPY container-assets/manageiq-http.conf /etc/httpd/conf.d

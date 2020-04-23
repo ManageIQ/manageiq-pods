@@ -155,6 +155,9 @@ RUN source /etc/default/evm && \
     rm -rvf ${APP_ROOT}/tmp/cache/assets && \
     rm -vf ${APP_ROOT}/log/*.log
 
+RUN chgrp -R 0 $APP_ROOT && \
+    chmod -R g=u $APP_ROOT
+
 ADD container-assets/container_env ${APP_ROOT}
 
 RUN wget -O /usr/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.2/dumb-init_1.2.2_${ARCH} && \

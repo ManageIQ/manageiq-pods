@@ -25,15 +25,6 @@ func OrchestratorServiceAccount(cr *miqv1alpha1.ManageIQ) *corev1.ServiceAccount
 	}
 }
 
-func AnyuidServiceAccount(cr *miqv1alpha1.ManageIQ) *corev1.ServiceAccount {
-	return &corev1.ServiceAccount{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      cr.Spec.AppName + "-anyuid",
-			Namespace: cr.ObjectMeta.Namespace,
-		},
-	}
-}
-
 func OrchestratorRole(cr *miqv1alpha1.ManageIQ) *rbacv1.Role {
 	return &rbacv1.Role{
 		ObjectMeta: metav1.ObjectMeta{
