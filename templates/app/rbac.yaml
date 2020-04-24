@@ -10,10 +10,6 @@ objects:
 - apiVersion: v1
   kind: ServiceAccount
   metadata:
-    name: "${APP_NAME}-anyuid"
-- apiVersion: v1
-  kind: ServiceAccount
-  metadata:
     name: "${APP_NAME}-httpd"
 - apiVersion: rbac.authorization.k8s.io/v1
   kind: Role
