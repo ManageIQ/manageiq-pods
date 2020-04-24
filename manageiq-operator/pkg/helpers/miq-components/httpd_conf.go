@@ -12,13 +12,14 @@ func httpdAuthConfigurationConf() string {
 // application.conf
 func httpdApplicationConf() string {
 	return `
+Listen 8080
 # Timeout: The number of seconds before receives and sends time out.
 Timeout 120
 
 RewriteEngine On
 Options SymLinksIfOwnerMatch
 
-<VirtualHost *:80>
+<VirtualHost *:8080>
   KeepAlive on
   # Without ServerName mod_auth_mellon compares against http:// and not https:// from the IdP
   ServerName https://%{REQUEST_HOST}
