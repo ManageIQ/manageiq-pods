@@ -327,11 +327,6 @@ func (r *ReconcileManageIQ) generateRbacResources(cr *miqv1alpha1.ManageIQ) erro
 		return err
 	}
 
-	anyuidServiceAccount := miqtool.AnyuidServiceAccount(cr)
-	if err := r.createk8sResIfNotExist(cr, anyuidServiceAccount, &corev1.ServiceAccount{}); err != nil {
-		return err
-	}
-
 	return nil
 }
 

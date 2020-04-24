@@ -30,20 +30,6 @@ then
 	$(oc new-project $project >/dev/null)
 fi
 
-$(oc describe scc anyuid | grep Users | awk '{print $2}' | grep -q $project:miq-anyuid)
-if [ $? -ne 0 ];
-then
-	echo "Assigning SCC anyuid to miq-anyuid Service Account..."
-	$(oc adm policy add-scc-to-user anyuid system:serviceaccount:$project:miq-anyuid >/dev/null)
-fi
-
-$(oc describe scc anyuid | grep Users | awk '{print $2}' | grep -q miq-orchestrator)
-if [ $? -ne 0 ];
-then
-	echo "Assigning SCC anyuid to miq-orchestrator Service Account..."
-	$(oc adm policy add-scc-to-user anyuid system:serviceaccount:$project:miq-orchestrator >/dev/null)
-fi
-
 $(oc get scc miq-sysadmin >/dev/null 2>&1)
 if [ $? -ne 0 ];
 then

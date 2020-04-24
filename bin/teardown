@@ -9,7 +9,6 @@ oc get pvc -o name |xargs oc delete
 oc delete secret -l app=$APP_NAME
 oc delete secret tls-secret
 
-oc delete serviceaccount $APP_NAME-anyuid
 oc delete serviceaccount $APP_NAME-orchestrator
 oc delete serviceaccount $APP_NAME-httpd
 

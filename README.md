@@ -46,25 +46,6 @@ _**Note:**_ This section assumes you have a basic user.
 $ oc new-project <project_name>
 ```
 
-### Add the anyuid and orchestrator service accounts to the anyuid security context
-
-_**Note:**_ The current MIQ images require the root user.
-
-These service accounts for your namespace (project) must be added to the anyuid SCC before pods using the service accounts can run as root.
-
-_**As admin**_
-
-```bash
-$ oc adm policy add-scc-to-user anyuid system:serviceaccount:<your-namespace>:<app-name>-anyuid
-$ oc adm policy add-scc-to-user anyuid system:serviceaccount:<your-namespace>:<app-name>-orchestrator
-```
-
-Verify that the service accounts are now included in the anyuid scc
-```
-$ oc describe scc anyuid | grep Users
-Users:					system:serviceaccount:<your-namespace>:miq-anyuid,system:serviceaccount:<your-namespace>:miq-orchestrator
-```
-
 ### Set up the httpd service account
 
 #### If running without OCI systemd hooks (Minishift)
@@ -212,7 +193,7 @@ $ oc describe pods | egrep "^Name:|openshift.io/scc"
 Name:               httpd-754985464b-4dzzx
 Annotations:        openshift.io/scc=anyuid
 Name:               manageiq-orchestrator-5997776478-vx4v9
-Annotations:        openshift.io/scc=anyuid
+Annotations:        openshift.io/scc=restricted
 Name:               memcached-696479b955-67fs6
 Annotations:        openshift.io/scc=restricted
 Name:               postgresql-5f954fdbd5-tnlmf
