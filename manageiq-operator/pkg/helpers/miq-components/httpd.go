@@ -41,7 +41,7 @@ func NewIngress(cr *miqv1alpha1.ManageIQ) *extensionsv1beta1.Ingress {
 									Path: "/",
 									Backend: extensionsv1beta1.IngressBackend{
 										ServiceName: "httpd",
-										ServicePort: intstr.FromInt(80),
+										ServicePort: intstr.FromInt(8080),
 									},
 								},
 							},
@@ -114,11 +114,11 @@ func NewHttpdDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, error) {
 		Image: cr.Spec.HttpdImageName + ":" + cr.Spec.HttpdImageTag,
 		Ports: []corev1.ContainerPort{
 			corev1.ContainerPort{
-				ContainerPort: 80,
+				ContainerPort: 8080,
 				Protocol:      "TCP",
 			},
 			corev1.ContainerPort{
-				ContainerPort: 8080,
+				ContainerPort: 8081,
 				Protocol:      "TCP",
 			},
 		},
@@ -134,7 +134,7 @@ func NewHttpdDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, error) {
 		ReadinessProbe: &corev1.Probe{
 			Handler: corev1.Handler{
 				TCPSocket: &corev1.TCPSocketAction{
-					Port: intstr.FromInt(80),
+					Port: intstr.FromInt(8080),
 				},
 			},
 			InitialDelaySeconds: 10,
@@ -326,7 +326,7 @@ func NewHttpdService(cr *miqv1alpha1.ManageIQ) *corev1.Service {
 			Ports: []corev1.ServicePort{
 				corev1.ServicePort{
 					Name: "http",
-					Port: 80,
+					Port: 8080,
 				},
 			},
 			Selector: selector,
@@ -353,7 +353,7 @@ func NewHttpdDbusAPIService(cr *miqv1alpha1.ManageIQ) *corev1.Service {
 			Ports: []corev1.ServicePort{
 				corev1.ServicePort{
 					Name: "http-dbus-api",
-					Port: 8080,
+					Port: 8081,
 				},
 			},
 			Selector: selector,
