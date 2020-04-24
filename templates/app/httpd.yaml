@@ -11,13 +11,14 @@ objects:
       app: "${APP_NAME}"
   data:
     application.conf: |
+      Listen 8080
       # Timeout: The number of seconds before receives and sends time out.
       Timeout 120
 
       RewriteEngine On
       Options SymLinksIfOwnerMatch
 
-      <VirtualHost *:80>
+      <VirtualHost *:8080>
         KeepAlive on
         # Without ServerName mod_auth_mellon compares against http:// and not https:// from the IdP
         ServerName https://%{REQUEST_HOST}
@@ -271,7 +272,7 @@ objects:
   spec:
     ports:
     - name: http
-      port: 80
+      port: 8080
     selector:
       name: httpd
 - apiVersion: v1
@@ -283,7 +284,7 @@ objects:
   spec:
     ports:
     - name: http-dbus-api
-      port: 8080
+      port: 8081
     selector:
       name: httpd
 - apiVersion: apps/v1
@@ -314,9 +315,9 @@ objects:
         - name: httpd
           image: "${HTTPD_IMAGE_NAME}:${HTTPD_IMAGE_TAG}"
           ports:
-          - containerPort: 80
-            protocol: TCP
           - containerPort: 8080
+            protocol: TCP
+          - containerPort: 8081
             protocol: TCP
           livenessProbe:
             exec:
@@ -327,7 +328,7 @@ objects:
             timeoutSeconds: 3
           readinessProbe:
             tcpSocket:
-              port: 80
+              port: 8080
             initialDelaySeconds: 10
             timeoutSeconds: 3
           volumeMounts:
@@ -396,7 +397,7 @@ objects:
         - path: "/"
           backend:
             serviceName: httpd
-            servicePort: 80
+            servicePort: 8080
 parameters:
 - name: APP_NAME
   value: manageiq
