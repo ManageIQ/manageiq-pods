@@ -78,6 +78,8 @@ objects:
                 key: encryption-key
           - name: CONTAINER_IMAGE_NAMESPACE
             value: "${ORCHESTRATOR_IMAGE_NAMESPACE}"
+          - name: CONTAINER_IMAGE_TAG
+            value: "${ORCHESTRATOR_IMAGE_TAG}"
           - name: IMAGE_PULL_SECRET
             value: "${IMAGE_PULL_SECRET}"
           - name: MESSAGING_HOSTNAME
