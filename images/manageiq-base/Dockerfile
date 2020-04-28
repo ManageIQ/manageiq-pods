@@ -109,10 +109,12 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
       sqlite-devel                \
       v2v-conversion-host-ansible \
       wget                        \
-      wmi                         \
       xz                          \
       &&                          \
     dnf clean all
+
+RUN if [ ${ARCH} != "ppc64le" ] ; then \
+    dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install wmi ; fi
 
 # Install python packages the same way the appliance does
 COPY --from=0 build/kickstarts/partials/post/python_modules.ks.erb /tmp/python_modules
@@ -136,7 +138,8 @@ WORKDIR ${APP_ROOT}
 RUN source /etc/default/evm && \
     export RAILS_USE_MEMORY_STORE="true" && \
     gem install bundler -v ">=1.16.2" && \
-    if [ ${ARCH} = "ppc64le" ] ; then gem install sassc  -- --disable-march-tune-native ; fi && \
+    if [ ${ARCH} = "ppc64le" ] ; then gem install sassc  -- --disable-march-tune-native && \
+        gem install unf_ext -v '0.0.7.2' -- --with-cxxflags="-fsigned-char"; fi && \
     bundle install --with qpid_proton && \
     rake tmp:clear evm:compile_sti_loader log:clear && \
     RUBY_GEMS_ROOT=$(gem env gemdir) && \
