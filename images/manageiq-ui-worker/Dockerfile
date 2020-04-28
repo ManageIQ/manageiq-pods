@@ -41,7 +41,8 @@ RUN source /etc/default/evm && \
     sed -i '/phantomjs/d' package.json && \
     yarn install && \
     yarn run available-languages && \
-    yarn run build
+    yarn run build && \
+    rm -vf ${APP_ROOT}/log/*.log
 
 RUN source /etc/default/evm && \
     yarn cache clean && \
@@ -49,6 +50,8 @@ RUN source /etc/default/evm && \
     if [ ! -z "${NPM_REGISTRY_OVERRIDE}" ]; then \
       /tmp/npm_registry/npm_yarn_registry_cleanup.sh; \
     fi && \
-    rm -rf /tmp/npm_registry
+    rm -rf /tmp/npm_registry && \
+    rm -vf ${APP_ROOT}/log/*.log
+
 
 COPY container-assets/manageiq-http.conf /etc/httpd/conf.d
