@@ -10,7 +10,7 @@ LABEL name="manageiq-ui-worker" \
       summary="ManageIQ user interface worker image"
 
 # Install httpd and remove the existing httpd config from manageiq-appliance
-RUN dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install httpd && \
+RUN dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install httpd python2 && \
     rm -f /etc/httpd/conf.d/* && \
     dnf clean all
 
