@@ -1,6 +1,7 @@
 package miqtools
 
 import (
+	"fmt"
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
 	tlstools "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/helpers/tlstools"
 	appsv1 "k8s.io/api/apps/v1"
@@ -108,72 +109,109 @@ func NewHttpdAuthConfigMap(cr *miqv1alpha1.ManageIQ) *corev1.ConfigMap {
 	}
 }
 
-func NewHttpdDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, error) {
-	container := corev1.Container{
-		Name:  "httpd",
-		Image: cr.Spec.HttpdImageName + ":" + cr.Spec.HttpdImageTag,
-		Ports: []corev1.ContainerPort{
-			corev1.ContainerPort{
-				ContainerPort: 8080,
-				Protocol:      "TCP",
-			},
-			corev1.ContainerPort{
-				ContainerPort: 8081,
-				Protocol:      "TCP",
-			},
-		},
-		LivenessProbe: &corev1.Probe{
-			Handler: corev1.Handler{
-				Exec: &corev1.ExecAction{
-					Command: []string{"pidof", "httpd"},
-				},
-			},
-			InitialDelaySeconds: 10,
-			TimeoutSeconds:      3,
-		},
-		ReadinessProbe: &corev1.Probe{
-			Handler: corev1.Handler{
-				TCPSocket: &corev1.TCPSocketAction{
-					Port: intstr.FromInt(8080),
-				},
-			},
-			InitialDelaySeconds: 10,
-			TimeoutSeconds:      3,
-		},
-		Env: []corev1.EnvVar{
-			corev1.EnvVar{
-				Name:  "APPLICATION_DOMAIN",
-				Value: cr.Spec.ApplicationDomain,
-			},
-			corev1.EnvVar{
-				Name: "HTTPD_AUTH_TYPE",
+func PrivilegedHttpd(authType string) (bool, error) {
+	switch authType {
+	case "internal", "openid-connect":
+		return false, nil
+	case "external", "active-directory", "saml":
+		return true, nil
+	default:
+		return false, fmt.Errorf("unknown authenticaion type %s", authType)
+	}
+}
 
-				ValueFrom: &corev1.EnvVarSource{
-					ConfigMapKeyRef: &corev1.ConfigMapKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{Name: "httpd-auth-configs"},
-						Key:                  "auth-type",
-					},
-				},
-			},
-			corev1.EnvVar{
-				Name:  "APPLICATION_DOMAIN",
-				Value: cr.Spec.ApplicationDomain,
+func httpdImage(namespace, tag string, privileged bool) string {
+	var image string
+	if privileged {
+		image = "httpd-init"
+	} else {
+		image = "httpd"
+	}
+
+	return fmt.Sprintf("%s/%s:%s", namespace, image, tag)
+}
+
+func assignHttpdPorts(privileged bool, c *corev1.Container) {
+	httpdPort := corev1.ContainerPort{
+		ContainerPort: 8080,
+		Protocol:      "TCP",
+	}
+	c.Ports = append(c.Ports, httpdPort)
+
+	if privileged {
+		dbusApiPort := corev1.ContainerPort{
+			ContainerPort: 8081,
+			Protocol:      "TCP",
+		}
+		c.Ports = append(c.Ports, dbusApiPort)
+	}
+}
+
+func initializeHttpdContainer(spec *miqv1alpha1.ManageIQSpec, privileged bool, c *corev1.Container) error {
+	c.Name = "httpd"
+	c.Image = httpdImage(spec.HttpdImageNamespace, spec.HttpdImageTag, privileged)
+	c.LivenessProbe = &corev1.Probe{
+		Handler: corev1.Handler{
+			Exec: &corev1.ExecAction{
+				Command: []string{"pidof", "httpd"},
 			},
 		},
-		VolumeMounts: []corev1.VolumeMount{
-			corev1.VolumeMount{Name: "httpd-config", MountPath: "/etc/httpd/conf.d"},
-			corev1.VolumeMount{Name: "httpd-auth-config", MountPath: "/etc/httpd/auth-conf.d"},
+		InitialDelaySeconds: 10,
+		TimeoutSeconds:      3,
+	}
+	c.ReadinessProbe = &corev1.Probe{
+		Handler: corev1.Handler{
+			TCPSocket: &corev1.TCPSocketAction{
+				Port: intstr.FromInt(8080),
+			},
 		},
-		Lifecycle: &corev1.Lifecycle{
+		InitialDelaySeconds: 10,
+		TimeoutSeconds:      3,
+	}
+	c.Env = []corev1.EnvVar{
+		corev1.EnvVar{
+			Name:  "APPLICATION_DOMAIN",
+			Value: spec.ApplicationDomain,
+		},
+		corev1.EnvVar{
+			Name:  "HTTPD_AUTH_TYPE",
+			Value: spec.HttpdAuthenticationType,
+		},
+	}
+	c.VolumeMounts = []corev1.VolumeMount{
+		corev1.VolumeMount{Name: "httpd-config", MountPath: "/etc/httpd/conf.d"},
+		corev1.VolumeMount{Name: "httpd-auth-config", MountPath: "/etc/httpd/auth-conf.d"},
+	}
+
+	// Add Lifecycle object for saving the environment if we're running with init
+	if privileged {
+		c.Lifecycle = &corev1.Lifecycle{
 			PostStart: &corev1.Handler{
 				Exec: &corev1.ExecAction{
 					Command: []string{"/usr/bin/save-container-environment"},
 				},
 			},
-		},
+		}
 	}
 
-	err := addResourceReqs(cr.Spec.HttpdMemoryLimit, cr.Spec.HttpdMemoryRequest, cr.Spec.HttpdCpuRequest, &container)
+	assignHttpdPorts(privileged, c)
+
+	err := addResourceReqs(spec.HttpdMemoryLimit, spec.HttpdMemoryRequest, spec.HttpdCpuRequest, c)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func NewHttpdDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, error) {
+	privileged, err := PrivilegedHttpd(cr.Spec.HttpdAuthenticationType)
+	if err != nil {
+		return nil, err
+	}
+
+	container := corev1.Container{}
+	err = initializeHttpdContainer(&cr.Spec, privileged, &container)
 	if err != nil {
 		return nil, err
 	}
@@ -223,10 +261,14 @@ func NewHttpdDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, error) {
 							},
 						},
 					},
-					ServiceAccountName: cr.Spec.AppName + "-httpd",
 				},
 			},
 		},
+	}
+
+	// Only assign the service account if we need additional privileges
+	if privileged {
+		deployment.Spec.Template.Spec.ServiceAccountName = cr.Spec.AppName + "-httpd"
 	}
 
 	return deployment, nil
