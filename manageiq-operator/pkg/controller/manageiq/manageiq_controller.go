@@ -111,9 +111,6 @@ func (r *ReconcileManageIQ) Reconcile(request reconcile.Request) (reconcile.Resu
 		return reconcile.Result{}, nil
 	}
 
-	if e := r.generateRbacResources(miqInstance); e != nil {
-		return reconcile.Result{}, e
-	}
 	if e := r.generateSecrets(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
@@ -137,6 +134,18 @@ func (r *ReconcileManageIQ) Reconcile(request reconcile.Request) (reconcile.Resu
 }
 
 func (r *ReconcileManageIQ) generateHttpdResources(cr *miqv1alpha1.ManageIQ) error {
+	privileged, err := miqtool.PrivilegedHttpd(cr.Spec.HttpdAuthenticationType)
+	if err != nil {
+		return err
+	}
+
+	if privileged {
+		httpdServiceAccount := miqtool.HttpdServiceAccount(cr)
+		if err := r.createk8sResIfNotExist(cr, httpdServiceAccount, &corev1.ServiceAccount{}); err != nil {
+			return err
+		}
+	}
+
 	httpdConfigMap := miqtool.NewHttpdConfigMap(cr)
 	if err := r.createk8sResIfNotExist(cr, httpdConfigMap, &corev1.ConfigMap{}); err != nil {
 		return err
@@ -167,9 +176,11 @@ func (r *ReconcileManageIQ) generateHttpdResources(cr *miqv1alpha1.ManageIQ) err
 		return err
 	}
 
-	httpdDbusAPIService := miqtool.NewHttpdDbusAPIService(cr)
-	if err := r.createk8sResIfNotExist(cr, httpdDbusAPIService, &corev1.Service{}); err != nil {
-		return err
+	if privileged {
+		httpdDbusAPIService := miqtool.NewHttpdDbusAPIService(cr)
+		if err := r.createk8sResIfNotExist(cr, httpdDbusAPIService, &corev1.Service{}); err != nil {
+			return err
+		}
 	}
 
 	httpdDeployment, err := miqtool.NewHttpdDeployment(cr)
@@ -315,15 +326,6 @@ func (r *ReconcileManageIQ) generateSecrets(cr *miqv1alpha1.ManageIQ) error {
 	}
 
 	if err := r.createk8sResIfNotExist(cr, tlsSecret, &corev1.Secret{}); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (r *ReconcileManageIQ) generateRbacResources(cr *miqv1alpha1.ManageIQ) error {
-	httpdServiceAccount := miqtool.HttpdServiceAccount(cr)
-	if err := r.createk8sResIfNotExist(cr, httpdServiceAccount, &corev1.ServiceAccount{}); err != nil {
 		return err
 	}
 
