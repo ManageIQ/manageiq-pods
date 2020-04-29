@@ -35,12 +35,19 @@ type ManageIQSpec struct {
 	// +optional
 	TLSSecret string `json:"tlsSecret"`
 
-	// Image used for the httpd deployment (default: manageiq/httpd)
+	// Image namespace used for the httpd deployment (default: manageiq)
+	// Note: the exact image will be determined by the authentication method selected
 	// +optional
-	HttpdImageName string `json:"httpdImageName"`
+	HttpdImageNamespace string `json:"httpdImageNamespace"`
 	// Image tag used for the httpd deployment (default: latest)
 	// +optional
 	HttpdImageTag string `json:"httpdImageTag"`
+
+	// Type of httpd authentication (default: internal)
+	// Options: internal, external, active-directory, saml, openid-connect
+	// Note: external, active-directory, and saml require an httpd container with elevated privileges
+	// +optional
+	HttpdAuthenticationType string `json:"httpdAuthenticationType"`
 
 	// Httpd deployment CPU request (default: no request)
 	// +optional
@@ -189,12 +196,16 @@ func (m *ManageIQ) Initialize() {
 		spec.DatabaseVolumeCapacity = "15Gi"
 	}
 
-	if spec.HttpdImageName == "" {
-		spec.HttpdImageName = "manageiq/httpd"
+	if spec.HttpdImageNamespace == "" {
+		spec.HttpdImageNamespace = "manageiq"
 	}
 
 	if spec.HttpdImageTag == "" {
 		spec.HttpdImageTag = "latest"
+	}
+
+	if spec.HttpdAuthenticationType == "" {
+		spec.HttpdAuthenticationType = "internal"
 	}
 
 	if spec.MemcachedImageName == "" {
