@@ -51,11 +51,19 @@ spec:
             databaseVolumeCapacity:
               description: 'Database volume size (default: 15Gi)'
               type: string
+            httpdAuthenticationType:
+              description: 'Type of httpd authentication (default: internal) Options:
+                internal, external, active-directory, saml, openid-connect Note: external,
+                active-directory, and saml require an httpd container with elevated
+                privileges'
+              type: string
             httpdCpuRequest:
               description: 'Httpd deployment CPU request (default: no request)'
               type: string
-            httpdImageName:
-              description: 'Image used for the httpd deployment (default: manageiq/httpd)'
+            httpdImageNamespace:
+              description: 'Image namespace used for the httpd deployment (default:
+                manageiq) Note: the exact image will be determined by the authentication
+                method selected'
               type: string
             httpdImageTag:
               description: 'Image tag used for the httpd deployment (default: latest)'
