@@ -6,11 +6,15 @@ MAINTAINER ManageIQ https://manageiq.org
 
 ARG NPM_REGISTRY_OVERRIDE
 
+ARG ARCH=x86_64
+
 LABEL name="manageiq-ui-worker" \
       summary="ManageIQ user interface worker image"
 
 # Install httpd and remove the existing httpd config from manageiq-appliance
-RUN dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install httpd python2 && \
+RUN dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install httpd && \
+    if [ ${ARCH} = "ppc64le" ] ; then \
+        dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install python2; fi && \
     rm -f /etc/httpd/conf.d/* && \
     dnf clean all
 
