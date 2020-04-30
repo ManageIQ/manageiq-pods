@@ -10,11 +10,9 @@ oc delete secret -l app=$APP_NAME
 oc delete secret tls-secret
 
 oc delete serviceaccount $APP_NAME-orchestrator
-oc delete serviceaccount $APP_NAME-httpd
 
 oc delete cm postgresql-configs
 oc delete cm httpd-configs
-oc delete cm httpd-auth-configs
 
 oc delete role $APP_NAME-orchestrator
 oc delete rolebinding $APP_NAME-orchestrator
