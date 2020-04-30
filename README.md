@@ -48,52 +48,6 @@ _**Note:**_ This section assumes you have a basic user.
 $ oc new-project <project_name>
 ```
 
-### Set up the httpd service account
-
-#### If running without OCI systemd hooks (Minishift)
-
-_**Note:**_ Minishift clusters are not equipped with OCI systemd hooks which are used to assist with containerized systemd deployments.
-
-An extra SCC is used on Minishift to compensate for the lack of oci-systemd-hooks. **Please SKIP this step if your cluster is equipped with oci-systemd-hooks.**
-
-__*As admin*__
-
-Create the miq-sysadmin SCC:
-
-```bash
-$ oc create -f templates/miq-scc-sysadmin.yaml
-```
-
-The miq-httpd service account must be added to the miq-sysadmin SCC before the front-end httpd pod can run.
-
-```bash
-$ oc adm policy add-scc-to-user miq-sysadmin system:serviceaccount:<your-namespace>:<app-name>-httpd
-```
-
-Verify that the service account is now included in the miq-sysadmin scc
-
-```bash
-$ oc describe scc miq-sysadmin | grep Users
-Users:              system:serviceaccount:<your-namespace>:miq-httpd
-```
-
-#### If running with OCI systemd hooks
-
-__*As admin*__
-
-Add the httpd service account to the anyuid SCC
-
-```bash
-$ oc adm policy add-scc-to-user anyuid system:serviceaccount:<your-namespace>:<app-name>-httpd
-```
-
-Verify that the service account is now included in the anyuid scc
-
-```bash
-$ oc describe scc anyuid | grep Users
-Users:              system:serviceaccount:<your-namespace>:miq-httpd
-```
-
 ### Make a persistent volume to host the MIQ database data (if necessary)
 
 A deployment will need a persistent volume (PV) to store data only if the database is running as a pod.
@@ -185,22 +139,6 @@ To use an external database, ensure that the `DATABASE_HOSTNAME` parameter is pr
 ## Verifying the setup was successful
 
 _**Note:**_ The first deployment could take several minutes as OpenShift is downloading the necessary images.
-
-### Confirm the deployed MIQ pods are bound to the correct SCC
-
-Describe all pods and search for the pod name and scc
-
-```bash
-$ oc describe pods | egrep "^Name:|openshift.io/scc"
-Name:               httpd-754985464b-4dzzx
-Annotations:        openshift.io/scc=anyuid
-Name:               manageiq-orchestrator-5997776478-vx4v9
-Annotations:        openshift.io/scc=restricted
-Name:               memcached-696479b955-67fs6
-Annotations:        openshift.io/scc=restricted
-Name:               postgresql-5f954fdbd5-tnlmf
-Annotations:        openshift.io/scc=restricted
-```
 
 ### Check readiness of the MIQ pods
 
@@ -414,137 +352,7 @@ A more complicated example would be to build and push all the images to the quay
 MIQ_ORG=example MIQ_REF=feature ./bin/build -d images -r quay.io/test -p
 ```
 
-## Configuring External Authentication
-Configuring the httpd pod for external authentication is done by updating the `httpd-auth-configs` configuration map to include all necessary config files and certificates. Upon startup, the httpd pod overlays its files with the ones specified in the `auth-configuration.conf` file in the configuration map. This is done by the `initialize-httpd-auth` service that runs before httpd.
-
-The config map includes the following:
-
-* The authentication type `auth-type`, default is `internal`
-
-	This parameter drives which configuration files httpd will load upon start-up. Supported values are:
-
-	| Value    | External-Authentication Configuration |
-	| ---------|---------------------------------------|
-	| internal | Application Based Authentication (_default_) - Database, Ldap/Ldaps, Amazon |
-	| external | IPA, IPA 2-factor authentication, IPA/AD Trust, Ldap (OpenLdap, RHDS, Active Directory, etc.)
-	| active-directory | Active Directory domain realm join
-	| saml | SAML based authentication (Keycloak, ADFS, etc.)
-	| oidc | OpenID-Connect based authentication (Keycloak, ADFS, etc.)
-
-* The kerberos realms to join `auth-kerberos-realms`, default is `undefined`
-
-	When configuring external authentication against IPA, Active Directory or Ldap, this parameter defines the kerberos realm httpd is configured against, i.e. `example.com`
-
-	When specifying multiple Kerberos realms, they need to be space separated.
-
-* The external authentication configuration file `auth-configuration.conf` which declares the list of files to overlay upon startup if `auth-type` is other than `internal`.
-
-	Syntax for the file is as follows:
-
-	```
-	# for comments
-	file = basename1 target_path1 permission1
-	file = basename2 target_path2 permission2
-	```
-
-
-
-For the files to overlay on the httpd pod, one `file` directive is needed per file.
-
-* the `basename` is the name of the source file in the configuration map.
-* `target_path` is the path of the file on the pod to overwrite, i.e. `/etc/sssd/sssd.conf`
-* `permission` is optional, by default files are copied using the pod's default umask, owner and group, so files are created as mode 644 owner root, group root.
-
-optional `permission` can be specified as follows:
-
-* mode
-* mode:owner
-* mode:owner:group
-
-Reflecting the mode and ownership to set the copied files to.
-
-_Examples_:
-
-* 755
-* 640:root
-* 644:root:apache
-
-Binary files can be specified in the configuration map in their base64 encoded format with a basename having a `.base64` extension. Such files are then converted back to binary as they are copied to their target path.
-
-When an /etc/sssd/sssd.conf file is included in the configuration map, the httpd pod automatically enables the sssd service upon startup.
-
-### Sample external authentication configuration for SAML:
-
-Excluding the content of the files, a SAML auth-config map data section may look like:
-
-```bash
-apiVersion: v1
-data:
-  auth-type: saml
-  auth-kerberos-realms: example.com
-  auth-configuration.conf: |
-    #
-    # Configuration for SAML authentication
-    #
-    file = manageiq-remote-user.conf        /etc/httpd/conf.d/manageiq-remote-user.conf        644
-    file = manageiq-external-auth-saml.conf /etc/httpd/conf.d/manageiq-external-auth-saml.conf 644
-    file = idp-metadata.xml                 /etc/httpd/saml2/idp-metadata.xml                  644
-    file = sp-key.key                       /etc/httpd/saml2/sp-key.key                        600:root:root
-    file = sp-cert.cert                     /etc/httpd/saml2/sp-cert.cert                      644
-    file = sp-metadata.xml                  /etc/httpd/saml2/sp-metadata.xml                   644
-  manageiq-remote-user.conf: |
-    RequestHeader unset X_REMOTE_USER
-    ...
-  manageiq-external-auth-saml.conf: |
-    LoadModule auth_mellon_module modules/mod_auth_mellon.so
-    ...
-  idp-metadata.xml: |
-    <EntitiesDescriptor ...
-      ...
-    </EntitiesDescriptor>
-  sp-key.key: |
-    -----BEGIN PRIVATE KEY-----
-       ...
-    -----END PRIVATE KEY-----
-  sp-cert.cert: |
-    -----BEGIN CERTIFICATE-----
-       ...
-    -----END CERTIFICATE-----
-  sp-metadata.xml: |
-    <EntityDescriptor ...
-       ...
-    </EntityDescriptor>
-```
-
-The authentication configuration map can be defined and customized in the httpd pod as follows:
-
-```bash
-$ oc edit configmaps httpd-auth-configs
-```
-
-Or simply replaced if generated and edited externally as follows:
-
-```bash
-$ oc replace configmaps httpd-auth-configs --filename external-auth-configmap.yaml
-```
-
-Then redeploy the httpd pod for the new authentication configuration to take effect.
-
-Support for automatically generating authentication configuration maps for the httpd pod is provided by [ManageIQ/httpd\_configmap\_generator](https://github.com/ManageIQ/httpd_configmap_generator). Please see the [README.md](https://github.com/ManageIQ/httpd_configmap_generator/blob/master/README.md) in that repo for further details.
-
 ## Kubernetes support
 
 The objects created by processing the templates in this project are also compatible with Kubernetes, but template objects themselves are not.
 For this reason, it is suggested to use the `oc` binary to process the templates and create the objects even in a kubernetes cluster (this is what the `bin/deploy` script does).
-
-Here is an example of how to deploy to a kubernetes cluster using minikube:
-
-```bash
-minikube start
-<edit parameters file as desired>
-bin/deploy parameters
-oc patch deployment httpd -p '{"spec":{"template":{"spec":{"containers":[{"name": "httpd", "securityContext":{"capabilities":{"add":["SYS_ADMIN"]}}}]}}}}'
-```
-
-It is necessary to patch the httpd deployment because it runs systemd in the container.
-In OpenShift this is handled by the oci-systemd-hooks and scc assignment, but in kubernetes we need to add the capability directly to the container.
