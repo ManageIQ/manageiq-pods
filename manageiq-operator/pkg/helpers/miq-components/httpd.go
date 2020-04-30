@@ -150,14 +150,16 @@ func assignHttpdPorts(privileged bool, c *corev1.Container) {
 func initializeHttpdContainer(spec *miqv1alpha1.ManageIQSpec, privileged bool, c *corev1.Container) error {
 	c.Name = "httpd"
 	c.Image = httpdImage(spec.HttpdImageNamespace, spec.HttpdImageTag, privileged)
-	c.LivenessProbe = &corev1.Probe{
-		Handler: corev1.Handler{
-			Exec: &corev1.ExecAction{
-				Command: []string{"pidof", "httpd"},
+	if privileged {
+		c.LivenessProbe = &corev1.Probe{
+			Handler: corev1.Handler{
+				Exec: &corev1.ExecAction{
+					Command: []string{"pidof", "httpd"},
+				},
 			},
-		},
-		InitialDelaySeconds: 10,
-		TimeoutSeconds:      3,
+			InitialDelaySeconds: 10,
+			TimeoutSeconds:      3,
+		}
 	}
 	c.ReadinessProbe = &corev1.Probe{
 		Handler: corev1.Handler{
