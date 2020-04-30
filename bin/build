@@ -80,6 +80,7 @@ pushd $IMAGE_DIR
                     --build-arg FROM_REPO=$REPO \
                     --build-arg FROM_TAG=$TAG \
                     --build-arg NPM_REGISTRY_OVERRIDE=${NPM_REGISTRY_OVERRIDE} \
+                    --build-arg ARCH=$ARCH \
                     manageiq-ui-worker"
   echo "Building manageiq-ui-worker: $cmd"
   $cmd
