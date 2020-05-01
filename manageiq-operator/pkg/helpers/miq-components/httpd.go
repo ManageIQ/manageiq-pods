@@ -103,6 +103,77 @@ func PrivilegedHttpd(authType string) (bool, error) {
 	}
 }
 
+func addOIDCEnv(secretName string, podSpec *corev1.PodSpec) {
+	clientId := corev1.EnvVar{
+		Name: "HTTPD_AUTH_OIDC_CLIENT_ID",
+		ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{Name: secretName},
+				Key:                  "CLIENT_ID",
+			},
+		},
+	}
+	clientSecret := corev1.EnvVar{
+		Name: "HTTPD_AUTH_OIDC_CLIENT_SECRET",
+		ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{Name: secretName},
+				Key:                  "CLIENT_SECRET",
+			},
+		},
+	}
+	podSpec.Containers[0].Env = append(podSpec.Containers[0].Env, clientId)
+	podSpec.Containers[0].Env = append(podSpec.Containers[0].Env, clientSecret)
+}
+
+func addAuthConfigVolume(podSpec *corev1.PodSpec) {
+	vol := corev1.Volume{
+		Name: "httpd-auth-config",
+		VolumeSource: corev1.VolumeSource{
+			ConfigMap: &corev1.ConfigMapVolumeSource{
+				LocalObjectReference: corev1.LocalObjectReference{Name: "httpd-auth-configs"},
+			},
+		},
+	}
+	podSpec.Volumes = append(podSpec.Volumes, vol)
+
+	mount := corev1.VolumeMount{Name: "httpd-auth-config", MountPath: "/etc/httpd/auth-conf.d"}
+	podSpec.Containers[0].VolumeMounts = append(podSpec.Containers[0].VolumeMounts, mount)
+}
+
+func addUserAuthVolume(secretName string, podSpec *corev1.PodSpec) {
+	vol := corev1.Volume{
+		Name: "user-auth-config",
+		VolumeSource: corev1.VolumeSource{
+			Secret: &corev1.SecretVolumeSource{
+				SecretName: secretName,
+			},
+		},
+	}
+	podSpec.Volumes = append(podSpec.Volumes, vol)
+
+	mount := corev1.VolumeMount{Name: "user-auth-config", MountPath: "/etc/httpd/user-conf.d"}
+	podSpec.Containers[0].VolumeMounts = append(podSpec.Containers[0].VolumeMounts, mount)
+}
+
+func configureHttpdAuth(spec *miqv1alpha1.ManageIQSpec, podSpec *corev1.PodSpec) {
+	authType := spec.HttpdAuthenticationType
+
+	if authType == "internal" {
+		return
+	}
+
+	if spec.HttpdAuthConfig != "" {
+		addUserAuthVolume(spec.HttpdAuthConfig, podSpec)
+	}
+
+	if authType == "openid-connect" && spec.OIDCClientSecret != "" {
+		addOIDCEnv(spec.OIDCClientSecret, podSpec)
+	} else if authType != "openid-connect" {
+		addAuthConfigVolume(podSpec)
+	}
+}
+
 func httpdImage(namespace, tag string, privileged bool) string {
 	var image string
 	if privileged {
@@ -130,29 +201,6 @@ func assignHttpdPorts(privileged bool, c *corev1.Container) {
 	}
 }
 
-func oidcEnv(secretName string) []corev1.EnvVar {
-	return []corev1.EnvVar{
-		corev1.EnvVar{
-			Name: "HTTPD_AUTH_OIDC_CLIENT_ID",
-			ValueFrom: &corev1.EnvVarSource{
-				SecretKeyRef: &corev1.SecretKeySelector{
-					LocalObjectReference: corev1.LocalObjectReference{Name: secretName},
-					Key:                  "CLIENT_ID",
-				},
-			},
-		},
-		corev1.EnvVar{
-			Name: "HTTPD_AUTH_OIDC_CLIENT_SECRET",
-			ValueFrom: &corev1.EnvVarSource{
-				SecretKeyRef: &corev1.SecretKeySelector{
-					LocalObjectReference: corev1.LocalObjectReference{Name: secretName},
-					Key:                  "CLIENT_SECRET",
-				},
-			},
-		},
-	}
-}
-
 func initializeHttpdContainer(spec *miqv1alpha1.ManageIQSpec, privileged bool, c *corev1.Container) error {
 	c.Name = "httpd"
 	c.Image = httpdImage(spec.HttpdImageNamespace, spec.HttpdImageTag, privileged)
@@ -176,13 +224,8 @@ func initializeHttpdContainer(spec *miqv1alpha1.ManageIQSpec, privileged bool, c
 		InitialDelaySeconds: 10,
 		TimeoutSeconds:      3,
 	}
-	// conditionally add auth env vars for oidc
-	if spec.HttpdAuthenticationType == "openid-connect" {
-		c.Env = oidcEnv(spec.OIDCClientSecret)
-	}
 	c.VolumeMounts = []corev1.VolumeMount{
 		corev1.VolumeMount{Name: "httpd-config", MountPath: "/etc/httpd/conf.d"},
-		corev1.VolumeMount{Name: "httpd-auth-config", MountPath: "/etc/httpd/auth-conf.d"},
 	}
 
 	// Add Lifecycle object for saving the environment if we're running with init
@@ -254,19 +297,13 @@ func NewHttpdDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, error) {
 								},
 							},
 						},
-						corev1.Volume{
-							Name: "httpd-auth-config",
-							VolumeSource: corev1.VolumeSource{
-								ConfigMap: &corev1.ConfigMapVolumeSource{
-									LocalObjectReference: corev1.LocalObjectReference{Name: "httpd-auth-configs"},
-								},
-							},
-						},
 					},
 				},
 			},
 		},
 	}
+
+	configureHttpdAuth(&cr.Spec, &deployment.Spec.Template.Spec)
 
 	// Only assign the service account if we need additional privileges
 	if privileged {
