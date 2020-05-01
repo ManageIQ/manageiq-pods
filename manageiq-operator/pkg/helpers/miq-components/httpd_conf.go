@@ -1,5 +1,10 @@
 package miqtools
 
+import (
+	"fmt"
+	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
+)
+
 // auth-configuration.conf
 func httpdAuthConfigurationConf() string {
 	return `
@@ -55,26 +60,24 @@ Options SymLinksIfOwnerMatch
 }
 
 // authentication.conf
-func httpdAuthenticationConf() string {
-	return `
-# Load appropriate authentication configuration files
-#
-Include "conf.d/configuration-${HTTPD_AUTH_TYPE}-auth"
-`
+func httpdAuthenticationConf(spec *miqv1alpha1.ManageIQSpec) string {
+	switch spec.HttpdAuthenticationType {
+	case "openid-connect":
+		return httpdOIDCAuthConf(spec.OIDCProviderURL, spec.ApplicationDomain)
+	case "external":
+		return httpdExternalAuthConf()
+	case "active-directory":
+		return httpdADAuthConf()
+	case "saml":
+		return httpdSAMLAuthConf()
+	default:
+		return ""
+	}
 }
 
-// configuration-internal-auth
-func httpdInternalAuthConf() string {
-	return `
-# Internal authentication
-#
-`
-}
-
-// configuration-external-auth
 func httpdExternalAuthConf() string {
-	return `
-Include "conf.d/external-auth-load-modules-conf"
+	s := `
+%s
 
 <Location /dashboard/kerberos_authenticate>
   AuthType           GSSAPI
@@ -86,17 +89,17 @@ Include "conf.d/external-auth-load-modules-conf"
   ErrorDocument 401 /proxy_pages/invalid_sso_credentials.js
 </Location>
 
-Include "conf.d/external-auth-login-form-conf"
-Include "conf.d/external-auth-application-api-conf"
-Include "conf.d/external-auth-lookup-user-details-conf"
-Include "conf.d/external-auth-remote-user-conf"
+%s
+%s
+%s
+%s
 `
+	return fmt.Sprintf(s, httpdAuthLoadModulesConf(), httpdAuthLoginFormConf(), httpdAuthApplicationAPIConf(), httpdAuthLookupUserDetailsConf(), httpdAuthRemoteUserConf())
 }
 
-// configuration-active-directory-auth
 func httpdADAuthConf() string {
-	return `
-Include "conf.d/external-auth-load-modules-conf"
+	s := `
+%s
 
 <Location /dashboard/kerberos_authenticate>
   AuthType           GSSAPI
@@ -108,16 +111,16 @@ Include "conf.d/external-auth-load-modules-conf"
   ErrorDocument 401 /proxy_pages/invalid_sso_credentials.js
 </Location>
 
-Include "conf.d/external-auth-login-form-conf"
-Include "conf.d/external-auth-application-api-conf"
-Include "conf.d/external-auth-lookup-user-details-conf"
-Include "conf.d/external-auth-remote-user-conf"
+%s
+%s
+%s
+%s
 `
+	return fmt.Sprintf(s, httpdAuthLoadModulesConf(), httpdAuthLoginFormConf(), httpdAuthApplicationAPIConf(), httpdAuthLookupUserDetailsConf(), httpdAuthRemoteUserConf())
 }
 
-// configuration-saml-auth
 func httpdSAMLAuthConf() string {
-	return `
+	s := `
 LoadModule auth_mellon_module modules/mod_auth_mellon.so
 
 <Location />
@@ -154,20 +157,26 @@ LoadModule auth_mellon_module modules/mod_auth_mellon.so
   Require                    valid-user
 </Location>
 
-Include "conf.d/external-auth-remote-user-conf"
+%s
 `
+	return fmt.Sprintf(s, httpdAuthRemoteUserConf())
 }
 
-// configuration-openid-connect-auth
-func httpdOIDCAuthConf() string {
-	return `
+func httpdOIDCAuthConf(providerURL, applicationDomain string) string {
+	// If these are not provided, we should assume that the user provided a full config
+	// in a secret, so include the directory for that secret here
+	if providerURL == "" || applicationDomain == "" {
+		return "Include user-conf.d/*.conf"
+	}
+
+	s := `
 LoadModule auth_openidc_module modules/mod_auth_openidc.so
 
-OIDCProviderMetadataURL      ${HTTPD_AUTH_OIDC_PROVIDER_METADATA_URL}
+OIDCProviderMetadataURL      %s
 OIDCClientID                 ${HTTPD_AUTH_OIDC_CLIENT_ID}
 OIDCClientSecret             ${HTTPD_AUTH_OIDC_CLIENT_SECRET}
 
-OIDCRedirectURI              "https://${APPLICATION_DOMAIN}/oidc_login/redirect_uri"
+OIDCRedirectURI              "https://%s/oidc_login/redirect_uri"
 OIDCOAuthRemoteUserClaim     username
 
 OIDCCryptoPassphrase         sp-secret
@@ -177,11 +186,20 @@ OIDCCryptoPassphrase         sp-secret
   Require                    valid-user
 </Location>
 
-Include "conf.d/external-auth-openid-connect-remote-user-conf"
+RequestHeader unset X_REMOTE_USER
+
+RequestHeader set X_REMOTE_USER           %%{OIDC_CLAIM_PREFERRED_USERNAME}e env=OIDC_CLAIM_PREFERRED_USERNAME
+RequestHeader set X_EXTERNAL_AUTH_ERROR   %%{EXTERNAL_AUTH_ERROR}e           env=EXTERNAL_AUTH_ERROR
+RequestHeader set X_REMOTE_USER_EMAIL     %%{OIDC_CLAIM_EMAIL}e              env=OIDC_CLAIM_EMAIL
+RequestHeader set X_REMOTE_USER_FIRSTNAME %%{OIDC_CLAIM_GIVEN_NAME}e         env=OIDC_CLAIM_GIVEN_NAME
+RequestHeader set X_REMOTE_USER_LASTNAME  %%{OIDC_CLAIM_FAMILY_NAME}e        env=OIDC_CLAIM_FAMILY_NAME
+RequestHeader set X_REMOTE_USER_FULLNAME  %%{OIDC_CLAIM_NAME}e               env=OIDC_CLAIM_NAME
+RequestHeader set X_REMOTE_USER_GROUPS    %%{OIDC_CLAIM_GROUPS}e             env=OIDC_CLAIM_GROUPS
+RequestHeader set X_REMOTE_USER_DOMAIN    %%{OIDC_CLAIM_DOMAIN}e             env=OIDC_CLAIM_DOMAIN
 `
+	return fmt.Sprintf(s, providerURL, applicationDomain)
 }
 
-// external-auth-load-modules-conf
 func httpdAuthLoadModulesConf() string {
 	return `
 LoadModule authnz_pam_module            modules/mod_authnz_pam.so
@@ -191,7 +209,6 @@ LoadModule auth_kerb_module             modules/mod_auth_kerb.so
 `
 }
 
-// external-auth-login-form-conf
 func httpdAuthLoginFormConf() string {
 	return `
 <Location /dashboard/external_authenticate>
@@ -204,7 +221,6 @@ func httpdAuthLoginFormConf() string {
 `
 }
 
-// external-auth-application-api-conf
 func httpdAuthApplicationAPIConf() string {
 	return `
 <LocationMatch ^/api>
@@ -227,7 +243,6 @@ func httpdAuthApplicationAPIConf() string {
 `
 }
 
-// external-auth-lookup-user-details-conf
 func httpdAuthLookupUserDetailsConf() string {
 	return `
 <LocationMatch ^/dashboard/external_authenticate$|^/dashboard/kerberos_authenticate$|^/api>
@@ -243,7 +258,6 @@ func httpdAuthLookupUserDetailsConf() string {
 `
 }
 
-// external-auth-remote-user-conf
 func httpdAuthRemoteUserConf() string {
 	return `
 RequestHeader unset X_REMOTE_USER
@@ -256,21 +270,5 @@ RequestHeader set X_REMOTE_USER_LASTNAME  %{REMOTE_USER_LASTNAME}e  env=REMOTE_U
 RequestHeader set X_REMOTE_USER_FULLNAME  %{REMOTE_USER_FULLNAME}e  env=REMOTE_USER_FULLNAME
 RequestHeader set X_REMOTE_USER_GROUPS    %{REMOTE_USER_GROUPS}e    env=REMOTE_USER_GROUPS
 RequestHeader set X_REMOTE_USER_DOMAIN    %{REMOTE_USER_DOMAIN}e    env=REMOTE_USER_DOMAIN
-`
-}
-
-// external-auth-openid-connect-remote-user-conf
-func httpdAuthOIDCRemoteUserConf() string {
-	return `
-RequestHeader unset X_REMOTE_USER
-
-RequestHeader set X_REMOTE_USER           %{OIDC_CLAIM_PREFERRED_USERNAME}e env=OIDC_CLAIM_PREFERRED_USERNAME
-RequestHeader set X_EXTERNAL_AUTH_ERROR   %{EXTERNAL_AUTH_ERROR}e           env=EXTERNAL_AUTH_ERROR
-RequestHeader set X_REMOTE_USER_EMAIL     %{OIDC_CLAIM_EMAIL}e              env=OIDC_CLAIM_EMAIL
-RequestHeader set X_REMOTE_USER_FIRSTNAME %{OIDC_CLAIM_GIVEN_NAME}e         env=OIDC_CLAIM_GIVEN_NAME
-RequestHeader set X_REMOTE_USER_LASTNAME  %{OIDC_CLAIM_FAMILY_NAME}e        env=OIDC_CLAIM_FAMILY_NAME
-RequestHeader set X_REMOTE_USER_FULLNAME  %{OIDC_CLAIM_NAME}e               env=OIDC_CLAIM_NAME
-RequestHeader set X_REMOTE_USER_GROUPS    %{OIDC_CLAIM_GROUPS}e             env=OIDC_CLAIM_GROUPS
-RequestHeader set X_REMOTE_USER_DOMAIN    %{OIDC_CLAIM_DOMAIN}e             env=OIDC_CLAIM_DOMAIN
 `
 }

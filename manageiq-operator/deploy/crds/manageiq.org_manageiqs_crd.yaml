@@ -51,6 +51,10 @@ spec:
             databaseVolumeCapacity:
               description: 'Database volume size (default: 15Gi)'
               type: string
+            httpdAuthConfig:
+              description: Secret containing the httpd configuration files Mutually
+                exclusive with the OIDCCliencSecret and OIDCProviderURL if using openid-connect
+              type: string
             httpdAuthenticationType:
               description: 'Type of httpd authentication (default: internal) Options:
                 internal, external, active-directory, saml, openid-connect Note: external,
@@ -105,6 +109,14 @@ spec:
               type: string
             memcachedSlabPageSize:
               description: 'Memcached max item size (default: 1m, min: 1k, max: 1024m)'
+              type: string
+            oidcClientSecret:
+              description: Secret name containing the OIDC client id and secret Only
+                used with the openid-connect authentication type
+              type: string
+            oidcProviderURL:
+              description: URL for the OIDC provider Only used with the openid-connect
+                authentication type
               type: string
             orchestratorCpuRequest:
               description: 'Orchestrator deployment CPU request (default: no request)'

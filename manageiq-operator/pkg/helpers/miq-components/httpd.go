@@ -56,25 +56,13 @@ func NewIngress(cr *miqv1alpha1.ManageIQ) *extensionsv1beta1.Ingress {
 }
 
 func NewHttpdConfigMap(cr *miqv1alpha1.ManageIQ) *corev1.ConfigMap {
-
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
 
 	data := map[string]string{
-		"application.conf":                              httpdApplicationConf(),
-		"authentication.conf":                           httpdAuthenticationConf(),
-		"configuration-internal-auth":                   httpdInternalAuthConf(),
-		"configuration-external-auth":                   httpdExternalAuthConf(),
-		"configuration-active-directory-auth":           httpdADAuthConf(),
-		"configuration-saml-auth":                       httpdSAMLAuthConf(),
-		"configuration-openid-connect-auth":             httpdOIDCAuthConf(),
-		"external-auth-load-modules-conf":               httpdAuthLoadModulesConf(),
-		"external-auth-login-form-conf":                 httpdAuthLoginFormConf(),
-		"external-auth-application-api-conf":            httpdAuthApplicationAPIConf(),
-		"external-auth-lookup-user-details-conf":        httpdAuthLookupUserDetailsConf(),
-		"external-auth-remote-user-conf":                httpdAuthRemoteUserConf(),
-		"external-auth-openid-connect-remote-user-conf": httpdAuthOIDCRemoteUserConf(),
+		"application.conf":    httpdApplicationConf(),
+		"authentication.conf": httpdAuthenticationConf(&cr.Spec),
 	}
 
 	return &corev1.ConfigMap{
@@ -92,12 +80,7 @@ func NewHttpdAuthConfigMap(cr *miqv1alpha1.ManageIQ) *corev1.ConfigMap {
 		"app": cr.Spec.AppName,
 	}
 	data := map[string]string{
-		"auth-type":                       "internal",
-		"auth-kerberos-realms":            "undefined",
-		"auth-oidc-provider-metadata-url": "undefined",
-		"auth-oidc-client-id":             "undefined",
-		"auth-oidc-client-secret":         "undefined",
-		"auth-configuration.conf":         httpdAuthConfigurationConf(),
+		"auth-configuration.conf": httpdAuthConfigurationConf(),
 	}
 	return &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
@@ -117,6 +100,77 @@ func PrivilegedHttpd(authType string) (bool, error) {
 		return true, nil
 	default:
 		return false, fmt.Errorf("unknown authenticaion type %s", authType)
+	}
+}
+
+func addOIDCEnv(secretName string, podSpec *corev1.PodSpec) {
+	clientId := corev1.EnvVar{
+		Name: "HTTPD_AUTH_OIDC_CLIENT_ID",
+		ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{Name: secretName},
+				Key:                  "CLIENT_ID",
+			},
+		},
+	}
+	clientSecret := corev1.EnvVar{
+		Name: "HTTPD_AUTH_OIDC_CLIENT_SECRET",
+		ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{Name: secretName},
+				Key:                  "CLIENT_SECRET",
+			},
+		},
+	}
+	podSpec.Containers[0].Env = append(podSpec.Containers[0].Env, clientId)
+	podSpec.Containers[0].Env = append(podSpec.Containers[0].Env, clientSecret)
+}
+
+func addAuthConfigVolume(podSpec *corev1.PodSpec) {
+	vol := corev1.Volume{
+		Name: "httpd-auth-config",
+		VolumeSource: corev1.VolumeSource{
+			ConfigMap: &corev1.ConfigMapVolumeSource{
+				LocalObjectReference: corev1.LocalObjectReference{Name: "httpd-auth-configs"},
+			},
+		},
+	}
+	podSpec.Volumes = append(podSpec.Volumes, vol)
+
+	mount := corev1.VolumeMount{Name: "httpd-auth-config", MountPath: "/etc/httpd/auth-conf.d"}
+	podSpec.Containers[0].VolumeMounts = append(podSpec.Containers[0].VolumeMounts, mount)
+}
+
+func addUserAuthVolume(secretName string, podSpec *corev1.PodSpec) {
+	vol := corev1.Volume{
+		Name: "user-auth-config",
+		VolumeSource: corev1.VolumeSource{
+			Secret: &corev1.SecretVolumeSource{
+				SecretName: secretName,
+			},
+		},
+	}
+	podSpec.Volumes = append(podSpec.Volumes, vol)
+
+	mount := corev1.VolumeMount{Name: "user-auth-config", MountPath: "/etc/httpd/user-conf.d"}
+	podSpec.Containers[0].VolumeMounts = append(podSpec.Containers[0].VolumeMounts, mount)
+}
+
+func configureHttpdAuth(spec *miqv1alpha1.ManageIQSpec, podSpec *corev1.PodSpec) {
+	authType := spec.HttpdAuthenticationType
+
+	if authType == "internal" {
+		return
+	}
+
+	if spec.HttpdAuthConfig != "" {
+		addUserAuthVolume(spec.HttpdAuthConfig, podSpec)
+	}
+
+	if authType == "openid-connect" && spec.OIDCClientSecret != "" {
+		addOIDCEnv(spec.OIDCClientSecret, podSpec)
+	} else if authType != "openid-connect" {
+		addAuthConfigVolume(podSpec)
 	}
 }
 
@@ -170,19 +224,8 @@ func initializeHttpdContainer(spec *miqv1alpha1.ManageIQSpec, privileged bool, c
 		InitialDelaySeconds: 10,
 		TimeoutSeconds:      3,
 	}
-	c.Env = []corev1.EnvVar{
-		corev1.EnvVar{
-			Name:  "APPLICATION_DOMAIN",
-			Value: spec.ApplicationDomain,
-		},
-		corev1.EnvVar{
-			Name:  "HTTPD_AUTH_TYPE",
-			Value: spec.HttpdAuthenticationType,
-		},
-	}
 	c.VolumeMounts = []corev1.VolumeMount{
 		corev1.VolumeMount{Name: "httpd-config", MountPath: "/etc/httpd/conf.d"},
-		corev1.VolumeMount{Name: "httpd-auth-config", MountPath: "/etc/httpd/auth-conf.d"},
 	}
 
 	// Add Lifecycle object for saving the environment if we're running with init
@@ -254,19 +297,13 @@ func NewHttpdDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, error) {
 								},
 							},
 						},
-						corev1.Volume{
-							Name: "httpd-auth-config",
-							VolumeSource: corev1.VolumeSource{
-								ConfigMap: &corev1.ConfigMapVolumeSource{
-									LocalObjectReference: corev1.LocalObjectReference{Name: "httpd-auth-configs"},
-								},
-							},
-						},
 					},
 				},
 			},
 		},
 	}
+
+	configureHttpdAuth(&cr.Spec, &deployment.Spec.Template.Spec)
 
 	// Only assign the service account if we need additional privileges
 	if privileged {
