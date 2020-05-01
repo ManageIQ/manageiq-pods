@@ -48,6 +48,14 @@ type ManageIQSpec struct {
 	// Note: external, active-directory, and saml require an httpd container with elevated privileges
 	// +optional
 	HttpdAuthenticationType string `json:"httpdAuthenticationType"`
+	// URL for the OIDC provider
+	// Only used with the openid-connect authentication type
+	// +optional
+	OIDCProviderURL string `json:"oidcProviderURL"`
+	// Secret name containing the OIDC client id and secret
+	// Only used with the openid-connect authentication type
+	// +optional
+	OIDCClientSecret string `json:"oidcClientSecret"`
 
 	// Httpd deployment CPU request (default: no request)
 	// +optional

@@ -106,6 +106,14 @@ spec:
             memcachedSlabPageSize:
               description: 'Memcached max item size (default: 1m, min: 1k, max: 1024m)'
               type: string
+            oidcClientSecret:
+              description: Secret name containing the OIDC client id and secret Only
+                used with the openid-connect authentication type
+              type: string
+            oidcProviderURL:
+              description: URL for the OIDC provider Only used with the openid-connect
+                authentication type
+              type: string
             orchestratorCpuRequest:
               description: 'Orchestrator deployment CPU request (default: no request)'
               type: string
