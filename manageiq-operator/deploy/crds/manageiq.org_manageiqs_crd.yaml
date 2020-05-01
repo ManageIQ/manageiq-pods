@@ -51,6 +51,10 @@ spec:
             databaseVolumeCapacity:
               description: 'Database volume size (default: 15Gi)'
               type: string
+            httpdAuthConfig:
+              description: Secret containing the httpd configuration files Mutually
+                exclusive with the OIDCCliencSecret and OIDCProviderURL if using openid-connect
+              type: string
             httpdAuthenticationType:
               description: 'Type of httpd authentication (default: internal) Options:
                 internal, external, active-directory, saml, openid-connect Note: external,
