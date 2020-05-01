@@ -1,7 +1,10 @@
 package v1alpha1
 
 import (
+	"errors"
+	"fmt"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"strings"
 )
 
 // ManageIQSpec defines the desired state of ManageIQ
@@ -48,6 +51,18 @@ type ManageIQSpec struct {
 	// Note: external, active-directory, and saml require an httpd container with elevated privileges
 	// +optional
 	HttpdAuthenticationType string `json:"httpdAuthenticationType"`
+	// URL for the OIDC provider
+	// Only used with the openid-connect authentication type
+	// +optional
+	OIDCProviderURL string `json:"oidcProviderURL"`
+	// Secret name containing the OIDC client id and secret
+	// Only used with the openid-connect authentication type
+	// +optional
+	OIDCClientSecret string `json:"oidcClientSecret"`
+	// Secret containing the httpd configuration files
+	// Mutually exclusive with the OIDCCliencSecret and OIDCProviderURL if using openid-connect
+	// +optional
+	HttpdAuthConfig string `json:"httpdAuthConfig"`
 
 	// Httpd deployment CPU request (default: no request)
 	// +optional
@@ -266,5 +281,35 @@ func (m *ManageIQ) Initialize() {
 
 	if spec.ZookeeperVolumeCapacity == "" {
 		spec.ZookeeperVolumeCapacity = "1Gi"
+	}
+}
+
+func (m *ManageIQ) Validate() error {
+	spec := m.Spec
+	errs := []string{}
+
+	if spec.HttpdAuthenticationType == "openid-connect" {
+		// Invalid if config and either secret or url is also provided
+		if spec.HttpdAuthConfig != "" && (spec.OIDCProviderURL != "" || spec.OIDCClientSecret != "") {
+			errs = append(errs, "OIDCProviderURL and OIDCClientSecret are invalid when HttpdAuthConfig is specified")
+			// Need to provide either the entire config or a secret and provider url
+		} else if spec.HttpdAuthConfig == "" && (spec.OIDCProviderURL == "" || spec.OIDCClientSecret == "") {
+			errs = append(errs, "HttpdAuthConfig or both OIDCProviderURL and OIDCClientSecret must be provided for openid-connect authentication")
+		}
+	} else {
+		if spec.OIDCProviderURL != "" {
+			errs = append(errs, fmt.Sprintf("OIDCProviderURL is not allowed for authentication type %s", spec.HttpdAuthenticationType))
+		}
+
+		if spec.OIDCClientSecret != "" {
+			errs = append(errs, fmt.Sprintf("OIDCClientSecret is not allowed for authentication type %s", spec.HttpdAuthenticationType))
+		}
+	}
+
+	if len(errs) > 0 {
+		err := fmt.Sprintf("validation failed for ManageIQ object: %s", strings.Join(errs, ", "))
+		return errors.New(err)
+	} else {
+		return nil
 	}
 }

@@ -104,11 +104,16 @@ func (r *ReconcileManageIQ) Reconcile(request reconcile.Request) (reconcile.Resu
 
 	// Fetch the ManageIQ instance
 	miqInstance := &miqv1alpha1.ManageIQ{}
-	err := r.client.Get(context.TODO(), request.NamespacedName, miqInstance)
-	miqInstance.Initialize()
 
+	err := r.client.Get(context.TODO(), request.NamespacedName, miqInstance)
 	if errors.IsNotFound(err) {
 		return reconcile.Result{}, nil
+	}
+
+	miqInstance.Initialize()
+
+	if e := miqInstance.Validate(); e != nil {
+		return reconcile.Result{}, e
 	}
 
 	if e := r.generateSecrets(miqInstance); e != nil {
@@ -151,9 +156,11 @@ func (r *ReconcileManageIQ) generateHttpdResources(cr *miqv1alpha1.ManageIQ) err
 		return err
 	}
 
-	httpdAuthConfigMap := miqtool.NewHttpdAuthConfigMap(cr)
-	if err := r.createk8sResIfNotExist(cr, httpdAuthConfigMap, &corev1.ConfigMap{}); err != nil {
-		return err
+	if cr.Spec.HttpdAuthenticationType != "internal" && cr.Spec.HttpdAuthenticationType != "openid-connect" {
+		httpdAuthConfigMap := miqtool.NewHttpdAuthConfigMap(cr)
+		if err := r.createk8sResIfNotExist(cr, httpdAuthConfigMap, &corev1.ConfigMap{}); err != nil {
+			return err
+		}
 	}
 
 	uiService := miqtool.NewUIService(cr)
