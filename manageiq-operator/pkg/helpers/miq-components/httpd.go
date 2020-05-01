@@ -56,25 +56,13 @@ func NewIngress(cr *miqv1alpha1.ManageIQ) *extensionsv1beta1.Ingress {
 }
 
 func NewHttpdConfigMap(cr *miqv1alpha1.ManageIQ) *corev1.ConfigMap {
-
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
 
 	data := map[string]string{
-		"application.conf":                              httpdApplicationConf(),
-		"authentication.conf":                           httpdAuthenticationConf(),
-		"configuration-internal-auth":                   httpdInternalAuthConf(),
-		"configuration-external-auth":                   httpdExternalAuthConf(),
-		"configuration-active-directory-auth":           httpdADAuthConf(),
-		"configuration-saml-auth":                       httpdSAMLAuthConf(),
-		"configuration-openid-connect-auth":             httpdOIDCAuthConf(),
-		"external-auth-load-modules-conf":               httpdAuthLoadModulesConf(),
-		"external-auth-login-form-conf":                 httpdAuthLoginFormConf(),
-		"external-auth-application-api-conf":            httpdAuthApplicationAPIConf(),
-		"external-auth-lookup-user-details-conf":        httpdAuthLookupUserDetailsConf(),
-		"external-auth-remote-user-conf":                httpdAuthRemoteUserConf(),
-		"external-auth-openid-connect-remote-user-conf": httpdAuthOIDCRemoteUserConf(),
+		"application.conf":    httpdApplicationConf(),
+		"authentication.conf": httpdAuthenticationConf(&cr.Spec),
 	}
 
 	return &corev1.ConfigMap{
@@ -92,12 +80,7 @@ func NewHttpdAuthConfigMap(cr *miqv1alpha1.ManageIQ) *corev1.ConfigMap {
 		"app": cr.Spec.AppName,
 	}
 	data := map[string]string{
-		"auth-type":                       "internal",
-		"auth-kerberos-realms":            "undefined",
-		"auth-oidc-provider-metadata-url": "undefined",
-		"auth-oidc-client-id":             "undefined",
-		"auth-oidc-client-secret":         "undefined",
-		"auth-configuration.conf":         httpdAuthConfigurationConf(),
+		"auth-configuration.conf": httpdAuthConfigurationConf(),
 	}
 	return &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
@@ -147,6 +130,29 @@ func assignHttpdPorts(privileged bool, c *corev1.Container) {
 	}
 }
 
+func oidcEnv(secretName string) []corev1.EnvVar {
+	return []corev1.EnvVar{
+		corev1.EnvVar{
+			Name: "HTTPD_AUTH_OIDC_CLIENT_ID",
+			ValueFrom: &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					LocalObjectReference: corev1.LocalObjectReference{Name: secretName},
+					Key:                  "CLIENT_ID",
+				},
+			},
+		},
+		corev1.EnvVar{
+			Name: "HTTPD_AUTH_OIDC_CLIENT_SECRET",
+			ValueFrom: &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					LocalObjectReference: corev1.LocalObjectReference{Name: secretName},
+					Key:                  "CLIENT_SECRET",
+				},
+			},
+		},
+	}
+}
+
 func initializeHttpdContainer(spec *miqv1alpha1.ManageIQSpec, privileged bool, c *corev1.Container) error {
 	c.Name = "httpd"
 	c.Image = httpdImage(spec.HttpdImageNamespace, spec.HttpdImageTag, privileged)
@@ -170,15 +176,9 @@ func initializeHttpdContainer(spec *miqv1alpha1.ManageIQSpec, privileged bool, c
 		InitialDelaySeconds: 10,
 		TimeoutSeconds:      3,
 	}
-	c.Env = []corev1.EnvVar{
-		corev1.EnvVar{
-			Name:  "APPLICATION_DOMAIN",
-			Value: spec.ApplicationDomain,
-		},
-		corev1.EnvVar{
-			Name:  "HTTPD_AUTH_TYPE",
-			Value: spec.HttpdAuthenticationType,
-		},
+	// conditionally add auth env vars for oidc
+	if spec.HttpdAuthenticationType == "openid-connect" {
+		c.Env = oidcEnv(spec.OIDCClientSecret)
 	}
 	c.VolumeMounts = []corev1.VolumeMount{
 		corev1.VolumeMount{Name: "httpd-config", MountPath: "/etc/httpd/conf.d"},
