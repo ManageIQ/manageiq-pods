@@ -156,9 +156,11 @@ func (r *ReconcileManageIQ) generateHttpdResources(cr *miqv1alpha1.ManageIQ) err
 		return err
 	}
 
-	httpdAuthConfigMap := miqtool.NewHttpdAuthConfigMap(cr)
-	if err := r.createk8sResIfNotExist(cr, httpdAuthConfigMap, &corev1.ConfigMap{}); err != nil {
-		return err
+	if cr.Spec.HttpdAuthenticationType != "internal" && cr.Spec.HttpdAuthenticationType != "openid-connect" {
+		httpdAuthConfigMap := miqtool.NewHttpdAuthConfigMap(cr)
+		if err := r.createk8sResIfNotExist(cr, httpdAuthConfigMap, &corev1.ConfigMap{}); err != nil {
+			return err
+		}
 	}
 
 	uiService := miqtool.NewUIService(cr)

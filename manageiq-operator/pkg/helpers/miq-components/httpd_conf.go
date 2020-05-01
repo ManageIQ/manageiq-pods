@@ -163,6 +163,12 @@ LoadModule auth_mellon_module modules/mod_auth_mellon.so
 }
 
 func httpdOIDCAuthConf(providerURL, applicationDomain string) string {
+	// If these are not provided, we should assume that the user provided a full config
+	// in a secret, so include the directory for that secret here
+	if providerURL == "" || applicationDomain == "" {
+		return "Include user-conf.d/*.conf"
+	}
+
 	s := `
 LoadModule auth_openidc_module modules/mod_auth_openidc.so
 
