@@ -38,6 +38,10 @@ type ManageIQSpec struct {
 	// +optional
 	TLSSecret string `json:"tlsSecret"`
 
+	// Secret containing the image registry authentication information needed for the manageiq images
+	// +optional
+	ImagePullSecret string `json:"imagePullSecret"`
+
 	// Image namespace used for the httpd deployment (default: manageiq)
 	// Note: the exact image will be determined by the authentication method selected
 	// +optional
