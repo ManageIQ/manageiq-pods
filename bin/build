@@ -22,6 +22,8 @@ HOOKS_SCRIPT_URL=${HOOKS_SCRIPT_URL:-""}
 
 NPM_REGISTRY_OVERRIDE=${NPM_REGISTRY_OVERRIDE:-""}
 
+OPERATOR_DIR=${OPERATOR_DIR:-manageiq-operator}
+
 while getopts "t:d:r:nhp" opt; do
   case $opt in
     d) IMAGE_DIR=$OPTARG ;;
@@ -86,8 +88,14 @@ pushd $IMAGE_DIR
   $cmd
 popd
 
+pushd "$OPERATOR_DIR"
+  cmd="operator-sdk build $REPO/manageiq-operator:$TAG"
+  echo "Building manageiq-operator: $cmd"
+  $cmd
+popd
+
 if [ -n "$PUSH" ]; then
-  push_images="manageiq-base manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker"
+  push_images="manageiq-base manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker manageiq-operator"
   for image in $push_images; do
     cmd="docker push $REPO/$image:$TAG"
     echo "Pushing: $cmd"
