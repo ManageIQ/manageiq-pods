@@ -44,11 +44,7 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
     dnf -y --disableplugin=subscription-manager module enable ruby:2.6 && \
     dnf config-manager --setopt=ubi-8-appstream.exclude=*net-snmp* --setopt=ubi-8-baseos.exclude=*net-snmp* --setopt=ubi-8-codeready-builder.exclude=*net-snmp* --save && \
     dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
-      ansible                     \
-      ansible-runner              \
       cmake                       \
-      cockpit-ws                  \
-      cockpit-ssh                 \
       cyrus-sasl                  \
       cyrus-sasl-plain            \
       file                        \
@@ -69,9 +65,6 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
       logrotate                   \
       lvm2                        \
       make                        \
-      net-snmp                    \
-      net-snmp-libs               \
-      net-snmp-utils              \
       nmap-ncat                   \
       nodejs                      \
       openldap-clients            \
@@ -86,7 +79,6 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
       qpid-proton-c-devel         \
       redhat-rpm-config           \
       ruby-devel                  \
-      socat                       \
       sqlite-devel                \
       v2v-conversion-host-ansible \
       wget                        \
