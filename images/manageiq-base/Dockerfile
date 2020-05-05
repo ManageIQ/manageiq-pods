@@ -1,13 +1,6 @@
 FROM registry.access.redhat.com/ubi8/ubi:8.1
 
-ARG MIQ_REF=master
-ARG SUI_REF=master
-ARG APPLIANCE_REF=master
 ARG BUILD_REF=master
-
-ARG MIQ_ORG=ManageIQ
-ARG SUI_ORG=ManageIQ
-ARG APPLIANCE_ORG=ManageIQ
 ARG BUILD_ORG=ManageIQ
 
 ARG CORE_REPO_NAME=manageiq
@@ -19,21 +12,10 @@ ARG HOOKS_SCRIPT_URL
 
 RUN dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install git
 
-RUN mkdir appliance && \
-    if [[ -n "$GIT_AUTH" ]]; then GIT_HOST=${GIT_AUTH}@${GIT_HOST}; fi && curl -L https://${GIT_HOST}/${APPLIANCE_ORG}/${CORE_REPO_NAME}-appliance/tarball/${APPLIANCE_REF} | tar vxz -C appliance --strip 1
-
-RUN mkdir sui && \
-    if [[ -n "$GIT_AUTH" ]]; then GIT_HOST=${GIT_AUTH}@${GIT_HOST}; fi && curl -L https://${GIT_HOST}/${SUI_ORG}/${CORE_REPO_NAME}-ui-service/tarball/${SUI_REF} | tar vxz -C sui --strip 1 && \
-    echo "`git ls-remote https://${GIT_HOST}/${SUI_ORG}/${CORE_REPO_NAME}-ui-service.git ${SUI_REF} | cut -f 1`" > sui/BUILD
-
-RUN mkdir app && \
-    if [[ -n "$GIT_AUTH" ]]; then GIT_HOST=${GIT_AUTH}@${GIT_HOST}; fi && curl -L https://${GIT_HOST}/${MIQ_ORG}/${CORE_REPO_NAME}/tarball/${MIQ_REF} | tar vxz -C app --strip 1 && \
-    echo "`date +'%Y%m%d%H%M%S'`_`git ls-remote https://${GIT_HOST}/${MIQ_ORG}/${CORE_REPO_NAME}.git ${MIQ_REF} | cut -c 1-7`" > app/BUILD
-
 RUN mkdir build && \
     if [[ -n "$GIT_AUTH" ]]; then GIT_HOST=${GIT_AUTH}@${GIT_HOST}; fi && curl -L https://${GIT_HOST}/${BUILD_ORG}/${CORE_REPO_NAME}-appliance-build/tarball/${BUILD_REF} | tar vxz -C build --strip 1
 
-# Hooks should make modifications to the source in the appliance, sui, and/or app directories
+# Hooks should make modifications to the source in the build directory
 RUN if [[ -n "$HOOKS_SCRIPT_URL" ]]; then curl -L ${HOOKS_SCRIPT_URL} | bash; fi
 
 FROM registry.access.redhat.com/ubi8/ubi:8.1
@@ -122,12 +104,6 @@ COPY --from=0 build/kickstarts/partials/post/python_modules.ks.erb /tmp/python_m
 RUN bash /tmp/python_modules && rm -f /tmp/python_modules
 COPY --from=0 build/kickstarts/partials/post/ovirt_ansible.ks.erb /tmp/ovirt_ansible
 RUN bash /tmp/ovirt_ansible && rm -f /tmp/ovirt_ansible
-
-RUN mkdir -p ${APP_ROOT} ${APPLIANCE_ROOT} ${SUI_ROOT} && \
-    ln -vs ${APP_ROOT} /opt/manageiq/manageiq
-COPY --from=0 app ${APP_ROOT}
-COPY --from=0 appliance ${APPLIANCE_ROOT}
-COPY --from=0 sui ${SUI_ROOT}
 
 RUN ${APPLIANCE_ROOT}/setup && \
     mkdir -p ${APP_ROOT}/log/apache && \
