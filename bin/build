@@ -56,20 +56,12 @@ pushd $IMAGE_DIR
   echo "Building manageiq-base: $cmd"
   $cmd manageiq-base
 
-  build_images="manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker"
+  build_images="manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker"
   for image in $build_images; do
     cmd="docker build -t $REPO/$image:$TAG --build-arg FROM_REPO=$REPO --build-arg FROM_TAG=$TAG $image"
     echo "Building $image: $cmd"
     $cmd
   done
-
-  cmd="docker build --tag $REPO/manageiq-ui-worker:$TAG \
-                    --build-arg FROM_REPO=$REPO \
-                    --build-arg FROM_TAG=$TAG \
-                    --build-arg ARCH=$ARCH \
-                    manageiq-ui-worker"
-  echo "Building manageiq-ui-worker: $cmd"
-  $cmd
 popd
 
 pushd "$OPERATOR_DIR"
