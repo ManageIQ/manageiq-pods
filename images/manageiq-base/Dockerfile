@@ -45,16 +45,12 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
     dnf config-manager --setopt=ubi-8-appstream.exclude=*net-snmp* --setopt=ubi-8-baseos.exclude=*net-snmp* --setopt=ubi-8-codeready-builder.exclude=*net-snmp* --save && \
     dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
       cmake                       \
-      cyrus-sasl                  \
-      cyrus-sasl-plain            \
       file                        \
-      freeipmi                    \
       gcc-c++                     \
       git                         \
       glibc-langpack-en           \
       hostname                    \
       http-parser                 \
-      ipmitool                    \
       iproute                     \
       libcurl-devel               \
       libpq                       \
@@ -66,28 +62,20 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
       lvm2                        \
       make                        \
       nmap-ncat                   \
-      nodejs                      \
       openldap-clients            \
-      openscap-scanner            \
       openssl-devel               \
-      OpenIPMI                    \
       patch                       \
       postfix                     \
       postgresql-devel            \
       procps-ng                   \
       python3-devel               \
-      qpid-proton-c-devel         \
       redhat-rpm-config           \
       ruby-devel                  \
       sqlite-devel                \
-      v2v-conversion-host-ansible \
       wget                        \
       xz                          \
       &&                          \
     dnf clean all
-
-RUN if [ ${ARCH} != "ppc64le" ] ; then \
-    dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install wmi ; fi
 
 # Install python packages the same way the appliance does
 COPY --from=0 build/kickstarts/partials/post/python_modules.ks.erb /tmp/python_modules
