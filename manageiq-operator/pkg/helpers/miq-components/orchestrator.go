@@ -118,10 +118,6 @@ func NewOrchestratorDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, er
 				Value: cr.Spec.OrchestratorImageTag,
 			},
 			corev1.EnvVar{
-				Name:  "IMAGE_PULL_SECRET",
-				Value: "",
-			},
-			corev1.EnvVar{
 				Name: "POD_NAME",
 				ValueFrom: &corev1.EnvVarSource{
 					FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.name"},
@@ -172,16 +168,27 @@ func NewOrchestratorDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, er
 					Labels: podLabels,
 				},
 				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{container},
-					ImagePullSecrets: []corev1.LocalObjectReference{
-						corev1.LocalObjectReference{Name: ""},
-					},
+					Containers:                    []corev1.Container{container},
 					TerminationGracePeriodSeconds: &termSecs,
 
 					ServiceAccountName: cr.Spec.AppName + "-orchestrator",
 				},
 			},
 		},
+	}
+
+	if cr.Spec.ImagePullSecret != "" {
+		pullSecret := []corev1.LocalObjectReference{
+			corev1.LocalObjectReference{Name: cr.Spec.ImagePullSecret},
+		}
+		deployment.Spec.Template.Spec.ImagePullSecrets = pullSecret
+
+		c := &deployment.Spec.Template.Spec.Containers[0]
+		pullSecretEnv := corev1.EnvVar{
+			Name:  "IMAGE_PULL_SECRET",
+			Value: cr.Spec.ImagePullSecret,
+		}
+		c.Env = append(c.Env, pullSecretEnv)
 	}
 
 	return deployment, nil
