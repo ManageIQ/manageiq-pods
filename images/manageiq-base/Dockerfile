@@ -45,15 +45,8 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
     dnf config-manager --setopt=ubi-8-appstream.exclude=*net-snmp* --setopt=ubi-8-baseos.exclude=*net-snmp* --setopt=ubi-8-codeready-builder.exclude=*net-snmp* --save && \
     dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
       file                        \
-      git                         \
-      glibc-langpack-en           \
-      hostname                    \
-      iproute                     \
-      libpq                       \
       lvm2                        \
       patch                       \
-      postfix                     \
-      procps-ng                   \
       python3-devel               \
       wget                        \
       &&                          \
