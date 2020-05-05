@@ -25,9 +25,7 @@ ARG ARCH=x86_64
 
 ENV TERM=xterm \
     CONTAINER=true \
-    APP_ROOT=/var/www/miq/vmdb \
-    APPLIANCE_ROOT=/opt/manageiq/manageiq-appliance \
-    SUI_ROOT=/opt/manageiq/manageiq-ui-service
+    APP_ROOT=/var/www/miq/vmdb
 
 LABEL name="manageiq-base" \
       vendor="ManageIQ" \
@@ -104,36 +102,6 @@ COPY --from=0 build/kickstarts/partials/post/python_modules.ks.erb /tmp/python_m
 RUN bash /tmp/python_modules && rm -f /tmp/python_modules
 COPY --from=0 build/kickstarts/partials/post/ovirt_ansible.ks.erb /tmp/ovirt_ansible
 RUN bash /tmp/ovirt_ansible && rm -f /tmp/ovirt_ansible
-
-RUN ${APPLIANCE_ROOT}/setup && \
-    mkdir -p ${APP_ROOT}/log/apache && \
-    rm -f /etc/httpd/conf.d/* && \
-    cp ${APP_ROOT}/config/cable.yml.sample ${APP_ROOT}/config/cable.yml
-
-# build and install gems
-WORKDIR ${APP_ROOT}
-RUN source /etc/default/evm && \
-    export RAILS_USE_MEMORY_STORE="true" && \
-    gem install bundler -v ">=1.16.2" && \
-    if [ ${ARCH} = "ppc64le" ] ; then gem install sassc  -- --disable-march-tune-native && \
-        gem install unf_ext -v '0.0.7.2' -- --with-cxxflags="-fsigned-char"; fi && \
-    bundle install --with qpid_proton && \
-    rake tmp:clear evm:compile_sti_loader log:clear && \
-    RUBY_GEMS_ROOT=$(gem env gemdir) && \
-    find ${RUBY_GEMS_ROOT}/bundler/gems/**/ -maxdepth 2 -name .git -type d | xargs rm -rvf && \
-    find ${RUBY_GEMS_ROOT}/gems/ | grep "\.o$" | xargs rm -rvf && \
-    find ${RUBY_GEMS_ROOT}/bundler/gems/ | grep "\.o$" | xargs rm -rvf && \
-    find ${RUBY_GEMS_ROOT}/gems/**/ -maxdepth 2 -name spec -type d | xargs rm -rvf && \
-    find ${RUBY_GEMS_ROOT}/gems/**/ -maxdepth 2 -name test -type d | xargs rm -rvf && \
-    find ${RUBY_GEMS_ROOT}/bundler/gems/**/ -maxdepth 2 -name spec -type d | xargs rm -rvf && \
-    find ${RUBY_GEMS_ROOT}/bundler/gems/**/ -maxdepth 2 -name test -type d | xargs rm -rvf && \
-    find ${RUBY_GEMS_ROOT}/gems/**/ -maxdepth 2 -name docs -type d | xargs rm -rvf && \
-    find ${RUBY_GEMS_ROOT}/bundler/gems/**/ -maxdepth 2 -name docs -type d | xargs rm -rvf && \
-    rm -rvf ${RUBY_GEMS_ROOT}/gems/rugged-*/vendor && \
-    rm -rvf ${RUBY_GEMS_ROOT}/cache/* && \
-    rm -rvf /root/.bundle/cache && \
-    rm -rvf ${APP_ROOT}/tmp/cache/assets && \
-    rm -vf ${APP_ROOT}/log/*.log
 
 RUN chgrp -R 0 $APP_ROOT && \
     chmod -R g=u $APP_ROOT
