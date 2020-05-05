@@ -63,6 +63,12 @@ type ManageIQSpec struct {
 	// Mutually exclusive with the OIDCCliencSecret and OIDCProviderURL if using openid-connect
 	// +optional
 	HttpdAuthConfig string `json:"httpdAuthConfig"`
+	// Flag to enable SSO in the application (default: false)
+	// +optional
+	EnableSSO bool `json:"enableSSO"`
+	// Flag to disable local login to the application (default: false)
+	// +optional
+	DisableApplicationLocalLogin bool `json:"disableApplicationLocalLogin"`
 
 	// Httpd deployment CPU request (default: no request)
 	// +optional

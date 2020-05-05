@@ -16,6 +16,33 @@ function check_svc_status() {
   echo "${SVC_NAME}:${SVC_PORT} - accepting connections"
 }
 
+function update_auth_settings() {
+  echo "== Updating auth settings =="
+  script=$(cat <<- EOS
+    provider_type = case ENV['AUTH_TYPE']
+                    when 'saml'
+                      'saml'
+                    when 'openid-connect'
+                      'oidc'
+                    else
+                      'none'
+                    end
+    settings = {
+      'authentication/mode'                 => ENV['AUTH_TYPE'] != "internal" ? 'httpd' : 'database',
+      'authentication/httpd_role'           => ENV['AUTH_TYPE'] != "internal" ? true : false,
+      'authentication/sso_enabled'          => ENV['AUTH_SSO'] == "true",
+      'authentication/saml_enabled'         => provider_type == 'saml',
+      'authentication/oidc_enabled'         => provider_type == 'oidc',
+      'authentication/provider_type'        => provider_type,
+      'authentication/local_login_disabled' => ENV['LOCAL_LOGIN_DISABLED'] == "true"
+    }
+    MiqRegion.my_region.add_settings_for_resource(settings)
+EOS
+)
+
+  bin/rails runner "$script"
+}
+
 check_svc_status ${MEMCACHED_SERVICE_HOST} ${MEMCACHED_SERVICE_PORT}
 check_svc_status ${DATABASE_HOSTNAME} ${DATABASE_PORT}
 
@@ -64,4 +91,5 @@ case $? in
     exit 1
 esac
 
+update_auth_settings
 exec ruby /var/www/miq/vmdb/lib/workers/bin/evm_server.rb
