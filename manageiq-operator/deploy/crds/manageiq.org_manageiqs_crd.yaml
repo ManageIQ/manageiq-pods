@@ -78,6 +78,10 @@ spec:
             httpdMemoryRequest:
               description: 'Httpd deployment memory request (default: no limit)'
               type: string
+            imagePullSecret:
+              description: Secret containing the image registry authentication information
+                needed for the manageiq images
+              type: string
             kafkaSecret:
               description: 'Secret containing the kafka access information, content
                 generated if not provided (default: kafka-secrets)'
