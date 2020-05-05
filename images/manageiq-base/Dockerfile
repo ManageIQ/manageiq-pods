@@ -48,7 +48,6 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
       git                         \
       glibc-langpack-en           \
       hostname                    \
-      http-parser                 \
       iproute                     \
       libpq                       \
       lvm2                        \
@@ -57,7 +56,6 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
       procps-ng                   \
       python3-devel               \
       wget                        \
-      xz                          \
       &&                          \
     dnf clean all
 
