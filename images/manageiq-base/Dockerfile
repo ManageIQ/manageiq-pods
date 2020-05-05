@@ -58,11 +58,8 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
       libtool                     \
       libxml2-devel               \
       libxslt-devel               \
-      logrotate                   \
       lvm2                        \
       make                        \
-      nmap-ncat                   \
-      openldap-clients            \
       openssl-devel               \
       patch                       \
       postfix                     \
