@@ -46,6 +46,7 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
     dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
       file                        \
       lvm2                        \
+      manageiq-pods               \
       patch                       \
       python3-devel               \
       wget                        \
