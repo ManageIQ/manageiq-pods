@@ -44,31 +44,18 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
     dnf -y --disableplugin=subscription-manager module enable ruby:2.6 && \
     dnf config-manager --setopt=ubi-8-appstream.exclude=*net-snmp* --setopt=ubi-8-baseos.exclude=*net-snmp* --setopt=ubi-8-codeready-builder.exclude=*net-snmp* --save && \
     dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
-      cmake                       \
       file                        \
-      gcc-c++                     \
       git                         \
       glibc-langpack-en           \
       hostname                    \
       http-parser                 \
       iproute                     \
-      libcurl-devel               \
       libpq                       \
-      libssh2-devel               \
-      libtool                     \
-      libxml2-devel               \
-      libxslt-devel               \
       lvm2                        \
-      make                        \
-      openssl-devel               \
       patch                       \
       postfix                     \
-      postgresql-devel            \
       procps-ng                   \
       python3-devel               \
-      redhat-rpm-config           \
-      ruby-devel                  \
-      sqlite-devel                \
       wget                        \
       xz                          \
       &&                          \
