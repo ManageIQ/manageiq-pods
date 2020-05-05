@@ -47,10 +47,21 @@ func NewOrchestratorDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, er
 				},
 			},
 			corev1.EnvVar{
+				Name:  "AUTH_TYPE",
+				Value: cr.Spec.HttpdAuthenticationType,
+			},
+			corev1.EnvVar{
+				Name:  "AUTH_SSO",
+				Value: strconv.FormatBool(cr.Spec.EnableSSO),
+			},
+			corev1.EnvVar{
+				Name:  "LOCAL_LOGIN_DISABLED",
+				Value: strconv.FormatBool(cr.Spec.DisableApplicationLocalLogin),
+			},
+			corev1.EnvVar{
 				Name:  "GUID",
 				Value: uuid.New().String(),
 			},
-
 			corev1.EnvVar{
 				Name:  "DATABASE_REGION",
 				Value: "0",
