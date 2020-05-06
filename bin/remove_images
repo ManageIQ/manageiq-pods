@@ -16,7 +16,7 @@ if [ -z "$REPO" ]; then
   exit 1
 fi
 
-images=(manageiq-base manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker)
+images=(manageiq-base manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker manageiq-operator)
 images=( "${images[@]/#/$REPO/}" )
 images=( "${images[@]/%/:$TAG}" )
 echo "Removing ${images[@]}"
