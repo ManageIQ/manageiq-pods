@@ -223,22 +223,34 @@ func httpdAuthLoginFormConf() string {
 
 func httpdAuthApplicationAPIConf() string {
 	return `
-<LocationMatch ^/api>
-    SetEnvIf Authorization     '^Basic +YWRtaW46' let_admin_in
-    SetEnvIf X-Auth-Token      '^.+$'             let_api_token_in
-    SetEnvIf X-MIQ-Token       '^.+$'             let_sys_token_in
+<LocationMatch ^/api(?!\/(v[\d\.]+\/)?product_info$)>
+  SetEnvIf Authorization '^Basic +YWRtaW46' let_admin_in
+  SetEnvIf X-Auth-Token  '^.+$'             let_api_token_in
+  SetEnvIf X-MIQ-Token   '^.+$'             let_sys_token_in
+  SetEnvIf X-CSRF-Token  '^.+$'             let_csrf_token_in
 
-    AuthType                   Basic
-    AuthName                   "External Authentication (httpd) for API"
-    AuthBasicProvider          PAM
+  AuthType Basic
+  AuthName "External Authentication (httpd) for API"
+  AuthBasicProvider PAM
 
-    AuthPAMService             httpd-auth
-    Require                    valid-user
-    Order                      Allow,Deny
-    Allow from                 env=let_admin_in
-    Allow from                 env=let_api_token_in
-    Allow from                 env=let_sys_token_in
-    Satisfy                    Any
+  AuthPAMService httpd-auth
+  Require        valid-user
+  Order          Allow,Deny
+  Allow from env=let_admin_in
+  Allow from env=let_api_token_in
+  Allow from env=let_sys_token_in
+  Allow from env=let_csrf_token_in
+  Satisfy Any
+
+  LookupUserAttr mail        REMOTE_USER_EMAIL
+  LookupUserAttr givenname   REMOTE_USER_FIRSTNAME
+  LookupUserAttr sn          REMOTE_USER_LASTNAME
+  LookupUserAttr displayname REMOTE_USER_FULLNAME
+  LookupUserAttr domainname  REMOTE_USER_DOMAIN
+
+  LookupUserGroups           REMOTE_USER_GROUPS ":"
+  LookupDbusTimeout          5000
+
 </LocationMatch>
 `
 }
