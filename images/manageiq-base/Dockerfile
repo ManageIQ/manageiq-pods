@@ -22,6 +22,7 @@ FROM registry.access.redhat.com/ubi8/ubi:8.1
 MAINTAINER ManageIQ https://manageiq.org
 
 ARG ARCH=x86_64
+ARG LOCAL_RPM
 
 ENV TERM=xterm \
     CONTAINER=true \
@@ -36,6 +37,9 @@ LABEL name="manageiq-base" \
       io.k8s.description="ManageIQ is a management and automation platform for virtual, private, and hybrid cloud infrastructures." \
       io.openshift.tags="ManageIQ,miq,manageiq"
 
+COPY rpms/* /tmp/rpms/
+COPY container-assets/create_local_yum_repo.sh /
+
 RUN curl -L https://releases.ansible.com/ansible-runner/ansible-runner.el8.repo > /etc/yum.repos.d/ansible-runner.repo
 
 RUN dnf -y --disableplugin=subscription-manager install \
@@ -48,6 +52,7 @@ RUN dnf -y --disableplugin=subscription-manager install \
     dnf -y --disableplugin=subscription-manager module enable ruby:2.6 && \
     dnf config-manager --enable manageiq-11-kasparov-nightly && \
     dnf config-manager --setopt=ubi-8-appstream.exclude=*net-snmp* --setopt=ubi-8-baseos.exclude=*net-snmp* --setopt=ubi-8-codeready-builder.exclude=*net-snmp* --save && \
+    if [[ "$LOCAL_RPM" = "true" ]]; then /create_local_yum_repo.sh; fi && \
     dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
       manageiq-pods               \
       python3-devel               \
