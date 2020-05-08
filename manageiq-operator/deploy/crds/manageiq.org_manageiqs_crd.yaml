@@ -51,9 +51,9 @@ spec:
             databaseVolumeCapacity:
               description: 'Database volume size (default: 15Gi)'
               type: string
-            disableApplicationLocalLogin:
-              description: 'Flag to disable local login to the application (default:
-                false)'
+            enableApplicationLocalLogin:
+              description: 'Flag to allow logging into the application without SSO
+                (default: true)'
               type: boolean
             enableSSO:
               description: 'Flag to enable SSO in the application (default: false)'

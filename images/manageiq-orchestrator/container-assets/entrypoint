@@ -34,7 +34,7 @@ function update_auth_settings() {
       'authentication/saml_enabled'         => provider_type == 'saml',
       'authentication/oidc_enabled'         => provider_type == 'oidc',
       'authentication/provider_type'        => provider_type,
-      'authentication/local_login_disabled' => ENV['LOCAL_LOGIN_DISABLED'] == "true"
+      'authentication/local_login_disabled' => ENV['LOCAL_LOGIN_ENABLED'] == "false"
     }
     MiqRegion.my_region.add_settings_for_resource(settings)
 EOS

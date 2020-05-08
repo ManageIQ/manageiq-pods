@@ -52,11 +52,11 @@ func NewOrchestratorDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, er
 			},
 			corev1.EnvVar{
 				Name:  "AUTH_SSO",
-				Value: strconv.FormatBool(cr.Spec.EnableSSO),
+				Value: strconv.FormatBool(*cr.Spec.EnableSSO),
 			},
 			corev1.EnvVar{
-				Name:  "LOCAL_LOGIN_DISABLED",
-				Value: strconv.FormatBool(cr.Spec.DisableApplicationLocalLogin),
+				Name:  "LOCAL_LOGIN_ENABLED",
+				Value: strconv.FormatBool(*cr.Spec.EnableApplicationLocalLogin),
 			},
 			corev1.EnvVar{
 				Name:  "GUID",
