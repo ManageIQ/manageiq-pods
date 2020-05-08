@@ -69,10 +69,10 @@ type ManageIQSpec struct {
 	HttpdAuthConfig string `json:"httpdAuthConfig"`
 	// Flag to enable SSO in the application (default: false)
 	// +optional
-	EnableSSO bool `json:"enableSSO"`
-	// Flag to disable local login to the application (default: false)
+	EnableSSO *bool `json:"enableSSO"`
+	// Flag to allow logging into the application without SSO (default: true)
 	// +optional
-	DisableApplicationLocalLogin bool `json:"disableApplicationLocalLogin"`
+	EnableApplicationLocalLogin *bool `json:"enableApplicationLocalLogin"`
 
 	// Httpd deployment CPU request (default: no request)
 	// +optional
@@ -231,6 +231,15 @@ func (m *ManageIQ) Initialize() {
 
 	if spec.HttpdAuthenticationType == "" {
 		spec.HttpdAuthenticationType = "internal"
+	}
+
+	if spec.EnableSSO == nil {
+		spec.EnableSSO = new(bool)
+	}
+
+	if spec.EnableApplicationLocalLogin == nil {
+		t := true
+		spec.EnableApplicationLocalLogin = &t
 	}
 
 	if spec.MemcachedImageName == "" {
