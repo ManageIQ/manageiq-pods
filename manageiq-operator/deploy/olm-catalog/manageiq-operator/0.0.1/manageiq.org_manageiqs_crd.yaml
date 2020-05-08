@@ -51,6 +51,13 @@ spec:
             databaseVolumeCapacity:
               description: 'Database volume size (default: 15Gi)'
               type: string
+            enableApplicationLocalLogin:
+              description: 'Flag to allow logging into the application without SSO
+                (default: true)'
+              type: boolean
+            enableSSO:
+              description: 'Flag to enable SSO in the application (default: false)'
+              type: boolean
             httpdAuthConfig:
               description: Secret containing the httpd configuration files Mutually
                 exclusive with the OIDCCliencSecret and OIDCProviderURL if using openid-connect
