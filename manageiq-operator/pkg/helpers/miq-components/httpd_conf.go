@@ -63,7 +63,7 @@ Options SymLinksIfOwnerMatch
 func httpdAuthenticationConf(spec *miqv1alpha1.ManageIQSpec) string {
 	switch spec.HttpdAuthenticationType {
 	case "openid-connect":
-		return httpdOIDCAuthConf(spec.OIDCProviderURL, spec.ApplicationDomain)
+		return httpdOIDCAuthConf(spec.OIDCProviderURL, spec.OIDCOAuthIntrospectionURL, spec.ApplicationDomain)
 	case "external":
 		return httpdExternalAuthConf()
 	case "active-directory":
@@ -94,7 +94,27 @@ func httpdExternalAuthConf() string {
 %s
 %s
 `
-	return fmt.Sprintf(s, httpdAuthLoadModulesConf(), httpdAuthLoginFormConf(), httpdAuthApplicationAPIConf(), httpdAuthLookupUserDetailsConf(), httpdAuthRemoteUserConf())
+	apiExtraConfig := `
+  AuthBasicProvider PAM
+  AuthPAMService httpd-auth
+
+  LookupUserAttr mail        REMOTE_USER_EMAIL
+  LookupUserAttr givenname   REMOTE_USER_FIRSTNAME
+  LookupUserAttr sn          REMOTE_USER_LASTNAME
+  LookupUserAttr displayname REMOTE_USER_FULLNAME
+  LookupUserAttr domainname  REMOTE_USER_DOMAIN
+
+  LookupUserGroups           REMOTE_USER_GROUPS ":"
+  LookupDbusTimeout          5000
+`
+	return fmt.Sprintf(
+		s,
+		httpdAuthLoadModulesConf(),
+		httpdAuthLoginFormConf(),
+		httpdAuthApplicationAPIConf("Basic", "\"External Authentication (httpd) for API\"", apiExtraConfig),
+		httpdAuthLookupUserDetailsConf(),
+		httpdAuthRemoteUserConf(),
+	)
 }
 
 func httpdADAuthConf() string {
@@ -116,7 +136,27 @@ func httpdADAuthConf() string {
 %s
 %s
 `
-	return fmt.Sprintf(s, httpdAuthLoadModulesConf(), httpdAuthLoginFormConf(), httpdAuthApplicationAPIConf(), httpdAuthLookupUserDetailsConf(), httpdAuthRemoteUserConf())
+	apiExtraConfig := `
+  AuthBasicProvider PAM
+  AuthPAMService httpd-auth
+
+  LookupUserAttr mail        REMOTE_USER_EMAIL
+  LookupUserAttr givenname   REMOTE_USER_FIRSTNAME
+  LookupUserAttr sn          REMOTE_USER_LASTNAME
+  LookupUserAttr displayname REMOTE_USER_FULLNAME
+  LookupUserAttr domainname  REMOTE_USER_DOMAIN
+
+  LookupUserGroups           REMOTE_USER_GROUPS ":"
+  LookupDbusTimeout          5000
+`
+	return fmt.Sprintf(
+		s,
+		httpdAuthLoadModulesConf(),
+		httpdAuthLoginFormConf(),
+		httpdAuthApplicationAPIConf("Basic", "\"External Authentication (httpd) for API\"", apiExtraConfig),
+		httpdAuthLookupUserDetailsConf(),
+		httpdAuthRemoteUserConf(),
+	)
 }
 
 func httpdSAMLAuthConf() string {
@@ -162,29 +202,36 @@ LoadModule auth_mellon_module modules/mod_auth_mellon.so
 	return fmt.Sprintf(s, httpdAuthRemoteUserConf())
 }
 
-func httpdOIDCAuthConf(providerURL, applicationDomain string) string {
+func httpdOIDCAuthConf(providerURL, introspectionURL, applicationDomain string) string {
 	// If these are not provided, we should assume that the user provided a full config
 	// in a secret, so include the directory for that secret here
-	if providerURL == "" || applicationDomain == "" {
+	if providerURL == "" || introspectionURL == "" || applicationDomain == "" {
 		return "Include user-conf.d/*.conf"
 	}
 
 	s := `
 LoadModule auth_openidc_module modules/mod_auth_openidc.so
+ServerName https://%s
+LogLevel   warn
 
 OIDCProviderMetadataURL      %s
 OIDCClientID                 ${HTTPD_AUTH_OIDC_CLIENT_ID}
 OIDCClientSecret             ${HTTPD_AUTH_OIDC_CLIENT_SECRET}
-
 OIDCRedirectURI              "https://%s/oidc_login/redirect_uri"
+OIDCCryptoPassphrase         sp-secret
 OIDCOAuthRemoteUserClaim     username
 
-OIDCCryptoPassphrase         sp-secret
+OIDCOAuthClientID                  ${HTTPD_AUTH_OIDC_CLIENT_ID}
+OIDCOAuthClientSecret              ${HTTPD_AUTH_OIDC_CLIENT_SECRET}
+OIDCOAuthIntrospectionEndpoint     %s
+OIDCOAuthIntrospectionEndpointAuth client_secret_post
 
 <Location /oidc_login>
   AuthType                   openid-connect
   Require                    valid-user
 </Location>
+
+%s
 
 RequestHeader unset X_REMOTE_USER
 
@@ -197,7 +244,14 @@ RequestHeader set X_REMOTE_USER_FULLNAME  %%{OIDC_CLAIM_NAME}e               env
 RequestHeader set X_REMOTE_USER_GROUPS    %%{OIDC_CLAIM_GROUPS}e             env=OIDC_CLAIM_GROUPS
 RequestHeader set X_REMOTE_USER_DOMAIN    %%{OIDC_CLAIM_DOMAIN}e             env=OIDC_CLAIM_DOMAIN
 `
-	return fmt.Sprintf(s, providerURL, applicationDomain)
+	return fmt.Sprintf(
+		s,
+		applicationDomain,
+		providerURL,
+		applicationDomain,
+		introspectionURL,
+		httpdAuthApplicationAPIConf("oauth20", "\"External Authentication (oauth20) for API\"", ""),
+	)
 }
 
 func httpdAuthLoadModulesConf() string {
@@ -221,26 +275,29 @@ func httpdAuthLoginFormConf() string {
 `
 }
 
-func httpdAuthApplicationAPIConf() string {
-	return `
-<LocationMatch ^/api>
-    SetEnvIf Authorization     '^Basic +YWRtaW46' let_admin_in
-    SetEnvIf X-Auth-Token      '^.+$'             let_api_token_in
-    SetEnvIf X-MIQ-Token       '^.+$'             let_sys_token_in
+func httpdAuthApplicationAPIConf(authType, authName, extraConfig string) string {
+	s := `
+<LocationMatch ^/api(?!\/(v[\d\.]+\/)?product_info$)>
+  SetEnvIf Authorization '^Basic +YWRtaW46' let_admin_in
+  SetEnvIf X-Auth-Token  '^.+$'             let_api_token_in
+  SetEnvIf X-MIQ-Token   '^.+$'             let_sys_token_in
+  SetEnvIf X-CSRF-Token  '^.+$'             let_csrf_token_in
 
-    AuthType                   Basic
-    AuthName                   "External Authentication (httpd) for API"
-    AuthBasicProvider          PAM
+  AuthType %s
+  AuthName %s
+  Require        valid-user
+  Order          Allow,Deny
+  Allow from env=let_admin_in
+  Allow from env=let_api_token_in
+  Allow from env=let_sys_token_in
+  Allow from env=let_csrf_token_in
+  Satisfy Any
 
-    AuthPAMService             httpd-auth
-    Require                    valid-user
-    Order                      Allow,Deny
-    Allow from                 env=let_admin_in
-    Allow from                 env=let_api_token_in
-    Allow from                 env=let_sys_token_in
-    Satisfy                    Any
+  %s
 </LocationMatch>
 `
+
+	return fmt.Sprintf(s, authType, authName, extraConfig)
 }
 
 func httpdAuthLookupUserDetailsConf() string {
