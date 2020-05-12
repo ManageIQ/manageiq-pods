@@ -15,8 +15,7 @@ type ManageIQSpec struct {
 	// +optional
 	AppName string `json:"appName"`
 
-	// Initial password for "admin" user (default: smartvm)
-	// +optional
+	// Initial password for "admin" user
 	ApplicationAdminPassword string `json:"applicationAdminPassword"`
 
 	// Domain name for the external route. Used for external authentication configuration
@@ -207,10 +206,6 @@ func (m *ManageIQ) Initialize() {
 
 	if spec.AppName == "" {
 		spec.AppName = "manageiq"
-	}
-
-	if spec.ApplicationAdminPassword == "" {
-		spec.ApplicationAdminPassword = "smartvm"
 	}
 
 	if spec.DatabaseRegion == "" {
