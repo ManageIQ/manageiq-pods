@@ -59,6 +59,10 @@ type ManageIQSpec struct {
 	// Only used with the openid-connect authentication type
 	// +optional
 	OIDCProviderURL string `json:"oidcProviderURL"`
+	// URL for OIDC authentication introspection
+	// Only used with the openid-connect authentication type
+	// +optional
+	OIDCOAuthIntrospectionURL string `json:"oidcAuthIntrospectionURL"`
 	// Secret name containing the OIDC client id and secret
 	// Only used with the openid-connect authentication type
 	// +optional
@@ -308,16 +312,20 @@ func (m *ManageIQ) Validate() error {
 	errs := []string{}
 
 	if spec.HttpdAuthenticationType == "openid-connect" {
-		// Invalid if config and either secret or url is also provided
-		if spec.HttpdAuthConfig != "" && (spec.OIDCProviderURL != "" || spec.OIDCClientSecret != "") {
-			errs = append(errs, "OIDCProviderURL and OIDCClientSecret are invalid when HttpdAuthConfig is specified")
+		// Invalid if config and any other info is also provided
+		if spec.HttpdAuthConfig != "" && (spec.OIDCProviderURL != "" || spec.OIDCOAuthIntrospectionURL != "" || spec.OIDCClientSecret != "") {
+			errs = append(errs, "OIDCProviderURL, OIDCOAuthIntrospectionURL, and OIDCClientSecret are invalid when HttpdAuthConfig is specified")
 			// Need to provide either the entire config or a secret and provider url
-		} else if spec.HttpdAuthConfig == "" && (spec.OIDCProviderURL == "" || spec.OIDCClientSecret == "") {
-			errs = append(errs, "HttpdAuthConfig or both OIDCProviderURL and OIDCClientSecret must be provided for openid-connect authentication")
+		} else if spec.HttpdAuthConfig == "" && (spec.OIDCProviderURL == "" || spec.OIDCOAuthIntrospectionURL == "" || spec.OIDCClientSecret == "") {
+			errs = append(errs, "HttpdAuthConfig or all of OIDCProviderURL, OIDCOAuthIntrospectionURL, and OIDCClientSecret must be provided for openid-connect authentication")
 		}
 	} else {
 		if spec.OIDCProviderURL != "" {
 			errs = append(errs, fmt.Sprintf("OIDCProviderURL is not allowed for authentication type %s", spec.HttpdAuthenticationType))
+		}
+
+		if spec.OIDCOAuthIntrospectionURL != "" {
+			errs = append(errs, fmt.Sprintf("OIDCOAuthIntrospectionURL is not allowed for authentication type %s", spec.HttpdAuthenticationType))
 		}
 
 		if spec.OIDCClientSecret != "" {
