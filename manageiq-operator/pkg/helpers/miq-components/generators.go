@@ -2,7 +2,6 @@ package miqtools
 
 import (
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 )
@@ -17,8 +16,7 @@ func randomBytes(n int) []byte {
 }
 
 func generateEncryptionKey() string {
-	sum := sha256.Sum256(randomBytes(32))
-	return base64.StdEncoding.EncodeToString(sum[:])
+	return base64.StdEncoding.EncodeToString(randomBytes(32))
 }
 
 func generatePassword() string {
