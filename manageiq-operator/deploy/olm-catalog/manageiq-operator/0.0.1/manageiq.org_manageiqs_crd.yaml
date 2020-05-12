@@ -35,7 +35,7 @@ spec:
               description: 'Application name used for deployed objects (default: manageiq)'
               type: string
             applicationAdminPassword:
-              description: 'Initial password for "admin" user (default: smartvm)'
+              description: Initial password for "admin" user
               type: string
             applicationDomain:
               description: Domain name for the external route. Used for external authentication
@@ -188,6 +188,7 @@ spec:
               description: 'Zookeeper volume size (default: 1Gi)'
               type: string
           required:
+          - applicationAdminPassword
           - applicationDomain
           type: object
         status:
