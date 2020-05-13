@@ -64,7 +64,7 @@ func NewOrchestratorDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, er
 			},
 			corev1.EnvVar{
 				Name:  "DATABASE_REGION",
-				Value: "0",
+				Value: cr.Spec.DatabaseRegion,
 			},
 			corev1.EnvVar{
 				Name: "DATABASE_HOSTNAME",
