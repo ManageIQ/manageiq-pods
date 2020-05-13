@@ -15,9 +15,6 @@ type ManageIQSpec struct {
 	// +optional
 	AppName string `json:"appName"`
 
-	// Initial password for "admin" user
-	ApplicationAdminPassword string `json:"applicationAdminPassword"`
-
 	// Domain name for the external route. Used for external authentication configuration
 	ApplicationDomain string `json:"applicationDomain"`
 
