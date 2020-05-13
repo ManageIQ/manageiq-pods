@@ -11,7 +11,6 @@ metadata:
             "name": "miq"
           },
           "spec": {
-            "applicationAdminPassword": "smartvm",
             "applicationDomain": "miqproject.apps-crc.testing"
           }
         }

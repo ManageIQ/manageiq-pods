@@ -1,9 +1,6 @@
 # Application name used for deployed objects
 APP_NAME=manageiq
 
-# admin user initial password
-APPLICATION_ADMIN_PASSWORD=smartvm
-
 # Domain name for the external route
 # Used for external authentication configuration
 APPLICATION_DOMAIN=
