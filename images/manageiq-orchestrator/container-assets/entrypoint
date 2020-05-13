@@ -67,9 +67,6 @@ case $? in
       set -e
       REGION=${DATABASE_REGION} bin/rake db:migrate
       REGION=${DATABASE_REGION} bin/rails runner "MiqDatabase.seed; MiqRegion.seed"
-
-      echo "== Setting admin password =="
-      bin/rails runner "EvmDatabase.seed_primordial; user = User.lookup_by_userid('admin').update_attributes!(:password => ENV['APPLICATION_ADMIN_PASSWORD'])"
     popd
   ;;
   4) # new_replica

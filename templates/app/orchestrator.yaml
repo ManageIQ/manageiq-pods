@@ -37,11 +37,6 @@ objects:
             value: 'true'
           - name: APP_NAME
             value: "${APP_NAME}"
-          - name: APPLICATION_ADMIN_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: app-secrets
-                key: admin-password
           - name: GUID
             value: "${GUID}"
           - name: DATABASE_REGION

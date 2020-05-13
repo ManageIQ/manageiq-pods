@@ -38,15 +38,6 @@ func NewOrchestratorDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, er
 				Value: cr.Spec.AppName,
 			},
 			corev1.EnvVar{
-				Name: "APPLICATION_ADMIN_PASSWORD",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{Name: "app-secrets"},
-						Key:                  "admin-password",
-					},
-				},
-			},
-			corev1.EnvVar{
 				Name:  "AUTH_TYPE",
 				Value: cr.Spec.HttpdAuthenticationType,
 			},

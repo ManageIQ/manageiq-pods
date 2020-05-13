@@ -208,7 +208,7 @@ Examine output and point your web browser to the reported URL/HOST.
 
 ### Logging In
 
-Per the ManageIQ project [basic configuration](http://manageiq.org/docs/get-started/basic-configuration) documentation, you can now login to the MIQ web interface using the default username (`admin`) and either the default password (`smartvm`) of the password configured using the `APPLICATION_ADMIN_PASSWORD` parameter.
+Per the ManageIQ project [basic configuration](http://manageiq.org/docs/get-started/basic-configuration) documentation, you can now login to the MIQ web interface using the default username and password (`admin`/`smartvm`).
 
 ## Backup and restore of the MIQ database
 
