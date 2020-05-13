@@ -12,7 +12,6 @@ func AppSecret(cr *miqv1alpha1.ManageIQ) *corev1.Secret {
 		"app": cr.Spec.AppName,
 	}
 	secret := map[string]string{
-		"admin-password": cr.Spec.ApplicationAdminPassword,
 		"encryption-key": generateEncryptionKey(),
 	}
 	return &corev1.Secret{
