@@ -30,3 +30,10 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: "manageiq-operator"
+          resources:
+            requests:
+              memory: 60Mi
+              cpu: 10m
+            limits:
+              memory: 500Mi
+              cpu: 100m
