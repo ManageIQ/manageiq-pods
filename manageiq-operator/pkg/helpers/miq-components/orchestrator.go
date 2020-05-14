@@ -134,7 +134,7 @@ func NewOrchestratorDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, er
 		},
 	}
 
-	err = addResourceReqs(cr.Spec.OrchestratorMemoryLimit, cr.Spec.OrchestratorMemoryRequest, cr.Spec.OrchestratorCpuRequest, &container)
+	err = addResourceReqs(cr.Spec.OrchestratorMemoryLimit, cr.Spec.OrchestratorMemoryRequest, "", cr.Spec.OrchestratorCpuRequest, &container)
 	if err != nil {
 		return nil, err
 	}
