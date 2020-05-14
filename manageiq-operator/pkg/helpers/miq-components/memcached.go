@@ -50,7 +50,7 @@ func NewMemcachedDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, error
 		},
 	}
 
-	err := addResourceReqs(cr.Spec.MemcachedMemoryLimit, cr.Spec.MemcachedMemoryRequest, cr.Spec.MemcachedCpuRequest, &container)
+	err := addResourceReqs(cr.Spec.MemcachedMemoryLimit, cr.Spec.MemcachedMemoryRequest, "", cr.Spec.MemcachedCpuRequest, &container)
 	if err != nil {
 		return nil, err
 	}
