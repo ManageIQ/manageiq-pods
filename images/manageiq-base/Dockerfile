@@ -44,12 +44,8 @@ RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org
     dnf -y --disableplugin=subscription-manager module enable ruby:2.6 && \
     dnf config-manager --setopt=ubi-8-appstream.exclude=*net-snmp* --setopt=ubi-8-baseos.exclude=*net-snmp* --setopt=ubi-8-codeready-builder.exclude=*net-snmp* --save && \
     dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
-      file                        \
-      lvm2                        \
       manageiq-pods               \
-      patch                       \
       python3-devel               \
-      wget                        \
       &&                          \
     dnf clean all
 
@@ -64,7 +60,7 @@ RUN chgrp -R 0 $APP_ROOT && \
 
 ADD container-assets/container_env ${APP_ROOT}
 
-RUN wget -O /usr/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.2/dumb-init_1.2.2_${ARCH} && \
+RUN curl -L -o /usr/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.2/dumb-init_1.2.2_${ARCH} && \
     chmod +x /usr/bin/dumb-init
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--single-child", "--"]
