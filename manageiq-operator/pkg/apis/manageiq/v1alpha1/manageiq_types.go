@@ -74,6 +74,9 @@ type ManageIQSpec struct {
 	// +optional
 	EnableApplicationLocalLogin *bool `json:"enableApplicationLocalLogin"`
 
+	// Httpd deployment CPU limit (default: no limit)
+	// +optional
+	HttpdCpuLimit string `json:"httpdCpuLimit"`
 	// Httpd deployment CPU request (default: no request)
 	// +optional
 	HttpdCpuRequest string `json:"httpdCpuRequest"`
@@ -91,6 +94,9 @@ type ManageIQSpec struct {
 	// +optional
 	MemcachedImageTag string `json:"memcachedImageTag"`
 
+	// Memcached deployment CPU limit (default: no limit)
+	// +optional
+	MemcachedCpuLimit string `json:"memcachedCpuLimit"`
 	// Memcached deployment CPU request (default: no request)
 	// +optional
 	MemcachedCpuRequest string `json:"memcachedCpuRequest"`
@@ -124,6 +130,9 @@ type ManageIQSpec struct {
 	// +optional
 	OrchestratorInitialDelay string `json:"orchestratorInitialDelay"`
 
+	// Orchestrator deployment CPU limit (default: no limit)
+	// +optional
+	OrchestratorCpuLimit string `json:"orchestratorCpuLimit"`
 	// Orchestrator deployment CPU request (default: no request)
 	// +optional
 	OrchestratorCpuRequest string `json:"orchestratorCpuRequest"`
@@ -141,6 +150,9 @@ type ManageIQSpec struct {
 	// +optional
 	PostgresqlImageTag string `json:"postgresqlImageTag"`
 
+	// PostgreSQL deployment CPU limit (default: no limit)
+	// +optional
+	PostgresqlCpuLimit string `json:"postgresqlCpuLimit"`
 	// PostgreSQL deployment CPU request (default: no request)
 	// +optional
 	PostgresqlCpuRequest string `json:"postgresqlCpuRequest"`
