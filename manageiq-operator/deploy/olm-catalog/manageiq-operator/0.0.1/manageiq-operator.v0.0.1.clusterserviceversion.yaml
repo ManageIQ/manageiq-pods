@@ -60,7 +60,13 @@ spec:
                 image: docker.io/manageiq/manageiq-operator:v0.0.1
                 imagePullPolicy: Always
                 name: manageiq-operator
-                resources: {}
+                resources:
+                  limits:
+                    cpu: 100m
+                    memory: 500Mi
+                  requests:
+                    cpu: 10m
+                    memory: 60Mi
               serviceAccountName: manageiq-operator
       permissions:
       - rules:
