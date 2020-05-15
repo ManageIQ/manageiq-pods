@@ -161,9 +161,35 @@ type ManageIQSpec struct {
 	// Kafka volume size (default: 1Gi)
 	// +optional
 	KafkaVolumeCapacity string `json:"kafkaVolumeCapacity"`
+	// Kafka deployment CPU limit (default: no limit)
+	// +optional
+	KafkaCpuLimit string `json:"kafkaCpulimit"`
+	// Kafka deployment CPU request (default: no request)
+	// +optional
+	KafkaCpuRequest string `json:"kafkaCpuRequest"`
+	// Kafka deployment memory limit (default: no limit)
+	// +optional
+	KafkaMemoryLimit string `json:"kafkaMemoryLimit"`
+	// Kafka deployment memory request (default: no limit)
+	// +optional
+	KafkaMemoryRequest string `json:"kafkaMemoryRequest"`
+
 	// Zookeeper volume size (default: 1Gi)
 	// +optional
 	ZookeeperVolumeCapacity string `json:"zookeeperVolumeCapacity"`
+	// Zookeeper deployment CPU limit (default: no limit)
+	// +optional
+	ZookeeperCpuLimit string `json:"zookeeperCpulimit"`
+	// Zookeeper deployment CPU request (default: no request)
+	// +optional
+	ZookeeperCpuRequest string `json:"zookeeperCpuRequest"`
+	// Zookeeper deployment memory limit (default: no limit)
+	// +optional
+	ZookeeperMemoryLimit string `json:"zookeeperMemoryLimit"`
+	// Zookeeper deployment memory request (default: no limit)
+	// +optional
+	ZookeeperMemoryRequest string `json:"zookeeperMemoryRequest"`
+
 	// Secret containing the kafka access information, content generated if not provided (default: kafka-secrets)
 	// +optional
 	KafkaSecret string `json:"kafkaSecret"`

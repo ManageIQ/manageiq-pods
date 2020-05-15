@@ -137,7 +137,53 @@ func ZookeeperService(cr *miqv1alpha1.ManageIQ) *corev1.Service {
 	}
 }
 
-func KafkaDeployment(cr *miqv1alpha1.ManageIQ) *appsv1.Deployment {
+func KafkaDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, error) {
+	container := corev1.Container{
+		Name:  "kafka",
+		Image: "docker.io/bitnami/kafka:latest",
+		Ports: []corev1.ContainerPort{
+			corev1.ContainerPort{
+				ContainerPort: 9092,
+			},
+		},
+		Env: []corev1.EnvVar{
+			corev1.EnvVar{
+				Name: "KAFKA_BROKER_USER",
+				ValueFrom: &corev1.EnvVarSource{
+					SecretKeyRef: &corev1.SecretKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{Name: kafkaSecretName(cr)},
+						Key:                  "username",
+					},
+				},
+			},
+			corev1.EnvVar{
+				Name: "KAFKA_BROKER_PASSWORD",
+				ValueFrom: &corev1.EnvVarSource{
+					SecretKeyRef: &corev1.SecretKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{Name: kafkaSecretName(cr)},
+						Key:                  "password",
+					},
+				},
+			},
+			corev1.EnvVar{
+				Name:  "KAFKA_ZOOKEEPER_CONNECT",
+				Value: "zookeeper:2181",
+			},
+			corev1.EnvVar{
+				Name:  "ALLOW_PLAINTEXT_LISTENER",
+				Value: "yes",
+			},
+		},
+		VolumeMounts: []corev1.VolumeMount{
+			corev1.VolumeMount{Name: "kafka-data", MountPath: "/bitnami/kafka"},
+		},
+	}
+
+	err := addResourceReqs(cr.Spec.KafkaMemoryLimit, cr.Spec.KafkaMemoryRequest, cr.Spec.KafkaCpuLimit, cr.Spec.KafkaCpuRequest, &container)
+	if err != nil {
+		return nil, err
+	}
+
 	deploymentLabels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
@@ -148,7 +194,7 @@ func KafkaDeployment(cr *miqv1alpha1.ManageIQ) *appsv1.Deployment {
 	var repNum int32 = 1
 	var termSecs int64 = 10
 
-	return &appsv1.Deployment{
+	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "kafka",
 			Namespace: cr.ObjectMeta.Namespace,
@@ -168,48 +214,7 @@ func KafkaDeployment(cr *miqv1alpha1.ManageIQ) *appsv1.Deployment {
 					Labels: podLabels,
 				},
 				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{
-						corev1.Container{
-							Name:  "kafka",
-							Image: "docker.io/bitnami/kafka:latest",
-							Ports: []corev1.ContainerPort{
-								corev1.ContainerPort{
-									ContainerPort: 9092,
-								},
-							},
-							Env: []corev1.EnvVar{
-								corev1.EnvVar{
-									Name: "KAFKA_BROKER_USER",
-									ValueFrom: &corev1.EnvVarSource{
-										SecretKeyRef: &corev1.SecretKeySelector{
-											LocalObjectReference: corev1.LocalObjectReference{Name: kafkaSecretName(cr)},
-											Key:                  "username",
-										},
-									},
-								},
-								corev1.EnvVar{
-									Name: "KAFKA_BROKER_PASSWORD",
-									ValueFrom: &corev1.EnvVarSource{
-										SecretKeyRef: &corev1.SecretKeySelector{
-											LocalObjectReference: corev1.LocalObjectReference{Name: kafkaSecretName(cr)},
-											Key:                  "password",
-										},
-									},
-								},
-								corev1.EnvVar{
-									Name:  "KAFKA_ZOOKEEPER_CONNECT",
-									Value: "zookeeper:2181",
-								},
-								corev1.EnvVar{
-									Name:  "ALLOW_PLAINTEXT_LISTENER",
-									Value: "yes",
-								},
-							},
-							VolumeMounts: []corev1.VolumeMount{
-								corev1.VolumeMount{Name: "kafka-data", MountPath: "/bitnami/kafka"},
-							},
-						},
-					},
+					Containers:                    []corev1.Container{container},
 					TerminationGracePeriodSeconds: &termSecs,
 					Volumes: []corev1.Volume{
 						corev1.Volume{
@@ -225,9 +230,35 @@ func KafkaDeployment(cr *miqv1alpha1.ManageIQ) *appsv1.Deployment {
 			},
 		},
 	}
+
+	return deployment, nil
 }
 
-func ZookeeperDeployment(cr *miqv1alpha1.ManageIQ) *appsv1.Deployment {
+func ZookeeperDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, error) {
+	container := corev1.Container{
+		Name:  "zookeeper",
+		Image: "docker.io/bitnami/zookeeper:latest",
+		Ports: []corev1.ContainerPort{
+			corev1.ContainerPort{
+				ContainerPort: 2181,
+			},
+		},
+		Env: []corev1.EnvVar{
+			corev1.EnvVar{
+				Name:  "ALLOW_ANONYMOUS_LOGIN",
+				Value: "yes",
+			},
+		},
+		VolumeMounts: []corev1.VolumeMount{
+			corev1.VolumeMount{Name: "zookeeper-data", MountPath: "/bitnami/zookeeper"},
+		},
+	}
+
+	err := addResourceReqs(cr.Spec.ZookeeperMemoryLimit, cr.Spec.ZookeeperMemoryRequest, cr.Spec.ZookeeperCpuLimit, cr.Spec.ZookeeperCpuRequest, &container)
+	if err != nil {
+		return nil, err
+	}
+
 	deploymentLabels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
@@ -237,7 +268,7 @@ func ZookeeperDeployment(cr *miqv1alpha1.ManageIQ) *appsv1.Deployment {
 	}
 	var repNum int32 = 1
 
-	return &appsv1.Deployment{
+	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "zookeeper",
 			Namespace: cr.ObjectMeta.Namespace,
@@ -257,26 +288,7 @@ func ZookeeperDeployment(cr *miqv1alpha1.ManageIQ) *appsv1.Deployment {
 					Labels: podLabels,
 				},
 				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{
-						corev1.Container{
-							Name:  "zookeeper",
-							Image: "docker.io/bitnami/zookeeper:latest",
-							Ports: []corev1.ContainerPort{
-								corev1.ContainerPort{
-									ContainerPort: 2181,
-								},
-							},
-							Env: []corev1.EnvVar{
-								corev1.EnvVar{
-									Name:  "ALLOW_ANONYMOUS_LOGIN",
-									Value: "yes",
-								},
-							},
-							VolumeMounts: []corev1.VolumeMount{
-								corev1.VolumeMount{Name: "zookeeper-data", MountPath: "/bitnami/zookeeper"},
-							},
-						},
-					},
+					Containers: []corev1.Container{container},
 					Volumes: []corev1.Volume{
 						corev1.Volume{
 							Name: "zookeeper-data",
@@ -291,4 +303,6 @@ func ZookeeperDeployment(cr *miqv1alpha1.ManageIQ) *appsv1.Deployment {
 			},
 		},
 	}
+
+	return deployment, nil
 }
