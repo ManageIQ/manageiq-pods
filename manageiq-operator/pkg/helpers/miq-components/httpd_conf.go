@@ -63,11 +63,11 @@ Options SymLinksIfOwnerMatch
 func httpdAuthenticationConf(spec *miqv1alpha1.ManageIQSpec) string {
 	switch spec.HttpdAuthenticationType {
 	case "openid-connect":
-		return httpdOIDCAuthConf(spec.OIDCProviderURL, spec.OIDCOAuthIntrospectionURL, spec.ApplicationDomain)
+		return httpdOIDCAuthConf(spec.OIDCProviderURL, spec.OIDCOAuthIntrospectionURL, spec.ApplicationDomain, *spec.EnableApplicationLocalLogin)
 	case "external":
-		return httpdExternalAuthConf()
+		return httpdExternalAuthConf(*spec.EnableApplicationLocalLogin)
 	case "active-directory":
-		return httpdADAuthConf()
+		return httpdADAuthConf(*spec.EnableApplicationLocalLogin)
 	case "saml":
 		return httpdSAMLAuthConf()
 	default:
@@ -75,7 +75,7 @@ func httpdAuthenticationConf(spec *miqv1alpha1.ManageIQSpec) string {
 	}
 }
 
-func httpdExternalAuthConf() string {
+func httpdExternalAuthConf(enableLocalLogin bool) string {
 	s := `
 %s
 
@@ -111,13 +111,13 @@ func httpdExternalAuthConf() string {
 		s,
 		httpdAuthLoadModulesConf(),
 		httpdAuthLoginFormConf(),
-		httpdAuthApplicationAPIConf("Basic", "\"External Authentication (httpd) for API\"", apiExtraConfig),
+		httpdAuthApplicationAPIConf("Basic", "\"External Authentication (httpd) for API\"", apiExtraConfig, enableLocalLogin),
 		httpdAuthLookupUserDetailsConf(),
 		httpdAuthRemoteUserConf(),
 	)
 }
 
-func httpdADAuthConf() string {
+func httpdADAuthConf(enableLocalLogin bool) string {
 	s := `
 %s
 
@@ -153,7 +153,7 @@ func httpdADAuthConf() string {
 		s,
 		httpdAuthLoadModulesConf(),
 		httpdAuthLoginFormConf(),
-		httpdAuthApplicationAPIConf("Basic", "\"External Authentication (httpd) for API\"", apiExtraConfig),
+		httpdAuthApplicationAPIConf("Basic", "\"External Authentication (httpd) for API\"", apiExtraConfig, enableLocalLogin),
 		httpdAuthLookupUserDetailsConf(),
 		httpdAuthRemoteUserConf(),
 	)
@@ -202,7 +202,7 @@ LoadModule auth_mellon_module modules/mod_auth_mellon.so
 	return fmt.Sprintf(s, httpdAuthRemoteUserConf())
 }
 
-func httpdOIDCAuthConf(providerURL, introspectionURL, applicationDomain string) string {
+func httpdOIDCAuthConf(providerURL, introspectionURL, applicationDomain string, enableLocalLogin bool) string {
 	// If these are not provided, we should assume that the user provided a full config
 	// in a secret, so include the directory for that secret here
 	if providerURL == "" || introspectionURL == "" || applicationDomain == "" {
@@ -250,7 +250,7 @@ RequestHeader set X_REMOTE_USER_DOMAIN    %%{OIDC_CLAIM_DOMAIN}e             env
 		providerURL,
 		applicationDomain,
 		introspectionURL,
-		httpdAuthApplicationAPIConf("oauth20", "\"External Authentication (oauth20) for API\"", ""),
+		httpdAuthApplicationAPIConf("oauth20", "\"External Authentication (oauth20) for API\"", "", enableLocalLogin),
 	)
 }
 
@@ -275,10 +275,9 @@ func httpdAuthLoginFormConf() string {
 `
 }
 
-func httpdAuthApplicationAPIConf(authType, authName, extraConfig string) string {
+func httpdAuthApplicationAPIConf(authType, authName, extraConfig string, enableLocalLogin bool) string {
 	s := `
 <LocationMatch ^/api(?!\/(v[\d\.]+\/)?product_info$)>
-  SetEnvIf Authorization '^Basic +YWRtaW46' let_admin_in
   SetEnvIf X-Auth-Token  '^.+$'             let_api_token_in
   SetEnvIf X-MIQ-Token   '^.+$'             let_sys_token_in
   SetEnvIf X-CSRF-Token  '^.+$'             let_csrf_token_in
@@ -287,17 +286,23 @@ func httpdAuthApplicationAPIConf(authType, authName, extraConfig string) string 
   AuthName %s
   Require        valid-user
   Order          Allow,Deny
-  Allow from env=let_admin_in
   Allow from env=let_api_token_in
   Allow from env=let_sys_token_in
   Allow from env=let_csrf_token_in
   Satisfy Any
+  %s
 
   %s
 </LocationMatch>
 `
+	letAdminIn := ""
+	if enableLocalLogin {
+		letAdminIn = `
+  SetEnvIf Authorization '^Basic +YWRtaW46' let_admin_in
+  Allow from env=let_admin_in`
+	}
 
-	return fmt.Sprintf(s, authType, authName, extraConfig)
+	return fmt.Sprintf(s, authType, authName, letAdminIn, extraConfig)
 }
 
 func httpdAuthLookupUserDetailsConf() string {
