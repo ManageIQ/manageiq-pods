@@ -65,6 +65,9 @@ spec:
                 active-directory, and saml require an httpd container with elevated
                 privileges'
               type: string
+            httpdCpuLimit:
+              description: 'Httpd deployment CPU limit (default: no limit)'
+              type: string
             httpdCpuRequest:
               description: 'Httpd deployment CPU request (default: no request)'
               type: string
@@ -105,6 +108,9 @@ spec:
             kafkaVolumeCapacity:
               description: 'Kafka volume size (default: 1Gi)'
               type: string
+            memcachedCpuLimit:
+              description: 'Memcached deployment CPU limit (default: no limit)'
+              type: string
             memcachedCpuRequest:
               description: 'Memcached deployment CPU request (default: no request)'
               type: string
@@ -142,6 +148,9 @@ spec:
               description: URL for the OIDC provider Only used with the openid-connect
                 authentication type
               type: string
+            orchestratorCpuLimit:
+              description: 'Orchestrator deployment CPU limit (default: no limit)'
+              type: string
             orchestratorCpuRequest:
               description: 'Orchestrator deployment CPU request (default: no request)'
               type: string
@@ -166,6 +175,9 @@ spec:
               type: string
             orchestratorMemoryRequest:
               description: 'Orchestrator deployment memory request (default: no limit)'
+              type: string
+            postgresqlCpuLimit:
+              description: 'PostgreSQL deployment CPU limit (default: no limit)'
               type: string
             postgresqlCpuRequest:
               description: 'PostgreSQL deployment CPU request (default: no request)'

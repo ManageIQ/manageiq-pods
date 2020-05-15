@@ -241,7 +241,7 @@ func initializeHttpdContainer(spec *miqv1alpha1.ManageIQSpec, privileged bool, c
 
 	assignHttpdPorts(privileged, c)
 
-	err := addResourceReqs(spec.HttpdMemoryLimit, spec.HttpdMemoryRequest, "", spec.HttpdCpuRequest, c)
+	err := addResourceReqs(spec.HttpdMemoryLimit, spec.HttpdMemoryRequest, spec.HttpdCpuLimit, spec.HttpdCpuRequest, c)
 	if err != nil {
 		return err
 	}
