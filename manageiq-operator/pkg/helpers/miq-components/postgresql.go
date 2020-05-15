@@ -168,7 +168,7 @@ func NewPostgresqlDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, erro
 		},
 	}
 
-	err := addResourceReqs(cr.Spec.PostgresqlMemoryLimit, cr.Spec.PostgresqlMemoryRequest, cr.Spec.PostgresqlCpuRequest, &container)
+	err := addResourceReqs(cr.Spec.PostgresqlMemoryLimit, cr.Spec.PostgresqlMemoryRequest, cr.Spec.PostgresqlCpuLimit, cr.Spec.PostgresqlCpuRequest, &container)
 	if err != nil {
 		return nil, err
 	}
