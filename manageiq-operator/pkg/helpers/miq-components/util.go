@@ -5,9 +5,13 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 
-func addResourceReqs(memLimit string, memReq string, cpuReq string, c *corev1.Container) error {
-	if memLimit == "" && memReq == "" && cpuReq == "" {
+func addResourceReqs(memLimit, memReq, cpuLimit, cpuReq string, c *corev1.Container) error {
+	if memLimit == "" && memReq == "" && cpuLimit == "" && cpuReq == "" {
 		return nil
+	}
+
+	if memLimit != "" || cpuLimit != "" {
+		c.Resources.Limits = make(map[corev1.ResourceName]resource.Quantity)
 	}
 
 	if memLimit != "" {
@@ -15,7 +19,15 @@ func addResourceReqs(memLimit string, memReq string, cpuReq string, c *corev1.Co
 		if err != nil {
 			return err
 		}
-		c.Resources.Limits = corev1.ResourceList{"memory": limit}
+		c.Resources.Limits["memory"] = limit
+	}
+
+	if cpuLimit != "" {
+		limit, err := resource.ParseQuantity(cpuLimit)
+		if err != nil {
+			return err
+		}
+		c.Resources.Limits["cpu"] = limit
 	}
 
 	if memReq != "" || cpuReq != "" {

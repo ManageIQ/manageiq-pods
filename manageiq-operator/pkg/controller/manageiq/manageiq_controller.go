@@ -281,12 +281,18 @@ func (r *ReconcileManageIQ) generateKafkaResources(cr *miqv1alpha1.ManageIQ) err
 		return err
 	}
 
-	kafkaDeployment := miqtool.KafkaDeployment(cr)
+	kafkaDeployment, err := miqtool.KafkaDeployment(cr)
+	if err != nil {
+		return err
+	}
 	if err := r.createk8sResIfNotExist(cr, kafkaDeployment, &appsv1.Deployment{}); err != nil {
 		return err
 	}
 
-	zookeeperDeployment := miqtool.ZookeeperDeployment(cr)
+	zookeeperDeployment, err := miqtool.ZookeeperDeployment(cr)
+	if err != nil {
+		return err
+	}
 	if err := r.createk8sResIfNotExist(cr, zookeeperDeployment, &appsv1.Deployment{}); err != nil {
 		return err
 	}
