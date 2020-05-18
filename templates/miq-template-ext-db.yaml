@@ -812,7 +812,7 @@ parameters:
 - name: HTTPD_IMG_NAME
   displayName: Apache httpd Image Name
   description: This is the httpd image name requested to deploy.
-  value: docker.io/manageiq/httpd
+  value: docker.io/manageiq/httpd-init
 - name: HTTPD_IMG_TAG
   displayName: Apache httpd Image Tag
   description: This is the httpd image tag/version requested to deploy.
