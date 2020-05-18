@@ -1,25 +1,16 @@
 ---
 name: Bug report
 about: Tell us about a problem you are experiencing
-
 ---
 
-@miq-bot add_label bug
+<!-- 1. Describe the issue you are having and what you expected to happen -->
 
-**What steps did you take and what happened:**
-[A clear and concise description of what the bug is.]
+<!-- 2. Describe steps to reproduce -->
 
-
-**What did you expect to happen:**
-
-
-**Anything else you would like to add:**
-[Miscellaneous information that will assist in solving the issue.]
-
-
-**Environment:**
-
+<!-- 3. Fill out the following details -->
 - ManageIQ version:
-- Minikube/KIND/OCP version:
+- Minikube/KIND/OCP/CRC version:
 - Kubernetes version: (use `kubectl version`):
 - OS (e.g. from `/etc/os-release`):
+
+@miq-bot add-label bug
