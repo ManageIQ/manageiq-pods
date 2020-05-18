@@ -1,14 +1,8 @@
 ---
-name: Feature enhancement request
+name: Enhancement request
 about: Suggest an idea for this project
-
 ---
 
-@miq-bot add_label enhancement
+<!-- 1. Describe the enhancement and why you think it is needed -->
 
-**Describe the solution you'd like**
-[A clear and concise description of what you want to happen.]
-
-
-**Anything else you would like to add:**
-[Miscellaneous information that will assist in solving the issue.]
+@miq-bot add-label enhancement
