@@ -3,8 +3,9 @@ package v1alpha1
 import (
 	"errors"
 	"fmt"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strings"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // ManageIQSpec defines the desired state of ManageIQ
@@ -46,6 +47,10 @@ type ManageIQSpec struct {
 	// Secret containing the image registry authentication information needed for the manageiq images
 	// +optional
 	ImagePullSecret string `json:"imagePullSecret"`
+
+	// StorageClass name that will be used by manageiq data stores
+	// +optional
+	StorageClassName string `json:"storageClassName"`
 
 	// Image namespace used for the httpd deployment (default: manageiq)
 	// Note: the exact image will be determined by the authentication method selected

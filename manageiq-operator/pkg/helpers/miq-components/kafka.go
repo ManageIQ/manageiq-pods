@@ -42,7 +42,7 @@ func KafkaPVC(cr *miqv1alpha1.ManageIQ) *corev1.PersistentVolumeClaim {
 		"app": cr.Spec.AppName,
 	}
 	storageReq, _ := resource.ParseQuantity(cr.Spec.KafkaVolumeCapacity)
-	return &corev1.PersistentVolumeClaim{
+	pvc := &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "kafka-data",
 			Namespace: cr.ObjectMeta.Namespace,
@@ -59,6 +59,12 @@ func KafkaPVC(cr *miqv1alpha1.ManageIQ) *corev1.PersistentVolumeClaim {
 			},
 		},
 	}
+
+	if cr.Spec.StorageClassName != "" {
+		pvc.Spec.StorageClassName = &cr.Spec.StorageClassName
+	}
+
+	return pvc
 }
 
 func ZookeeperPVC(cr *miqv1alpha1.ManageIQ) *corev1.PersistentVolumeClaim {
@@ -66,7 +72,7 @@ func ZookeeperPVC(cr *miqv1alpha1.ManageIQ) *corev1.PersistentVolumeClaim {
 		"app": cr.Spec.AppName,
 	}
 	storageReq, _ := resource.ParseQuantity(cr.Spec.ZookeeperVolumeCapacity)
-	return &corev1.PersistentVolumeClaim{
+	pvc := &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "zookeeper-data",
 			Namespace: cr.ObjectMeta.Namespace,
@@ -83,6 +89,12 @@ func ZookeeperPVC(cr *miqv1alpha1.ManageIQ) *corev1.PersistentVolumeClaim {
 			},
 		},
 	}
+
+	if cr.Spec.StorageClassName != "" {
+		pvc.Spec.StorageClassName = &cr.Spec.StorageClassName
+	}
+
+	return pvc
 }
 
 func KafkaService(cr *miqv1alpha1.ManageIQ) *corev1.Service {
