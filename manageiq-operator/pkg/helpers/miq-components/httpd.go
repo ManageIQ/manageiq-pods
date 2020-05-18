@@ -156,6 +156,21 @@ func addUserAuthVolume(secretName string, podSpec *corev1.PodSpec) {
 	podSpec.Containers[0].VolumeMounts = append(podSpec.Containers[0].VolumeMounts, mount)
 }
 
+func addOIDCCACertVolume(secretName string, podSpec *corev1.PodSpec) {
+	vol := corev1.Volume{
+		Name: "oidc-ca-cert",
+		VolumeSource: corev1.VolumeSource{
+			Secret: &corev1.SecretVolumeSource{
+				SecretName: secretName,
+			},
+		},
+	}
+	podSpec.Volumes = append(podSpec.Volumes, vol)
+
+	mount := corev1.VolumeMount{Name: "oidc-ca-cert", MountPath: "/etc/pki/ca-trust/source/anchors"}
+	podSpec.Containers[0].VolumeMounts = append(podSpec.Containers[0].VolumeMounts, mount)
+}
+
 func configureHttpdAuth(spec *miqv1alpha1.ManageIQSpec, podSpec *corev1.PodSpec) {
 	authType := spec.HttpdAuthenticationType
 
@@ -165,6 +180,10 @@ func configureHttpdAuth(spec *miqv1alpha1.ManageIQSpec, podSpec *corev1.PodSpec)
 
 	if spec.HttpdAuthConfig != "" {
 		addUserAuthVolume(spec.HttpdAuthConfig, podSpec)
+	}
+
+	if spec.OIDCCACertSecret != "" {
+		addOIDCCACertVolume(spec.OIDCCACertSecret, podSpec)
 	}
 
 	if authType == "openid-connect" && spec.OIDCClientSecret != "" {
