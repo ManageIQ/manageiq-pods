@@ -140,6 +140,11 @@ spec:
               description: URL for OIDC authentication introspection Only used with
                 the openid-connect authentication type
               type: string
+            oidcCaCertSecret:
+              description: Secret containing the trusted CA certificate file(s) for
+                the OIDC server. Only used with the openid-connect authentication
+                type
+              type: string
             oidcClientSecret:
               description: Secret name containing the OIDC client id and secret Only
                 used with the openid-connect authentication type

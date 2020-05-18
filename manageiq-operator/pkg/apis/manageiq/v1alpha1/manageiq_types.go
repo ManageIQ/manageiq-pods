@@ -55,6 +55,10 @@ type ManageIQSpec struct {
 	// Only used with the openid-connect authentication type
 	// +optional
 	OIDCProviderURL string `json:"oidcProviderURL"`
+	// Secret containing the trusted CA certificate file(s) for the OIDC server.
+	// Only used with the openid-connect authentication type
+	// +optional
+	OIDCCACertSecret string `json:"oidcCaCertSecret"`
 	// URL for OIDC authentication introspection
 	// Only used with the openid-connect authentication type
 	// +optional
@@ -342,11 +346,11 @@ func (m *ManageIQ) Validate() error {
 	errs := []string{}
 
 	if spec.HttpdAuthenticationType == "openid-connect" {
-		// Invalid if config and any other info is also provided
 		if spec.HttpdAuthConfig != "" && (spec.OIDCProviderURL != "" || spec.OIDCOAuthIntrospectionURL != "" || spec.OIDCClientSecret != "") {
+			// Invalid if config and any other info is also provided
 			errs = append(errs, "OIDCProviderURL, OIDCOAuthIntrospectionURL, and OIDCClientSecret are invalid when HttpdAuthConfig is specified")
-			// Need to provide either the entire config or a secret and provider url
 		} else if spec.HttpdAuthConfig == "" && (spec.OIDCProviderURL == "" || spec.OIDCOAuthIntrospectionURL == "" || spec.OIDCClientSecret == "") {
+			// Need to provide either the entire config or a secret and provider url
 			errs = append(errs, "HttpdAuthConfig or all of OIDCProviderURL, OIDCOAuthIntrospectionURL, and OIDCClientSecret must be provided for openid-connect authentication")
 		}
 	} else {
@@ -360,6 +364,10 @@ func (m *ManageIQ) Validate() error {
 
 		if spec.OIDCClientSecret != "" {
 			errs = append(errs, fmt.Sprintf("OIDCClientSecret is not allowed for authentication type %s", spec.HttpdAuthenticationType))
+		}
+
+		if spec.OIDCCACertSecret != "" {
+			errs = append(errs, fmt.Sprintf("OIDCCACertSecret is not allowed for authentication type %s", spec.HttpdAuthenticationType))
 		}
 	}
 
