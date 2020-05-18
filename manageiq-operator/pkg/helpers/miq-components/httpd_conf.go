@@ -63,7 +63,7 @@ Options SymLinksIfOwnerMatch
 func httpdAuthenticationConf(spec *miqv1alpha1.ManageIQSpec) string {
 	switch spec.HttpdAuthenticationType {
 	case "openid-connect":
-		return httpdOIDCAuthConf(spec.OIDCProviderURL, spec.OIDCOAuthIntrospectionURL, spec.ApplicationDomain, *spec.EnableApplicationLocalLogin)
+		return httpdOIDCAuthConf(spec)
 	case "external":
 		return httpdExternalAuthConf(*spec.EnableApplicationLocalLogin)
 	case "active-directory":
@@ -202,11 +202,20 @@ LoadModule auth_mellon_module modules/mod_auth_mellon.so
 	return fmt.Sprintf(s, httpdAuthRemoteUserConf())
 }
 
-func httpdOIDCAuthConf(providerURL, introspectionURL, applicationDomain string, enableLocalLogin bool) string {
+func httpdOIDCAuthConf(spec *miqv1alpha1.ManageIQSpec) string {
+	providerURL := spec.OIDCProviderURL
+	introspectionURL := spec.OIDCOAuthIntrospectionURL
+	applicationDomain := spec.ApplicationDomain
+
 	// If these are not provided, we should assume that the user provided a full config
 	// in a secret, so include the directory for that secret here
 	if providerURL == "" || introspectionURL == "" || applicationDomain == "" {
 		return "Include user-conf.d/*.conf"
+	}
+
+	disableValidation := ""
+	if spec.OIDCCACertSecret == "" {
+		disableValidation = "OIDCSSLValidateServer Off\nOIDCOAuthSSLValidateServer Off"
 	}
 
 	s := `
@@ -225,6 +234,8 @@ OIDCOAuthClientID                  ${HTTPD_AUTH_OIDC_CLIENT_ID}
 OIDCOAuthClientSecret              ${HTTPD_AUTH_OIDC_CLIENT_SECRET}
 OIDCOAuthIntrospectionEndpoint     %s
 OIDCOAuthIntrospectionEndpointAuth client_secret_post
+
+%s
 
 <Location /oidc_login>
   AuthType                   openid-connect
@@ -250,7 +261,8 @@ RequestHeader set X_REMOTE_USER_DOMAIN    %%{OIDC_CLAIM_DOMAIN}e             env
 		providerURL,
 		applicationDomain,
 		introspectionURL,
-		httpdAuthApplicationAPIConf("oauth20", "\"External Authentication (oauth20) for API\"", "", enableLocalLogin),
+		disableValidation,
+		httpdAuthApplicationAPIConf("oauth20", "\"External Authentication (oauth20) for API\"", "", *spec.EnableApplicationLocalLogin),
 	)
 }
 
