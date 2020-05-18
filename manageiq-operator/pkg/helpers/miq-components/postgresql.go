@@ -61,7 +61,7 @@ func NewPostgresqlPVC(cr *miqv1alpha1.ManageIQ) *corev1.PersistentVolumeClaim {
 		"app": cr.Spec.AppName,
 	}
 	storageReq, _ := resource.ParseQuantity(cr.Spec.DatabaseVolumeCapacity)
-	return &corev1.PersistentVolumeClaim{
+	pvc := &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "postgresql",
 			Namespace: cr.ObjectMeta.Namespace,
@@ -78,6 +78,12 @@ func NewPostgresqlPVC(cr *miqv1alpha1.ManageIQ) *corev1.PersistentVolumeClaim {
 			},
 		},
 	}
+
+	if cr.Spec.StorageClassName != "" {
+		pvc.Spec.StorageClassName = &cr.Spec.StorageClassName
+	}
+
+	return pvc
 }
 
 func NewPostgresqlService(cr *miqv1alpha1.ManageIQ) *corev1.Service {
