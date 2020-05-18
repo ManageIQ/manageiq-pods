@@ -201,6 +201,9 @@ spec:
             postgresqlSharedBuffers:
               description: 'PostgreSQL shared buffers setting (default: 1GB)'
               type: string
+            storageClassName:
+              description: StorageClass name that will be used by manageiq data stores
+              type: string
             tlsSecret:
               description: 'Secret containing the tls cert and key for the ingress,
                 content generated if not provided (default: tls-secret)'
