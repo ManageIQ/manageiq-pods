@@ -1,8 +1,11 @@
-**What this PR does / why we need it**:
+<!-- 1. Describe what this PR does and why you think it is needed -->
 
-**Which issue(s) this PR fixes** *(optional, in `fixes #<issue number>(, fixes #<issue_number>, ...)` format, will close the issue(s) when PR gets merged)*:
+<!--
+2. If this issue fixes an existing issue, please specify in `Fixes #<id>` format
+(See https://help.github.com/en/github/managing-your-work-on-github/linking-a-pull-request-to-an-issue)
+-->
 
-Fixes #
-
-**Special notes for your reviewer**:
-
+<!--
+3. Tell the bot to mark this with an appropriate label (e.g. bug, enhancement, etc)
+e.g. `@miq-bot add-label bug`
+-->
