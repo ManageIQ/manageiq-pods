@@ -43,6 +43,13 @@ EOS
   bin/rails runner "$script"
 }
 
+function create_initial_group() {
+  if [ "$ADMIN_GROUP" != "" ]; then
+    echo "== Creating initial group "$ADMIN_GROUP" =="
+    bin/rails runner "MiqGroup.create!(:miq_user_role => MiqUserRole.find_by(:name => 'EvmRole-super_administrator'), :description => ENV['ADMIN_GROUP'], :tenant => Tenant.root_tenant)"
+  fi
+}
+
 check_svc_status ${MEMCACHED_SERVICE_HOST} ${MEMCACHED_SERVICE_PORT}
 check_svc_status ${DATABASE_HOSTNAME} ${DATABASE_PORT}
 
@@ -66,7 +73,8 @@ case $? in
     pushd ${APP_ROOT}
       set -e
       REGION=${DATABASE_REGION} bin/rake db:migrate
-      REGION=${DATABASE_REGION} bin/rails runner "MiqDatabase.seed; MiqRegion.seed"
+      REGION=${DATABASE_REGION} bin/rake db:seed
+      create_initial_group
     popd
   ;;
   4) # new_replica
@@ -88,5 +96,7 @@ case $? in
     exit 1
 esac
 
-update_auth_settings
+pushd ${APP_ROOT}
+  update_auth_settings
+popd
 exec ruby /var/www/miq/vmdb/lib/workers/bin/evm_server.rb
