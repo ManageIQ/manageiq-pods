@@ -23,6 +23,11 @@ type ManageIQSpec struct {
 	// +optional
 	DatabaseRegion string `json:"databaseRegion"`
 
+	// Group name to create with the super admin role.
+	// This can be used to seed a group when using external authentication
+	// +optional
+	InitialAdminGroupName string `json:"initialAdminGroupName"`
+
 	// Database volume size (default: 15Gi)
 	// +optional
 	DatabaseVolumeCapacity string `json:"databaseVolumeCapacity"`
