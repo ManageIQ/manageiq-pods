@@ -19,6 +19,7 @@ func NewOrchestratorDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, er
 	container := corev1.Container{
 		Name:  "orchestrator",
 		Image: cr.Spec.OrchestratorImageNamespace + "/" + cr.Spec.OrchestratorImageName + ":" + cr.Spec.OrchestratorImageTag,
+		ImagePullPolicy: corev1.PullAlways,
 		LivenessProbe: &corev1.Probe{
 			Handler: corev1.Handler{
 				Exec: &corev1.ExecAction{
