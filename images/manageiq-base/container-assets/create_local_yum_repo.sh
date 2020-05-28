@@ -12,4 +12,4 @@ enabled=1
 gpgcheck=0
 EOF
 
-dnf config-manager --setopt=copr:copr.fedorainfracloud.org:simaishi:test.exclude=manageiq-* --save
+dnf config-manager --setopt=manageiq-11-kasparov*.exclude=manageiq-* --save
