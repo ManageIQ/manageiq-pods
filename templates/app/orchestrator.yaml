@@ -25,6 +25,7 @@ objects:
         containers:
         - name: orchestrator
           image: "${ORCHESTRATOR_IMAGE_NAMESPACE}/${ORCHESTRATOR_IMAGE_NAME}:${ORCHESTRATOR_IMAGE_TAG}"
+          imagePullPolicy: Always
           livenessProbe:
             exec:
               command:
