@@ -6,6 +6,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -15,11 +16,15 @@ func NewOrchestratorDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, er
 	if err != nil {
 		return nil, err
 	}
+	pullPolicy := corev1.PullIfNotPresent
+	if strings.Contains(cr.Spec.OrchestratorImageTag, "latest") {
+		pullPolicy = corev1.PullAlways
+	}
 
 	container := corev1.Container{
 		Name:  "orchestrator",
 		Image: cr.Spec.OrchestratorImageNamespace + "/" + cr.Spec.OrchestratorImageName + ":" + cr.Spec.OrchestratorImageTag,
-		ImagePullPolicy: corev1.PullAlways,
+		ImagePullPolicy: pullPolicy,
 		LivenessProbe: &corev1.Probe{
 			Handler: corev1.Handler{
 				Exec: &corev1.ExecAction{
