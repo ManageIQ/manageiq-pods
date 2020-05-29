@@ -2,14 +2,7 @@
 
 TAG=latest
 
-MIQ_REF=${MIQ_REF:-master}
-SUI_REF=${SUI_REF:-master}
-APPLIANCE_REF=${APPLIANCE_REF:-master}
 BUILD_REF=${BUILD_REF:-master}
-
-MIQ_ORG=${MIQ_ORG:-ManageIQ}
-SUI_ORG=${SUI_ORG:-ManageIQ}
-APPLIANCE_ORG=${APPLIANCE_ORG:-ManageIQ}
 BUILD_ORG=${BUILD_ORG:-ManageIQ}
 
 ARCH=`uname -m`
@@ -19,8 +12,6 @@ GIT_HOST=${GIT_HOST:-github.com}
 GIT_AUTH=${GIT_AUTH:-""}
 
 HOOKS_SCRIPT_URL=${HOOKS_SCRIPT_URL:-""}
-
-NPM_REGISTRY_OVERRIDE=${NPM_REGISTRY_OVERRIDE:-""}
 
 OPERATOR_DIR=${OPERATOR_DIR:-manageiq-operator}
 
@@ -50,13 +41,7 @@ set -e
 pushd $IMAGE_DIR
   cmd="docker build --tag $REPO/manageiq-base:$TAG \
                     --pull \
-                    --build-arg MIQ_REF=$MIQ_REF \
-                    --build-arg SUI_REF=$SUI_REF\
-                    --build-arg APPLIANCE_REF=$APPLIANCE_REF \
                     --build-arg BUILD_REF=$BUILD_REF \
-                    --build-arg MIQ_ORG=$MIQ_ORG \
-                    --build-arg SUI_ORG=$SUI_ORG \
-                    --build-arg APPLIANCE_ORG=$APPLIANCE_ORG \
                     --build-arg BUILD_ORG=$BUILD_ORG \
                     --build-arg GIT_AUTH=$GIT_AUTH \
                     --build-arg GIT_HOST=$GIT_HOST \
@@ -71,21 +56,12 @@ pushd $IMAGE_DIR
   echo "Building manageiq-base: $cmd"
   $cmd manageiq-base
 
-  build_images="manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker"
+  build_images="manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker"
   for image in $build_images; do
     cmd="docker build -t $REPO/$image:$TAG --build-arg FROM_REPO=$REPO --build-arg FROM_TAG=$TAG $image"
     echo "Building $image: $cmd"
     $cmd
   done
-
-  cmd="docker build --tag $REPO/manageiq-ui-worker:$TAG \
-                    --build-arg FROM_REPO=$REPO \
-                    --build-arg FROM_TAG=$TAG \
-                    --build-arg NPM_REGISTRY_OVERRIDE=${NPM_REGISTRY_OVERRIDE} \
-                    --build-arg ARCH=$ARCH \
-                    manageiq-ui-worker"
-  echo "Building manageiq-ui-worker: $cmd"
-  $cmd
 popd
 
 pushd "$OPERATOR_DIR"
