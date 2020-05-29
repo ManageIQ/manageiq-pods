@@ -23,6 +23,7 @@ MAINTAINER ManageIQ https://manageiq.org
 
 ARG ARCH=x86_64
 ARG LOCAL_RPM
+ARG RPM_PREFIX=manageiq
 
 ENV TERM=xterm \
     CONTAINER=true \
@@ -54,7 +55,7 @@ RUN dnf -y --disableplugin=subscription-manager install \
     dnf config-manager --setopt=ubi-8-appstream.exclude=*net-snmp* --setopt=ubi-8-baseos.exclude=*net-snmp* --setopt=ubi-8-codeready-builder.exclude=*net-snmp* --save && \
     if [[ "$LOCAL_RPM" = "true" ]]; then /create_local_yum_repo.sh; fi && \
     dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
-      manageiq-pods               \
+      ${RPM_PREFIX}-pods          \
       python3-devel               \
       &&                          \
     dnf clean all

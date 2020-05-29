@@ -17,6 +17,7 @@ OPERATOR_DIR=${OPERATOR_DIR:-manageiq-operator}
 
 RPM_BUILD_OPTIONS=${RPM_BUILD_OPTIONS:-""}
 RPM_BUILD_IMAGE=${RPM_BUILD_IMAGE:-"manageiq/rpm_build"}
+RPM_PREFIX=${RPM_PREFIX:-"manageiq"}
 
 while getopts "t:d:r:bnhlp" opt; do
   case $opt in
@@ -70,7 +71,8 @@ pushd $IMAGE_DIR
                     --build-arg GIT_HOST=$GIT_HOST \
                     --build-arg HOOKS_SCRIPT_URL=$HOOKS_SCRIPT_URL \
                     --build-arg CORE_REPO_NAME=$CORE_REPO_NAME \
-                    --build-arg ARCH=$ARCH"
+                    --build-arg ARCH=$ARCH \
+                    --build-arg RPM_PREFIX=$RPM_PREFIX"
 
   if [ -n "$NO_CACHE" ]; then
     cmd+=" --no-cache"
@@ -83,12 +85,20 @@ pushd $IMAGE_DIR
   echo "Building manageiq-base: $cmd"
   $cmd manageiq-base
 
-  build_images="manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker"
+  build_images="manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker"
   for image in $build_images; do
     cmd="docker build -t $REPO/$image:$TAG --build-arg FROM_REPO=$REPO --build-arg FROM_TAG=$TAG $image"
     echo "Building $image: $cmd"
     $cmd
   done
+
+  cmd="docker build --tag $REPO/manageiq-ui-worker:$TAG \
+                    --build-arg FROM_REPO=$REPO \
+                    --build-arg FROM_TAG=$TAG \
+                    --build-arg RPM_PREFIX=$RPM_PREFIX \
+                    manageiq-ui-worker"
+  echo "Building manageiq-ui-worker: $cmd"
+  $cmd
 popd
 
 pushd "$OPERATOR_DIR"
