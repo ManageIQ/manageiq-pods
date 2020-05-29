@@ -18,3 +18,5 @@ RUN chgrp root /var/run/httpd && chmod g+rwx /var/run/httpd && \
 RUN sed -i '/^Listen 80/d' /etc/httpd/conf/httpd.conf
 
 COPY container-assets/manageiq-http.conf /etc/httpd/conf.d
+
+RUN rm -rf /tmp/rpms /create_local_yum_repo.sh /etc/yum.repos.d/local_rpm.repo

@@ -3,3 +3,4 @@ build.log
 manageiq-operator/build/_output/*
 parameters
 manageiq-operator/vendor/*
+images/manageiq-base/rpms

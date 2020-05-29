@@ -15,14 +15,19 @@ HOOKS_SCRIPT_URL=${HOOKS_SCRIPT_URL:-""}
 
 OPERATOR_DIR=${OPERATOR_DIR:-manageiq-operator}
 
-while getopts "t:d:r:nhp" opt; do
+RPM_BUILD_OPTIONS=${RPM_BUILD_OPTIONS:-""}
+RPM_BUILD_IMAGE=${RPM_BUILD_IMAGE:-"manageiq/rpm_build"}
+
+while getopts "t:d:r:bnhlp" opt; do
   case $opt in
+    b) REBUILD_RPM="true" ;;
     d) IMAGE_DIR=$OPTARG ;;
+    l) LOCAL_RPM="true" ;;
     n) NO_CACHE="true" ;;
     p) PUSH="true" ;;
     r) REPO=$OPTARG ;;
     t) TAG=$OPTARG ;;
-    h) echo "Usage: $0 -d IMAGE_DIR -r IMAGE_REPOSITORY [-hnp] [ -t IMAGE_TAG ]"; exit 1
+    h) echo "Usage: $0 -d IMAGE_DIR -r IMAGE_REPOSITORY [-hblnp] [ -t IMAGE_TAG ]"; exit 1
   esac
 done
 
@@ -36,7 +41,25 @@ if [ -z "$REPO" ]; then
   exit 1
 fi
 
+if [ -n "$LOCAL_RPM" ] && [ -n "$REBUILD_RPM" ]; then
+  echo "Local rpm (-l) and rebuild rpm (-b) options can't be used together"
+  exit 1
+fi
+
 set -e
+
+if [ -n "$REBUILD_RPM" ]; then
+  rpm_dir=$IMAGE_DIR/manageiq-base/rpms
+  rm -rf $rpm_dir/*
+  options="-v $PWD/$rpm_dir:/root/BUILD/rpms"
+  if [ -n "$RPM_BUILD_OPTIONS" ]; then
+    options+=" -v $PWD/$RPM_BUILD_OPTIONS:/root/OPTIONS"
+  fi
+  docker pull $RPM_BUILD_IMAGE
+  cmd="docker run -it --rm $options $RPM_BUILD_IMAGE build"
+  echo "Building RPMs locally: $cmd"
+  $cmd
+fi
 
 pushd $IMAGE_DIR
   cmd="docker build --tag $REPO/manageiq-base:$TAG \
@@ -51,6 +74,10 @@ pushd $IMAGE_DIR
 
   if [ -n "$NO_CACHE" ]; then
     cmd+=" --no-cache"
+  fi
+
+  if [ -n "$LOCAL_RPM" ] || [ -n "$REBUILD_RPM" ]; then
+    cmd+=" --build-arg LOCAL_RPM=true"
   fi
 
   echo "Building manageiq-base: $cmd"
