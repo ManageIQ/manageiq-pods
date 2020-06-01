@@ -89,6 +89,10 @@ spec:
               description: Secret containing the image registry authentication information
                 needed for the manageiq images
               type: string
+            initialAdminGroupName:
+              description: Group name to create with the super admin role. This can
+                be used to seed a group when using external authentication
+              type: string
             kafkaCpuRequest:
               description: 'Kafka deployment CPU request (default: no request)'
               type: string
