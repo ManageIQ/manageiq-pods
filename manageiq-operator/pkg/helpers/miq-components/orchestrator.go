@@ -137,6 +137,10 @@ func NewOrchestratorDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, er
 					FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.uid"},
 				},
 			},
+			corev1.EnvVar{
+				Name:  "ADMIN_GROUP",
+				Value: cr.Spec.InitialAdminGroupName,
+			},
 		},
 	}
 
