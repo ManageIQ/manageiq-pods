@@ -7,13 +7,15 @@ import (
 	resource "k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	intstr "k8s.io/apimachinery/pkg/util/intstr"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 func DefaultPostgresqlSecret(cr *miqv1alpha1.ManageIQ) *corev1.Secret {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
-	secret := map[string]string{
+
+	stringData := map[string]string{
 		"dbname":   "vmdb_production",
 		"username": "root",
 		"password": generatePassword(),
@@ -21,14 +23,16 @@ func DefaultPostgresqlSecret(cr *miqv1alpha1.ManageIQ) *corev1.Secret {
 		"port":     "5432",
 	}
 
-	return &corev1.Secret{
+	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      postgresqlSecretName(cr),
 			Namespace: cr.ObjectMeta.Namespace,
 			Labels:    labels,
 		},
-		StringData: secret,
+		StringData: stringData,
 	}
+
+	return secret
 }
 
 func postgresqlSecretName(cr *miqv1alpha1.ManageIQ) string {
@@ -40,81 +44,89 @@ func postgresqlSecretName(cr *miqv1alpha1.ManageIQ) string {
 	return secretName
 }
 
-func NewPostgresqlConfigsConfigMap(cr *miqv1alpha1.ManageIQ) *corev1.ConfigMap {
+func NewPostgresqlConfigsConfigMap(cr *miqv1alpha1.ManageIQ) (*corev1.ConfigMap, controllerutil.MutateFn) {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
-	return &corev1.ConfigMap{
+
+	data := map[string]string{
+		"01_miq_overrides.conf": postgresqlOverrideConf(),
+	}
+
+	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "postgresql-configs",
 			Namespace: cr.ObjectMeta.Namespace,
-			Labels:    labels,
-		},
-		Data: map[string]string{
-			"01_miq_overrides.conf": postgresqlOverrideConf(),
 		},
 	}
+
+	mutateFn := configMapMutateFn(configMap, labels, data)
+
+	return configMap, mutateFn
 }
 
-func NewPostgresqlPVC(cr *miqv1alpha1.ManageIQ) *corev1.PersistentVolumeClaim {
+func NewPostgresqlPVC(cr *miqv1alpha1.ManageIQ) (*corev1.PersistentVolumeClaim, controllerutil.MutateFn) {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
+
 	storageReq, _ := resource.ParseQuantity(cr.Spec.DatabaseVolumeCapacity)
+
+	resources := corev1.ResourceRequirements{
+		Requests: corev1.ResourceList{
+			"storage": storageReq,
+		},
+	}
+
+	accessModes := []corev1.PersistentVolumeAccessMode{
+		"ReadWriteOnce",
+	}
+
 	pvc := &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "postgresql",
 			Namespace: cr.ObjectMeta.Namespace,
-			Labels:    labels,
 		},
 		Spec: corev1.PersistentVolumeClaimSpec{
-			AccessModes: []corev1.PersistentVolumeAccessMode{
-				"ReadWriteOnce",
-			},
-			Resources: corev1.ResourceRequirements{
-				Requests: corev1.ResourceList{
-					"storage": storageReq,
-				},
-			},
+			StorageClassName: &cr.Spec.StorageClassName,
 		},
 	}
 
-	if cr.Spec.StorageClassName != "" {
-		pvc.Spec.StorageClassName = &cr.Spec.StorageClassName
-	}
+	mutateFn := pvcMutateFn(pvc, labels, accessModes, resources)
 
-	return pvc
+	return pvc, mutateFn
 }
 
-func NewPostgresqlService(cr *miqv1alpha1.ManageIQ) *corev1.Service {
+func NewPostgresqlService(cr *miqv1alpha1.ManageIQ) (*corev1.Service, controllerutil.MutateFn) {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
+
 	selector := map[string]string{
 		"name": "postgresql",
 	}
-	var port int32 = 5432
-	return &corev1.Service{
+
+	ports := []corev1.ServicePort{
+		corev1.ServicePort{
+			Name: "postgresql",
+			Port: 5432,
+		},
+	}
+
+	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "postgresql",
 			Namespace: cr.ObjectMeta.Namespace,
-			Labels:    labels,
-		},
-		Spec: corev1.ServiceSpec{
-			Ports: []corev1.ServicePort{
-				corev1.ServicePort{
-					Name: "postgresql",
-					Port: port,
-				},
-			},
-			Selector: selector,
 		},
 	}
+
+	mutateFn := serviceMutateFn(service, labels, ports, selector)
+	return service, mutateFn
 }
 
-func NewPostgresqlDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, error) {
+func postgresqlContainer(cr *miqv1alpha1.ManageIQ) corev1.Container {
 	var initialDelaySecs int32 = 60
-	container := corev1.Container{
+	return corev1.Container{
 		Name:  "postgresql",
 		Image: cr.Spec.PostgresqlImageName + ":" + cr.Spec.PostgresqlImageTag,
 		Ports: []corev1.ContainerPort{
@@ -173,18 +185,51 @@ func NewPostgresqlDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, erro
 			corev1.VolumeMount{Name: "miq-pg-configs", MountPath: "/opt/app-root/src/postgresql-cfg/"},
 		},
 	}
+}
 
-	err := addResourceReqs(cr.Spec.PostgresqlMemoryLimit, cr.Spec.PostgresqlMemoryRequest, cr.Spec.PostgresqlCpuLimit, cr.Spec.PostgresqlCpuRequest, &container)
+func postgresqlPodSpec(cr *miqv1alpha1.ManageIQ) (corev1.PodSpec, error) {
+	container := postgresqlContainer(cr)
+	err := addResourceReqs(cr.Spec.PostgresqlMemoryLimit, cr.Spec.PostgresqlMemoryRequest, cr.Spec.PostgresqlCpuRequest, cr.Spec.PostgresqlCpuLimit, &container)
 	if err != nil {
-		return nil, err
+		return corev1.PodSpec{}, err
 	}
+	return corev1.PodSpec{
+		Containers: []corev1.Container{
+			container,
+		},
+		Volumes: []corev1.Volume{
+			corev1.Volume{
+				Name: "miq-pgdb-volume",
+				VolumeSource: corev1.VolumeSource{
+					PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+						ClaimName: "postgresql",
+					},
+				},
+			},
+			corev1.Volume{
+				Name: "miq-pg-configs",
+				VolumeSource: corev1.VolumeSource{
+					ConfigMap: &corev1.ConfigMapVolumeSource{
+						LocalObjectReference: corev1.LocalObjectReference{Name: "postgresql-configs"},
+					},
+				},
+			},
+		},
+	}, nil
 
-	deploymentLabels := map[string]string{
-		"app": cr.Spec.AppName,
-	}
+}
+
+func NewPostgresqlDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, controllerutil.MutateFn, error) {
+
 	podLabels := map[string]string{
 		"name": "postgresql",
 		"app":  cr.Spec.AppName,
+	}
+
+	podSpec, err := postgresqlPodSpec(cr)
+
+	if err != nil {
+		return nil, nil, err
 	}
 	var repNum int32 = 1
 
@@ -192,45 +237,26 @@ func NewPostgresqlDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, erro
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "postgresql",
 			Namespace: cr.ObjectMeta.Namespace,
-			Labels:    deploymentLabels,
+			Labels:    podLabels,
 		},
 		Spec: appsv1.DeploymentSpec{
-			Strategy: appsv1.DeploymentStrategy{
-				Type: "Recreate",
-			},
-			Replicas: &repNum,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: podLabels,
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:   "postgresql",
 					Labels: podLabels,
-				},
-				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{container},
-					Volumes: []corev1.Volume{
-						corev1.Volume{
-							Name: "miq-pgdb-volume",
-							VolumeSource: corev1.VolumeSource{
-								PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-									ClaimName: "postgresql",
-								},
-							},
-						},
-						corev1.Volume{
-							Name: "miq-pg-configs",
-							VolumeSource: corev1.VolumeSource{
-								ConfigMap: &corev1.ConfigMapVolumeSource{
-									LocalObjectReference: corev1.LocalObjectReference{Name: "postgresql-configs"},
-								},
-							},
-						},
-					},
+					Name:   "postgresql",
 				},
 			},
 		},
 	}
 
-	return deployment, nil
+	mutateFn := func() error {
+		deployment.Spec.Strategy.Type = "Recreate"
+		deployment.Spec.Replicas = &repNum
+		deployment.Spec.Template.Spec = podSpec
+		return nil
+	}
+	return deployment, mutateFn, nil
 }

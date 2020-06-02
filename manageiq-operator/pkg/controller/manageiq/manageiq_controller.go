@@ -231,31 +231,31 @@ func (r *ReconcileManageIQ) generateMemcachedResources(cr *miqv1alpha1.ManageIQ)
 }
 
 func (r *ReconcileManageIQ) generatePostgresqlResources(cr *miqv1alpha1.ManageIQ) error {
-	postgresqlSecret := miqtool.DefaultPostgresqlSecret(cr)
-	if err := r.createk8sResIfNotExist(cr, postgresqlSecret, &corev1.Secret{}); err != nil {
+	secret := miqtool.DefaultPostgresqlSecret(cr)
+	if err := r.createk8sResIfNotExist(cr, secret, &corev1.Secret{}); err != nil {
 		return err
 	}
 
-	postgresqlConfigsConfigMap := miqtool.NewPostgresqlConfigsConfigMap(cr)
-	if err := r.createk8sResIfNotExist(cr, postgresqlConfigsConfigMap, &corev1.ConfigMap{}); err != nil {
+	configMap, configMapMutateF := miqtool.NewPostgresqlConfigsConfigMap(cr)
+	if _, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, configMap, configMapMutateF); err != nil {
 		return err
 	}
 
-	postgresqlPVC := miqtool.NewPostgresqlPVC(cr)
-	if err := r.createk8sResIfNotExist(cr, postgresqlPVC, &corev1.PersistentVolumeClaim{}); err != nil {
+	pvc, pvcMutateFn := miqtool.NewPostgresqlPVC(cr)
+	if _, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, pvc, pvcMutateFn); err != nil {
 		return err
 	}
 
-	postgresqlService := miqtool.NewPostgresqlService(cr)
-	if err := r.createk8sResIfNotExist(cr, postgresqlService, &corev1.Service{}); err != nil {
+	service, serviceMutateFn := miqtool.NewPostgresqlService(cr)
+	if _, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, service, serviceMutateFn); err != nil {
 		return err
 	}
 
-	postgresqlDeployment, err := miqtool.NewPostgresqlDeployment(cr)
+	deployment, deploymentMutateFn, err := miqtool.NewPostgresqlDeployment(cr)
 	if err != nil {
 		return err
 	}
-	if err := r.createk8sResIfNotExist(cr, postgresqlDeployment, &appsv1.Deployment{}); err != nil {
+	if _, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, deployment, deploymentMutateFn); err != nil {
 		return err
 	}
 
