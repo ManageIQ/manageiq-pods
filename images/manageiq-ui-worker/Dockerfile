@@ -4,15 +4,10 @@ ARG FROM_TAG=latest
 FROM ${FROM_REPO}/manageiq-webserver-worker:${FROM_TAG}
 MAINTAINER ManageIQ https://manageiq.org
 
-ARG RPM_PREFIX=manageiq
-
 LABEL name="manageiq-ui-worker" \
       summary="ManageIQ user interface worker image"
 
-# Install packages needed for UI and remove the existing httpd config
-RUN dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install ${RPM_PREFIX}-ui && \
-    rm -f /etc/httpd/conf.d/* && \
-    dnf clean all
+RUN rm -f /etc/httpd/conf.d/*
 
 # Configure httpd to run without root privileges
 RUN chgrp root /var/run/httpd && chmod g+rwx /var/run/httpd && \
