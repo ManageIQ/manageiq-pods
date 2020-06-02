@@ -31,6 +31,8 @@ objects:
         RewriteRule .* ws://websocket:3000%{REQUEST_URI}  [P,QSA,L]
         ProxyPassReverse /ws ws://websocket:3000/ws
 
+        RewriteCond %{REQUEST_URI} !^/api
+
         # For httpd, some ErrorDocuments must by served by the httpd pod
         RewriteCond %{REQUEST_URI} !^/proxy_pages
 
