@@ -179,6 +179,12 @@ type ManageIQSpec struct {
 	// +optional
 	PostgresqlSharedBuffers string `json:"postgresqlSharedBuffers"`
 
+	// Image used for the kafka deployment (default: docker.io/bitnami/kafka)
+	// +optional
+	KafkaImageName string `json:"kafkaImageName"`
+	// Image tag used for the kafka deployment (default: latest)
+	// +optional
+	KafkaImageTag string `json:"kafkaImageTag"`
 	// Kafka volume size (default: 1Gi)
 	// +optional
 	KafkaVolumeCapacity string `json:"kafkaVolumeCapacity"`
@@ -195,6 +201,12 @@ type ManageIQSpec struct {
 	// +optional
 	KafkaMemoryRequest string `json:"kafkaMemoryRequest"`
 
+	// Image used for the zookeeper deployment (default: docker.io/bitnami/zookeeper)
+	// +optional
+	ZookeeperImageName string `json:"zookeeperImageName"`
+	// Image tag used for the zookeeper deployment (default: latest)
+	// +optional
+	ZookeeperImageTag string `json:"zookeeperImageTag"`
 	// Zookeeper volume size (default: 1Gi)
 	// +optional
 	ZookeeperVolumeCapacity string `json:"zookeeperVolumeCapacity"`
@@ -337,8 +349,24 @@ func (m *ManageIQ) Initialize() {
 		spec.PostgresqlSharedBuffers = "1GB"
 	}
 
+	if spec.KafkaImageName == "" {
+		spec.KafkaImageName = "docker.io/bitnami/kafka"
+	}
+
+	if spec.KafkaImageTag == "" {
+		spec.KafkaImageTag = "latest"
+	}
+
 	if spec.KafkaVolumeCapacity == "" {
 		spec.KafkaVolumeCapacity = "1Gi"
+	}
+
+	if spec.ZookeeperImageName == "" {
+		spec.ZookeeperImageName = "docker.io/bitnami/zookeeper"
+	}
+
+	if spec.ZookeeperImageTag == "" {
+		spec.ZookeeperImageTag = "latest"
 	}
 
 	if spec.ZookeeperVolumeCapacity == "" {

@@ -99,6 +99,12 @@ spec:
             kafkaCpulimit:
               description: 'Kafka deployment CPU limit (default: no limit)'
               type: string
+            kafkaImageName:
+              description: 'Image used for the kafka deployment (default: docker.io/bitnami/kafka)'
+              type: string
+            kafkaImageTag:
+              description: 'Image tag used for the kafka deployment (default: latest)'
+              type: string
             kafkaMemoryLimit:
               description: 'Kafka deployment memory limit (default: no limit)'
               type: string
@@ -219,6 +225,13 @@ spec:
               type: string
             zookeeperCpulimit:
               description: 'Zookeeper deployment CPU limit (default: no limit)'
+              type: string
+            zookeeperImageName:
+              description: 'Image used for the zookeeper deployment (default: docker.io/bitnami/zookeeper)'
+              type: string
+            zookeeperImageTag:
+              description: 'Image tag used for the zookeeper deployment (default:
+                latest)'
               type: string
             zookeeperMemoryLimit:
               description: 'Zookeeper deployment memory limit (default: no limit)'
