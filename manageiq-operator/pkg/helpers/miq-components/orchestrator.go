@@ -141,6 +141,10 @@ func NewOrchestratorDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, er
 				Name:  "ADMIN_GROUP",
 				Value: cr.Spec.InitialAdminGroupName,
 			},
+			corev1.EnvVar{
+				Name:  "WORKER_RESOURCES",
+				Value: strconv.FormatBool(*cr.Spec.EnforceWorkerResourceConstraints),
+			},
 		},
 	}
 

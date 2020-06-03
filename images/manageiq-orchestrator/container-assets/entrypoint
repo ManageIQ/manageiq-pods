@@ -50,6 +50,19 @@ function create_initial_group() {
   fi
 }
 
+function set_resource_setting() {
+  echo "== Updating resource constraint settings =="
+  script=$(cat <<- EOS
+    settings = {
+      'server/worker_monitor/enforce_resource_constraints' => ENV['WORKER_RESOURCES'] == 'true'
+    }
+    MiqRegion.my_region.add_settings_for_resource(settings)
+EOS
+)
+
+  bin/rails runner "$script"
+}
+
 check_svc_status ${MEMCACHED_SERVICE_HOST} ${MEMCACHED_SERVICE_PORT}
 check_svc_status ${DATABASE_HOSTNAME} ${DATABASE_PORT}
 
@@ -98,5 +111,6 @@ esac
 
 pushd ${APP_ROOT}
   update_auth_settings
+  set_resource_setting
 popd
 exec ruby /var/www/miq/vmdb/lib/workers/bin/evm_server.rb
