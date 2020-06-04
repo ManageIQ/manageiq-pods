@@ -31,11 +31,11 @@ Options SymLinksIfOwnerMatch
 
   ProxyPreserveHost on
 
-  RewriteCond %{REQUEST_URI}     ^/ws        [NC]
+  RewriteCond %{REQUEST_URI}     ^/ws/notifications [NC]
   RewriteCond %{HTTP:UPGRADE}    ^websocket$ [NC]
   RewriteCond %{HTTP:CONNECTION} ^Upgrade$   [NC]
-  RewriteRule .* ws://websocket:3000%{REQUEST_URI}  [P,QSA,L]
-  ProxyPassReverse /ws ws://websocket:3000/ws
+  RewriteRule .* ws://ui:3000%{REQUEST_URI}  [P,QSA,L]
+  ProxyPassReverse /ws/notifications ws://ui:3000/ws/notifications
 
   RewriteCond %{REQUEST_URI} !^/api
 
