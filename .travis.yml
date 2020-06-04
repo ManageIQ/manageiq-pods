@@ -4,24 +4,18 @@ jobs:
   rvm: 2.6.5
   cache:
     bundler: true
+  before_script:
+  - eval "$(gimme 1.14)"
   script:
   - bundle exec rspec
 - language: ruby
   rvm: 2.5.7
   cache:
     bundler: true
+  before_script:
+  - eval "$(gimme 1.14)"
   script:
   - bundle exec rspec
-- language: go
-  go: stable
-  cache:
-    directories:
-    - $HOME/.cache/go-build
-    - $HOME/gopath/pkg/mod
-  install: true
-  script:
-  - test -z "$(gofmt -l manageiq-operator)"
-  - cd manageiq-operator && go build -o build/_output/bin/manageiq-operator ./cmd/manager
   
 #ppc64le jobs
 - arch: ppc64le
@@ -29,6 +23,8 @@ jobs:
   rvm: 2.6.5
   cache:
     bundler: true
+  before_script:
+  - eval "$(gimme 1.14)"
   script:
   - bundle exec rspec
 - arch: ppc64le
@@ -36,16 +32,7 @@ jobs:
   rvm: 2.5.7
   cache:
     bundler: true
+  before_script:
+  - eval "$(gimme 1.14)"
   script:
   - bundle exec rspec
-- arch: ppc64le
-  language: go
-  go: stable
-  cache:
-    directories:
-    - $HOME/.cache/go-build
-    - $HOME/gopath/pkg/mod
-  install: true
-  script:
-  - test -z "$(gofmt -l manageiq-operator)"
-  - cd manageiq-operator && go build -o build/_output/bin/manageiq-operator ./cmd/manager
