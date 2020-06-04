@@ -38,6 +38,7 @@ RUN yum -y install https://rpm.nodesource.com/pub_10.x/el/7/x86_64/nodesource-re
                    initscripts             \
                    libcurl-devel           \
                    libpq                   \
+                   libssh2-devel           \
                    libtool                 \
                    libxslt-devel           \
                    logrotate               \
