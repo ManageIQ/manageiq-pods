@@ -6,6 +6,7 @@ jobs:
     bundler: true
   before_script:
   - eval "$(gimme 1.14)"
+  - curl -L https://github.com/operator-framework/operator-sdk/releases/download/v0.15.1/operator-sdk-v0.15.1-x86_64-linux-gnu -o /home/travis/bin/operator-sdk && chmod +x /home/travis/bin/operator-sdk
   script:
   - bundle exec rspec
 - language: ruby
@@ -14,6 +15,7 @@ jobs:
     bundler: true
   before_script:
   - eval "$(gimme 1.14)"
+  - curl -L https://github.com/operator-framework/operator-sdk/releases/download/v0.15.1/operator-sdk-v0.15.1-x86_64-linux-gnu -o /home/travis/bin/operator-sdk && chmod +x /home/travis/bin/operator-sdk
   script:
   - bundle exec rspec
   
@@ -25,6 +27,7 @@ jobs:
     bundler: true
   before_script:
   - eval "$(gimme 1.14)"
+  - curl -L https://github.com/operator-framework/operator-sdk/releases/download/v0.15.1/operator-sdk-v0.15.1-ppc64le-linux-gnu -o /home/travis/bin/operator-sdk && chmod +x /home/travis/bin/operator-sdk
   script:
   - bundle exec rspec
 - arch: ppc64le
@@ -34,5 +37,6 @@ jobs:
     bundler: true
   before_script:
   - eval "$(gimme 1.14)"
+  - curl -L https://github.com/operator-framework/operator-sdk/releases/download/v0.15.1/operator-sdk-v0.15.1-ppc64le-linux-gnu -o /home/travis/bin/operator-sdk && chmod +x /home/travis/bin/operator-sdk
   script:
   - bundle exec rspec
