@@ -251,6 +251,7 @@ spec:
         status:
           description: ManageIQStatus defines the observed state of ManageIQ
           type: object
+      type: object
   version: v1alpha1
   versions:
   - name: v1alpha1
