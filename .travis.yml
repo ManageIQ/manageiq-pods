@@ -1,42 +1,17 @@
----
-jobs:
-- language: ruby
-  rvm: 2.6.5
-  cache:
-    bundler: true
-  before_script:
-  - eval "$(gimme 1.14)"
-  - curl -L https://github.com/operator-framework/operator-sdk/releases/download/v0.15.1/operator-sdk-v0.15.1-x86_64-linux-gnu -o /home/travis/bin/operator-sdk && chmod +x /home/travis/bin/operator-sdk
-  script:
-  - bundle exec rspec
-- language: ruby
-  rvm: 2.5.7
-  cache:
-    bundler: true
-  before_script:
-  - eval "$(gimme 1.14)"
-  - curl -L https://github.com/operator-framework/operator-sdk/releases/download/v0.15.1/operator-sdk-v0.15.1-x86_64-linux-gnu -o /home/travis/bin/operator-sdk && chmod +x /home/travis/bin/operator-sdk
-  script:
-  - bundle exec rspec
-  
-#ppc64le jobs
-- arch: ppc64le
-  language: ruby
-  rvm: 2.6.5
-  cache:
-    bundler: true
-  before_script:
-  - eval "$(gimme 1.14)"
-  - curl -L https://github.com/operator-framework/operator-sdk/releases/download/v0.15.1/operator-sdk-v0.15.1-ppc64le-linux-gnu -o /home/travis/bin/operator-sdk && chmod +x /home/travis/bin/operator-sdk
-  script:
-  - bundle exec rspec
-- arch: ppc64le
-  language: ruby
-  rvm: 2.5.7
-  cache:
-    bundler: true
-  before_script:
-  - eval "$(gimme 1.14)"
-  - curl -L https://github.com/operator-framework/operator-sdk/releases/download/v0.15.1/operator-sdk-v0.15.1-ppc64le-linux-gnu -o /home/travis/bin/operator-sdk && chmod +x /home/travis/bin/operator-sdk
-  script:
-  - bundle exec rspec
+language: ruby
+rvm:
+- 2.5.7
+- 2.6.5
+arch:
+- amd64
+- ppc64le
+cache:
+  bundler: true
+  directories:
+  - $HOME/.cache/go-build
+  - $HOME/gopath/pkg/mod
+before_script:
+- eval "$(gimme 1.14)"
+- curl -L https://github.com/operator-framework/operator-sdk/releases/download/v0.15.1/operator-sdk-v0.15.1-$(uname -m)-linux-gnu -o /home/travis/bin/operator-sdk && chmod +x /home/travis/bin/operator-sdk
+script:
+- bundle exec rspec
