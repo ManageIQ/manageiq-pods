@@ -207,17 +207,22 @@ func (r *ReconcileManageIQ) generateHttpdResources(cr *miqv1alpha1.ManageIQ) err
 }
 
 func (r *ReconcileManageIQ) generateMemcachedResources(cr *miqv1alpha1.ManageIQ) error {
-	memcachedDeployment, err := miqtool.NewMemcachedDeployment(cr)
+	deployment, mutateFunc, err := miqtool.NewMemcachedDeployment(cr, r.scheme)
 	if err != nil {
 		return err
 	}
-	if err := r.createk8sResIfNotExist(cr, memcachedDeployment, &appsv1.Deployment{}); err != nil {
+
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, deployment, mutateFunc); err != nil {
 		return err
+	} else {
+		logger.Info("Deployment has been reconciled", "component", "memcached", "result", result)
 	}
 
-	memcachedService := miqtool.NewMemcachedService(cr)
-	if err := r.createk8sResIfNotExist(cr, memcachedService, &corev1.Service{}); err != nil {
+	service, mutateFunc := miqtool.NewMemcachedService(cr, r.scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, service, mutateFunc); err != nil {
 		return err
+	} else {
+		logger.Info("Service has been reconciled", "component", "memcached", "result", result)
 	}
 
 	return nil
