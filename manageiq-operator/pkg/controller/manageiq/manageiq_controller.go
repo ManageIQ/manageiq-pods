@@ -18,13 +18,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-var log = logf.Log.WithName("controller_manageiq")
+var logger = log.Log.WithName("controller_manageiq")
 
 // Add creates a new ManageIQ Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -99,7 +99,7 @@ type ReconcileManageIQ struct {
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileManageIQ) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
+	reqLogger := logger.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling ManageIQ")
 
 	// Fetch the ManageIQ instance
@@ -207,17 +207,22 @@ func (r *ReconcileManageIQ) generateHttpdResources(cr *miqv1alpha1.ManageIQ) err
 }
 
 func (r *ReconcileManageIQ) generateMemcachedResources(cr *miqv1alpha1.ManageIQ) error {
-	memcachedDeployment, err := miqtool.NewMemcachedDeployment(cr)
+	deployment, mutateFunc, err := miqtool.NewMemcachedDeployment(cr, r.scheme)
 	if err != nil {
 		return err
 	}
-	if err := r.createk8sResIfNotExist(cr, memcachedDeployment, &appsv1.Deployment{}); err != nil {
+
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, deployment, mutateFunc); err != nil {
 		return err
+	} else {
+		logger.Info("Deployment has been reconciled", "component", "memcached", "result", result)
 	}
 
-	memcachedService := miqtool.NewMemcachedService(cr)
-	if err := r.createk8sResIfNotExist(cr, memcachedService, &corev1.Service{}); err != nil {
+	service, mutateFunc := miqtool.NewMemcachedService(cr, r.scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, service, mutateFunc); err != nil {
 		return err
+	} else {
+		logger.Info("Service has been reconciled", "component", "memcached", "result", result)
 	}
 
 	return nil
@@ -346,7 +351,7 @@ func (r *ReconcileManageIQ) generateSecrets(cr *miqv1alpha1.ManageIQ) error {
 }
 
 func (r *ReconcileManageIQ) createk8sResIfNotExist(cr *miqv1alpha1.ManageIQ, res, restype metav1.Object) error {
-	reqLogger := log.WithValues("task: ", "create resource")
+	reqLogger := logger.WithValues("task: ", "create resource")
 	if err := controllerutil.SetControllerReference(cr, res, r.scheme); err != nil {
 		return err
 	}
