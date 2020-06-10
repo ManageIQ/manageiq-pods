@@ -11,6 +11,56 @@ import (
 	"github.com/google/uuid"
 )
 
+func addMessagingEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
+	if !*cr.Spec.DeployMessagingService {
+		return
+	}
+
+	messagingEnv := []corev1.EnvVar{
+		corev1.EnvVar{
+			Name: "MESSAGING_HOSTNAME",
+			ValueFrom: &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					LocalObjectReference: corev1.LocalObjectReference{Name: kafkaSecretName(cr)},
+					Key:                  "hostname",
+				},
+			},
+		},
+		corev1.EnvVar{
+			Name: "MESSAGING_PASSWORD",
+			ValueFrom: &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					LocalObjectReference: corev1.LocalObjectReference{Name: kafkaSecretName(cr)},
+					Key:                  "password",
+				},
+			},
+		},
+		corev1.EnvVar{
+			Name:  "MESSAGING_PORT",
+			Value: "9092",
+		},
+		corev1.EnvVar{
+			Name:  "MESSAGING_TYPE",
+			Value: "kafka",
+		},
+		corev1.EnvVar{
+			Name: "MESSAGING_USERNAME",
+			ValueFrom: &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					LocalObjectReference: corev1.LocalObjectReference{Name: kafkaSecretName(cr)},
+					Key:                  "username",
+				},
+			},
+		},
+	}
+
+	for _, env := range messagingEnv {
+		c.Env = append(c.Env, env)
+	}
+
+	return
+}
+
 func NewOrchestratorDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, error) {
 	delaySecs, err := strconv.Atoi(cr.Spec.OrchestratorInitialDelay)
 	if err != nil {
@@ -144,6 +194,7 @@ func NewOrchestratorDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, er
 		},
 	}
 
+	addMessagingEnv(cr, &container)
 	err = addResourceReqs(cr.Spec.OrchestratorMemoryLimit, cr.Spec.OrchestratorMemoryRequest, cr.Spec.OrchestratorCpuLimit, cr.Spec.OrchestratorCpuRequest, &container)
 	if err != nil {
 		return nil, err

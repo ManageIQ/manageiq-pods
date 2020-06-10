@@ -184,6 +184,10 @@ type ManageIQSpec struct {
 	// +optional
 	PostgresqlSharedBuffers string `json:"postgresqlSharedBuffers"`
 
+	// Flag to indicate if Kafka and Zookeeper should be deployed (default: false)
+	// +optional
+	DeployMessagingService *bool `json:"deployMessagingService"`
+
 	// Image used for the kafka deployment (default: docker.io/bitnami/kafka)
 	// +optional
 	KafkaImageName string `json:"kafkaImageName"`
@@ -352,6 +356,10 @@ func (m *ManageIQ) Initialize() {
 
 	if spec.PostgresqlSharedBuffers == "" {
 		spec.PostgresqlSharedBuffers = "1GB"
+	}
+
+	if spec.DeployMessagingService == nil {
+		spec.DeployMessagingService = new(bool)
 	}
 
 	if spec.KafkaImageName == "" {
