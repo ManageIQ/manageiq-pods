@@ -128,8 +128,10 @@ func (r *ReconcileManageIQ) Reconcile(request reconcile.Request) (reconcile.Resu
 	if e := r.generateMemcachedResources(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
-	if e := r.generateKafkaResources(miqInstance); err != nil {
-		return reconcile.Result{}, e
+	if *miqInstance.Spec.DeployMessagingService {
+		if e := r.generateKafkaResources(miqInstance); e != nil {
+			return reconcile.Result{}, e
+		}
 	}
 	if e := r.generateOrchestratorResources(miqInstance); e != nil {
 		return reconcile.Result{}, e
