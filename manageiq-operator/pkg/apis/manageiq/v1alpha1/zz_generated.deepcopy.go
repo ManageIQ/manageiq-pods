@@ -82,6 +82,11 @@ func (in *ManageIQSpec) DeepCopyInto(out *ManageIQSpec) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.DeployMessagingService != nil {
+		in, out := &in.DeployMessagingService, &out.DeployMessagingService
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 
