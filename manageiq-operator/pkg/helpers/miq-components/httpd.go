@@ -72,7 +72,7 @@ func NewHttpdConfigMap(cr *miqv1alpha1.ManageIQ) (*corev1.ConfigMap, error) {
 	}
 
 	data := map[string]string{
-		"application.conf":    httpdApplicationConf(),
+		"application.conf":    httpdApplicationConf(cr.Spec.ApplicationDomain),
 		"authentication.conf": httpdAuthenticationConf(&cr.Spec),
 	}
 
