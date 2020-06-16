@@ -151,8 +151,9 @@ func ZookeeperService(cr *miqv1alpha1.ManageIQ) *corev1.Service {
 
 func KafkaDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, error) {
 	container := corev1.Container{
-		Name:  "kafka",
-		Image: cr.Spec.KafkaImageName + ":" + cr.Spec.KafkaImageTag,
+		Name:            "kafka",
+		Image:           cr.Spec.KafkaImageName + ":" + cr.Spec.KafkaImageTag,
+		ImagePullPolicy: corev1.PullIfNotPresent,
 		Ports: []corev1.ContainerPort{
 			corev1.ContainerPort{
 				ContainerPort: 9092,
@@ -248,8 +249,9 @@ func KafkaDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, error) {
 
 func ZookeeperDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, error) {
 	container := corev1.Container{
-		Name:  "zookeeper",
-		Image: cr.Spec.ZookeeperImageName + ":" + cr.Spec.ZookeeperImageTag,
+		Name:            "zookeeper",
+		Image:           cr.Spec.ZookeeperImageName + ":" + cr.Spec.ZookeeperImageTag,
+		ImagePullPolicy: corev1.PullIfNotPresent,
 		Ports: []corev1.ContainerPort{
 			corev1.ContainerPort{
 				ContainerPort: 2181,
