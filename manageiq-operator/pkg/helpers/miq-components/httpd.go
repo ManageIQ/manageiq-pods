@@ -94,7 +94,7 @@ func HttpdConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.C
 	}
 
 	data := map[string]string{
-		"application.conf":    httpdApplicationConf(),
+		"application.conf":    httpdApplicationConf(cr.Spec.ApplicationDomain),
 		"authentication.conf": httpdAuthenticationConf(&cr.Spec),
 	}
 

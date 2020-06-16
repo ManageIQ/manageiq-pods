@@ -15,8 +15,8 @@ func httpdAuthConfigurationConf() string {
 }
 
 // application.conf
-func httpdApplicationConf() string {
-	return `
+func httpdApplicationConf(applicationDomain string) string {
+	s := `
 Listen 8080
 # Timeout: The number of seconds before receives and sends time out.
 Timeout 120
@@ -27,28 +27,30 @@ Options SymLinksIfOwnerMatch
 <VirtualHost *:8080>
   KeepAlive on
   # Without ServerName mod_auth_mellon compares against http:// and not https:// from the IdP
-  ServerName https://%{REQUEST_HOST}
+  ServerName https://%%{REQUEST_HOST}
 
   ProxyPreserveHost on
+  RequestHeader set Host %s
+  RequestHeader set X-Forwarded-Host %s
 
-  RewriteCond %{REQUEST_URI}     ^/ws/notifications [NC]
-  RewriteCond %{HTTP:UPGRADE}    ^websocket$ [NC]
-  RewriteCond %{HTTP:CONNECTION} ^Upgrade$   [NC]
-  RewriteRule .* ws://ui:3000%{REQUEST_URI}  [P,QSA,L]
+  RewriteCond %%{REQUEST_URI}     ^/ws/notifications [NC]
+  RewriteCond %%{HTTP:UPGRADE}    ^websocket$ [NC]
+  RewriteCond %%{HTTP:CONNECTION} ^Upgrade$   [NC]
+  RewriteRule .* ws://ui:3000%%{REQUEST_URI}  [P,QSA,L]
   ProxyPassReverse /ws/notifications ws://ui:3000/ws/notifications
 
-  RewriteCond %{REQUEST_URI} !^/api
+  RewriteCond %%{REQUEST_URI} !^/api
 
   # For httpd, some ErrorDocuments must by served by the httpd pod
-  RewriteCond %{REQUEST_URI} !^/proxy_pages
+  RewriteCond %%{REQUEST_URI} !^/proxy_pages
 
   # For SAML /saml2 is only served by mod_auth_mellon in the httpd pod
-  RewriteCond %{REQUEST_URI} !^/saml2
+  RewriteCond %%{REQUEST_URI} !^/saml2
 
   # For OpenID-Connect /openid-connect is only served by mod_auth_openidc
-  RewriteCond %{REQUEST_URI} !^/openid-connect
+  RewriteCond %%{REQUEST_URI} !^/openid-connect
 
-  RewriteRule ^/ http://ui:3000%{REQUEST_URI} [P,QSA,L]
+  RewriteRule ^/ http://ui:3000%%{REQUEST_URI} [P,QSA,L]
   ProxyPassReverse / http://ui:3000/
 
   ProxyPass /api http://web-service:3000/api
@@ -65,6 +67,7 @@ Options SymLinksIfOwnerMatch
   CustomLog "| /usr/bin/tee /proc/1/fd/1 /var/log/httpd/access_log" common
 </VirtualHost>
 `
+	return fmt.Sprintf(s, applicationDomain, applicationDomain)
 }
 
 // authentication.conf
