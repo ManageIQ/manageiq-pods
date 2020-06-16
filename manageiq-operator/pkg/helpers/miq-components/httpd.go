@@ -223,6 +223,7 @@ func assignHttpdPorts(privileged bool, c *corev1.Container) {
 func initializeHttpdContainer(spec *miqv1alpha1.ManageIQSpec, privileged bool, c *corev1.Container) error {
 	c.Name = "httpd"
 	c.Image = httpdImage(spec.HttpdImageNamespace, spec.HttpdImageTag, privileged)
+	c.ImagePullPolicy = corev1.PullIfNotPresent
 	if privileged {
 		c.LivenessProbe = &corev1.Probe{
 			Handler: corev1.Handler{
