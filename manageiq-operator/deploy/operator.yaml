@@ -18,7 +18,7 @@ spec:
           image: docker.io/manageiq/manageiq-operator:v0.0.1
           command:
           - manageiq-operator
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           env:
             - name: WATCH_NAMESPACE
               valueFrom:

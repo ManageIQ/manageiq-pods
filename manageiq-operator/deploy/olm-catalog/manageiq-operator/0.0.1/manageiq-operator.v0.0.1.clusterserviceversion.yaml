@@ -58,7 +58,7 @@ spec:
                 - name: OPERATOR_NAME
                   value: manageiq-operator
                 image: docker.io/manageiq/manageiq-operator:v0.0.1
-                imagePullPolicy: Always
+                imagePullPolicy: IfNotPresent
                 name: manageiq-operator
                 resources:
                   limits:

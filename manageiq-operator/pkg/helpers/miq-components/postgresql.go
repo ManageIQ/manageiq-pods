@@ -115,8 +115,9 @@ func NewPostgresqlService(cr *miqv1alpha1.ManageIQ) *corev1.Service {
 func NewPostgresqlDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, error) {
 	var initialDelaySecs int32 = 60
 	container := corev1.Container{
-		Name:  "postgresql",
-		Image: cr.Spec.PostgresqlImageName + ":" + cr.Spec.PostgresqlImageTag,
+		Name:            "postgresql",
+		Image:           cr.Spec.PostgresqlImageName + ":" + cr.Spec.PostgresqlImageTag,
+		ImagePullPolicy: corev1.PullIfNotPresent,
 		Ports: []corev1.ContainerPort{
 			corev1.ContainerPort{
 				ContainerPort: 5432,

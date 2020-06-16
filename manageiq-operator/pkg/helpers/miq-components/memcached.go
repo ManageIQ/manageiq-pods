@@ -12,16 +12,15 @@ import (
 
 func NewMemcachedDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
 	container := corev1.Container{
-		Name:  "memcached",
-		Image: cr.Spec.MemcachedImageName + ":" + cr.Spec.MemcachedImageTag,
-
+		Name:            "memcached",
+		Image:           cr.Spec.MemcachedImageName + ":" + cr.Spec.MemcachedImageTag,
+		ImagePullPolicy: corev1.PullIfNotPresent,
 		Ports: []corev1.ContainerPort{
 			corev1.ContainerPort{
 				ContainerPort: 11211,
 				Protocol:      "TCP",
 			},
 		},
-
 		LivenessProbe: &corev1.Probe{
 			Handler: corev1.Handler{
 				TCPSocket: &corev1.TCPSocketAction{
