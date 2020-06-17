@@ -57,8 +57,8 @@ spec:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: manageiq-operator
-                image: docker.io/manageiq/manageiq-operator:v0.0.1
-                imagePullPolicy: IfNotPresent
+                image: docker.io/manageiq/manageiq-operator:latest
+                imagePullPolicy: Always
                 name: manageiq-operator
                 resources:
                   limits:
