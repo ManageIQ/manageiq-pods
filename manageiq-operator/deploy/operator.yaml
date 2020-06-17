@@ -15,10 +15,10 @@ spec:
       serviceAccountName: manageiq-operator
       containers:
         - name: manageiq-operator
-          image: docker.io/manageiq/manageiq-operator:v0.0.1
+          image: docker.io/manageiq/manageiq-operator:latest
           command:
           - manageiq-operator
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE
               valueFrom:
