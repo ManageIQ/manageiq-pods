@@ -29,7 +29,7 @@ $ operator-sdk build docker.io/example/manageiq-operator:latest
 2. Update the operator deployment with the new image:
 
 ```bash
-$ sed -i 's|docker.io/manageiq/manageiq-operator:v0.0.1|docker.io/example/manageiq-operator:latest|g' deploy/operator.yaml
+$ sed -i 's|docker.io/manageiq/manageiq-operator:latest-jansa|docker.io/example/manageiq-operator:latest-jansa|g' deploy/operator.yaml
 ```
 
 3. Push the new image to the registry:

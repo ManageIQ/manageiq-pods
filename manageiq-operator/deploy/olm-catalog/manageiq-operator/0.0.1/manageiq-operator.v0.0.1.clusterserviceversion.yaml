@@ -57,7 +57,7 @@ spec:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: manageiq-operator
-                image: docker.io/manageiq/manageiq-operator:v0.0.1
+                image: docker.io/manageiq/manageiq-operator:latest-jansa
                 imagePullPolicy: Always
                 name: manageiq-operator
                 resources:
