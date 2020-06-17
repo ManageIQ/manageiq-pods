@@ -231,32 +231,41 @@ func (r *ReconcileManageIQ) generateMemcachedResources(cr *miqv1alpha1.ManageIQ)
 }
 
 func (r *ReconcileManageIQ) generatePostgresqlResources(cr *miqv1alpha1.ManageIQ) error {
-	postgresqlSecret := miqtool.DefaultPostgresqlSecret(cr)
-	if err := r.createk8sResIfNotExist(cr, postgresqlSecret, &corev1.Secret{}); err != nil {
+	secret := miqtool.DefaultPostgresqlSecret(cr)
+	if err := r.createk8sResIfNotExist(cr, secret, &corev1.Secret{}); err != nil {
 		return err
 	}
 
-	postgresqlConfigsConfigMap := miqtool.NewPostgresqlConfigsConfigMap(cr)
-	if err := r.createk8sResIfNotExist(cr, postgresqlConfigsConfigMap, &corev1.ConfigMap{}); err != nil {
+	configMap, mutateFunc := miqtool.NewPostgresqlConfigsConfigMap(cr)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, configMap, mutateFunc); err != nil {
 		return err
+	} else {
+		logger.Info("ConfigMap has been reconciled", "component", "postgresql", "result", result)
 	}
 
-	postgresqlPVC := miqtool.NewPostgresqlPVC(cr)
-	if err := r.createk8sResIfNotExist(cr, postgresqlPVC, &corev1.PersistentVolumeClaim{}); err != nil {
+	pvc, mutateFunc := miqtool.NewPostgresqlPVC(cr)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, pvc, mutateFunc); err != nil {
 		return err
+	} else {
+		logger.Info("Service has been reconciled", "component", "postgresql", "result", result)
 	}
 
-	postgresqlService := miqtool.NewPostgresqlService(cr)
-	if err := r.createk8sResIfNotExist(cr, postgresqlService, &corev1.Service{}); err != nil {
+	service, mutateFunc := miqtool.NewPostgresqlService(cr)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, service, mutateFunc); err != nil {
 		return err
+	} else {
+		logger.Info("Service has been reconciled", "component", "postgresql", "result", result)
 	}
 
-	postgresqlDeployment, err := miqtool.NewPostgresqlDeployment(cr)
+	deployment, mutateFunc, err := miqtool.NewPostgresqlDeployment(cr, r.scheme)
 	if err != nil {
 		return err
 	}
-	if err := r.createk8sResIfNotExist(cr, postgresqlDeployment, &appsv1.Deployment{}); err != nil {
+
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, deployment, mutateFunc); err != nil {
 		return err
+	} else {
+		logger.Info("Deployment has been reconciled", "component", "postgresql", "result", result)
 	}
 
 	return nil
