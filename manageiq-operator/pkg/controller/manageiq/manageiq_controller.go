@@ -236,7 +236,7 @@ func (r *ReconcileManageIQ) generatePostgresqlResources(cr *miqv1alpha1.ManageIQ
 		return err
 	}
 
-	configMap, mutateFunc := miqtool.PostgresqlConfigMap(cr)
+	configMap, mutateFunc := miqtool.PostgresqlConfigMap(cr, r.scheme)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, configMap, mutateFunc); err != nil {
 		return err
 	} else {

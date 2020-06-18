@@ -3,6 +3,7 @@ package miqtools
 import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
@@ -54,25 +55,19 @@ func addResourceReqs(memLimit, memReq, cpuLimit, cpuReq string, c *corev1.Contai
 	return nil
 }
 
+func addAppLabel(appName string, meta *metav1.ObjectMeta) {
+	if meta.Labels == nil {
+		meta.Labels = make(map[string]string)
+	}
+	meta.Labels["app"] = appName
+}
+
 func serviceMutateFn(service *corev1.Service, labels map[string]string, ports []corev1.ServicePort, selector map[string]string) controllerutil.MutateFn {
 
 	mutateFn := func() error {
 		service.ObjectMeta.Labels = labels
 		service.Spec.Ports = ports
 		service.Spec.Selector = selector
-		return nil
-	}
-
-	return mutateFn
-}
-
-func configMapMutateFn(configMap *corev1.ConfigMap, labels map[string]string, data map[string]string) controllerutil.MutateFn {
-
-	mutateFn := func() error {
-		configMap.ObjectMeta.Labels = labels
-		if len(data) > 0 {
-			configMap.Data = data
-		}
 		return nil
 	}
 

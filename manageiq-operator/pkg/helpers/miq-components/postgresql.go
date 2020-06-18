@@ -42,13 +42,11 @@ func postgresqlSecretName(cr *miqv1alpha1.ManageIQ) string {
 	return secretName
 }
 
-func PostgresqlConfigMap(cr *miqv1alpha1.ManageIQ) (*corev1.ConfigMap, controllerutil.MutateFn) {
-	labels := map[string]string{
-		"app": cr.Spec.AppName,
-	}
+func PostgresqlConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.ConfigMap, controllerutil.MutateFn) {
 	data := map[string]string{
 		"01_miq_overrides.conf": postgresqlOverrideConf(),
 	}
+
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "postgresql-configs",
@@ -56,7 +54,16 @@ func PostgresqlConfigMap(cr *miqv1alpha1.ManageIQ) (*corev1.ConfigMap, controlle
 		},
 	}
 
-	return configMap, configMapMutateFn(configMap, labels, data)
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, configMap, scheme); err != nil {
+			return err
+		}
+		addAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
+		configMap.Data = data
+		return nil
+	}
+
+	return configMap, f
 }
 
 func PostgresqlPVC(cr *miqv1alpha1.ManageIQ) (*corev1.PersistentVolumeClaim, controllerutil.MutateFn) {
