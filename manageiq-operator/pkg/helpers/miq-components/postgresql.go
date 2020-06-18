@@ -42,7 +42,7 @@ func postgresqlSecretName(cr *miqv1alpha1.ManageIQ) string {
 	return secretName
 }
 
-func NewPostgresqlConfigsConfigMap(cr *miqv1alpha1.ManageIQ) (*corev1.ConfigMap, controllerutil.MutateFn) {
+func PostgresqlConfigMap(cr *miqv1alpha1.ManageIQ) (*corev1.ConfigMap, controllerutil.MutateFn) {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
@@ -59,7 +59,7 @@ func NewPostgresqlConfigsConfigMap(cr *miqv1alpha1.ManageIQ) (*corev1.ConfigMap,
 	return configMap, configMapMutateFn(configMap, labels, data)
 }
 
-func NewPostgresqlPVC(cr *miqv1alpha1.ManageIQ) (*corev1.PersistentVolumeClaim, controllerutil.MutateFn) {
+func PostgresqlPVC(cr *miqv1alpha1.ManageIQ) (*corev1.PersistentVolumeClaim, controllerutil.MutateFn) {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
@@ -90,7 +90,7 @@ func NewPostgresqlPVC(cr *miqv1alpha1.ManageIQ) (*corev1.PersistentVolumeClaim, 
 	return pvc, pvcMutateFn(pvc, labels, accessModes, resources)
 }
 
-func NewPostgresqlService(cr *miqv1alpha1.ManageIQ) (*corev1.Service, controllerutil.MutateFn) {
+func PostgresqlService(cr *miqv1alpha1.ManageIQ) (*corev1.Service, controllerutil.MutateFn) {
 	labels := map[string]string{
 		"app": cr.Spec.AppName,
 	}
@@ -116,7 +116,7 @@ func NewPostgresqlService(cr *miqv1alpha1.ManageIQ) (*corev1.Service, controller
 	return service, serviceMutateFn(service, labels, ports, selector)
 }
 
-func NewPostgresqlDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
+func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
 	deploymentLabels := map[string]string{
 		"name": "postgresql",
 		"app":  cr.Spec.AppName,

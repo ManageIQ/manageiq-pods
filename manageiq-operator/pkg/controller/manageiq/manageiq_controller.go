@@ -236,28 +236,28 @@ func (r *ReconcileManageIQ) generatePostgresqlResources(cr *miqv1alpha1.ManageIQ
 		return err
 	}
 
-	configMap, mutateFunc := miqtool.NewPostgresqlConfigsConfigMap(cr)
+	configMap, mutateFunc := miqtool.PostgresqlConfigMap(cr)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, configMap, mutateFunc); err != nil {
 		return err
 	} else {
 		logger.Info("ConfigMap has been reconciled", "component", "postgresql", "result", result)
 	}
 
-	pvc, mutateFunc := miqtool.NewPostgresqlPVC(cr)
+	pvc, mutateFunc := miqtool.PostgresqlPVC(cr)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, pvc, mutateFunc); err != nil {
 		return err
 	} else {
 		logger.Info("Service has been reconciled", "component", "postgresql", "result", result)
 	}
 
-	service, mutateFunc := miqtool.NewPostgresqlService(cr)
+	service, mutateFunc := miqtool.PostgresqlService(cr)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, service, mutateFunc); err != nil {
 		return err
 	} else {
 		logger.Info("Service has been reconciled", "component", "postgresql", "result", result)
 	}
 
-	deployment, mutateFunc, err := miqtool.NewPostgresqlDeployment(cr, r.scheme)
+	deployment, mutateFunc, err := miqtool.PostgresqlDeployment(cr, r.scheme)
 	if err != nil {
 		return err
 	}
