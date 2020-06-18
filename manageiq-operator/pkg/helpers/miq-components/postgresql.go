@@ -66,11 +66,7 @@ func PostgresqlConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*cor
 	return configMap, f
 }
 
-func PostgresqlPVC(cr *miqv1alpha1.ManageIQ) (*corev1.PersistentVolumeClaim, controllerutil.MutateFn) {
-	labels := map[string]string{
-		"app": cr.Spec.AppName,
-	}
-
+func PostgresqlPVC(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.PersistentVolumeClaim, controllerutil.MutateFn) {
 	storageReq, _ := resource.ParseQuantity(cr.Spec.DatabaseVolumeCapacity)
 
 	resources := corev1.ResourceRequirements{
@@ -90,11 +86,22 @@ func PostgresqlPVC(cr *miqv1alpha1.ManageIQ) (*corev1.PersistentVolumeClaim, con
 		},
 	}
 
-	if cr.Spec.StorageClassName != "" {
-		pvc.Spec.StorageClassName = &cr.Spec.StorageClassName
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, pvc, scheme); err != nil {
+			return err
+		}
+
+		addAppLabel(cr.Spec.AppName, &pvc.ObjectMeta)
+		pvc.Spec.AccessModes = accessModes
+		pvc.Spec.Resources = resources
+
+		if cr.Spec.StorageClassName != "" {
+			pvc.Spec.StorageClassName = &cr.Spec.StorageClassName
+		}
+		return nil
 	}
 
-	return pvc, pvcMutateFn(pvc, labels, accessModes, resources)
+	return pvc, f
 }
 
 func PostgresqlService(cr *miqv1alpha1.ManageIQ) (*corev1.Service, controllerutil.MutateFn) {

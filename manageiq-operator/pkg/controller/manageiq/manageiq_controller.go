@@ -243,7 +243,7 @@ func (r *ReconcileManageIQ) generatePostgresqlResources(cr *miqv1alpha1.ManageIQ
 		logger.Info("ConfigMap has been reconciled", "component", "postgresql", "result", result)
 	}
 
-	pvc, mutateFunc := miqtool.PostgresqlPVC(cr)
+	pvc, mutateFunc := miqtool.PostgresqlPVC(cr, r.scheme)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, pvc, mutateFunc); err != nil {
 		return err
 	} else {

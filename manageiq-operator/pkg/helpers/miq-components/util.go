@@ -73,15 +73,3 @@ func serviceMutateFn(service *corev1.Service, labels map[string]string, ports []
 
 	return mutateFn
 }
-
-func pvcMutateFn(pvc *corev1.PersistentVolumeClaim, labels map[string]string, accessModes []corev1.PersistentVolumeAccessMode, resources corev1.ResourceRequirements) controllerutil.MutateFn {
-
-	mutateFn := func() error {
-		pvc.ObjectMeta.Labels = labels
-		pvc.Spec.AccessModes = accessModes
-		pvc.Spec.Resources = resources
-		return nil
-	}
-
-	return mutateFn
-}
