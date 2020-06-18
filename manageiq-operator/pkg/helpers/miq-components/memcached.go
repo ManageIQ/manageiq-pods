@@ -60,28 +60,24 @@ func NewMemcachedDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*
 		"name": "memcached",
 		"app":  cr.Spec.AppName,
 	}
-	var repNum int32 = 1
 
-	spec := appsv1.DeploymentSpec{
-		Replicas: &repNum,
-		Selector: &metav1.LabelSelector{
-			MatchLabels: podLabels,
-		},
-		Template: corev1.PodTemplateSpec{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:   "memcached",
-				Labels: podLabels,
-			},
-			Spec: corev1.PodSpec{
-				Containers: []corev1.Container{container},
-			},
-		},
-	}
-
+	// Values in this deployment are either immutable or used for lookup
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "memcached",
 			Namespace: cr.ObjectMeta.Namespace,
+		},
+		Spec: appsv1.DeploymentSpec{
+			Selector: &metav1.LabelSelector{
+				MatchLabels: podLabels,
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:   "memcached",
+					Labels: podLabels,
+				},
+				Spec: corev1.PodSpec{},
+			},
 		},
 	}
 
@@ -93,7 +89,9 @@ func NewMemcachedDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*
 			deployment.ObjectMeta.Labels = make(map[string]string)
 		}
 		deployment.ObjectMeta.Labels["app"] = cr.Spec.AppName
-		deployment.Spec = spec
+		var repNum int32 = 1
+		deployment.Spec.Replicas = &repNum
+		deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
 		return nil
 	}
 

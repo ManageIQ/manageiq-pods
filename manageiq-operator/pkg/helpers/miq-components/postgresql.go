@@ -189,45 +189,22 @@ func NewPostgresqlDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (
 		return nil, nil, err
 	}
 
-	var repNum int32 = 1
-
-	spec := appsv1.DeploymentSpec{
-		Replicas: &repNum,
-		Selector: &metav1.LabelSelector{
-			MatchLabels: deploymentLabels,
-		},
-		Template: corev1.PodTemplateSpec{
-			ObjectMeta: metav1.ObjectMeta{
-				Labels: deploymentLabels,
-				Name:   "postgresql",
-			},
-			Spec: corev1.PodSpec{
-				Containers: []corev1.Container{container},
-				Volumes: []corev1.Volume{
-					corev1.Volume{
-						Name: "miq-pgdb-volume",
-						VolumeSource: corev1.VolumeSource{
-							PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-								ClaimName: "postgresql",
-							},
-						},
-					},
-					corev1.Volume{
-						Name: "miq-pg-configs",
-						VolumeSource: corev1.VolumeSource{
-							ConfigMap: &corev1.ConfigMapVolumeSource{
-								LocalObjectReference: corev1.LocalObjectReference{Name: "postgresql-configs"},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "postgresql",
 			Namespace: cr.ObjectMeta.Namespace,
+		},
+		Spec: appsv1.DeploymentSpec{
+			Selector: &metav1.LabelSelector{
+				MatchLabels: deploymentLabels,
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: deploymentLabels,
+					Name:   "postgresql",
+				},
+				Spec: corev1.PodSpec{},
+			},
 		},
 	}
 
@@ -239,8 +216,29 @@ func NewPostgresqlDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (
 			deployment.ObjectMeta.Labels = make(map[string]string)
 		}
 		deployment.ObjectMeta.Labels["app"] = cr.Spec.AppName
-		deployment.Spec = spec
+		var repNum int32 = 1
+		deployment.Spec.Replicas = &repNum
+		deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
+		deployment.Spec.Template.Spec.Volumes = []corev1.Volume{
+			corev1.Volume{
+				Name: "miq-pgdb-volume",
+				VolumeSource: corev1.VolumeSource{
+					PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+						ClaimName: "postgresql",
+					},
+				},
+			},
+			corev1.Volume{
+				Name: "miq-pg-configs",
+				VolumeSource: corev1.VolumeSource{
+					ConfigMap: &corev1.ConfigMapVolumeSource{
+						LocalObjectReference: corev1.LocalObjectReference{Name: "postgresql-configs"},
+					},
+				},
+			},
+		}
 		return nil
 	}
+
 	return deployment, f, nil
 }
