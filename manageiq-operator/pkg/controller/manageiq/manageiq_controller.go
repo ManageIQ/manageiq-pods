@@ -250,7 +250,7 @@ func (r *ReconcileManageIQ) generatePostgresqlResources(cr *miqv1alpha1.ManageIQ
 		logger.Info("Service has been reconciled", "component", "postgresql", "result", result)
 	}
 
-	service, mutateFunc := miqtool.PostgresqlService(cr)
+	service, mutateFunc := miqtool.PostgresqlService(cr, r.scheme)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, service, mutateFunc); err != nil {
 		return err
 	} else {

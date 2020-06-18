@@ -104,15 +104,7 @@ func PostgresqlPVC(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Pe
 	return pvc, f
 }
 
-func PostgresqlService(cr *miqv1alpha1.ManageIQ) (*corev1.Service, controllerutil.MutateFn) {
-	labels := map[string]string{
-		"app": cr.Spec.AppName,
-	}
-
-	selector := map[string]string{
-		"name": "postgresql",
-	}
-
+func PostgresqlService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Service, controllerutil.MutateFn) {
 	ports := []corev1.ServicePort{
 		corev1.ServicePort{
 			Name: "postgresql",
@@ -127,7 +119,18 @@ func PostgresqlService(cr *miqv1alpha1.ManageIQ) (*corev1.Service, controlleruti
 		},
 	}
 
-	return service, serviceMutateFn(service, labels, ports, selector)
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, service, scheme); err != nil {
+			return err
+		}
+
+		addAppLabel(cr.Spec.AppName, &service.ObjectMeta)
+		service.Spec.Ports = ports
+		service.Spec.Selector = map[string]string{"name": "postgresql"}
+		return nil
+	}
+
+	return service, f
 }
 
 func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
