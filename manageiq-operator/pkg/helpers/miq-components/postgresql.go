@@ -42,13 +42,11 @@ func postgresqlSecretName(cr *miqv1alpha1.ManageIQ) string {
 	return secretName
 }
 
-func NewPostgresqlConfigsConfigMap(cr *miqv1alpha1.ManageIQ) (*corev1.ConfigMap, controllerutil.MutateFn) {
-	labels := map[string]string{
-		"app": cr.Spec.AppName,
-	}
+func PostgresqlConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.ConfigMap, controllerutil.MutateFn) {
 	data := map[string]string{
 		"01_miq_overrides.conf": postgresqlOverrideConf(),
 	}
+
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "postgresql-configs",
@@ -56,14 +54,19 @@ func NewPostgresqlConfigsConfigMap(cr *miqv1alpha1.ManageIQ) (*corev1.ConfigMap,
 		},
 	}
 
-	return configMap, configMapMutateFn(configMap, labels, data)
-}
-
-func NewPostgresqlPVC(cr *miqv1alpha1.ManageIQ) (*corev1.PersistentVolumeClaim, controllerutil.MutateFn) {
-	labels := map[string]string{
-		"app": cr.Spec.AppName,
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, configMap, scheme); err != nil {
+			return err
+		}
+		addAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
+		configMap.Data = data
+		return nil
 	}
 
+	return configMap, f
+}
+
+func PostgresqlPVC(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.PersistentVolumeClaim, controllerutil.MutateFn) {
 	storageReq, _ := resource.ParseQuantity(cr.Spec.DatabaseVolumeCapacity)
 
 	resources := corev1.ResourceRequirements{
@@ -83,22 +86,25 @@ func NewPostgresqlPVC(cr *miqv1alpha1.ManageIQ) (*corev1.PersistentVolumeClaim, 
 		},
 	}
 
-	if cr.Spec.StorageClassName != "" {
-		pvc.Spec.StorageClassName = &cr.Spec.StorageClassName
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, pvc, scheme); err != nil {
+			return err
+		}
+
+		addAppLabel(cr.Spec.AppName, &pvc.ObjectMeta)
+		pvc.Spec.AccessModes = accessModes
+		pvc.Spec.Resources = resources
+
+		if cr.Spec.StorageClassName != "" {
+			pvc.Spec.StorageClassName = &cr.Spec.StorageClassName
+		}
+		return nil
 	}
 
-	return pvc, pvcMutateFn(pvc, labels, accessModes, resources)
+	return pvc, f
 }
 
-func NewPostgresqlService(cr *miqv1alpha1.ManageIQ) (*corev1.Service, controllerutil.MutateFn) {
-	labels := map[string]string{
-		"app": cr.Spec.AppName,
-	}
-
-	selector := map[string]string{
-		"name": "postgresql",
-	}
-
+func PostgresqlService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Service, controllerutil.MutateFn) {
 	ports := []corev1.ServicePort{
 		corev1.ServicePort{
 			Name: "postgresql",
@@ -113,10 +119,21 @@ func NewPostgresqlService(cr *miqv1alpha1.ManageIQ) (*corev1.Service, controller
 		},
 	}
 
-	return service, serviceMutateFn(service, labels, ports, selector)
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, service, scheme); err != nil {
+			return err
+		}
+
+		addAppLabel(cr.Spec.AppName, &service.ObjectMeta)
+		service.Spec.Ports = ports
+		service.Spec.Selector = map[string]string{"name": "postgresql"}
+		return nil
+	}
+
+	return service, f
 }
 
-func NewPostgresqlDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
+func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
 	deploymentLabels := map[string]string{
 		"name": "postgresql",
 		"app":  cr.Spec.AppName,
@@ -212,10 +229,7 @@ func NewPostgresqlDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (
 		if err := controllerutil.SetControllerReference(cr, deployment, scheme); err != nil {
 			return err
 		}
-		if deployment.ObjectMeta.Labels == nil {
-			deployment.ObjectMeta.Labels = make(map[string]string)
-		}
-		deployment.ObjectMeta.Labels["app"] = cr.Spec.AppName
+		addAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)
 		var repNum int32 = 1
 		deployment.Spec.Replicas = &repNum
 		deployment.Spec.Template.Spec.Containers = []corev1.Container{container}

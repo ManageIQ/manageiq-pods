@@ -85,10 +85,7 @@ func NewMemcachedDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*
 		if err := controllerutil.SetControllerReference(cr, deployment, scheme); err != nil {
 			return err
 		}
-		if deployment.ObjectMeta.Labels == nil {
-			deployment.ObjectMeta.Labels = make(map[string]string)
-		}
-		deployment.ObjectMeta.Labels["app"] = cr.Spec.AppName
+		addAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)
 		var repNum int32 = 1
 		deployment.Spec.Replicas = &repNum
 		deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
@@ -110,10 +107,7 @@ func NewMemcachedService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*cor
 		if err := controllerutil.SetControllerReference(cr, service, scheme); err != nil {
 			return err
 		}
-		if service.ObjectMeta.Labels == nil {
-			service.ObjectMeta.Labels = make(map[string]string)
-		}
-		service.ObjectMeta.Labels["app"] = cr.Spec.AppName
+		addAppLabel(cr.Spec.AppName, &service.ObjectMeta)
 		service.Spec.Ports = []corev1.ServicePort{
 			corev1.ServicePort{
 				Name: "memcached",

@@ -3,7 +3,7 @@ package miqtools
 import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func addResourceReqs(memLimit, memReq, cpuLimit, cpuReq string, c *corev1.Container) error {
@@ -54,39 +54,9 @@ func addResourceReqs(memLimit, memReq, cpuLimit, cpuReq string, c *corev1.Contai
 	return nil
 }
 
-func serviceMutateFn(service *corev1.Service, labels map[string]string, ports []corev1.ServicePort, selector map[string]string) controllerutil.MutateFn {
-
-	mutateFn := func() error {
-		service.ObjectMeta.Labels = labels
-		service.Spec.Ports = ports
-		service.Spec.Selector = selector
-		return nil
+func addAppLabel(appName string, meta *metav1.ObjectMeta) {
+	if meta.Labels == nil {
+		meta.Labels = make(map[string]string)
 	}
-
-	return mutateFn
-}
-
-func configMapMutateFn(configMap *corev1.ConfigMap, labels map[string]string, data map[string]string) controllerutil.MutateFn {
-
-	mutateFn := func() error {
-		configMap.ObjectMeta.Labels = labels
-		if len(data) > 0 {
-			configMap.Data = data
-		}
-		return nil
-	}
-
-	return mutateFn
-}
-
-func pvcMutateFn(pvc *corev1.PersistentVolumeClaim, labels map[string]string, accessModes []corev1.PersistentVolumeAccessMode, resources corev1.ResourceRequirements) controllerutil.MutateFn {
-
-	mutateFn := func() error {
-		pvc.ObjectMeta.Labels = labels
-		pvc.Spec.AccessModes = accessModes
-		pvc.Spec.Resources = resources
-		return nil
-	}
-
-	return mutateFn
+	meta.Labels["app"] = appName
 }
