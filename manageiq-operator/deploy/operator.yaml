@@ -18,7 +18,7 @@ spec:
           image: docker.io/manageiq/manageiq-operator:latest-jansa
           command:
           - manageiq-operator
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE
               valueFrom:
