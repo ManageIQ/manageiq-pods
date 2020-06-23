@@ -61,6 +61,24 @@ func addMessagingEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
 	return
 }
 
+func addWorkerImageEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
+	// If any of the images were not provided, add the orchestrator namespace and tag
+	if cr.Spec.BaseWorkerImage == "" || cr.Spec.WebserverWorkerImage == "" || cr.Spec.UIWorkerImage == "" {
+		c.Env = append(c.Env, corev1.EnvVar{Name: "CONTAINER_IMAGE_NAMESPACE", Value: cr.Spec.OrchestratorImageNamespace})
+		c.Env = append(c.Env, corev1.EnvVar{Name: "CONTAINER_IMAGE_TAG", Value: cr.Spec.OrchestratorImageTag})
+	}
+
+	if cr.Spec.BaseWorkerImage != "" {
+		c.Env = append(c.Env, corev1.EnvVar{Name: "BASE_WORKER_IMAGE", Value: cr.Spec.BaseWorkerImage})
+	}
+	if cr.Spec.WebserverWorkerImage != "" {
+		c.Env = append(c.Env, corev1.EnvVar{Name: "WEBSERVER_WORKER_IMAGE", Value: cr.Spec.WebserverWorkerImage})
+	}
+	if cr.Spec.UIWorkerImage != "" {
+		c.Env = append(c.Env, corev1.EnvVar{Name: "UI_WORKER_IMAGE", Value: cr.Spec.UIWorkerImage})
+	}
+}
+
 func NewOrchestratorDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, error) {
 	delaySecs, err := strconv.Atoi(cr.Spec.OrchestratorInitialDelay)
 	if err != nil {
@@ -168,14 +186,6 @@ func NewOrchestratorDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, er
 				},
 			},
 			corev1.EnvVar{
-				Name:  "CONTAINER_IMAGE_NAMESPACE",
-				Value: cr.Spec.OrchestratorImageNamespace,
-			},
-			corev1.EnvVar{
-				Name:  "CONTAINER_IMAGE_TAG",
-				Value: cr.Spec.OrchestratorImageTag,
-			},
-			corev1.EnvVar{
 				Name: "POD_NAME",
 				ValueFrom: &corev1.EnvVarSource{
 					FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.name"},
@@ -195,6 +205,7 @@ func NewOrchestratorDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, er
 	}
 
 	addMessagingEnv(cr, &container)
+	addWorkerImageEnv(cr, &container)
 	err = addResourceReqs(cr.Spec.OrchestratorMemoryLimit, cr.Spec.OrchestratorMemoryRequest, cr.Spec.OrchestratorCpuLimit, cr.Spec.OrchestratorCpuRequest, &container)
 	if err != nil {
 		return nil, err

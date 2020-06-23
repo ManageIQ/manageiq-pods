@@ -152,6 +152,19 @@ type ManageIQSpec struct {
 	// +optional
 	OrchestratorMemoryRequest string `json:"orchestratorMemoryRequest"`
 
+	// Image string used for the base worker deployments
+	// By default this is determined by the orchestrator pod
+	// +optional
+	BaseWorkerImage string `json:"baseWorkerImage"`
+	// Image string used for the webserver worker deployments
+	// By default this is determined by the orchestrator pod
+	// +optional
+	WebserverWorkerImage string `json:"webserverWorkerImage"`
+	// Image string used for the UI worker deployments
+	// By default this is determined by the orchestrator pod
+	// +optional
+	UIWorkerImage string `json:"uiWorkerImage"`
+
 	// Image used for the postgresql deployment (Default: docker.io/manageiq/postgresql)
 	// +optional
 	PostgresqlImageName string `json:"postgresqlImageName"`
