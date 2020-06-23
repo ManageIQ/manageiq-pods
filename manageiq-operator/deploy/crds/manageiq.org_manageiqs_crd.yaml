@@ -38,6 +38,10 @@ spec:
               description: Domain name for the external route. Used for external authentication
                 configuration
               type: string
+            baseWorkerImage:
+              description: Image string used for the base worker deployments By default
+                this is determined by the orchestrator pod
+              type: string
             databaseRegion:
               description: 'Database region number (default: 0)'
               type: string
@@ -226,6 +230,14 @@ spec:
             tlsSecret:
               description: 'Secret containing the tls cert and key for the ingress,
                 content generated if not provided (default: tls-secret)'
+              type: string
+            uiWorkerImage:
+              description: Image string used for the UI worker deployments By default
+                this is determined by the orchestrator pod
+              type: string
+            webserverWorkerImage:
+              description: Image string used for the webserver worker deployments
+                By default this is determined by the orchestrator pod
               type: string
             zookeeperCpuRequest:
               description: 'Zookeeper deployment CPU request (default: no request)'
