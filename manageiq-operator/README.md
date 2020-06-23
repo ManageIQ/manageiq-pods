@@ -2,6 +2,12 @@
 
 This operator manages the lifecycle of ManageIQ application on a OCP4 cluster.
 
+## Customizing the installation
+
+ManageIQ can be run with an external Postgres or messaging server.  To do so, please create the required OpenShift secret(s) with the correct parameters using the template(s) for [Postgres](templates/app/postgresql-secrets.yaml) or [messaging](/templates/app/kafka-secrets.yaml) and provide those secret names as `databaseSecret` and/or `kafkaSecret` in `manageiq.org_v1alpha1_manageiq_cr.yaml`.
+
+If you want to use a custom TLS certificate, it can be created with `oc create secret tls tls-secret --cert=tls.crt --key=tls.key` and setting the secret name as `tlsSecret` in `manageiq.org_v1alpha1_manageiq_cr.yaml`.
+
 ## Run Operator
 
 Deploy the ManageIQ CRD
