@@ -25,9 +25,13 @@ LABEL name="manageiq" \
       io.k8s.description="ManageIQ is a management and automation platform for virtual, private, and hybrid cloud infrastructures." \
       io.openshift.tags="ManageIQ,miq,manageiq"
 
+RUN curl -L -o /etc/yum.repos.d/ansible-runner.repo https://releases.ansible.com/ansible-runner/ansible-runner.el7.repo
+
 ## Install EPEL repo, yum necessary packages for the build without docs, clean all caches
 RUN yum -y install https://rpm.nodesource.com/pub_10.x/el/7/x86_64/nodesource-release-el7-1.noarch.rpm && \
     yum -y install --setopt=tsflags=nodocs \
+                   ansible                 \
+                   ansible-runner          \
                    chrony                  \
                    cmake                   \
                    cronie                  \
@@ -87,6 +91,12 @@ RUN source /etc/default/evm && \
     rm -rvf ${RUBY_GEMS_ROOT}/cache/* && \
     rm -rvf /root/.bundle/cache && \
     rm -vf ${APP_ROOT}/log/*.log
+
+## Install python modules
+RUN yum -y install --setopt=tsflags=nodocs python-devel && \
+    curl -L -o /tmp/python_modules \
+      https://raw.githubusercontent.com/ManageIQ/manageiq-appliance-build/${REF}/kickstarts/partials/post/python_modules.ks.erb && \
+    bash /tmp/python_modules && rm -f /tmp/python_modules
 
 ## Copy OpenShift and appliance-initialize scripts
 COPY container-assets/entrypoint /usr/bin
