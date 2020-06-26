@@ -250,6 +250,11 @@ OIDCOAuthIntrospectionEndpointAuth client_secret_post
   Require                    valid-user
 </Location>
 
+<Location /ui/service/oidc_login>
+  AuthType                   openid-connect
+  Require                    valid-user
+  Header set Set-Cookie      "miq_oidc_access_token=%%{OIDC_access_token}e; Max-Age=10; Path=/ui/service"
+</Location>
 %s
 
 RequestHeader unset X_REMOTE_USER
