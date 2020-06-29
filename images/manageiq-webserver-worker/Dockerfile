@@ -11,4 +11,6 @@ LABEL name="manageiq-webserver-worker" \
 
 RUN dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install ${RPM_PREFIX}-ui && dnf clean all
 
+RUN source /etc/default/evm && /usr/bin/generate_rpm_manifest.sh
+
 EXPOSE 3000

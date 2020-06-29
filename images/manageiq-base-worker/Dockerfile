@@ -10,4 +10,6 @@ LABEL name="manageiq-base-worker" \
 COPY container-assets/entrypoint /usr/local/bin
 COPY container-assets/manageiq_liveness_check /usr/local/bin
 
+RUN source /etc/default/evm && /usr/bin/generate_rpm_manifest.sh
+
 CMD ["entrypoint"]
