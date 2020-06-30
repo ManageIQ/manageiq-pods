@@ -277,40 +277,54 @@ func (r *ReconcileManageIQ) generateKafkaResources(cr *miqv1alpha1.ManageIQ) err
 		return err
 	}
 
-	kafkaPVC := miqtool.KafkaPVC(cr)
-	if err := r.createk8sResIfNotExist(cr, kafkaPVC, &corev1.PersistentVolumeClaim{}); err != nil {
+	kafkaPVC, mutateFunc := miqtool.KafkaPVC(cr, r.scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, kafkaPVC, mutateFunc); err != nil {
 		return err
+	} else {
+		logger.Info("PVC has been reconciled", "component", "kafka", "result", result)
 	}
 
-	zookeeperPVC := miqtool.ZookeeperPVC(cr)
-	if err := r.createk8sResIfNotExist(cr, zookeeperPVC, &corev1.PersistentVolumeClaim{}); err != nil {
+	zookeeperPVC, mutateFunc := miqtool.ZookeeperPVC(cr, r.scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, zookeeperPVC, mutateFunc); err != nil {
 		return err
+	} else {
+		logger.Info("PVC has been reconciled", "component", "zookeeper", "result", result)
 	}
 
-	kafkaService := miqtool.KafkaService(cr)
-	if err := r.createk8sResIfNotExist(cr, kafkaService, &corev1.Service{}); err != nil {
+	kafkaService, mutateFunc := miqtool.KafkaService(cr, r.scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, kafkaService, mutateFunc); err != nil {
 		return err
+	} else {
+		logger.Info("Service has been reconciled", "component", "kafka", "result", result)
 	}
 
-	zookeeperService := miqtool.ZookeeperService(cr)
-	if err := r.createk8sResIfNotExist(cr, zookeeperService, &corev1.Service{}); err != nil {
+	zookeeperService, mutateFunc := miqtool.ZookeeperService(cr, r.scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, zookeeperService, mutateFunc); err != nil {
 		return err
+	} else {
+		logger.Info("Service has been reconciled", "component", "zookeeper", "result", result)
 	}
 
-	kafkaDeployment, err := miqtool.KafkaDeployment(cr)
+	kafkaDeployment, mutateFunc, err := miqtool.KafkaDeployment(cr, r.scheme)
 	if err != nil {
 		return err
 	}
-	if err := r.createk8sResIfNotExist(cr, kafkaDeployment, &appsv1.Deployment{}); err != nil {
+
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, kafkaDeployment, mutateFunc); err != nil {
 		return err
+	} else {
+		logger.Info("Deployment has been reconciled", "component", "kafka", "result", result)
 	}
 
-	zookeeperDeployment, err := miqtool.ZookeeperDeployment(cr)
+	zookeeperDeployment, mutateFunc, err := miqtool.ZookeeperDeployment(cr, r.scheme)
 	if err != nil {
 		return err
 	}
-	if err := r.createk8sResIfNotExist(cr, zookeeperDeployment, &appsv1.Deployment{}); err != nil {
+
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, zookeeperDeployment, mutateFunc); err != nil {
 		return err
+	} else {
+		logger.Info("Deployment has been reconciled", "component", "zookeeper", "result", result)
 	}
 
 	return nil

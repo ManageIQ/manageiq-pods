@@ -6,6 +6,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	resource "k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 func DefaultKafkaSecret(cr *miqv1alpha1.ManageIQ) *corev1.Secret {
@@ -37,119 +39,150 @@ func kafkaSecretName(cr *miqv1alpha1.ManageIQ) string {
 	return secretName
 }
 
-func KafkaPVC(cr *miqv1alpha1.ManageIQ) *corev1.PersistentVolumeClaim {
-	labels := map[string]string{
-		"app": cr.Spec.AppName,
-	}
+func KafkaPVC(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.PersistentVolumeClaim, controllerutil.MutateFn) {
 	storageReq, _ := resource.ParseQuantity(cr.Spec.KafkaVolumeCapacity)
+
+	resources := corev1.ResourceRequirements{
+		Requests: corev1.ResourceList{
+			"storage": storageReq,
+		},
+	}
+
+	accessModes := []corev1.PersistentVolumeAccessMode{
+		"ReadWriteOnce",
+	}
+
 	pvc := &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "kafka-data",
 			Namespace: cr.ObjectMeta.Namespace,
-			Labels:    labels,
-		},
-		Spec: corev1.PersistentVolumeClaimSpec{
-			AccessModes: []corev1.PersistentVolumeAccessMode{
-				"ReadWriteOnce",
-			},
-			Resources: corev1.ResourceRequirements{
-				Requests: corev1.ResourceList{
-					"storage": storageReq,
-				},
-			},
 		},
 	}
 
-	if cr.Spec.StorageClassName != "" {
-		pvc.Spec.StorageClassName = &cr.Spec.StorageClassName
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, pvc, scheme); err != nil {
+			return err
+		}
+
+		addAppLabel(cr.Spec.AppName, &pvc.ObjectMeta)
+		pvc.Spec.AccessModes = accessModes
+		pvc.Spec.Resources = resources
+
+		if cr.Spec.StorageClassName != "" {
+			pvc.Spec.StorageClassName = &cr.Spec.StorageClassName
+		}
+		return nil
 	}
 
-	return pvc
+	return pvc, f
 }
 
-func ZookeeperPVC(cr *miqv1alpha1.ManageIQ) *corev1.PersistentVolumeClaim {
-	labels := map[string]string{
-		"app": cr.Spec.AppName,
+func ZookeeperPVC(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.PersistentVolumeClaim, controllerutil.MutateFn) {
+	storageReq, _ := resource.ParseQuantity(cr.Spec.DatabaseVolumeCapacity)
+
+	resources := corev1.ResourceRequirements{
+		Requests: corev1.ResourceList{
+			"storage": storageReq,
+		},
 	}
-	storageReq, _ := resource.ParseQuantity(cr.Spec.ZookeeperVolumeCapacity)
+
+	accessModes := []corev1.PersistentVolumeAccessMode{
+		"ReadWriteOnce",
+	}
+
 	pvc := &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "zookeeper-data",
 			Namespace: cr.ObjectMeta.Namespace,
-			Labels:    labels,
-		},
-		Spec: corev1.PersistentVolumeClaimSpec{
-			AccessModes: []corev1.PersistentVolumeAccessMode{
-				"ReadWriteOnce",
-			},
-			Resources: corev1.ResourceRequirements{
-				Requests: corev1.ResourceList{
-					"storage": storageReq,
-				},
-			},
 		},
 	}
 
-	if cr.Spec.StorageClassName != "" {
-		pvc.Spec.StorageClassName = &cr.Spec.StorageClassName
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, pvc, scheme); err != nil {
+			return err
+		}
+
+		addAppLabel(cr.Spec.AppName, &pvc.ObjectMeta)
+		pvc.Spec.AccessModes = accessModes
+		pvc.Spec.Resources = resources
+
+		if cr.Spec.StorageClassName != "" {
+			pvc.Spec.StorageClassName = &cr.Spec.StorageClassName
+		}
+		return nil
 	}
 
-	return pvc
+	return pvc, f
 }
 
-func KafkaService(cr *miqv1alpha1.ManageIQ) *corev1.Service {
-	labels := map[string]string{
-		"app": cr.Spec.AppName,
-	}
-	selector := map[string]string{
-		"name": "kafka",
-	}
+func KafkaService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Service, controllerutil.MutateFn) {
 	var port int32 = 9092
-	return &corev1.Service{
+
+	ports := []corev1.ServicePort{
+		corev1.ServicePort{
+			Name: "kafka",
+			Port: port,
+		},
+	}
+
+	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "kafka",
 			Namespace: cr.ObjectMeta.Namespace,
-			Labels:    labels,
-		},
-		Spec: corev1.ServiceSpec{
-			Ports: []corev1.ServicePort{
-				corev1.ServicePort{
-					Name: "kafka",
-					Port: port,
-				},
-			},
-			Selector: selector,
 		},
 	}
+
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, service, scheme); err != nil {
+			return err
+		}
+
+		addAppLabel(cr.Spec.AppName, &service.ObjectMeta)
+		service.Spec.Ports = ports
+		service.Spec.Selector = map[string]string{"name": "kafka"}
+		return nil
+	}
+
+	return service, f
 }
 
-func ZookeeperService(cr *miqv1alpha1.ManageIQ) *corev1.Service {
-	labels := map[string]string{
-		"app": cr.Spec.AppName,
-	}
-	selector := map[string]string{
-		"name": "zookeeper",
-	}
+func ZookeeperService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Service, controllerutil.MutateFn) {
 	var port int32 = 2181
-	return &corev1.Service{
+
+	ports := []corev1.ServicePort{
+		corev1.ServicePort{
+			Name: "zookeeper",
+			Port: port,
+		},
+	}
+
+	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "zookeeper",
 			Namespace: cr.ObjectMeta.Namespace,
-			Labels:    labels,
-		},
-		Spec: corev1.ServiceSpec{
-			Ports: []corev1.ServicePort{
-				corev1.ServicePort{
-					Name: "zookeeper",
-					Port: port,
-				},
-			},
-			Selector: selector,
 		},
 	}
+
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, service, scheme); err != nil {
+			return err
+		}
+
+		addAppLabel(cr.Spec.AppName, &service.ObjectMeta)
+		service.Spec.Ports = ports
+		service.Spec.Selector = map[string]string{"name": "zookeeper"}
+		return nil
+	}
+
+	return service, f
 }
 
-func KafkaDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, error) {
+func KafkaDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
+	deploymentLabels := map[string]string{
+		"name": "kafka",
+		"app":  cr.Spec.AppName,
+	}
+
 	container := corev1.Container{
 		Name:            "kafka",
 		Image:           cr.Spec.KafkaImageName + ":" + cr.Spec.KafkaImageTag,
@@ -194,60 +227,60 @@ func KafkaDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, error) {
 
 	err := addResourceReqs(cr.Spec.KafkaMemoryLimit, cr.Spec.KafkaMemoryRequest, cr.Spec.KafkaCpuLimit, cr.Spec.KafkaCpuRequest, &container)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-
-	deploymentLabels := map[string]string{
-		"app": cr.Spec.AppName,
-	}
-	podLabels := map[string]string{
-		"name": "kafka",
-		"app":  cr.Spec.AppName,
-	}
-	var repNum int32 = 1
-	var termSecs int64 = 10
 
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "kafka",
 			Namespace: cr.ObjectMeta.Namespace,
-			Labels:    deploymentLabels,
 		},
 		Spec: appsv1.DeploymentSpec{
-			Strategy: appsv1.DeploymentStrategy{
-				Type: "Recreate",
-			},
-			Replicas: &repNum,
 			Selector: &metav1.LabelSelector{
-				MatchLabels: podLabels,
+				MatchLabels: deploymentLabels,
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
+					Labels: deploymentLabels,
 					Name:   "kafka",
-					Labels: podLabels,
 				},
-				Spec: corev1.PodSpec{
-					Containers:                    []corev1.Container{container},
-					TerminationGracePeriodSeconds: &termSecs,
-					Volumes: []corev1.Volume{
-						corev1.Volume{
-							Name: "kafka-data",
-							VolumeSource: corev1.VolumeSource{
-								PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-									ClaimName: "kafka-data",
-								},
-							},
-						},
-					},
-				},
+				Spec: corev1.PodSpec{},
 			},
 		},
 	}
 
-	return deployment, nil
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, deployment, scheme); err != nil {
+			return err
+		}
+		addAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)
+		var repNum int32 = 1
+		deployment.Spec.Replicas = &repNum
+		deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
+		var termSecs int64 = 10
+		deployment.Spec.Template.Spec.TerminationGracePeriodSeconds = &termSecs
+		deployment.Spec.Template.Spec.Volumes = []corev1.Volume{
+			corev1.Volume{
+				Name: "kafka-data",
+				VolumeSource: corev1.VolumeSource{
+					PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+						ClaimName: "kafka-data",
+					},
+				},
+			},
+		}
+		return nil
+	}
+
+	return deployment, f, nil
 }
 
-func ZookeeperDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, error) {
+func ZookeeperDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
+	deploymentLabels := map[string]string{
+		"name": "zookeeper",
+		"app":  cr.Spec.AppName,
+	}
+
 	container := corev1.Container{
 		Name:            "zookeeper",
 		Image:           cr.Spec.ZookeeperImageName + ":" + cr.Spec.ZookeeperImageTag,
@@ -270,53 +303,48 @@ func ZookeeperDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, error) {
 
 	err := addResourceReqs(cr.Spec.ZookeeperMemoryLimit, cr.Spec.ZookeeperMemoryRequest, cr.Spec.ZookeeperCpuLimit, cr.Spec.ZookeeperCpuRequest, &container)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-
-	deploymentLabels := map[string]string{
-		"app": cr.Spec.AppName,
-	}
-	podLabels := map[string]string{
-		"name": "zookeeper",
-		"app":  cr.Spec.AppName,
-	}
-	var repNum int32 = 1
 
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "zookeeper",
 			Namespace: cr.ObjectMeta.Namespace,
-			Labels:    deploymentLabels,
 		},
 		Spec: appsv1.DeploymentSpec{
-			Strategy: appsv1.DeploymentStrategy{
-				Type: "Recreate",
-			},
-			Replicas: &repNum,
 			Selector: &metav1.LabelSelector{
-				MatchLabels: podLabels,
+				MatchLabels: deploymentLabels,
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
+					Labels: deploymentLabels,
 					Name:   "zookeeper",
-					Labels: podLabels,
 				},
-				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{container},
-					Volumes: []corev1.Volume{
-						corev1.Volume{
-							Name: "zookeeper-data",
-							VolumeSource: corev1.VolumeSource{
-								PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-									ClaimName: "zookeeper-data",
-								},
-							},
-						},
-					},
-				},
+				Spec: corev1.PodSpec{},
 			},
 		},
 	}
 
-	return deployment, nil
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, deployment, scheme); err != nil {
+			return err
+		}
+		addAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)
+		var repNum int32 = 1
+		deployment.Spec.Replicas = &repNum
+		deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
+		deployment.Spec.Template.Spec.Volumes = []corev1.Volume{
+			corev1.Volume{
+				Name: "zookeeper-data",
+				VolumeSource: corev1.VolumeSource{
+					PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+						ClaimName: "zookeeper-data",
+					},
+				},
+			},
+		}
+		return nil
+	}
+
+	return deployment, f, nil
 }
