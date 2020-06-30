@@ -260,6 +260,9 @@ OIDCOAuthIntrospectionEndpointAuth client_secret_post
 </Location>
 %s
 
+RequestHeader unset X-REMOTE-USER
+RequestHeader unset X-REMOTE_USER
+RequestHeader unset X_REMOTE-USER
 RequestHeader unset X_REMOTE_USER
 
 RequestHeader set X_REMOTE_USER           %%{OIDC_CLAIM_PREFERRED_USERNAME}e env=OIDC_CLAIM_PREFERRED_USERNAME
@@ -350,6 +353,9 @@ func httpdAuthLookupUserDetailsConf() string {
 
 func httpdAuthRemoteUserConf() string {
 	return `
+RequestHeader unset X-REMOTE-USER
+RequestHeader unset X-REMOTE_USER
+RequestHeader unset X_REMOTE-USER
 RequestHeader unset X_REMOTE_USER
 
 RequestHeader set X_REMOTE_USER           %{REMOTE_USER}e           env=REMOTE_USER
