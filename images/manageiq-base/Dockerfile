@@ -74,4 +74,6 @@ ADD container-assets/container_env ${APP_ROOT}
 RUN curl -L -o /usr/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.2/dumb-init_1.2.2_${ARCH} && \
     chmod +x /usr/bin/dumb-init
 
+RUN source /etc/default/evm && /usr/bin/generate_rpm_manifest.sh
+
 ENTRYPOINT ["/usr/bin/dumb-init", "--single-child", "--"]

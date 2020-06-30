@@ -9,4 +9,6 @@ LABEL name="manageiq-orchestrator" \
 
 COPY container-assets/entrypoint /usr/local/bin
 
+RUN source /etc/default/evm && /usr/bin/generate_rpm_manifest.sh
+
 CMD ["entrypoint"]
