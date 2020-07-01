@@ -5,6 +5,8 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"strconv"
 	"strings"
 
@@ -79,14 +81,19 @@ func addWorkerImageEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
 	}
 }
 
-func NewOrchestratorDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, error) {
+func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
 	delaySecs, err := strconv.Atoi(cr.Spec.OrchestratorInitialDelay)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	pullPolicy := corev1.PullIfNotPresent
 	if strings.Contains(cr.Spec.OrchestratorImageTag, "latest") {
 		pullPolicy = corev1.PullAlways
+	}
+
+	deploymentLabels := map[string]string{
+		"name": "orchestrator",
+		"app":  cr.Spec.AppName,
 	}
 
 	container := corev1.Container{
@@ -208,62 +215,56 @@ func NewOrchestratorDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, er
 	addWorkerImageEnv(cr, &container)
 	err = addResourceReqs(cr.Spec.OrchestratorMemoryLimit, cr.Spec.OrchestratorMemoryRequest, cr.Spec.OrchestratorCpuLimit, cr.Spec.OrchestratorCpuRequest, &container)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-
-	deploymentLabels := map[string]string{
-		"app": cr.Spec.AppName,
-	}
-	podLabels := map[string]string{
-		"name": "orchestrator",
-		"app":  cr.Spec.AppName,
-	}
-
-	var repNum int32 = 1
-	var termSecs int64 = 90
 
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "orchestrator",
 			Namespace: cr.ObjectMeta.Namespace,
-			Labels:    deploymentLabels,
 		},
 		Spec: appsv1.DeploymentSpec{
-			Strategy: appsv1.DeploymentStrategy{
-				Type: "Recreate",
-			},
-			Replicas: &repNum,
 			Selector: &metav1.LabelSelector{
-				MatchLabels: podLabels,
+				MatchLabels: deploymentLabels,
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
+					Labels: deploymentLabels,
 					Name:   "orchestrator",
-					Labels: podLabels,
 				},
-				Spec: corev1.PodSpec{
-					Containers:                    []corev1.Container{container},
-					TerminationGracePeriodSeconds: &termSecs,
-
-					ServiceAccountName: cr.Spec.AppName + "-orchestrator",
-				},
+				Spec: corev1.PodSpec{},
 			},
 		},
 	}
 
-	if cr.Spec.ImagePullSecret != "" {
-		pullSecret := []corev1.LocalObjectReference{
-			corev1.LocalObjectReference{Name: cr.Spec.ImagePullSecret},
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, deployment, scheme); err != nil {
+			return err
 		}
-		deployment.Spec.Template.Spec.ImagePullSecrets = pullSecret
+		addAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)
+		var repNum int32 = 1
+		deployment.Spec.Replicas = &repNum
+		deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
+		var termSecs int64 = 90
+		deployment.Spec.Template.Spec.ServiceAccountName = cr.Spec.AppName + "-orchestrator"
+		deployment.Spec.Template.Spec.TerminationGracePeriodSeconds = &termSecs
 
-		c := &deployment.Spec.Template.Spec.Containers[0]
-		pullSecretEnv := corev1.EnvVar{
-			Name:  "IMAGE_PULL_SECRET",
-			Value: cr.Spec.ImagePullSecret,
+		if cr.Spec.ImagePullSecret != "" {
+			pullSecret := []corev1.LocalObjectReference{
+				corev1.LocalObjectReference{Name: cr.Spec.ImagePullSecret},
+			}
+			deployment.Spec.Template.Spec.ImagePullSecrets = pullSecret
+
+			c := &deployment.Spec.Template.Spec.Containers[0]
+			pullSecretEnv := corev1.EnvVar{
+				Name:  "IMAGE_PULL_SECRET",
+				Value: cr.Spec.ImagePullSecret,
+			}
+			c.Env = append(c.Env, pullSecretEnv)
 		}
-		c.Env = append(c.Env, pullSecretEnv)
+
+		return nil
 	}
 
-	return deployment, nil
+	return deployment, f, nil
 }
