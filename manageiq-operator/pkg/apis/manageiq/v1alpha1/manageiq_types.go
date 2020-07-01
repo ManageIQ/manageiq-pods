@@ -1,8 +1,11 @@
 package v1alpha1
 
 import (
+	"crypto/tls"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -287,6 +290,28 @@ func init() {
 	SchemeBuilder.Register(&ManageIQ{}, &ManageIQList{})
 }
 
+func fetchIntrospectionUrl(providerUrl string) (introspectionUrl string, errMsg string) {
+	introspectionUrl = ""
+	errMsg = ""
+
+	if providerUrl != "" {
+		customTransport := http.DefaultTransport.(*http.Transport).Clone()
+		customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		client := &http.Client{Transport: customTransport}
+
+		resp, err := client.Get(providerUrl)
+		if err != nil {
+			errMsg = fmt.Sprintf("Could not query the OIDCProviderURL %s - error: %s", providerUrl, err)
+		} else {
+			var result map[string]interface{}
+			json.NewDecoder(resp.Body).Decode(&result)
+			introspectionUrl = result["token_introspection_endpoint"].(string)
+			resp.Body.Close()
+		}
+	}
+	return
+}
+
 func (m *ManageIQ) Initialize() {
 	spec := &m.Spec
 
@@ -416,9 +441,25 @@ func (m *ManageIQ) Validate() error {
 		if spec.HttpdAuthConfig != "" && (spec.OIDCProviderURL != "" || spec.OIDCOAuthIntrospectionURL != "" || spec.OIDCClientSecret != "") {
 			// Invalid if config and any other info is also provided
 			errs = append(errs, "OIDCProviderURL, OIDCOAuthIntrospectionURL, and OIDCClientSecret are invalid when HttpdAuthConfig is specified")
-		} else if spec.HttpdAuthConfig == "" && (spec.OIDCProviderURL == "" || spec.OIDCOAuthIntrospectionURL == "" || spec.OIDCClientSecret == "") {
-			// Need to provide either the entire config or a secret and provider url
-			errs = append(errs, "HttpdAuthConfig or all of OIDCProviderURL, OIDCOAuthIntrospectionURL, and OIDCClientSecret must be provided for openid-connect authentication")
+		} else if spec.HttpdAuthConfig == "" {
+			if spec.OIDCProviderURL == "" || spec.OIDCClientSecret == "" {
+				errs = append(errs, "HttpdAuthConfig or both OIDCProviderURL and OIDCClientSecret must be provided for openid-connect authentication")
+			} else {
+				// If the OAuth Introspection URL was not specified, let's try to fetch it from the Provider URL
+				introspectionUrl := spec.OIDCOAuthIntrospectionURL
+				if introspectionUrl == "" {
+					url, errMsg := fetchIntrospectionUrl(spec.OIDCProviderURL)
+					if errMsg != "" {
+						errs = append(errs, errMsg)
+					} else if url != "" {
+						introspectionUrl = url
+						(&m.Spec).OIDCOAuthIntrospectionURL = url
+					}
+				}
+				if introspectionUrl == "" {
+					errs = append(errs, "The OIDCOAuthIntrospectionURL was not specified and could not be fetched from the OIDCProviderURL")
+				}
+			}
 		}
 	} else {
 		if spec.OIDCProviderURL != "" {
