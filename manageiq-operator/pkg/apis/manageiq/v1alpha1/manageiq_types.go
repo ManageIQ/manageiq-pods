@@ -73,7 +73,7 @@ type ManageIQSpec struct {
 	// +optional
 	OIDCClientSecret string `json:"oidcClientSecret"`
 	// Secret containing the httpd configuration files
-	// Mutually exclusive with the OIDCCliencSecret and OIDCProviderURL if using openid-connect
+	// Mutually exclusive with the OIDCClientSecret and OIDCProviderURL if using openid-connect
 	// +optional
 	HttpdAuthConfig string `json:"httpdAuthConfig"`
 	// Flag to enable SSO in the application (default: false)
