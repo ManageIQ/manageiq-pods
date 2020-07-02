@@ -346,12 +346,15 @@ func (r *ReconcileManageIQ) generateOrchestratorResources(cr *miqv1alpha1.Manage
 		return err
 	}
 
-	orchestratorDeployment, err := miqtool.NewOrchestratorDeployment(cr)
+	orchestratorDeployment, mutateFunc, err := miqtool.OrchestratorDeployment(cr, r.scheme)
 	if err != nil {
 		return err
 	}
-	if err := r.createk8sResIfNotExist(cr, orchestratorDeployment, &appsv1.Deployment{}); err != nil {
+
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, orchestratorDeployment, mutateFunc); err != nil {
 		return err
+	} else {
+		logger.Info("Deployment has been reconciled", "component", "orchestrator", "result", result)
 	}
 
 	return nil
