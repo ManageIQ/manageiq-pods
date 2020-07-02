@@ -12,13 +12,29 @@ import (
 	"strings"
 )
 
-func OrchestratorServiceAccount(cr *miqv1alpha1.ManageIQ) *corev1.ServiceAccount {
-	return &corev1.ServiceAccount{
+func OrchestratorServiceAccount(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.ServiceAccount, controllerutil.MutateFn) {
+	sa := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      orchestratorObjectName(cr),
 			Namespace: cr.ObjectMeta.Namespace,
 		},
 	}
+
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, sa, scheme); err != nil {
+			return err
+		}
+
+		if cr.Spec.ImagePullSecret != "" {
+			sa.ImagePullSecrets = []corev1.LocalObjectReference{
+				corev1.LocalObjectReference{Name: cr.Spec.ImagePullSecret},
+			}
+		}
+
+		return nil
+	}
+
+	return sa, f
 }
 
 func OrchestratorRole(cr *miqv1alpha1.ManageIQ) *rbacv1.Role {
@@ -312,11 +328,6 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*
 		deployment.Spec.Template.Spec.TerminationGracePeriodSeconds = &termSecs
 
 		if cr.Spec.ImagePullSecret != "" {
-			pullSecret := []corev1.LocalObjectReference{
-				corev1.LocalObjectReference{Name: cr.Spec.ImagePullSecret},
-			}
-			deployment.Spec.Template.Spec.ImagePullSecrets = pullSecret
-
 			c := &deployment.Spec.Template.Spec.Containers[0]
 			pullSecretEnv := corev1.EnvVar{
 				Name:  "IMAGE_PULL_SECRET",

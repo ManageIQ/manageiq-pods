@@ -351,9 +351,11 @@ func (r *ReconcileManageIQ) generateKafkaResources(cr *miqv1alpha1.ManageIQ) err
 }
 
 func (r *ReconcileManageIQ) generateOrchestratorResources(cr *miqv1alpha1.ManageIQ) error {
-	orchestratorServiceAccount := miqtool.OrchestratorServiceAccount(cr)
-	if err := r.createk8sResIfNotExist(cr, orchestratorServiceAccount, &corev1.ServiceAccount{}); err != nil {
+	orchestratorServiceAccount, mutateFunc := miqtool.OrchestratorServiceAccount(cr, r.scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, orchestratorServiceAccount, mutateFunc); err != nil {
 		return err
+	} else {
+		logger.Info("Service Account has been reconciled", "component", "orchestrator", "result", result)
 	}
 
 	orchestratorRole := miqtool.OrchestratorRole(cr)
