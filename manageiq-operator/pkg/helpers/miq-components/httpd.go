@@ -11,6 +11,15 @@ import (
 	intstr "k8s.io/apimachinery/pkg/util/intstr"
 )
 
+func HttpdServiceAccount(cr *miqv1alpha1.ManageIQ) *corev1.ServiceAccount {
+	return &corev1.ServiceAccount{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      cr.Spec.AppName + "-httpd",
+			Namespace: cr.ObjectMeta.Namespace,
+		},
+	}
+}
+
 func NewIngress(cr *miqv1alpha1.ManageIQ) *extensionsv1beta1.Ingress {
 
 	labels := map[string]string{
