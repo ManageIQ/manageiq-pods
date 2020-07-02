@@ -26,9 +26,7 @@ func OrchestratorServiceAccount(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme
 		}
 
 		if cr.Spec.ImagePullSecret != "" {
-			sa.ImagePullSecrets = []corev1.LocalObjectReference{
-				corev1.LocalObjectReference{Name: cr.Spec.ImagePullSecret},
-			}
+			addSAPullSecret(sa, cr.Spec.ImagePullSecret)
 		}
 
 		return nil
