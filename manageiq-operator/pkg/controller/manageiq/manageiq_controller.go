@@ -8,7 +8,6 @@ import (
 	miqtool "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/helpers/miq-components"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -358,14 +357,18 @@ func (r *ReconcileManageIQ) generateOrchestratorResources(cr *miqv1alpha1.Manage
 		logger.Info("Service Account has been reconciled", "component", "orchestrator", "result", result)
 	}
 
-	orchestratorRole := miqtool.OrchestratorRole(cr)
-	if err := r.createk8sResIfNotExist(cr, orchestratorRole, &rbacv1.Role{}); err != nil {
+	orchestratorRole, mutateFunc := miqtool.OrchestratorRole(cr, r.scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, orchestratorRole, mutateFunc); err != nil {
 		return err
+	} else {
+		logger.Info("Role has been reconciled", "component", "orchestrator", "result", result)
 	}
 
-	orchestratorRoleBinding := miqtool.OrchestratorRoleBinding(cr)
-	if err := r.createk8sResIfNotExist(cr, orchestratorRoleBinding, &rbacv1.RoleBinding{}); err != nil {
+	orchestratorRoleBinding, mutateFunc := miqtool.OrchestratorRoleBinding(cr, r.scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, orchestratorRoleBinding, mutateFunc); err != nil {
 		return err
+	} else {
+		logger.Info("Role Binding has been reconciled", "component", "orchestrator", "result", result)
 	}
 
 	orchestratorDeployment, mutateFunc, err := miqtool.OrchestratorDeployment(cr, r.scheme)
