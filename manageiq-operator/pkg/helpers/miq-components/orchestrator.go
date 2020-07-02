@@ -10,8 +10,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"strconv"
 	"strings"
-
-	"github.com/google/uuid"
 )
 
 func OrchestratorServiceAccount(cr *miqv1alpha1.ManageIQ) *corev1.ServiceAccount {
@@ -192,7 +190,7 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*
 			},
 			corev1.EnvVar{
 				Name:  "GUID",
-				Value: uuid.New().String(),
+				Value: string(cr.GetUID()),
 			},
 			corev1.EnvVar{
 				Name:  "DATABASE_REGION",
