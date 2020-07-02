@@ -350,33 +350,33 @@ func (r *ReconcileManageIQ) generateKafkaResources(cr *miqv1alpha1.ManageIQ) err
 }
 
 func (r *ReconcileManageIQ) generateOrchestratorResources(cr *miqv1alpha1.ManageIQ) error {
-	orchestratorServiceAccount, mutateFunc := miqtool.OrchestratorServiceAccount(cr, r.scheme)
-	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, orchestratorServiceAccount, mutateFunc); err != nil {
+	serviceAccount, mutateFunc := miqtool.OrchestratorServiceAccount(cr, r.scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, serviceAccount, mutateFunc); err != nil {
 		return err
 	} else {
 		logger.Info("Service Account has been reconciled", "component", "orchestrator", "result", result)
 	}
 
-	orchestratorRole, mutateFunc := miqtool.OrchestratorRole(cr, r.scheme)
-	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, orchestratorRole, mutateFunc); err != nil {
+	role, mutateFunc := miqtool.OrchestratorRole(cr, r.scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, role, mutateFunc); err != nil {
 		return err
 	} else {
 		logger.Info("Role has been reconciled", "component", "orchestrator", "result", result)
 	}
 
-	orchestratorRoleBinding, mutateFunc := miqtool.OrchestratorRoleBinding(cr, r.scheme)
-	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, orchestratorRoleBinding, mutateFunc); err != nil {
+	roleBinding, mutateFunc := miqtool.OrchestratorRoleBinding(cr, r.scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, roleBinding, mutateFunc); err != nil {
 		return err
 	} else {
 		logger.Info("Role Binding has been reconciled", "component", "orchestrator", "result", result)
 	}
 
-	orchestratorDeployment, mutateFunc, err := miqtool.OrchestratorDeployment(cr, r.scheme)
+	deployment, mutateFunc, err := miqtool.OrchestratorDeployment(cr, r.scheme)
 	if err != nil {
 		return err
 	}
 
-	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, orchestratorDeployment, mutateFunc); err != nil {
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, deployment, mutateFunc); err != nil {
 		return err
 	} else if result != controllerutil.OperationResultNone {
 		logger.Info("Deployment has been reconciled", "component", "orchestrator", "result", result)
