@@ -8,97 +8,121 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	intstr "k8s.io/apimachinery/pkg/util/intstr"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func HttpdServiceAccount(cr *miqv1alpha1.ManageIQ) *corev1.ServiceAccount {
-	return &corev1.ServiceAccount{
+func HttpdServiceAccount(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.ServiceAccount, controllerutil.MutateFn) {
+	serviceAccount := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cr.Spec.AppName + "-httpd",
 			Namespace: cr.ObjectMeta.Namespace,
 		},
 	}
-}
 
-func NewIngress(cr *miqv1alpha1.ManageIQ) *extensionsv1beta1.Ingress {
-
-	labels := map[string]string{
-		"app": cr.Spec.AppName,
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, serviceAccount, scheme); err != nil {
+			return err
+		}
+		return nil
 	}
 
-	return &extensionsv1beta1.Ingress{
+	return serviceAccount, f
+}
+
+func Ingress(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*extensionsv1beta1.Ingress, controllerutil.MutateFn) {
+	ingress := &extensionsv1beta1.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "httpd",
 			Namespace: cr.ObjectMeta.Namespace,
-			Labels:    labels,
 		},
-		Spec: extensionsv1beta1.IngressSpec{
-			TLS: []extensionsv1beta1.IngressTLS{
-				extensionsv1beta1.IngressTLS{
-					Hosts: []string{
-						cr.Spec.ApplicationDomain,
-					},
-					SecretName: tlsSecretName(cr),
-				},
-			},
-			Rules: []extensionsv1beta1.IngressRule{
-				extensionsv1beta1.IngressRule{
-					Host: cr.Spec.ApplicationDomain,
-					IngressRuleValue: extensionsv1beta1.IngressRuleValue{
-						HTTP: &extensionsv1beta1.HTTPIngressRuleValue{
-							Paths: []extensionsv1beta1.HTTPIngressPath{
-								{
-									Path: "/",
-									Backend: extensionsv1beta1.IngressBackend{
-										ServiceName: "httpd",
-										ServicePort: intstr.FromInt(8080),
-									},
+	}
+
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, ingress, scheme); err != nil {
+			return err
+		}
+		if len(ingress.Spec.TLS) == 0 {
+			ingress.Spec.TLS = append(ingress.Spec.TLS, extensionsv1beta1.IngressTLS{})
+		}
+		if len(ingress.Spec.TLS[0].Hosts) == 0 {
+			ingress.Spec.TLS[0].Hosts = append(ingress.Spec.TLS[0].Hosts, cr.Spec.ApplicationDomain)
+		}
+		ingress.Spec.TLS[0].Hosts[0] = cr.Spec.ApplicationDomain
+		ingress.Spec.TLS[0].SecretName = tlsSecretName(cr)
+		ingress.Spec.Rules = []extensionsv1beta1.IngressRule{
+			extensionsv1beta1.IngressRule{
+				Host: cr.Spec.ApplicationDomain,
+				IngressRuleValue: extensionsv1beta1.IngressRuleValue{
+					HTTP: &extensionsv1beta1.HTTPIngressRuleValue{
+						Paths: []extensionsv1beta1.HTTPIngressPath{
+							{
+								Path: "/",
+								Backend: extensionsv1beta1.IngressBackend{
+									ServiceName: "httpd",
+									ServicePort: intstr.FromInt(8080),
 								},
 							},
 						},
 					},
 				},
 			},
-		},
+		}
+		addAppLabel(cr.Spec.AppName, &ingress.ObjectMeta)
+		return nil
 	}
 
+	return ingress, f
 }
 
-func NewHttpdConfigMap(cr *miqv1alpha1.ManageIQ) *corev1.ConfigMap {
-	labels := map[string]string{
-		"app": cr.Spec.AppName,
-	}
-
+func HttpdConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.ConfigMap, controllerutil.MutateFn) {
 	data := map[string]string{
 		"application.conf":    httpdApplicationConf(),
 		"authentication.conf": httpdAuthenticationConf(&cr.Spec),
 	}
 
-	return &corev1.ConfigMap{
+	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "httpd-configs",
 			Namespace: cr.ObjectMeta.Namespace,
-			Labels:    labels,
 		},
-		Data: data,
 	}
+
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, configMap, scheme); err != nil {
+			return err
+		}
+		addAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
+		configMap.Data = data
+		return nil
+	}
+
+	return configMap, f
 }
 
-func NewHttpdAuthConfigMap(cr *miqv1alpha1.ManageIQ) *corev1.ConfigMap {
-	labels := map[string]string{
-		"app": cr.Spec.AppName,
-	}
+func HttpdAuthConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.ConfigMap, controllerutil.MutateFn) {
 	data := map[string]string{
 		"auth-configuration.conf": httpdAuthConfigurationConf(),
 	}
-	return &corev1.ConfigMap{
+
+	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "httpd-auth-configs",
 			Namespace: cr.ObjectMeta.Namespace,
-			Labels:    labels,
 		},
-		Data: data,
 	}
+
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, configMap, scheme); err != nil {
+			return err
+		}
+		addAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
+		configMap.Data = data
+		return nil
+	}
+
+	return configMap, f
 }
 
 func PrivilegedHttpd(authType string) (bool, error) {
@@ -278,197 +302,195 @@ func initializeHttpdContainer(spec *miqv1alpha1.ManageIQSpec, privileged bool, c
 	return nil
 }
 
-func NewHttpdDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, error) {
+func HttpdDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
 	privileged, err := PrivilegedHttpd(cr.Spec.HttpdAuthenticationType)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	container := corev1.Container{}
 	err = initializeHttpdContainer(&cr.Spec, privileged, &container)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	deploymentLabels := map[string]string{
-		"app": cr.Spec.AppName,
-	}
-	podLabels := map[string]string{
-		"name": "httpd",
 		"app":  cr.Spec.AppName,
+		"name": "httpd",
 	}
-	var repNum int32 = 1
 
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "httpd",
 			Namespace: cr.ObjectMeta.Namespace,
-			Labels:    deploymentLabels,
 		},
 		Spec: appsv1.DeploymentSpec{
-			Replicas: &repNum,
 			Selector: &metav1.LabelSelector{
-				MatchLabels: podLabels,
+				MatchLabels: deploymentLabels,
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
+					Labels: deploymentLabels,
 					Name:   "httpd",
-					Labels: podLabels,
 				},
-				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{container},
-					Volumes: []corev1.Volume{
-						corev1.Volume{
-							Name: "httpd-config",
-							VolumeSource: corev1.VolumeSource{
-								ConfigMap: &corev1.ConfigMapVolumeSource{
-									LocalObjectReference: corev1.LocalObjectReference{Name: "httpd-configs"},
-								},
-							},
-						},
+			},
+		},
+	}
+
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, deployment, scheme); err != nil {
+			return err
+		}
+		addAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)
+		var repNum int32 = 1
+		deployment.Spec.Replicas = &repNum
+		deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
+		deployment.Spec.Template.Spec.Volumes = []corev1.Volume{
+			corev1.Volume{
+				Name: "httpd-config",
+				VolumeSource: corev1.VolumeSource{
+					ConfigMap: &corev1.ConfigMapVolumeSource{
+						LocalObjectReference: corev1.LocalObjectReference{Name: "httpd-configs"},
 					},
 				},
 			},
-		},
+		}
+
+		// Only assign the service account if we need additional privileges
+		if privileged {
+			deployment.Spec.Template.Spec.ServiceAccountName = cr.Spec.AppName + "-httpd"
+		}
+
+		configureHttpdAuth(&cr.Spec, &deployment.Spec.Template.Spec)
+		return nil
 	}
 
-	configureHttpdAuth(&cr.Spec, &deployment.Spec.Template.Spec)
-
-	// Only assign the service account if we need additional privileges
-	if privileged {
-		deployment.Spec.Template.Spec.ServiceAccountName = cr.Spec.AppName + "-httpd"
-	}
-
-	return deployment, nil
+	return deployment, f, nil
 }
 
-func NewUIService(cr *miqv1alpha1.ManageIQ) *corev1.Service {
-	labels := map[string]string{
-		"app": cr.Spec.AppName,
-	}
-	selector := map[string]string{
-		"service": "ui",
-	}
-	return &corev1.Service{
+func UIService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Service, controllerutil.MutateFn) {
+	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "ui",
 			Namespace: cr.ObjectMeta.Namespace,
-			Labels:    labels,
-		},
-		Spec: corev1.ServiceSpec{
-			Ports: []corev1.ServicePort{
-				corev1.ServicePort{
-					Name: "web-service-3000",
-					Port: 3000,
-				},
-			},
-			Selector: selector,
 		},
 	}
+
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, service, scheme); err != nil {
+			return err
+		}
+		addAppLabel(cr.Spec.AppName, &service.ObjectMeta)
+		if len(service.Spec.Ports) == 0 {
+			service.Spec.Ports = append(service.Spec.Ports, corev1.ServicePort{})
+		}
+		service.Spec.Ports[0].Name = "ui-service-3000"
+		service.Spec.Ports[0].Port = 3000
+		service.Spec.Selector = map[string]string{"service": "ui"}
+		return nil
+	}
+
+	return service, f
 }
 
-func NewWebService(cr *miqv1alpha1.ManageIQ) *corev1.Service {
-	labels := map[string]string{
-		"app": cr.Spec.AppName,
-	}
-	selector := map[string]string{
-		"service": "web-service",
-	}
-	return &corev1.Service{
+func WebService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Service, controllerutil.MutateFn) {
+	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "web-service",
 			Namespace: cr.ObjectMeta.Namespace,
-			Labels:    labels,
-		},
-		Spec: corev1.ServiceSpec{
-			Ports: []corev1.ServicePort{
-				corev1.ServicePort{
-					Name: "web-service-3000",
-					Port: 3000,
-				},
-			},
-			Selector: selector,
 		},
 	}
+
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, service, scheme); err != nil {
+			return err
+		}
+		addAppLabel(cr.Spec.AppName, &service.ObjectMeta)
+		if len(service.Spec.Ports) == 0 {
+			service.Spec.Ports = append(service.Spec.Ports, corev1.ServicePort{})
+		}
+		service.Spec.Ports[0].Name = "web-service-3000"
+		service.Spec.Ports[0].Port = 3000
+		service.Spec.Selector = map[string]string{"service": "web-service"}
+		return nil
+	}
+
+	return service, f
 }
 
-func NewRemoteConsoleService(cr *miqv1alpha1.ManageIQ) *corev1.Service {
-	labels := map[string]string{
-		"app": cr.Spec.AppName,
-	}
-	selector := map[string]string{
-		"service": "remote-console",
-	}
-	return &corev1.Service{
+func RemoteConsoleService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Service, controllerutil.MutateFn) {
+	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "remote-console",
 			Namespace: cr.ObjectMeta.Namespace,
-			Labels:    labels,
-		},
-		Spec: corev1.ServiceSpec{
-			Ports: []corev1.ServicePort{
-				corev1.ServicePort{
-					Name: "remote-console-3000",
-					Port: 80,
-				},
-			},
-			Selector: selector,
 		},
 	}
+
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, service, scheme); err != nil {
+			return err
+		}
+		addAppLabel(cr.Spec.AppName, &service.ObjectMeta)
+		if len(service.Spec.Ports) == 0 {
+			service.Spec.Ports = append(service.Spec.Ports, corev1.ServicePort{})
+		}
+		service.Spec.Ports[0].Name = "remote-console-3000"
+		service.Spec.Ports[0].Port = 3000
+		service.Spec.Selector = map[string]string{"service": "remote-console"}
+		return nil
+	}
+
+	return service, f
 }
 
-func NewHttpdService(cr *miqv1alpha1.ManageIQ) *corev1.Service {
-	labels := map[string]string{
-		"app": cr.Spec.AppName,
-	}
-
-	selector := map[string]string{
-		"name": "httpd",
-	}
-
-	return &corev1.Service{
+func HttpdService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Service, controllerutil.MutateFn) {
+	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "httpd",
 			Namespace: cr.ObjectMeta.Namespace,
-			Labels:    labels,
-		},
-		Spec: corev1.ServiceSpec{
-			Ports: []corev1.ServicePort{
-				corev1.ServicePort{
-					Name: "http",
-					Port: 8080,
-				},
-			},
-			Selector: selector,
 		},
 	}
+
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, service, scheme); err != nil {
+			return err
+		}
+		addAppLabel(cr.Spec.AppName, &service.ObjectMeta)
+		if len(service.Spec.Ports) == 0 {
+			service.Spec.Ports = append(service.Spec.Ports, corev1.ServicePort{})
+		}
+		service.Spec.Ports[0].Name = "http"
+		service.Spec.Ports[0].Port = 8080
+		service.Spec.Selector = map[string]string{"service": "httpd"}
+		return nil
+	}
+
+	return service, f
 }
 
-func NewHttpdDbusAPIService(cr *miqv1alpha1.ManageIQ) *corev1.Service {
-	labels := map[string]string{
-		"app": cr.Spec.AppName,
-	}
-
-	selector := map[string]string{
-		"name": "httpd",
-	}
-
-	return &corev1.Service{
+func HttpdDbusAPIService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Service, controllerutil.MutateFn) {
+	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "httpd-dbus-api",
 			Namespace: cr.ObjectMeta.Namespace,
-			Labels:    labels,
-		},
-		Spec: corev1.ServiceSpec{
-			Ports: []corev1.ServicePort{
-				corev1.ServicePort{
-					Name: "http-dbus-api",
-					Port: 8081,
-				},
-			},
-			Selector: selector,
 		},
 	}
+
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, service, scheme); err != nil {
+			return err
+		}
+		addAppLabel(cr.Spec.AppName, &service.ObjectMeta)
+		if len(service.Spec.Ports) == 0 {
+			service.Spec.Ports = append(service.Spec.Ports, corev1.ServicePort{})
+		}
+		service.Spec.Ports[0].Name = "httpd-dbus-api"
+		service.Spec.Ports[0].Port = 8081
+		service.Spec.Selector = map[string]string{"service": "httpd"}
+		return nil
+	}
+
+	return service, f
 }
 
 func TLSSecret(cr *miqv1alpha1.ManageIQ) (*corev1.Secret, error) {

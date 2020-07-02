@@ -8,7 +8,6 @@ import (
 	miqtool "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/helpers/miq-components"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	extenv1beta1 "k8s.io/api/extensions/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -147,62 +146,83 @@ func (r *ReconcileManageIQ) generateHttpdResources(cr *miqv1alpha1.ManageIQ) err
 	}
 
 	if privileged {
-		httpdServiceAccount := miqtool.HttpdServiceAccount(cr)
-		if err := r.createk8sResIfNotExist(cr, httpdServiceAccount, &corev1.ServiceAccount{}); err != nil {
+		httpdServiceAccount, mutateFunc := miqtool.HttpdServiceAccount(cr, r.scheme)
+		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, httpdServiceAccount, mutateFunc); err != nil {
 			return err
+		} else {
+			logger.Info("ServiceAccount has been reconciled", "component", "httpd", "result", result)
 		}
 	}
 
-	httpdConfigMap := miqtool.NewHttpdConfigMap(cr)
-	if err := r.createk8sResIfNotExist(cr, httpdConfigMap, &corev1.ConfigMap{}); err != nil {
+	httpdConfigMap, mutateFunc := miqtool.HttpdConfigMap(cr, r.scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, httpdConfigMap, mutateFunc); err != nil {
 		return err
+	} else {
+		logger.Info("ConfigMap has been reconciled", "component", "httpd", "result", result)
 	}
 
 	if cr.Spec.HttpdAuthenticationType != "internal" && cr.Spec.HttpdAuthenticationType != "openid-connect" {
-		httpdAuthConfigMap := miqtool.NewHttpdAuthConfigMap(cr)
-		if err := r.createk8sResIfNotExist(cr, httpdAuthConfigMap, &corev1.ConfigMap{}); err != nil {
+		httpdAuthConfigMap, mutateFunc := miqtool.HttpdAuthConfigMap(cr, r.scheme)
+		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, httpdAuthConfigMap, mutateFunc); err != nil {
 			return err
+		} else {
+			logger.Info("ConfigMap has been reconciled", "component", "httpd-auth", "result", result)
 		}
 	}
 
-	uiService := miqtool.NewUIService(cr)
-	if err := r.createk8sResIfNotExist(cr, uiService, &corev1.Service{}); err != nil {
+	uiService, mutateFunc := miqtool.UIService(cr, r.scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, uiService, mutateFunc); err != nil {
 		return err
+	} else {
+		logger.Info("Service has been reconciled", "component", "httpd", "service", "ui", "result", result)
 	}
 
-	webService := miqtool.NewWebService(cr)
-	if err := r.createk8sResIfNotExist(cr, webService, &corev1.Service{}); err != nil {
+	webService, mutateFunc := miqtool.WebService(cr, r.scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, webService, mutateFunc); err != nil {
 		return err
+	} else {
+		logger.Info("Service has been reconciled", "component", "httpd", "service", "web_service", "result", result)
 	}
 
-	remoteConsoleService := miqtool.NewRemoteConsoleService(cr)
-	if err := r.createk8sResIfNotExist(cr, remoteConsoleService, &corev1.Service{}); err != nil {
+	remoteConsoleService, mutateFunc := miqtool.RemoteConsoleService(cr, r.scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, remoteConsoleService, mutateFunc); err != nil {
 		return err
+	} else {
+		logger.Info("Service has been reconciled", "component", "httpd", "service", "remote_console_service", "result", result)
 	}
 
-	httpdService := miqtool.NewHttpdService(cr)
-	if err := r.createk8sResIfNotExist(cr, httpdService, &corev1.Service{}); err != nil {
+	httpdService, mutateFunc := miqtool.HttpdService(cr, r.scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, httpdService, mutateFunc); err != nil {
 		return err
+	} else {
+		logger.Info("Service has been reconciled", "component", "httpd", "result", result)
 	}
 
 	if privileged {
-		httpdDbusAPIService := miqtool.NewHttpdDbusAPIService(cr)
-		if err := r.createk8sResIfNotExist(cr, httpdDbusAPIService, &corev1.Service{}); err != nil {
+		httpdDbusAPIService, mutateFunc := miqtool.HttpdDbusAPIService(cr, r.scheme)
+		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, httpdDbusAPIService, mutateFunc); err != nil {
 			return err
+		} else {
+			logger.Info("Service has been reconciled", "component", "httpd", "service", "dbus_api_service", "result", result)
 		}
 	}
 
-	httpdDeployment, err := miqtool.NewHttpdDeployment(cr)
+	httpdDeployment, mutateFunc, err := miqtool.HttpdDeployment(cr, r.scheme)
 	if err != nil {
 		return err
 	}
-	if err := r.createk8sResIfNotExist(cr, httpdDeployment, &appsv1.Deployment{}); err != nil {
+
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, httpdDeployment, mutateFunc); err != nil {
 		return err
+	} else {
+		logger.Info("Deployment has been reconciled", "component", "httpd", "result", result)
 	}
 
-	httpdIngress := miqtool.NewIngress(cr)
-	if err := r.createk8sResIfNotExist(cr, httpdIngress, &extenv1beta1.Ingress{}); err != nil {
+	httpdIngress, mutateFunc := miqtool.Ingress(cr, r.scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, httpdIngress, mutateFunc); err != nil {
 		return err
+	} else {
+		logger.Info("Ingress has been reconciled", "component", "httpd", "result", result)
 	}
 
 	return nil
