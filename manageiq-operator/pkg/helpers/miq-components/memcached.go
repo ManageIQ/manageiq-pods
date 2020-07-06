@@ -108,12 +108,11 @@ func NewMemcachedService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*cor
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &service.ObjectMeta)
-		service.Spec.Ports = []corev1.ServicePort{
-			corev1.ServicePort{
-				Name: "memcached",
-				Port: 11211,
-			},
+		if len(service.Spec.Ports) == 0 {
+			service.Spec.Ports = append(service.Spec.Ports, corev1.ServicePort{})
 		}
+		service.Spec.Ports[0].Name = "memcached"
+		service.Spec.Ports[0].Port = 11211
 		service.Spec.Selector = map[string]string{"name": "memcached"}
 		return nil
 	}
