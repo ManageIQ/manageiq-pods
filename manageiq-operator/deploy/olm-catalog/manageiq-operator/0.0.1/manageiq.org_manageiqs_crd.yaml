@@ -63,6 +63,10 @@ spec:
             enableSSO:
               description: 'Flag to enable SSO in the application (default: false)'
               type: boolean
+            enforceWorkerResourceConstraints:
+              description: 'Flag to trigger worker resource constraint enforcement
+                (default: false)'
+              type: boolean
             httpdAuthConfig:
               description: Secret containing the httpd configuration files Mutually
                 exclusive with the OIDCClientSecret and OIDCProviderURL if using openid-connect

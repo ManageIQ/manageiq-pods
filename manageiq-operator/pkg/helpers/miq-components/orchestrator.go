@@ -268,6 +268,10 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*
 				Name:  "ADMIN_GROUP",
 				Value: cr.Spec.InitialAdminGroupName,
 			},
+			corev1.EnvVar{
+				Name:  "WORKER_RESOURCES",
+				Value: strconv.FormatBool(*cr.Spec.EnforceWorkerResourceConstraints),
+			},
 		},
 	}
 
