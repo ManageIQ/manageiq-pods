@@ -27,6 +27,10 @@ type ManageIQSpec struct {
 	// +optional
 	InitialAdminGroupName string `json:"initialAdminGroupName"`
 
+	// Flag to trigger worker resource constraint enforcement (default: false)
+	// +optional
+	EnforceWorkerResourceConstraints *bool `json:"enforceWorkerResourceConstraints"`
+
 	// Database volume size (default: 15Gi)
 	// +optional
 	DatabaseVolumeCapacity string `json:"databaseVolumeCapacity"`
@@ -287,6 +291,10 @@ func (m *ManageIQ) Initialize() {
 
 	if spec.DatabaseRegion == "" {
 		spec.DatabaseRegion = "0"
+	}
+
+	if spec.EnforceWorkerResourceConstraints == nil {
+		spec.EnforceWorkerResourceConstraints = new(bool)
 	}
 
 	if spec.DatabaseVolumeCapacity == "" {
