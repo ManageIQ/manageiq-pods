@@ -60,17 +60,3 @@ func addAppLabel(appName string, meta *metav1.ObjectMeta) {
 	}
 	meta.Labels["app"] = appName
 }
-
-func addSAPullSecret(sa *corev1.ServiceAccount, secret string) {
-	secretRef := corev1.LocalObjectReference{Name: secret}
-	if sa.ImagePullSecrets == nil {
-		sa.ImagePullSecrets = []corev1.LocalObjectReference{secretRef}
-	} else {
-		for _, ref := range sa.ImagePullSecrets {
-			if ref.Name == secret {
-				return
-			}
-		}
-		sa.ImagePullSecrets = append(sa.ImagePullSecrets, secretRef)
-	}
-}
