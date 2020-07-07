@@ -116,15 +116,6 @@ func ZookeeperPVC(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Per
 }
 
 func KafkaService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Service, controllerutil.MutateFn) {
-	var port int32 = 9092
-
-	ports := []corev1.ServicePort{
-		corev1.ServicePort{
-			Name: "kafka",
-			Port: port,
-		},
-	}
-
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "kafka",
@@ -138,7 +129,11 @@ func KafkaService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Ser
 		}
 
 		addAppLabel(cr.Spec.AppName, &service.ObjectMeta)
-		service.Spec.Ports = ports
+		if len(service.Spec.Ports) == 0 {
+			service.Spec.Ports = append(service.Spec.Ports, corev1.ServicePort{})
+		}
+		service.Spec.Ports[0].Name = "kafka"
+		service.Spec.Ports[0].Port = 9092
 		service.Spec.Selector = map[string]string{"name": "kafka"}
 		return nil
 	}
@@ -147,15 +142,6 @@ func KafkaService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Ser
 }
 
 func ZookeeperService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Service, controllerutil.MutateFn) {
-	var port int32 = 2181
-
-	ports := []corev1.ServicePort{
-		corev1.ServicePort{
-			Name: "zookeeper",
-			Port: port,
-		},
-	}
-
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "zookeeper",
@@ -169,7 +155,11 @@ func ZookeeperService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1
 		}
 
 		addAppLabel(cr.Spec.AppName, &service.ObjectMeta)
-		service.Spec.Ports = ports
+		if len(service.Spec.Ports) == 0 {
+			service.Spec.Ports = append(service.Spec.Ports, corev1.ServicePort{})
+		}
+		service.Spec.Ports[0].Name = "zookeeper"
+		service.Spec.Ports[0].Port = 2181
 		service.Spec.Selector = map[string]string{"name": "zookeeper"}
 		return nil
 	}
