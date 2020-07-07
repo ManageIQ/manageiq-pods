@@ -149,7 +149,7 @@ func (r *ReconcileManageIQ) generateHttpdResources(cr *miqv1alpha1.ManageIQ) err
 		httpdServiceAccount, mutateFunc := miqtool.HttpdServiceAccount(cr, r.scheme)
 		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, httpdServiceAccount, mutateFunc); err != nil {
 			return err
-		} else {
+		} else if result != controllerutil.OperationResultNone {
 			logger.Info("ServiceAccount has been reconciled", "component", "httpd", "result", result)
 		}
 	}
@@ -157,7 +157,7 @@ func (r *ReconcileManageIQ) generateHttpdResources(cr *miqv1alpha1.ManageIQ) err
 	httpdConfigMap, mutateFunc := miqtool.HttpdConfigMap(cr, r.scheme)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, httpdConfigMap, mutateFunc); err != nil {
 		return err
-	} else {
+	} else if result != controllerutil.OperationResultNone {
 		logger.Info("ConfigMap has been reconciled", "component", "httpd", "result", result)
 	}
 
@@ -165,7 +165,7 @@ func (r *ReconcileManageIQ) generateHttpdResources(cr *miqv1alpha1.ManageIQ) err
 		httpdAuthConfigMap, mutateFunc := miqtool.HttpdAuthConfigMap(cr, r.scheme)
 		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, httpdAuthConfigMap, mutateFunc); err != nil {
 			return err
-		} else {
+		} else if result != controllerutil.OperationResultNone {
 			logger.Info("ConfigMap has been reconciled", "component", "httpd-auth", "result", result)
 		}
 	}
@@ -173,28 +173,28 @@ func (r *ReconcileManageIQ) generateHttpdResources(cr *miqv1alpha1.ManageIQ) err
 	uiService, mutateFunc := miqtool.UIService(cr, r.scheme)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, uiService, mutateFunc); err != nil {
 		return err
-	} else {
+	} else if result != controllerutil.OperationResultNone {
 		logger.Info("Service has been reconciled", "component", "httpd", "service", "ui", "result", result)
 	}
 
 	webService, mutateFunc := miqtool.WebService(cr, r.scheme)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, webService, mutateFunc); err != nil {
 		return err
-	} else {
+	} else if result != controllerutil.OperationResultNone {
 		logger.Info("Service has been reconciled", "component", "httpd", "service", "web_service", "result", result)
 	}
 
 	remoteConsoleService, mutateFunc := miqtool.RemoteConsoleService(cr, r.scheme)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, remoteConsoleService, mutateFunc); err != nil {
 		return err
-	} else {
+	} else if result != controllerutil.OperationResultNone {
 		logger.Info("Service has been reconciled", "component", "httpd", "service", "remote_console_service", "result", result)
 	}
 
 	httpdService, mutateFunc := miqtool.HttpdService(cr, r.scheme)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, httpdService, mutateFunc); err != nil {
 		return err
-	} else {
+	} else if result != controllerutil.OperationResultNone {
 		logger.Info("Service has been reconciled", "component", "httpd", "result", result)
 	}
 
@@ -202,7 +202,7 @@ func (r *ReconcileManageIQ) generateHttpdResources(cr *miqv1alpha1.ManageIQ) err
 		httpdDbusAPIService, mutateFunc := miqtool.HttpdDbusAPIService(cr, r.scheme)
 		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, httpdDbusAPIService, mutateFunc); err != nil {
 			return err
-		} else {
+		} else if result != controllerutil.OperationResultNone {
 			logger.Info("Service has been reconciled", "component", "httpd", "service", "dbus_api_service", "result", result)
 		}
 	}
@@ -214,14 +214,14 @@ func (r *ReconcileManageIQ) generateHttpdResources(cr *miqv1alpha1.ManageIQ) err
 
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, httpdDeployment, mutateFunc); err != nil {
 		return err
-	} else {
+	} else if result != controllerutil.OperationResultNone {
 		logger.Info("Deployment has been reconciled", "component", "httpd", "result", result)
 	}
 
 	httpdIngress, mutateFunc := miqtool.Ingress(cr, r.scheme)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, httpdIngress, mutateFunc); err != nil {
 		return err
-	} else {
+	} else if result != controllerutil.OperationResultNone {
 		logger.Info("Ingress has been reconciled", "component", "httpd", "result", result)
 	}
 
@@ -236,14 +236,14 @@ func (r *ReconcileManageIQ) generateMemcachedResources(cr *miqv1alpha1.ManageIQ)
 
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, deployment, mutateFunc); err != nil {
 		return err
-	} else {
+	} else if result != controllerutil.OperationResultNone {
 		logger.Info("Deployment has been reconciled", "component", "memcached", "result", result)
 	}
 
 	service, mutateFunc := miqtool.NewMemcachedService(cr, r.scheme)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, service, mutateFunc); err != nil {
 		return err
-	} else {
+	} else if result != controllerutil.OperationResultNone {
 		logger.Info("Service has been reconciled", "component", "memcached", "result", result)
 	}
 
@@ -259,21 +259,21 @@ func (r *ReconcileManageIQ) generatePostgresqlResources(cr *miqv1alpha1.ManageIQ
 	configMap, mutateFunc := miqtool.PostgresqlConfigMap(cr, r.scheme)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, configMap, mutateFunc); err != nil {
 		return err
-	} else {
+	} else if result != controllerutil.OperationResultNone {
 		logger.Info("ConfigMap has been reconciled", "component", "postgresql", "result", result)
 	}
 
 	pvc, mutateFunc := miqtool.PostgresqlPVC(cr, r.scheme)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, pvc, mutateFunc); err != nil {
 		return err
-	} else {
+	} else if result != controllerutil.OperationResultNone {
 		logger.Info("PVC has been reconciled", "component", "postgresql", "result", result)
 	}
 
 	service, mutateFunc := miqtool.PostgresqlService(cr, r.scheme)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, service, mutateFunc); err != nil {
 		return err
-	} else {
+	} else if result != controllerutil.OperationResultNone {
 		logger.Info("Service has been reconciled", "component", "postgresql", "result", result)
 	}
 
@@ -284,7 +284,7 @@ func (r *ReconcileManageIQ) generatePostgresqlResources(cr *miqv1alpha1.ManageIQ
 
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, deployment, mutateFunc); err != nil {
 		return err
-	} else {
+	} else if result != controllerutil.OperationResultNone {
 		logger.Info("Deployment has been reconciled", "component", "postgresql", "result", result)
 	}
 
@@ -300,28 +300,28 @@ func (r *ReconcileManageIQ) generateKafkaResources(cr *miqv1alpha1.ManageIQ) err
 	kafkaPVC, mutateFunc := miqtool.KafkaPVC(cr, r.scheme)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, kafkaPVC, mutateFunc); err != nil {
 		return err
-	} else {
+	} else if result != controllerutil.OperationResultNone {
 		logger.Info("PVC has been reconciled", "component", "kafka", "result", result)
 	}
 
 	zookeeperPVC, mutateFunc := miqtool.ZookeeperPVC(cr, r.scheme)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, zookeeperPVC, mutateFunc); err != nil {
 		return err
-	} else {
+	} else if result != controllerutil.OperationResultNone {
 		logger.Info("PVC has been reconciled", "component", "zookeeper", "result", result)
 	}
 
 	kafkaService, mutateFunc := miqtool.KafkaService(cr, r.scheme)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, kafkaService, mutateFunc); err != nil {
 		return err
-	} else {
+	} else if result != controllerutil.OperationResultNone {
 		logger.Info("Service has been reconciled", "component", "kafka", "result", result)
 	}
 
 	zookeeperService, mutateFunc := miqtool.ZookeeperService(cr, r.scheme)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, zookeeperService, mutateFunc); err != nil {
 		return err
-	} else {
+	} else if result != controllerutil.OperationResultNone {
 		logger.Info("Service has been reconciled", "component", "zookeeper", "result", result)
 	}
 
@@ -332,7 +332,7 @@ func (r *ReconcileManageIQ) generateKafkaResources(cr *miqv1alpha1.ManageIQ) err
 
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, kafkaDeployment, mutateFunc); err != nil {
 		return err
-	} else {
+	} else if result != controllerutil.OperationResultNone {
 		logger.Info("Deployment has been reconciled", "component", "kafka", "result", result)
 	}
 
@@ -343,7 +343,7 @@ func (r *ReconcileManageIQ) generateKafkaResources(cr *miqv1alpha1.ManageIQ) err
 
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, zookeeperDeployment, mutateFunc); err != nil {
 		return err
-	} else {
+	} else if result != controllerutil.OperationResultNone {
 		logger.Info("Deployment has been reconciled", "component", "zookeeper", "result", result)
 	}
 
@@ -373,7 +373,7 @@ func (r *ReconcileManageIQ) generateOrchestratorResources(cr *miqv1alpha1.Manage
 
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, orchestratorDeployment, mutateFunc); err != nil {
 		return err
-	} else {
+	} else if result != controllerutil.OperationResultNone {
 		logger.Info("Deployment has been reconciled", "component", "orchestrator", "result", result)
 	}
 
