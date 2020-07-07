@@ -25,6 +25,11 @@ func HttpdServiceAccount(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*cor
 		if err := controllerutil.SetControllerReference(cr, serviceAccount, scheme); err != nil {
 			return err
 		}
+
+		if cr.Spec.ImagePullSecret != "" {
+			addSAPullSecret(serviceAccount, cr.Spec.ImagePullSecret)
+		}
+
 		return nil
 	}
 
