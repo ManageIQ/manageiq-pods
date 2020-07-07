@@ -306,6 +306,10 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*
 				Name:  "WORKER_RESOURCES",
 				Value: strconv.FormatBool(*cr.Spec.EnforceWorkerResourceConstraints),
 			},
+			corev1.EnvVar{
+				Name:  "WORKER_SERVICE_ACCOUNT",
+				Value: defaultServiceAccountName(cr.Spec.AppName),
+			},
 		},
 	}
 
@@ -346,15 +350,6 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*
 		var termSecs int64 = 90
 		deployment.Spec.Template.Spec.ServiceAccountName = cr.Spec.AppName + "-orchestrator"
 		deployment.Spec.Template.Spec.TerminationGracePeriodSeconds = &termSecs
-
-		if cr.Spec.ImagePullSecret != "" {
-			c := &deployment.Spec.Template.Spec.Containers[0]
-			pullSecretEnv := corev1.EnvVar{
-				Name:  "IMAGE_PULL_SECRET",
-				Value: cr.Spec.ImagePullSecret,
-			}
-			c.Env = append(c.Env, pullSecretEnv)
-		}
 
 		return nil
 	}
