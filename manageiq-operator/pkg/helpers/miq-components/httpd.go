@@ -364,6 +364,8 @@ func HttpdDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.
 		// Only assign the service account if we need additional privileges
 		if privileged {
 			deployment.Spec.Template.Spec.ServiceAccountName = cr.Spec.AppName + "-httpd"
+		} else {
+			deployment.Spec.Template.Spec.ServiceAccountName = defaultServiceAccountName(cr.Spec.AppName)
 		}
 
 		configureHttpdAuth(&cr.Spec, &deployment.Spec.Template.Spec)
