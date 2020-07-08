@@ -367,21 +367,21 @@ func (r *ReconcileManageIQ) generateOrchestratorResources(cr *miqv1alpha1.Manage
 	serviceAccount, mutateFunc := miqtool.OrchestratorServiceAccount(cr, r.scheme)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, serviceAccount, mutateFunc); err != nil {
 		return err
-	} else {
+	} else if result != controllerutil.OperationResultNone {
 		logger.Info("Service Account has been reconciled", "component", "orchestrator", "result", result)
 	}
 
 	role, mutateFunc := miqtool.OrchestratorRole(cr, r.scheme)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, role, mutateFunc); err != nil {
 		return err
-	} else {
+	} else if result != controllerutil.OperationResultNone {
 		logger.Info("Role has been reconciled", "component", "orchestrator", "result", result)
 	}
 
 	roleBinding, mutateFunc := miqtool.OrchestratorRoleBinding(cr, r.scheme)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, roleBinding, mutateFunc); err != nil {
 		return err
-	} else {
+	} else if result != controllerutil.OperationResultNone {
 		logger.Info("Role Binding has been reconciled", "component", "orchestrator", "result", result)
 	}
 
