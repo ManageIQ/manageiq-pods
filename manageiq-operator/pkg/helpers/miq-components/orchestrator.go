@@ -12,22 +12,43 @@ import (
 	"strings"
 )
 
-func OrchestratorServiceAccount(cr *miqv1alpha1.ManageIQ) *corev1.ServiceAccount {
-	return &corev1.ServiceAccount{
+func OrchestratorServiceAccount(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.ServiceAccount, controllerutil.MutateFn) {
+	sa := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      orchestratorObjectName(cr),
 			Namespace: cr.ObjectMeta.Namespace,
 		},
 	}
+
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, sa, scheme); err != nil {
+			return err
+		}
+
+		if cr.Spec.ImagePullSecret != "" {
+			addSAPullSecret(sa, cr.Spec.ImagePullSecret)
+		}
+
+		return nil
+	}
+
+	return sa, f
 }
 
-func OrchestratorRole(cr *miqv1alpha1.ManageIQ) *rbacv1.Role {
-	return &rbacv1.Role{
+func OrchestratorRole(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*rbacv1.Role, controllerutil.MutateFn) {
+	role := &rbacv1.Role{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      orchestratorObjectName(cr),
 			Namespace: cr.ObjectMeta.Namespace,
 		},
-		Rules: []rbacv1.PolicyRule{
+	}
+
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, role, scheme); err != nil {
+			return err
+		}
+
+		role.Rules = []rbacv1.PolicyRule{
 			rbacv1.PolicyRule{
 				APIGroups: []string{""},
 				Resources: []string{"pods", "pods/finalizers"},
@@ -43,28 +64,43 @@ func OrchestratorRole(cr *miqv1alpha1.ManageIQ) *rbacv1.Role {
 				Resources: []string{"deployments", "deployments/scale"},
 				Verbs:     []string{"*"},
 			},
-		},
+		}
+
+		return nil
 	}
+
+	return role, f
 }
 
-func OrchestratorRoleBinding(cr *miqv1alpha1.ManageIQ) *rbacv1.RoleBinding {
-	return &rbacv1.RoleBinding{
+func OrchestratorRoleBinding(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*rbacv1.RoleBinding, controllerutil.MutateFn) {
+	rb := &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      orchestratorObjectName(cr),
 			Namespace: cr.ObjectMeta.Namespace,
 		},
-		RoleRef: rbacv1.RoleRef{
+	}
+
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, rb, scheme); err != nil {
+			return err
+		}
+
+		rb.RoleRef = rbacv1.RoleRef{
 			Kind:     "Role",
 			Name:     orchestratorObjectName(cr),
 			APIGroup: "rbac.authorization.k8s.io",
-		},
-		Subjects: []rbacv1.Subject{
+		}
+		rb.Subjects = []rbacv1.Subject{
 			rbacv1.Subject{
 				Kind: "ServiceAccount",
 				Name: orchestratorObjectName(cr),
 			},
-		},
+		}
+
+		return nil
 	}
+
+	return rb, f
 }
 
 func orchestratorObjectName(cr *miqv1alpha1.ManageIQ) string {
@@ -270,6 +306,10 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*
 				Name:  "WORKER_RESOURCES",
 				Value: strconv.FormatBool(*cr.Spec.EnforceWorkerResourceConstraints),
 			},
+			corev1.EnvVar{
+				Name:  "WORKER_SERVICE_ACCOUNT",
+				Value: defaultServiceAccountName(cr.Spec.AppName),
+			},
 		},
 	}
 
@@ -310,20 +350,6 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*
 		var termSecs int64 = 90
 		deployment.Spec.Template.Spec.ServiceAccountName = cr.Spec.AppName + "-orchestrator"
 		deployment.Spec.Template.Spec.TerminationGracePeriodSeconds = &termSecs
-
-		if cr.Spec.ImagePullSecret != "" {
-			pullSecret := []corev1.LocalObjectReference{
-				corev1.LocalObjectReference{Name: cr.Spec.ImagePullSecret},
-			}
-			deployment.Spec.Template.Spec.ImagePullSecrets = pullSecret
-
-			c := &deployment.Spec.Template.Spec.Containers[0]
-			pullSecretEnv := corev1.EnvVar{
-				Name:  "IMAGE_PULL_SECRET",
-				Value: cr.Spec.ImagePullSecret,
-			}
-			c.Env = append(c.Env, pullSecretEnv)
-		}
 
 		return nil
 	}

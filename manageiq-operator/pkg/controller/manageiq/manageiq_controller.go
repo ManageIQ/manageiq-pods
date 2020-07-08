@@ -8,7 +8,6 @@ import (
 	miqtool "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/helpers/miq-components"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -118,6 +117,9 @@ func (r *ReconcileManageIQ) Reconcile(request reconcile.Request) (reconcile.Resu
 	if e := r.generateSecrets(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
+	if e := r.generateDefaultServiceAccount(miqInstance); e != nil {
+		return reconcile.Result{}, e
+	}
 	if e := r.generatePostgresqlResources(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
@@ -137,6 +139,17 @@ func (r *ReconcileManageIQ) Reconcile(request reconcile.Request) (reconcile.Resu
 	}
 
 	return reconcile.Result{}, nil
+}
+
+func (r *ReconcileManageIQ) generateDefaultServiceAccount(cr *miqv1alpha1.ManageIQ) error {
+	serviceAccount, mutateFunc := miqtool.DefaultServiceAccount(cr, r.scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, serviceAccount, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("Service Account has been reconciled", "component", "app", "result", result)
+	}
+
+	return nil
 }
 
 func (r *ReconcileManageIQ) generateHttpdResources(cr *miqv1alpha1.ManageIQ) error {
@@ -351,27 +364,33 @@ func (r *ReconcileManageIQ) generateKafkaResources(cr *miqv1alpha1.ManageIQ) err
 }
 
 func (r *ReconcileManageIQ) generateOrchestratorResources(cr *miqv1alpha1.ManageIQ) error {
-	orchestratorServiceAccount := miqtool.OrchestratorServiceAccount(cr)
-	if err := r.createk8sResIfNotExist(cr, orchestratorServiceAccount, &corev1.ServiceAccount{}); err != nil {
+	serviceAccount, mutateFunc := miqtool.OrchestratorServiceAccount(cr, r.scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, serviceAccount, mutateFunc); err != nil {
 		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("Service Account has been reconciled", "component", "orchestrator", "result", result)
 	}
 
-	orchestratorRole := miqtool.OrchestratorRole(cr)
-	if err := r.createk8sResIfNotExist(cr, orchestratorRole, &rbacv1.Role{}); err != nil {
+	role, mutateFunc := miqtool.OrchestratorRole(cr, r.scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, role, mutateFunc); err != nil {
 		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("Role has been reconciled", "component", "orchestrator", "result", result)
 	}
 
-	orchestratorRoleBinding := miqtool.OrchestratorRoleBinding(cr)
-	if err := r.createk8sResIfNotExist(cr, orchestratorRoleBinding, &rbacv1.RoleBinding{}); err != nil {
+	roleBinding, mutateFunc := miqtool.OrchestratorRoleBinding(cr, r.scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, roleBinding, mutateFunc); err != nil {
 		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("Role Binding has been reconciled", "component", "orchestrator", "result", result)
 	}
 
-	orchestratorDeployment, mutateFunc, err := miqtool.OrchestratorDeployment(cr, r.scheme)
+	deployment, mutateFunc, err := miqtool.OrchestratorDeployment(cr, r.scheme)
 	if err != nil {
 		return err
 	}
 
-	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, orchestratorDeployment, mutateFunc); err != nil {
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, deployment, mutateFunc); err != nil {
 		return err
 	} else if result != controllerutil.OperationResultNone {
 		logger.Info("Deployment has been reconciled", "component", "orchestrator", "result", result)

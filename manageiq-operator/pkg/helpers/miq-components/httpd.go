@@ -25,6 +25,11 @@ func HttpdServiceAccount(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*cor
 		if err := controllerutil.SetControllerReference(cr, serviceAccount, scheme); err != nil {
 			return err
 		}
+
+		if cr.Spec.ImagePullSecret != "" {
+			addSAPullSecret(serviceAccount, cr.Spec.ImagePullSecret)
+		}
+
 		return nil
 	}
 
@@ -359,6 +364,8 @@ func HttpdDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.
 		// Only assign the service account if we need additional privileges
 		if privileged {
 			deployment.Spec.Template.Spec.ServiceAccountName = cr.Spec.AppName + "-httpd"
+		} else {
+			deployment.Spec.Template.Spec.ServiceAccountName = defaultServiceAccountName(cr.Spec.AppName)
 		}
 
 		configureHttpdAuth(&cr.Spec, &deployment.Spec.Template.Spec)
