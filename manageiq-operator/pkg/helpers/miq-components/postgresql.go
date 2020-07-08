@@ -203,7 +203,8 @@ func NewPostgresqlDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, erro
 					Labels: podLabels,
 				},
 				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{container},
+					Containers:         []corev1.Container{container},
+					ServiceAccountName: defaultServiceAccountName(cr.Spec.AppName),
 					Volumes: []corev1.Volume{
 						corev1.Volume{
 							Name: "miq-pgdb-volume",

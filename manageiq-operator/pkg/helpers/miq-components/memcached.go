@@ -80,7 +80,8 @@ func NewMemcachedDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, error
 					Labels: podLabels,
 				},
 				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{container},
+					Containers:         []corev1.Container{container},
+					ServiceAccountName: defaultServiceAccountName(cr.Spec.AppName),
 				},
 			},
 		},

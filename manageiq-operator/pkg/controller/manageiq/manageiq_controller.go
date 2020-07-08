@@ -119,6 +119,9 @@ func (r *ReconcileManageIQ) Reconcile(request reconcile.Request) (reconcile.Resu
 	if e := r.generateSecrets(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
+	if e := r.generateDefaultServiceAccount(miqInstance); e != nil {
+		return reconcile.Result{}, e
+	}
 	if e := r.generatePostgresqlResources(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
@@ -138,6 +141,14 @@ func (r *ReconcileManageIQ) Reconcile(request reconcile.Request) (reconcile.Resu
 	}
 
 	return reconcile.Result{}, nil
+}
+
+func (r *ReconcileManageIQ) generateDefaultServiceAccount(cr *miqv1alpha1.ManageIQ) error {
+	serviceAccount := miqtool.DefaultServiceAccount(cr)
+	if err := r.createk8sResIfNotExist(cr, serviceAccount, &corev1.ServiceAccount{}); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *ReconcileManageIQ) generateHttpdResources(cr *miqv1alpha1.ManageIQ) error {
