@@ -468,7 +468,7 @@ func HttpdService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Ser
 		}
 		service.Spec.Ports[0].Name = "http"
 		service.Spec.Ports[0].Port = 8080
-		service.Spec.Selector = map[string]string{"service": "httpd"}
+		service.Spec.Selector = map[string]string{"name": "httpd"}
 		return nil
 	}
 
@@ -493,7 +493,7 @@ func HttpdDbusAPIService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*cor
 		}
 		service.Spec.Ports[0].Name = "httpd-dbus-api"
 		service.Spec.Ports[0].Port = 8081
-		service.Spec.Selector = map[string]string{"service": "httpd"}
+		service.Spec.Selector = map[string]string{"name": "httpd"}
 		return nil
 	}
 
