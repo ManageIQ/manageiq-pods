@@ -205,6 +205,10 @@ func NewOrchestratorDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, er
 				Name:  "WORKER_RESOURCES",
 				Value: strconv.FormatBool(*cr.Spec.EnforceWorkerResourceConstraints),
 			},
+			corev1.EnvVar{
+				Name:  "WORKER_SERVICE_ACCOUNT",
+				Value: defaultServiceAccountName(cr.Spec.AppName),
+			},
 		},
 	}
 
@@ -253,20 +257,6 @@ func NewOrchestratorDeployment(cr *miqv1alpha1.ManageIQ) (*appsv1.Deployment, er
 				},
 			},
 		},
-	}
-
-	if cr.Spec.ImagePullSecret != "" {
-		pullSecret := []corev1.LocalObjectReference{
-			corev1.LocalObjectReference{Name: cr.Spec.ImagePullSecret},
-		}
-		deployment.Spec.Template.Spec.ImagePullSecrets = pullSecret
-
-		c := &deployment.Spec.Template.Spec.Containers[0]
-		pullSecretEnv := corev1.EnvVar{
-			Name:  "IMAGE_PULL_SECRET",
-			Value: cr.Spec.ImagePullSecret,
-		}
-		c.Env = append(c.Env, pullSecretEnv)
 	}
 
 	return deployment, nil
