@@ -85,13 +85,12 @@ func Ingress(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*extensionsv1bet
 }
 
 func HttpdConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.ConfigMap, controllerutil.MutateFn, error) {
-
 	if cr.Spec.HttpdAuthenticationType == "openid-connect" && cr.Spec.OIDCProviderURL != "" && cr.Spec.OIDCOAuthIntrospectionURL == "" {
 		introspectionURL, err := fetchIntrospectionUrl(cr.Spec.OIDCProviderURL)
 		if err != nil {
 			return nil, nil, err
 		}
-		(&cr.Spec).OIDCOAuthIntrospectionURL = introspectionURL
+		cr.Spec.OIDCOAuthIntrospectionURL = introspectionURL
 	}
 
 	data := map[string]string{
@@ -570,7 +569,7 @@ func fetchIntrospectionUrl(providerUrl string) (string, error) {
 	}
 
 	if result["token_introspection_endpoint"] == nil {
-		return "", fmt.Errorf("%s - token_introspection_endpoint is missing", errMsg)
+		return "", fmt.Errorf("%s - token_introspection_endpoint is missing from the Provider metadata", errMsg)
 	}
 
 	return result["token_introspection_endpoint"].(string), nil
