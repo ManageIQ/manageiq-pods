@@ -68,7 +68,7 @@ func NewHttpdConfigMap(cr *miqv1alpha1.ManageIQ) (*corev1.ConfigMap, error) {
 		if err != nil {
 			return nil, err
 		}
-		(&cr.Spec).OIDCOAuthIntrospectionURL = introspectionURL
+		cr.Spec.OIDCOAuthIntrospectionURL = introspectionURL
 	}
 
 	data := map[string]string{
@@ -76,14 +76,16 @@ func NewHttpdConfigMap(cr *miqv1alpha1.ManageIQ) (*corev1.ConfigMap, error) {
 		"authentication.conf": httpdAuthenticationConf(&cr.Spec),
 	}
 
-	return &corev1.ConfigMap{
+	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "httpd-configs",
 			Namespace: cr.ObjectMeta.Namespace,
 			Labels:    labels,
 		},
 		Data: data,
-	}, nil
+	}
+
+	return configMap, nil
 }
 
 func NewHttpdAuthConfigMap(cr *miqv1alpha1.ManageIQ) *corev1.ConfigMap {
@@ -531,7 +533,7 @@ func fetchIntrospectionUrl(providerUrl string) (string, error) {
 	}
 
 	if result["token_introspection_endpoint"] == nil {
-		return "", fmt.Errorf("%s - token_introspection_endpoint is missing", errMsg)
+		return "", fmt.Errorf("%s - token_introspection_endpoint is missing from the Provider metadata", errMsg)
 	}
 
 	return result["token_introspection_endpoint"].(string), nil
