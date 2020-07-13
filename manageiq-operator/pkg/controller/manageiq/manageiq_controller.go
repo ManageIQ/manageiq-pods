@@ -164,7 +164,10 @@ func (r *ReconcileManageIQ) generateHttpdResources(cr *miqv1alpha1.ManageIQ) err
 		}
 	}
 
-	httpdConfigMap := miqtool.NewHttpdConfigMap(cr)
+	httpdConfigMap, err := miqtool.NewHttpdConfigMap(cr)
+	if err != nil {
+		return err
+	}
 	if err := r.createk8sResIfNotExist(cr, httpdConfigMap, &corev1.ConfigMap{}); err != nil {
 		return err
 	}
