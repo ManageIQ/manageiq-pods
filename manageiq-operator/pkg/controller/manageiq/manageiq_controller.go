@@ -167,7 +167,10 @@ func (r *ReconcileManageIQ) generateHttpdResources(cr *miqv1alpha1.ManageIQ) err
 		}
 	}
 
-	httpdConfigMap, mutateFunc := miqtool.HttpdConfigMap(cr, r.scheme)
+	httpdConfigMap, mutateFunc, err := miqtool.HttpdConfigMap(cr, r.scheme)
+	if err != nil {
+		return err
+	}
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, httpdConfigMap, mutateFunc); err != nil {
 		return err
 	} else if result != controllerutil.OperationResultNone {

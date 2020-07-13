@@ -1,6 +1,8 @@
 package miqtools
 
 import (
+	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
 	tlstools "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/helpers/tlstools"
@@ -10,6 +12,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	intstr "k8s.io/apimachinery/pkg/util/intstr"
+	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
@@ -81,7 +84,15 @@ func Ingress(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*extensionsv1bet
 	return ingress, f
 }
 
-func HttpdConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.ConfigMap, controllerutil.MutateFn) {
+func HttpdConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.ConfigMap, controllerutil.MutateFn, error) {
+	if cr.Spec.HttpdAuthenticationType == "openid-connect" && cr.Spec.OIDCProviderURL != "" && cr.Spec.OIDCOAuthIntrospectionURL == "" {
+		introspectionURL, err := fetchIntrospectionUrl(cr.Spec.OIDCProviderURL)
+		if err != nil {
+			return nil, nil, err
+		}
+		cr.Spec.OIDCOAuthIntrospectionURL = introspectionURL
+	}
+
 	data := map[string]string{
 		"application.conf":    httpdApplicationConf(),
 		"authentication.conf": httpdAuthenticationConf(&cr.Spec),
@@ -103,7 +114,7 @@ func HttpdConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.C
 		return nil
 	}
 
-	return configMap, f
+	return configMap, f, nil
 }
 
 func HttpdAuthConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.ConfigMap, controllerutil.MutateFn) {
@@ -533,4 +544,33 @@ func tlsSecretName(cr *miqv1alpha1.ManageIQ) string {
 	}
 
 	return secretName
+}
+
+func fetchIntrospectionUrl(providerUrl string) (string, error) {
+	customTransport := http.DefaultTransport.(*http.Transport).Clone()
+	customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	client := &http.Client{Transport: customTransport}
+	errMsg := fmt.Sprintf("failed to get the OIDCOAuthIntrospectionURL from %s", providerUrl)
+
+	resp, err := client.Get(providerUrl)
+	if err != nil {
+		return "", fmt.Errorf("%s - %s", errMsg, err)
+	}
+
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		return "", fmt.Errorf("%s - StatusCode: %d", errMsg, resp.StatusCode)
+	}
+
+	var result map[string]interface{}
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		return "", fmt.Errorf("%s - %s", errMsg, err)
+	}
+
+	if result["token_introspection_endpoint"] == nil {
+		return "", fmt.Errorf("%s - token_introspection_endpoint is missing from the Provider metadata", errMsg)
+	}
+
+	return result["token_introspection_endpoint"].(string), nil
 }

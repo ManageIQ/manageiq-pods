@@ -74,7 +74,10 @@ type ManageIQSpec struct {
 	// +optional
 	OIDCCACertSecret string `json:"oidcCaCertSecret"`
 	// URL for OIDC authentication introspection
-	// Only used with the openid-connect authentication type
+	// Only used with the openid-connect authentication type.
+	// If not specified, the operator will attempt to fetch its value from the
+	// "token_introspection_endpoint" field in the Provider metadata at the
+	// OIDCProviderURL provided.
 	// +optional
 	OIDCOAuthIntrospectionURL string `json:"oidcAuthIntrospectionURL"`
 	// Secret name containing the OIDC client id and secret
@@ -416,9 +419,9 @@ func (m *ManageIQ) Validate() error {
 		if spec.HttpdAuthConfig != "" && (spec.OIDCProviderURL != "" || spec.OIDCOAuthIntrospectionURL != "" || spec.OIDCClientSecret != "") {
 			// Invalid if config and any other info is also provided
 			errs = append(errs, "OIDCProviderURL, OIDCOAuthIntrospectionURL, and OIDCClientSecret are invalid when HttpdAuthConfig is specified")
-		} else if spec.HttpdAuthConfig == "" && (spec.OIDCProviderURL == "" || spec.OIDCOAuthIntrospectionURL == "" || spec.OIDCClientSecret == "") {
+		} else if spec.HttpdAuthConfig == "" && (spec.OIDCProviderURL == "" || spec.OIDCClientSecret == "") {
 			// Need to provide either the entire config or a secret and provider url
-			errs = append(errs, "HttpdAuthConfig or all of OIDCProviderURL, OIDCOAuthIntrospectionURL, and OIDCClientSecret must be provided for openid-connect authentication")
+			errs = append(errs, "HttpdAuthConfig or both OIDCProviderURL and OIDCClientSecret must be provided for openid-connect authentication")
 		}
 	} else {
 		if spec.OIDCProviderURL != "" {
