@@ -347,6 +347,8 @@ objects:
         ServerName https://%{REQUEST_HOST}
 
         ProxyPreserveHost on
+        RequestHeader set Host ${APPLICATION_DOMAIN}
+        RequestHeader set X-Forwarded-Host ${APPLICATION_DOMAIN}
 
         RewriteCond %{REQUEST_URI}     ^/ws        [NC]
         RewriteCond %{HTTP:UPGRADE}    ^websocket$ [NC]
