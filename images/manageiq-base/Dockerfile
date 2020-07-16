@@ -56,7 +56,12 @@ RUN dnf -y --disableplugin=subscription-manager install \
     if [[ "$LOCAL_RPM" = "true" ]]; then /create_local_yum_repo.sh; fi && \
     dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
       ${RPM_PREFIX}-pods          \
+      libffi-devel                \
+      libxml2-devel               \
+      libxslt-devel               \
+      openssl-devel               \
       python3-devel               \
+      make                        \
       &&                          \
     dnf clean all
 
