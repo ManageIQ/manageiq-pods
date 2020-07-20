@@ -58,6 +58,7 @@ RUN dnf -y --disableplugin=subscription-manager install \
       ${RPM_PREFIX}-pods          \
       python3-devel               \
       &&                          \
+    dnf -y --disableplugin=subscription-manager upgrade && \
     dnf clean all
 
 # Install python packages the same way the appliance does
