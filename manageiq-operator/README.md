@@ -73,3 +73,12 @@ metadata:
 spec:
   applicationDomain: "miqproject.apps-crc.testing"
 ```
+
+## Creating an Operator Bundle
+
+Create the bundle image and push to an image registry
+
+```
+$ operator-sdk bundle create docker.io/example/manageiq-bundle:0.0.1 --image-builder podman --directory deploy/olm-catalog/manageiq-operator/0.0.1/ --channels alpha --default-channel alpha
+$ podman push docker.io/example/manageiq-bundle:0.0.1
+```
