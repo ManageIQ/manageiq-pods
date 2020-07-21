@@ -146,5 +146,4 @@ spec:
     type: AllNamespaces
   maturity: alpha
   provider: {}
-  replaces: manageiq-operator.v0.0.0
   version: 0.0.1
