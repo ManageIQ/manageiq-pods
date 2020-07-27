@@ -21,7 +21,7 @@ $ oc create -f deploy/crds/manageiq.org_manageiqs_crd.yaml
 In project root directory, run
 
 ```bash 
-$ operator-sdk up local --namespace=<yournamespace>
+$ operator-sdk run --local --namespace=<yournamespace>
 ```
 
 ### Option B: Run Inside Cluster
