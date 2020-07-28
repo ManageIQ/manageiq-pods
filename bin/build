@@ -19,7 +19,7 @@ RPM_BUILD_OPTIONS=${RPM_BUILD_OPTIONS:-""}
 RPM_BUILD_IMAGE=${RPM_BUILD_IMAGE:-"manageiq/rpm_build:$TAG"}
 RPM_PREFIX=${RPM_PREFIX:-"manageiq"}
 
-while getopts "t:d:r:bnhlp" opt; do
+while getopts "t:d:r:bnhlps" opt; do
   case $opt in
     b) REBUILD_RPM="true" ;;
     d) IMAGE_DIR=$OPTARG ;;
@@ -27,8 +27,9 @@ while getopts "t:d:r:bnhlp" opt; do
     n) NO_CACHE="true" ;;
     p) PUSH="true" ;;
     r) REPO=$OPTARG ;;
+    s) RELEASE_BUILD="true" ;;
     t) TAG=$OPTARG ;;
-    h) echo "Usage: $0 -d IMAGE_DIR -r IMAGE_REPOSITORY [-hblnp] [ -t IMAGE_TAG ]"; exit 1
+    h) echo "Usage: $0 -d IMAGE_DIR -r IMAGE_REPOSITORY [-hblnps] [ -t IMAGE_TAG ]"; exit 1
   esac
 done
 
@@ -80,6 +81,10 @@ pushd $IMAGE_DIR
 
   if [ -n "$LOCAL_RPM" ] || [ -n "$REBUILD_RPM" ]; then
     cmd+=" --build-arg LOCAL_RPM=true"
+  fi
+
+  if [ -n "$RELEASE_BUILD" ]; then
+    cmd+=" --build-arg RELEASE_BUILD=true"
   fi
 
   echo "Building manageiq-base: $cmd"

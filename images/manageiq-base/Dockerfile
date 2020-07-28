@@ -23,6 +23,7 @@ MAINTAINER ManageIQ https://manageiq.org
 
 ARG ARCH=x86_64
 ARG LOCAL_RPM
+ARG RELEASE_BUILD
 ARG RPM_PREFIX=manageiq
 
 ENV TERM=xterm \
@@ -51,7 +52,7 @@ RUN dnf -y --disableplugin=subscription-manager install \
       https://resources.ovirt.org/pub/yum-repo/ovirt-release44.rpm && \
     dnf -y --disableplugin=subscription-manager module enable nodejs:12 && \
     dnf -y --disableplugin=subscription-manager module enable ruby:2.6 && \
-    dnf config-manager --enable manageiq-10-jansa-nightly && \
+    if [[ "$RELEASE_BUILD" != "true" ]]; then dnf config-manager --enable manageiq-10-jansa-nightly; fi && \
     dnf config-manager --setopt=ubi-8-appstream.exclude=*net-snmp* --setopt=ubi-8-baseos.exclude=*net-snmp* --setopt=ubi-8-codeready-builder.exclude=*net-snmp* --save && \
     if [[ "$LOCAL_RPM" = "true" ]]; then /create_local_yum_repo.sh; fi && \
     dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
