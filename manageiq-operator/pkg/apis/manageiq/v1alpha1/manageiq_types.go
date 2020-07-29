@@ -359,7 +359,7 @@ func (m *ManageIQ) Initialize() {
 	}
 
 	if spec.OrchestratorImageTag == "" {
-		spec.OrchestratorImageTag = "latest"
+		spec.OrchestratorImageTag = "latest-jansa"
 	}
 
 	if spec.OrchestratorInitialDelay == "" {
