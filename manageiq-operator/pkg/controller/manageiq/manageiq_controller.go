@@ -120,8 +120,23 @@ func (r *ReconcileManageIQ) Reconcile(request reconcile.Request) (reconcile.Resu
 	if e := r.generateDefaultServiceAccount(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
-	if e := r.generatePostgresqlResources(miqInstance); e != nil {
-		return reconcile.Result{}, e
+	externalPostgreSQL := false
+	if miqInstance.Spec.DatabaseSecret != "" {
+		secretKey := types.NamespacedName{Namespace: request.Namespace, Name: miqInstance.Spec.DatabaseSecret}
+		secret := &corev1.Secret{}
+		secretErr := r.client.Get(context.TODO(), secretKey, secret)
+		if secretErr == nil {
+			hostName := string(secret.Data["hostname"])
+			if hostName != "" {
+				logger.Info("External PostgreSQL Database selected, skipping postgresql service reconciliation", "hostname", hostName)
+				externalPostgreSQL = true
+			}
+		}
+	}
+	if externalPostgreSQL == false {
+		if e := r.generatePostgresqlResources(miqInstance); e != nil {
+			return reconcile.Result{}, e
+		}
 	}
 	if e := r.generateHttpdResources(miqInstance); e != nil {
 		return reconcile.Result{}, e
