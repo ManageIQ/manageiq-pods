@@ -148,7 +148,7 @@ func PrivilegedHttpd(authType string) (bool, error) {
 	case "external", "active-directory", "saml":
 		return true, nil
 	default:
-		return false, fmt.Errorf("unknown authenticaion type %s", authType)
+		return false, fmt.Errorf("unknown authentication type %s", authType)
 	}
 }
 
