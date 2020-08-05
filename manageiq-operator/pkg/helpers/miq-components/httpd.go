@@ -568,9 +568,9 @@ func fetchIntrospectionUrl(providerUrl string) (string, error) {
 		return "", fmt.Errorf("%s - %s", errMsg, err)
 	}
 
-	if result["token_introspection_endpoint"] == nil {
-		return "", fmt.Errorf("%s - token_introspection_endpoint is missing from the Provider metadata", errMsg)
+	if result["introspection_endpoint"] == nil {
+		return "", fmt.Errorf("%s - introspection_endpoint is missing from the Provider metadata", errMsg)
 	}
 
-	return result["token_introspection_endpoint"].(string), nil
+	return result["introspection_endpoint"].(string), nil
 }
