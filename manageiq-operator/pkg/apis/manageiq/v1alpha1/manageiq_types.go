@@ -76,7 +76,7 @@ type ManageIQSpec struct {
 	// URL for OIDC authentication introspection
 	// Only used with the openid-connect authentication type.
 	// If not specified, the operator will attempt to fetch its value from the
-	// "token_introspection_endpoint" field in the Provider metadata at the
+	// "introspection_endpoint" field in the Provider metadata at the
 	// OIDCProviderURL provided.
 	// +optional
 	OIDCOAuthIntrospectionURL string `json:"oidcAuthIntrospectionURL"`
