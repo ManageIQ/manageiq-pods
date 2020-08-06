@@ -160,7 +160,9 @@ spec:
               type: string
             oidcAuthIntrospectionURL:
               description: URL for OIDC authentication introspection Only used with
-                the openid-connect authentication type
+                the openid-connect authentication type. If not specified, the operator
+                will attempt to fetch its value from the "token_introspection_endpoint"
+                field in the Provider metadata at the OIDCProviderURL provided.
               type: string
             oidcCaCertSecret:
               description: Secret containing the trusted CA certificate file(s) for
@@ -169,9 +171,7 @@ spec:
               type: string
             oidcClientSecret:
               description: Secret name containing the OIDC client id and secret Only
-                used with the openid-connect authentication type. If not specified,
-                the operator will attempt to fetch its value from the "token_introspection_endpoint"
-                field in the Provider metadata at the OIDCProviderURL provided.
+                used with the openid-connect authentication type
               type: string
             oidcProviderURL:
               description: URL for the OIDC provider Only used with the openid-connect
