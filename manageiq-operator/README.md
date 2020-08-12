@@ -107,7 +107,7 @@ If you want to use a custom TLS certificate, one can be created with:
 oc create secret tls tls-secret --cert=tls.crt --key=tls.key` and setting the secret name as `tlsSecret` in `manageiq.org_v1alpha1_manageiq_cr.yaml`.
 ```
 
-## Creating an Operator Bundle
+### Creating an Operator Bundle
 
 Create the bundle image and push to an image registry
 
@@ -115,7 +115,8 @@ Create the bundle image and push to an image registry
 $ operator-sdk bundle create docker.io/example/manageiq-bundle:0.0.1 --image-builder podman --directory deploy/olm-catalog/manageiq-operator/0.0.1/ --channels alpha --default-channel alpha
 $ podman push docker.io/example/manageiq-bundle:0.0.1
 ```
-## Configuring the application domain name
+
+### Configuring the application domain name
 
 Modify `deploy/crds/manageiq.org_v1alpha1_manageiq_cr.yaml` as follows:
 
@@ -131,7 +132,7 @@ spec:
   applicationDomain: "miqproject.apps-crc.testing"
 ```
 
-## Configuring OpenID-Connect Authentication
+### Configuring OpenID-Connect Authentication
 
 To run ManageIQ with OpenID-Connect Authentication, include these steps at **Step 4. Perform any optional custom configurations** from above.
 
