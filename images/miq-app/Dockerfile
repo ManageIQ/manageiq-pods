@@ -25,16 +25,20 @@ LABEL name="manageiq" \
       io.k8s.description="ManageIQ is a management and automation platform for virtual, private, and hybrid cloud infrastructures." \
       io.openshift.tags="ManageIQ,miq,manageiq"
 
-RUN curl -L -o /etc/yum.repos.d/ansible-runner.repo https://releases.ansible.com/ansible-runner/ansible-runner.el7.repo
+RUN curl -L -o /etc/yum.repos.d/ansible-runner.repo https://releases.ansible.com/ansible-runner/ansible-runner.el7.repo && \
+    curl -L -o /etc/yum.repos.d/manageiq.repo https://copr.fedorainfracloud.org/coprs/manageiq/ManageIQ-Ivanchuk/repo/epel-7/manageiq-ManageIQ-Ivanchuk-epel-7.repo
 
 ## Install EPEL repo, yum necessary packages for the build without docs, clean all caches
-RUN yum -y install https://rpm.nodesource.com/pub_10.x/el/7/x86_64/nodesource-release-el7-1.noarch.rpm && \
+RUN yum-config-manager --setopt=epel.exclude=*qpid-proton* --save && \
+    yum -y install https://rpm.nodesource.com/pub_10.x/el/7/x86_64/nodesource-release-el7-1.noarch.rpm && \
     yum -y install --setopt=tsflags=nodocs \
                    ansible                 \
                    ansible-runner          \
                    chrony                  \
                    cmake                   \
                    cronie                  \
+                   cyrus-sasl              \
+                   cyrus-sasl-plain        \
                    file                    \
                    gcc-c++                 \
                    git                     \
@@ -55,6 +59,7 @@ RUN yum -y install https://rpm.nodesource.com/pub_10.x/el/7/x86_64/nodesource-re
                    patch                   \
                    psmisc                  \
                    postgresql-devel        \
+                   qpid-proton-c-devel     \
                    sqlite-devel            \
                    sysvinit-tools          \
                    which                   \
@@ -83,6 +88,7 @@ WORKDIR ${APP_ROOT}
 RUN source /etc/default/evm && \
     export RAILS_USE_MEMORY_STORE="true" && \
     gem install bundler -v ">=1.16.2" && \
+    bundle config set with 'qpid_proton' && \
     bundle install && \
     bin/rails log:clear tmp:clear && \
     find ${RUBY_GEMS_ROOT}/gems/ -name .git | xargs rm -rvf && \
