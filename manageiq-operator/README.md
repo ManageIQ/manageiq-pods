@@ -99,6 +99,8 @@ $ oc create -f deploy/crds/manageiq.org_v1alpha1_manageiq_cr.yaml
 
 ## Customizing the installation
 
+### Creating custom TLS secret
+
 ManageIQ can be run with an external Postgres or messaging server.  To do this, create the required OpenShift secret(s) with the correct parameters using the template(s) for [Postgres](templates/app/postgresql-secrets.yaml) or [messaging](/templates/app/kafka-secrets.yaml) and provide those secret names as `databaseSecret` and/or `kafkaSecret` in `manageiq.org_v1alpha1_manageiq_cr.yaml`.
 
 If you want to use a custom TLS certificate, one can be created with:
