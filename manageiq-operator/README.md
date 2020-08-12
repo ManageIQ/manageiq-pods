@@ -7,25 +7,17 @@ This operator manages the lifecycle of ManageIQ application on a OCP4 cluster.
 
 There are five high level steps for running ManageIQ under operator control:
 
-  + Step 1. Set up RBAC
-  + Step 2. Deploy the ManageIQ Custom Resource Definition (CRD) (If it is not already running)
+  + Step 1. Deploy the ManageIQ Custom Resource Definition (CRD) (If it is not already.)
+  + Step 2. Set up RBAC
   + Step 3. Run The Operator
   + Step 4. Perform any optional custom configurations
   + Step 5. Run ManageIQ by creating the Custom Resource (CR)
 
 The details of the five steps are as follows:
 
-### Step 1. Set up RBAC
+### Step 1. Deploy the ManageIQ Custom Resource Definition (CRD)
 
-```bash 
-$ oc create -f deploy/role.yaml
-$ oc create -f deploy/role_binding.yaml
-$ oc create -f deploy/service_account.yaml
-```
-
-### Step 2. Deploy the ManageIQ Custom Resource Definition (CRD)
-
-The ManageIQ CRD only needs to be running once on the cluster. If it is already running it does not need to be restarted.
+The ManageIQ CRD needs to be defined on the cluster.  If it is already available it does not need to be created again.
 
 To determine if it is already available execute command:
 
@@ -39,12 +31,20 @@ If it is not already available it can be deployed with command:
 $ oc create -f deploy/crds/manageiq.org_manageiqs_crd.yaml
 ```
 
+### Step 2. Set up RBAC
+
+```bash 
+$ oc create -f deploy/role.yaml
+$ oc create -f deploy/role_binding.yaml
+$ oc create -f deploy/service_account.yaml
+```
+
 ### Step 3. Run The Operator
 
 There are three different ways the operator can be run.
 
 
-+ #### Option 1: Run the latest ManageIQ image from the registry
++ #### Option 1: Run the latest ManageIQ Operator image from the registry in the cluster
 
   The default in the operator.yaml is for the latest manageiq-operator image.
   So no change is required. Simply create the operator.
@@ -58,21 +58,21 @@ There are three different ways the operator can be run.
   1 - Build your operator image:
 
     ```bash
-    $ operator-sdk build docker.io/<your location>/manageiq-operator:latest
+    $ operator-sdk build docker.io/<your_username_or_organization>/manageiq-operator:latest
     ```
 
-  2 - Update the operator deployment yaml file with your custome image:
+  2 - Push your new custom image to the registry:
 
     ```bash
-    $ sed -i 's|docker.io/manageiq/manageiq-operator:latest|docker.io/<your location>/manageiq-operator:latest|g' deploy/operator.yaml
-    ```
-
-  3 - Push your new custom image to the registry:
-
-    ```bash
-    $ docker push docker.io/<your location>/manageiq-operator:latest
+    $ docker push docker.io/<your_username_or_organization>/manageiq-operator:latest
     ```
     
+  3 - Update the operator deployment yaml file with your custom image:
+
+    ```bash
+    $ sed -i 's|docker.io/manageiq/manageiq-operator:latest|docker.io/<your_username_or_organization>/manageiq-operator:latest|g' deploy/operator.yaml
+    ```
+
   4 - Run your custom image from the registry:
 
     ```bash
@@ -115,7 +115,7 @@ Create the bundle image and push to an image registry
 $ operator-sdk bundle create docker.io/example/manageiq-bundle:0.0.1 --image-builder podman --directory deploy/olm-catalog/manageiq-operator/0.0.1/ --channels alpha --default-channel alpha
 $ podman push docker.io/example/manageiq-bundle:0.0.1
 ```
-## ManageIQ Simple Instance Example
+## Configuring the application domain name
 
 Modify `deploy/crds/manageiq.org_v1alpha1_manageiq_cr.yaml` as follows:
 
@@ -131,18 +131,13 @@ spec:
   applicationDomain: "miqproject.apps-crc.testing"
 ```
 
-## ManageIQ for OpenID-Connect Authentication Instance Example
+## Configuring OpenID-Connect Authentication
 
 To run ManageIQ with OpenID-Connect Authentication, include these steps at **Step 4. Perform any optional custom configurations** from above.
 
 For this example we tested with Keycloak version 11.0
 
-+ Step 4a. Create a secret containing the OpenID-Connect's `Client ID` and `Client Secret`
-+ Step 4b. Modify the Custom Resource (CR) .yaml file to identify your OpenID-Connect provider URL and the secret just created.
-
-The details of these two steps are as follows:
-
-#### Step 4a. Create a secret containing the OpenID-Connect's `Client ID` and `Client Secret`
++ Create a secret containing the OpenID-Connect's `Client ID` and `Client Secret`
 
 You pick the name for `<name of your openshift client secret>`
 The values for `CLIENT_ID` and `CLIENT_SECRET` come from your Keycloak client definition.
@@ -153,12 +148,9 @@ $ oc create secret generic <name of your openshift client secret>  \
   --from-literal=CLIENT_SECRET=<your Keycloak client secret>
 ```
 
-#### Step 4b. Modify the Custom Resource (CR) .yaml file to identify your OpenID-Connect provider URL and the secret just created.
++ Modify the Custom Resource (CR) .yaml file to identify your OpenID-Connect provider URL and the secret just created.
 
-Modify `deploy/crds/manageiq.org_v1alpha1_manageiq_cr.yaml` as follows:
-
-**Note:** The domain here will work for a Code Ready Containers cluster. Change it to one that will work for your environment.
-Additional parameters are available and documented in the Custom Resource Definition
+Here is an example of `deploy/crds/manageiq.org_v1alpha1_manageiq_cr.yaml` for OpenID-Connect authentication:
 
 ```yaml
 apiVersion: manageiq.org/v1alpha1
