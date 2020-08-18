@@ -267,6 +267,12 @@ func (r *ReconcileManageIQ) generateMemcachedResources(cr *miqv1alpha1.ManageIQ)
 }
 
 func (r *ReconcileManageIQ) generatePostgresqlResources(cr *miqv1alpha1.ManageIQ) error {
+	hostName := getSecretKeyValue(r.client, cr.Namespace, cr.Spec.DatabaseSecret, "hostname")
+	if hostName != "" {
+		logger.Info("External PostgreSQL Database selected, skipping postgresql service reconciliation", "hostname", hostName)
+		return nil
+	}
+
 	secret := miqtool.DefaultPostgresqlSecret(cr)
 	if err := r.createk8sResIfNotExist(cr, secret, &corev1.Secret{}); err != nil {
 		return err
@@ -308,6 +314,12 @@ func (r *ReconcileManageIQ) generatePostgresqlResources(cr *miqv1alpha1.ManageIQ
 }
 
 func (r *ReconcileManageIQ) generateKafkaResources(cr *miqv1alpha1.ManageIQ) error {
+	hostName := getSecretKeyValue(r.client, cr.Namespace, cr.Spec.KafkaSecret, "hostname")
+	if hostName != "" {
+		logger.Info("External Kafka Messaging Service selected, skipping kafka and zookeeper service reconciliation", "hostname", hostName)
+		return nil
+	}
+
 	secret := miqtool.DefaultKafkaSecret(cr)
 	if err := r.createk8sResIfNotExist(cr, secret, &corev1.Secret{}); err != nil {
 		return err
@@ -438,4 +450,14 @@ func (r *ReconcileManageIQ) createk8sResIfNotExist(cr *miqv1alpha1.ManageIQ, res
 		return err
 	}
 	return nil
+}
+
+func getSecretKeyValue(client client.Client, nameSpace string, secretName string, keyName string) string {
+	secretKey := types.NamespacedName{Namespace: nameSpace, Name: secretName}
+	secret := &corev1.Secret{}
+	secretErr := client.Get(context.TODO(), secretKey, secret)
+	if secretErr != nil {
+		return ""
+	}
+	return string(secret.Data[keyName])
 }
