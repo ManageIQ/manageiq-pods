@@ -97,25 +97,31 @@ $ oc create -f deploy/crds/manageiq.org_v1alpha1_manageiq_cr.yaml
 
 # Further Notes:
 
+## Creating an Operator Bundle
+
+To create the bundle image and push it to an image registry do:
+
+```
+$ operator-sdk bundle create docker.io/example/manageiq-bundle:0.0.1 --image-builder podman --directory deploy/olm-catalog/manageiq-operator/0.0.1/ --channels alpha --default-channel alpha
+$ podman push docker.io/example/manageiq-bundle:0.0.1
+```
+
 ## Customizing the installation
 
-### Creating custom TLS secret
+### Configuring external Postgres
 
-ManageIQ can be run with an external Postgres or messaging server.  To do this, create the required OpenShift secret(s) with the correct parameters using the template(s) for [Postgres](templates/app/postgresql-secrets.yaml) or [messaging](/templates/app/kafka-secrets.yaml) and provide those secret names as `databaseSecret` and/or `kafkaSecret` in `manageiq.org_v1alpha1_manageiq_cr.yaml`.
+ManageIQ can be run with an external Postgres server. To do this, create the required OpenShift secret with the correct parameters using the template for [Postgres](templates/app/postgresql-secrets.yaml) and provide those secret names as `databaseSecret` in `manageiq.org_v1alpha1_manageiq_cr.yaml`.
+
+### Configuring external messaging
+
+ManageIQ can be run with an external messaging server. To do this, create the required OpenShift secret with the correct parameters using the template for [messaging](/templates/app/kafka-secrets.yaml) and provide those secret names as `kafkaSecret` in `manageiq.org_v1alpha1_manageiq_cr.yaml`.
+
+### Creating custom TLS secret
 
 If you want to use a custom TLS certificate, one can be created with:
 
 ```bash
 oc create secret tls tls-secret --cert=tls.crt --key=tls.key` and setting the secret name as `tlsSecret` in `manageiq.org_v1alpha1_manageiq_cr.yaml`.
-```
-
-### Creating an Operator Bundle
-
-Create the bundle image and push to an image registry
-
-```
-$ operator-sdk bundle create docker.io/example/manageiq-bundle:0.0.1 --image-builder podman --directory deploy/olm-catalog/manageiq-operator/0.0.1/ --channels alpha --default-channel alpha
-$ podman push docker.io/example/manageiq-bundle:0.0.1
 ```
 
 ### Configuring the application domain name
