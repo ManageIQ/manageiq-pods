@@ -87,7 +87,7 @@ There are three different ways the operator can be run.
 
 ### Step 4. Perform any optional custom configurations
 
-*see the OpenID-Connect example below*
+see the *Customizing the installation* section below
 
 ### Step 5. Run ManageIQ by creating the Custom Resource (CR)
 
