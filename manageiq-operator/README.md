@@ -173,3 +173,30 @@ spec:
   oidcClientSecret: <name of your openshift client secret> 
 ```
 
+### Configuring OpenID-Connect with a CA Certificate
+
+To configure OpenID-Connect with a CA certificate follow these steps:
+
++ Acquire the CA certificate
+
+Precisely how to obtain the CA certificate is beyond the scope of this document. These instructions assume the CA certificate has been retrieved and stored as a file on the local system.
+
++ Create a secret containing the CA certificate
+
+You pick the name for `<name of your openshift OIDC CA cert>`
+
+```bash
+oc create secret generic <name of your openshift OIDC CA cert> --from-file=<path to your OIDC CA cert file>
+```
+
++ Modify the Custom Resource (CR) .yaml file to identify the secret just created.
+
+Add a line for the `oidcCaCertSecret: ` under the `spec:` section:
+
+```yaml
+...
+spec:
+  ...
+  oidcClientSecret: <name of your openshift OIDC CA cert>
+```
+
