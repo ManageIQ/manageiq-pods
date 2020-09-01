@@ -38,6 +38,10 @@ spec:
               description: Domain name for the external route. Used for external authentication
                 configuration
               type: string
+            backupLabelName:
+              description: 'This label will be applied to essential resources that
+                need to be backed up (default: manageiq.org/backup)'
+              type: string
             baseWorkerImage:
               description: Image string used for the base worker deployments By default
                 this is determined by the orchestrator pod
