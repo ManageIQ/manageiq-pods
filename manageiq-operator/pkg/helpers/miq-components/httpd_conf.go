@@ -240,6 +240,7 @@ OIDCClientSecret             ${HTTPD_AUTH_OIDC_CLIENT_SECRET}
 OIDCRedirectURI              "https://%s/oidc_login/redirect_uri"
 OIDCCryptoPassphrase         sp-secret
 OIDCOAuthRemoteUserClaim     username
+OIDCCacheShmEntrySizeMax     65536
 
 OIDCOAuthClientID                  ${HTTPD_AUTH_OIDC_CLIENT_ID}
 OIDCOAuthClientSecret              ${HTTPD_AUTH_OIDC_CLIENT_SECRET}
