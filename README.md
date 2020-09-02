@@ -336,20 +336,41 @@ For example, if you wanted to build all the images tagged as `manageiq/<image-na
 Additional options are also available:
   - `-n` Use the --no-cache option when running the manageiq-base image build
   - `-p` Push the images after building
+  - `-s` Run a release build, using the latest tagged rpm build, excluding nightly rpm builds
   - `-t <tag>` Tag the built images with the specified tag (default: latest)
 
-Additionally the source fork and git ref for manageiq, manageiq-appliance and manageiq-ui-service can be set using the following environment variables:
-  - `MIQ_REF`
-  - `APPLIANCE_REF`
-  - `SUI_REF`
-  - `MIQ_ORG`
-  - `APPLIANCE_ORG`
-  - `SUI_ORG`
+Additionally the source fork and git ref for manageiq-appliance-build can be set using the following environment variables:
+  - `BUILD_REF`
+  - `BUILD_ORG`
 
-A more complicated example would be to build and push all the images to the quay.io repository "test" using the source from the "feature" branch on the "example" fork of ManageIQ:
+A more complicated example would be to build and push all the images to the quay.io repository "test" using the source from the "feature" branch on the "example" fork:
 
 ```bash
-MIQ_ORG=example MIQ_REF=feature ./bin/build -d images -r quay.io/test -p
+BUILD_ORG=example BUILD_REF=feature ./bin/build -d images -r quay.io/test -p
+```
+
+### Building RPMs locally
+
+If you want to build images containing your fork or different branches of ManageIQ source code, the `-b` option can be used, which will build RPMs locally before building the images. RPMs are built in `manageiq/rpm_build` container image but a different image can be used if needed.
+
+For example, if you want to build RPMs using `test/rpm_build` image and override rpm_build options using `my_options/options.yml`, you would run:
+
+```bash
+RPM_BUILD_IMAGE=test/rpm_build RPM_BUILD_OPTIONS=my_options bin/build -d images -r manageiq -b
+```
+
+Refer to https://github.com/ManageIQ/manageiq-rpm_build for rpm build details.
+
+### Using locally built RPMs
+
+If you already have locally built RPMs and want to use them instead of using RPMs from manageiq yum repo, copy `<arch>` directory to images/manageiq-base/rpms:
+
+`images/manageiq-base/rpms/x86_64/manageiq-*.rpm`
+
+Then, run:
+
+```bash
+bin/build -d images -r manageiq -l
 ```
 
 ## Kubernetes support
