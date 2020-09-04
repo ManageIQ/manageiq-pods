@@ -19,17 +19,18 @@ RPM_BUILD_OPTIONS=${RPM_BUILD_OPTIONS:-""}
 RPM_BUILD_IMAGE=${RPM_BUILD_IMAGE:-"manageiq/rpm_build:$TAG"}
 RPM_PREFIX=${RPM_PREFIX:-"manageiq"}
 
-while getopts "t:d:r:bnhlps" opt; do
+while getopts "t:d:r:hblnops" opt; do
   case $opt in
     b) REBUILD_RPM="true" ;;
     d) IMAGE_DIR=$OPTARG ;;
     l) LOCAL_RPM="true" ;;
     n) NO_CACHE="true" ;;
+    o) NO_OPERATOR="true" ;;
     p) PUSH="true" ;;
     r) REPO=$OPTARG ;;
     s) RELEASE_BUILD="true" ;;
     t) TAG=$OPTARG ;;
-    h) echo "Usage: $0 -d IMAGE_DIR -r IMAGE_REPOSITORY [-hblnps] [ -t IMAGE_TAG ]"; exit 1
+    h) echo "Usage: $0 -d IMAGE_DIR -r IMAGE_REPOSITORY [-hblnops] [ -t IMAGE_TAG ]"; exit 1
   esac
 done
 
@@ -102,14 +103,20 @@ pushd $IMAGE_DIR
   done
 popd
 
-pushd "$OPERATOR_DIR"
-  cmd="operator-sdk build $REPO/manageiq-operator:$TAG"
-  echo "Building manageiq-operator: $cmd"
-  $cmd
-popd
+if [ -z "$NO_OPERATOR" ]; then
+  pushd "$OPERATOR_DIR"
+    cmd="operator-sdk build $REPO/manageiq-operator:$TAG"
+    echo "Building manageiq-operator: $cmd"
+    $cmd
+  popd
+fi
 
 if [ -n "$PUSH" ]; then
-  push_images="manageiq-base manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker manageiq-operator"
+  push_images="manageiq-base manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker"
+  if [ -z "$NO_OPERATOR" ]; then
+    push_images="$push_images manageiq-operator"
+  fi
+
   for image in $push_images; do
     cmd="docker push $REPO/$image:$TAG"
     echo "Pushing: $cmd"
