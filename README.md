@@ -359,6 +359,17 @@ For example, if you want to build RPMs using `test/rpm_build` image and override
 RPM_BUILD_IMAGE=test/rpm_build RPM_BUILD_OPTIONS=my_options bin/build -d images -r manageiq -b
 ```
 
+An example options.yml to use "feature" branch on the "example" fork of ManageIQ/manageiq:
+
+```
+repos:
+  manageiq:
+    url:  https://github.com/example/manageiq.git
+    ref:  feature  (<-- must be tag or branch)
+```
+
+Note: `RPM_BUILD_OPTIONS` is a relative path to the directory where options.yml is.
+
 Refer to https://github.com/ManageIQ/manageiq-rpm_build for rpm build details.
 
 ### Using locally built RPMs
