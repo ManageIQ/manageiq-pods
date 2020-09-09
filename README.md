@@ -365,8 +365,10 @@ An example options.yml to use "feature" branch on the "example" fork of ManageIQ
 repos:
   manageiq:
     url:  https://github.com/example/manageiq.git
-    ref:  feature
+    ref:  feature  (<-- must be tag or branch)
 ```
+
+Note: `RPM_BUILD_OPTIONS` is a relative path to the directory where options.yml is.
 
 Refer to https://github.com/ManageIQ/manageiq-rpm_build for rpm build details.
 
