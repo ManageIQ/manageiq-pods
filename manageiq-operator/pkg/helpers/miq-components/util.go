@@ -60,3 +60,10 @@ func addAppLabel(appName string, meta *metav1.ObjectMeta) {
 	}
 	meta.Labels["app"] = appName
 }
+
+func addBackupAnnotation(volumesToBackup string, meta *metav1.ObjectMeta) {
+	if meta.Annotations == nil {
+		meta.Annotations = make(map[string]string)
+	}
+	meta.Annotations["backup.velero.io/backup-volumes"] = volumesToBackup
+}

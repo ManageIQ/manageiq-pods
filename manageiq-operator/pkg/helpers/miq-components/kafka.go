@@ -244,6 +244,7 @@ func KafkaDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)
+		addBackupAnnotation("kafka-data", &deployment.Spec.Template.ObjectMeta)
 		var repNum int32 = 1
 		deployment.Spec.Replicas = &repNum
 		deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
@@ -321,6 +322,7 @@ func ZookeeperDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*app
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)
+		addBackupAnnotation("zookeeper-data", &deployment.Spec.Template.ObjectMeta)
 		var repNum int32 = 1
 		deployment.Spec.Replicas = &repNum
 		deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
