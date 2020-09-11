@@ -227,6 +227,7 @@ func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*ap
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)
+		addBackupAnnotation("miq-pgdb-volume", &deployment.Spec.Template.ObjectMeta)
 		var repNum int32 = 1
 		deployment.Spec.Replicas = &repNum
 		deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
