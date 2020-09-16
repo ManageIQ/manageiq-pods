@@ -292,6 +292,8 @@ func ManageCR(cr *miqv1alpha1.ManageIQ) (*miqv1alpha1.ManageIQ, controllerutil.M
 		cr.Spec.ZookeeperImageTag = zookeeperImageTag(cr)
 		cr.Spec.ZookeeperVolumeCapacity = zookeeperVolumeCapacity(cr)
 
+		addBackupLabel(backupLabelName(cr), &cr.ObjectMeta)
+
 		return nil
 	}
 
