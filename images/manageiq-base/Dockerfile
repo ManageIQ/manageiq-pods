@@ -63,10 +63,10 @@ RUN dnf -y --disableplugin=subscription-manager install \
     dnf clean all
 
 # Install python packages the same way the appliance does
-COPY --from=0 build/kickstarts/partials/post/python_modules.ks.erb /tmp/python_modules
-RUN bash /tmp/python_modules && rm -f /tmp/python_modules
 COPY --from=0 build/kickstarts/partials/post/ovirt_ansible.ks.erb /tmp/ovirt_ansible
 RUN bash /tmp/ovirt_ansible && rm -f /tmp/ovirt_ansible
+COPY --from=0 build/kickstarts/partials/post/python_modules.ks.erb /tmp/python_modules
+RUN bash /tmp/python_modules && rm -f /tmp/python_modules
 
 RUN chgrp -R 0 $APP_ROOT && \
     chmod -R g=u $APP_ROOT
