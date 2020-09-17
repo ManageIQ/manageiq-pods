@@ -108,7 +108,9 @@ func (r *ReconcileManageIQ) Reconcile(request reconcile.Request) (reconcile.Resu
 		return reconcile.Result{}, nil
 	}
 
-	miqInstance.Initialize()
+	if e := r.manageCR(miqInstance); e != nil {
+		return reconcile.Result{}, e
+	}
 
 	if e := miqInstance.Validate(); e != nil {
 		return reconcile.Result{}, e
@@ -427,6 +429,17 @@ func (r *ReconcileManageIQ) generateSecrets(cr *miqv1alpha1.ManageIQ) error {
 
 	if err := r.createk8sResIfNotExist(cr, tlsSecret, &corev1.Secret{}); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (r *ReconcileManageIQ) manageCR(cr *miqv1alpha1.ManageIQ) error {
+	manageiq, mutateFunc := miqtool.ManageCR(cr)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, manageiq, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("CR has been reconciled", "component", "app", "result", result)
 	}
 
 	return nil
