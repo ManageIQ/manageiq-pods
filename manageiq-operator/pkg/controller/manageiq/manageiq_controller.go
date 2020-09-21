@@ -12,6 +12,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -114,6 +115,14 @@ func (r *ReconcileManageIQ) Reconcile(request reconcile.Request) (reconcile.Resu
 
 	if e := miqInstance.Validate(); e != nil {
 		return reconcile.Result{}, e
+	}
+
+	if os.Getenv("POD_NAME") != "" {
+		if e := r.manageOperator(miqInstance); e != nil {
+			return reconcile.Result{}, e
+		}
+	} else {
+		logger.Info("Skipping reconcile of the operator pod; not running in a cluster.")
 	}
 
 	if e := r.generateSecrets(miqInstance); e != nil {
@@ -440,6 +449,17 @@ func (r *ReconcileManageIQ) manageCR(cr *miqv1alpha1.ManageIQ) error {
 		return err
 	} else if result != controllerutil.OperationResultNone {
 		logger.Info("CR has been reconciled", "component", "app", "result", result)
+	}
+
+	return nil
+}
+
+func (r *ReconcileManageIQ) manageOperator(cr *miqv1alpha1.ManageIQ) error {
+	operator, mutateFunc := miqtool.ManageOperator(cr, r.client)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, operator, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("Operator has been reconciled", "component", "app", "result", result)
 	}
 
 	return nil
