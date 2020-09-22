@@ -33,7 +33,7 @@ $ oc create -f deploy/crds/manageiq.org_manageiqs_crd.yaml
 
 ### Step 2. Set up RBAC
 
-```bash 
+```bash
 $ oc create -f deploy/role.yaml
 $ oc create -f deploy/role_binding.yaml
 $ oc create -f deploy/service_account.yaml
@@ -66,7 +66,7 @@ There are three different ways the operator can be run.
     ```bash
     $ docker push docker.io/<your_username_or_organization>/manageiq-operator:latest
     ```
-    
+
   3 - Update the operator deployment yaml file with your custom image:
 
     ```bash
@@ -170,7 +170,7 @@ spec:
   applicationDomain: "miqproject.apps-crc.testing"
   httpdAuthenticationType: openid-connect
   oidcProviderURL: https://<your keycloak FQDN>/auth/realms/<your Keycloak Realm>/.well-known/openid-configuration
-  oidcClientSecret: <name of your openshift client secret> 
+  oidcClientSecret: <name of your openshift client secret>
 ```
 
 ### Configuring OpenID-Connect with a CA Certificate
@@ -197,6 +197,5 @@ Add a line for the `oidcCaCertSecret: ` under the `spec:` section:
 ...
 spec:
   ...
-  oidcClientSecret: <name of your openshift OIDC CA cert>
+  oidcCaCertSecret: <name of your openshift OIDC CA cert>
 ```
-
