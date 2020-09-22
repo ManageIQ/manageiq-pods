@@ -35,3 +35,17 @@ func ManageOperator(cr *miqv1alpha1.ManageIQ, client client.Client) (*appsv1.Dep
 
 	return deployment, f
 }
+
+func ImagePullSecret(cr *miqv1alpha1.ManageIQ, client client.Client) (*corev1.Secret, controllerutil.MutateFn) {
+	secretKey := types.NamespacedName{Namespace: cr.Namespace, Name: cr.Spec.ImagePullSecret}
+	secret := &corev1.Secret{}
+	client.Get(context.TODO(), secretKey, secret)
+
+	f := func() error {
+		addBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
+
+		return nil
+	}
+
+	return secret, f
+}

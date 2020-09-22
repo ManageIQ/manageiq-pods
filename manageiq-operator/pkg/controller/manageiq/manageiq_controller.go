@@ -440,6 +440,15 @@ func (r *ReconcileManageIQ) generateSecrets(cr *miqv1alpha1.ManageIQ) error {
 		return err
 	}
 
+	if cr.Spec.ImagePullSecret != "" {
+		imagePullSecret, mutateFunc := miqtool.ImagePullSecret(cr, r.client)
+		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, imagePullSecret, mutateFunc); err != nil {
+			return err
+		} else if result != controllerutil.OperationResultNone {
+			logger.Info("Image Pull Secret has been reconciled", "component", "operator", "result", result)
+		}
+	}
+
 	return nil
 }
 
