@@ -49,3 +49,31 @@ func ImagePullSecret(cr *miqv1alpha1.ManageIQ, client client.Client) (*corev1.Se
 
 	return secret, f
 }
+
+func OidcClientSecret(cr *miqv1alpha1.ManageIQ, client client.Client) (*corev1.Secret, controllerutil.MutateFn) {
+	secretKey := types.NamespacedName{Namespace: cr.Namespace, Name: cr.Spec.OIDCClientSecret}
+	secret := &corev1.Secret{}
+	client.Get(context.TODO(), secretKey, secret)
+
+	f := func() error {
+		addBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
+
+		return nil
+	}
+
+	return secret, f
+}
+
+func OidcCaCertSecret(cr *miqv1alpha1.ManageIQ, client client.Client) (*corev1.Secret, controllerutil.MutateFn) {
+	secretKey := types.NamespacedName{Namespace: cr.Namespace, Name: cr.Spec.OIDCCACertSecret}
+	secret := &corev1.Secret{}
+	client.Get(context.TODO(), secretKey, secret)
+
+	f := func() error {
+		addBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
+
+		return nil
+	}
+
+	return secret, f
+}
