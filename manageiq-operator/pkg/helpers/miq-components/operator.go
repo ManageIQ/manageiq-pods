@@ -65,6 +65,18 @@ func OidcCaCertSecret(cr *miqv1alpha1.ManageIQ, client client.Client) (*corev1.S
 	return secret, f
 }
 
+func ManageOperatorServiceAccount(cr *miqv1alpha1.ManageIQ, client client.Client) (*corev1.ServiceAccount, controllerutil.MutateFn) {
+	serviceAccount := operatorServiceAccount(cr, client)
+
+	f := func() error {
+		addBackupLabel(cr.Spec.BackupLabelName, &serviceAccount.ObjectMeta)
+
+		return nil
+	}
+
+	return serviceAccount, f
+}
+
 func operatorPod(cr *miqv1alpha1.ManageIQ, client client.Client) *corev1.Pod {
 	operatorPodName := os.Getenv("POD_NAME")
 	podKey := types.NamespacedName{Namespace: cr.Namespace, Name: operatorPodName}
@@ -92,4 +104,14 @@ func operatorDeployment(cr *miqv1alpha1.ManageIQ, client client.Client) *appsv1.
 	client.Get(context.TODO(), deploymentKey, deployment)
 
 	return deployment
+}
+
+func operatorServiceAccount(cr *miqv1alpha1.ManageIQ, client client.Client) *corev1.ServiceAccount {
+	deployment := operatorDeployment(cr, client)
+	operatorServiceAccountName := deployment.Spec.Template.Spec.ServiceAccountName
+	serviceAccountKey := types.NamespacedName{Namespace: cr.Namespace, Name: operatorServiceAccountName}
+	serviceAccount := &corev1.ServiceAccount{}
+	client.Get(context.TODO(), serviceAccountKey, serviceAccount)
+
+	return serviceAccount
 }

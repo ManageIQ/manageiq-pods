@@ -489,6 +489,13 @@ func (r *ReconcileManageIQ) manageOperator(cr *miqv1alpha1.ManageIQ) error {
 		logger.Info("Operator has been reconciled", "component", "app", "result", result)
 	}
 
+	serviceAccount, mutateFunc := miqtool.ManageOperatorServiceAccount(cr, r.client)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, serviceAccount, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("Service Account has been reconciled", "component", "operator", "result", result)
+	}
+
 	return nil
 }
 
