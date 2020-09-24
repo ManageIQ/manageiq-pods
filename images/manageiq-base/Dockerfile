@@ -50,6 +50,7 @@ RUN dnf -y --disableplugin=subscription-manager install \
       https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm \
       https://rpm.manageiq.org/release/11-kasparov/el8/noarch/manageiq-release-11.0-1.el8.noarch.rpm \
       https://resources.ovirt.org/pub/yum-repo/ovirt-release44.rpm && \
+    dnf config-manager --set-enabled PowerTools && \
     dnf -y --disableplugin=subscription-manager module enable nodejs:12 && \
     dnf -y --disableplugin=subscription-manager module enable ruby:2.6 && \
     if [[ "$RELEASE_BUILD" != "true" ]]; then dnf config-manager --enable manageiq-11-kasparov-nightly; fi && \
