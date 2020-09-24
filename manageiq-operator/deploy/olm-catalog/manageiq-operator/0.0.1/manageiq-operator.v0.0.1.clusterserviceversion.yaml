@@ -145,5 +145,6 @@ spec:
   - supported: true
     type: AllNamespaces
   maturity: alpha
-  provider: {}
+  provider:
+    name: ManageIQ
   version: 0.0.1
