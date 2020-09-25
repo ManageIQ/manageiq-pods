@@ -496,6 +496,20 @@ func (r *ReconcileManageIQ) manageOperator(cr *miqv1alpha1.ManageIQ) error {
 		logger.Info("Service Account has been reconciled", "component", "operator", "result", result)
 	}
 
+	role, mutateFunc := miqtool.ManageOperatorRole(cr, r.client)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, role, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("Role has been reconciled", "component", "operator", "result", result)
+	}
+
+	roleBinding, mutateFunc := miqtool.ManageOperatorRoleBinding(cr, r.client)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, roleBinding, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("Role Binding has been reconciled", "component", "operator", "result", result)
+	}
+
 	return nil
 }
 

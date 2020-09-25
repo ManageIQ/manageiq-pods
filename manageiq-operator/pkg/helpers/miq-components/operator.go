@@ -5,6 +5,7 @@ import (
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -77,6 +78,30 @@ func ManageOperatorServiceAccount(cr *miqv1alpha1.ManageIQ, client client.Client
 	return serviceAccount, f
 }
 
+func ManageOperatorRole(cr *miqv1alpha1.ManageIQ, client client.Client) (*rbacv1.Role, controllerutil.MutateFn) {
+	operatorRole := operatorRole(cr, client)
+
+	f := func() error {
+		addBackupLabel(cr.Spec.BackupLabelName, &operatorRole.ObjectMeta)
+
+		return nil
+	}
+
+	return operatorRole, f
+}
+
+func ManageOperatorRoleBinding(cr *miqv1alpha1.ManageIQ, client client.Client) (*rbacv1.RoleBinding, controllerutil.MutateFn) {
+	operatorRoleBinding := operatorRoleBinding(cr, client)
+
+	f := func() error {
+		addBackupLabel(cr.Spec.BackupLabelName, &operatorRoleBinding.ObjectMeta)
+
+		return nil
+	}
+
+	return operatorRoleBinding, f
+}
+
 func operatorPod(cr *miqv1alpha1.ManageIQ, client client.Client) *corev1.Pod {
 	operatorPodName := os.Getenv("POD_NAME")
 	podKey := types.NamespacedName{Namespace: cr.Namespace, Name: operatorPodName}
@@ -114,4 +139,31 @@ func operatorServiceAccount(cr *miqv1alpha1.ManageIQ, client client.Client) *cor
 	client.Get(context.TODO(), serviceAccountKey, serviceAccount)
 
 	return serviceAccount
+}
+
+func operatorRoleBinding(cr *miqv1alpha1.ManageIQ, c client.Client) *rbacv1.RoleBinding {
+	roleBindingList := &rbacv1.RoleBindingList{}
+	c.List(context.TODO(), roleBindingList)
+
+	operatorServiceAccount := operatorServiceAccount(cr, c)
+
+	for _, roleBinding := range roleBindingList.Items {
+		for _, subject := range roleBinding.Subjects {
+			if subject.Name == operatorServiceAccount.Name {
+				return &roleBinding
+			}
+		}
+	}
+
+	return nil
+}
+
+func operatorRole(cr *miqv1alpha1.ManageIQ, c client.Client) *rbacv1.Role {
+	operatorRoleBinding := operatorRoleBinding(cr, c)
+
+	roleKey := types.NamespacedName{Namespace: cr.Namespace, Name: operatorRoleBinding.RoleRef.Name}
+	role := &rbacv1.Role{}
+	c.Get(context.TODO(), roleKey, role)
+
+	return role
 }
