@@ -204,6 +204,10 @@ type ManageIQSpec struct {
 	// +optional
 	PostgresqlSharedBuffers string `json:"postgresqlSharedBuffers"`
 
+	// Server GUID (default: auto-generated)
+	// +optional
+	ServerGuid string `json:"serverGuid"`
+
 	// Flag to indicate if Kafka and Zookeeper should be deployed (default: false)
 	// +optional
 	DeployMessagingService *bool `json:"deployMessagingService"`
