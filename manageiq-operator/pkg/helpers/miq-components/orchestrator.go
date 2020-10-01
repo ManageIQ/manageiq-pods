@@ -226,7 +226,7 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*
 			},
 			corev1.EnvVar{
 				Name:  "GUID",
-				Value: string(cr.GetUID()),
+				Value: cr.Spec.ServerGuid,
 			},
 			corev1.EnvVar{
 				Name:  "DATABASE_REGION",

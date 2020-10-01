@@ -230,6 +230,9 @@ spec:
             postgresqlSharedBuffers:
               description: 'PostgreSQL shared buffers setting (default: 1GB)'
               type: string
+            serverGuid:
+              description: 'Server GUID (default: auto-generated)'
+              type: string
             storageClassName:
               description: StorageClass name that will be used by manageiq data stores
               type: string

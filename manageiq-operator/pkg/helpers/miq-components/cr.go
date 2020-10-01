@@ -189,6 +189,14 @@ func postgresqlSharedBuffers(cr *miqv1alpha1.ManageIQ) string {
 	}
 }
 
+func serverGuid(cr *miqv1alpha1.ManageIQ) string {
+	if cr.Spec.ServerGuid == "" {
+		return string(cr.GetUID())
+	} else {
+		return cr.Spec.ServerGuid
+	}
+}
+
 func kafkaImageName(cr *miqv1alpha1.ManageIQ) string {
 	if cr.Spec.KafkaImageName == "" {
 		return "docker.io/bitnami/kafka"
@@ -270,6 +278,7 @@ func ManageCR(cr *miqv1alpha1.ManageIQ) (*miqv1alpha1.ManageIQ, controllerutil.M
 		cr.Spec.PostgresqlImageTag = postgresqlImageTag(cr)
 		cr.Spec.PostgresqlMaxConnections = postgresqlMaxConnections(cr)
 		cr.Spec.PostgresqlSharedBuffers = postgresqlSharedBuffers(cr)
+		cr.Spec.ServerGuid = serverGuid(cr)
 		cr.Spec.ZookeeperImageName = zookeeperImageName(cr)
 		cr.Spec.ZookeeperImageTag = zookeeperImageTag(cr)
 		cr.Spec.ZookeeperVolumeCapacity = zookeeperVolumeCapacity(cr)
