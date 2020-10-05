@@ -13,6 +13,14 @@ func appName(cr *miqv1alpha1.ManageIQ) string {
 	}
 }
 
+func backupLabelName(cr *miqv1alpha1.ManageIQ) string {
+	if cr.Spec.BackupLabelName == "" {
+		return "manageiq.org/backup"
+	} else {
+		return cr.Spec.BackupLabelName
+	}
+}
+
 func enableApplicationLocalLogin(cr *miqv1alpha1.ManageIQ) bool {
 	if cr.Spec.EnableApplicationLocalLogin == nil {
 		return true
@@ -253,6 +261,7 @@ func ManageCR(cr *miqv1alpha1.ManageIQ) (*miqv1alpha1.ManageIQ, controllerutil.M
 		varEnforceWorkerResourceConstraints := enforceWorkerResourceConstraints(cr)
 
 		cr.Spec.AppName = appName(cr)
+		cr.Spec.BackupLabelName = backupLabelName(cr)
 		cr.Spec.DatabaseRegion = databaseRegion(cr)
 		cr.Spec.DatabaseVolumeCapacity = databaseVolumeCapacity(cr)
 		cr.Spec.DeployMessagingService = &varDeployMessagingService
@@ -282,6 +291,8 @@ func ManageCR(cr *miqv1alpha1.ManageIQ) (*miqv1alpha1.ManageIQ, controllerutil.M
 		cr.Spec.ZookeeperImageName = zookeeperImageName(cr)
 		cr.Spec.ZookeeperImageTag = zookeeperImageTag(cr)
 		cr.Spec.ZookeeperVolumeCapacity = zookeeperVolumeCapacity(cr)
+
+		addBackupLabel(backupLabelName(cr), &cr.ObjectMeta)
 
 		return nil
 	}

@@ -19,6 +19,10 @@ type ManageIQSpec struct {
 	// Domain name for the external route. Used for external authentication configuration
 	ApplicationDomain string `json:"applicationDomain"`
 
+	// This label will be applied to essential resources that need to be backed up (default: manageiq.org/backup)
+	// +optional
+	BackupLabelName string `json:"backupLabelName"`
+
 	// Database region number (default: 0)
 	// +optional
 	DatabaseRegion string `json:"databaseRegion"`

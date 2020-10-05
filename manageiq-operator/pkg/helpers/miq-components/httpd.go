@@ -134,6 +134,7 @@ func HttpdAuthConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*core
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
+		addBackupLabel(cr.Spec.BackupLabelName, &configMap.ObjectMeta)
 		configMap.Data = data
 		return nil
 	}
@@ -512,28 +513,28 @@ func HttpdDbusAPIService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*cor
 }
 
 func TLSSecret(cr *miqv1alpha1.ManageIQ) (*corev1.Secret, error) {
-	labels := map[string]string{
-		"app": cr.Spec.AppName,
-	}
-
 	crt, key, err := tlstools.GenerateCrt("server")
 	if err != nil {
 		return nil, err
 	}
 
-	data := map[string]string{
+	secretData := map[string]string{
 		"tls.crt": string(crt),
 		"tls.key": string(key),
 	}
+
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      tlsSecretName(cr),
 			Namespace: cr.ObjectMeta.Namespace,
-			Labels:    labels,
 		},
-		StringData: data,
+		StringData: secretData,
 		Type:       "kubernetes.io/tls",
 	}
+
+	addAppLabel(cr.Spec.AppName, &secret.ObjectMeta)
+	addBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
+
 	return secret, nil
 }
 

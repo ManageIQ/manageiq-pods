@@ -12,6 +12,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -114,6 +115,14 @@ func (r *ReconcileManageIQ) Reconcile(request reconcile.Request) (reconcile.Resu
 
 	if e := miqInstance.Validate(); e != nil {
 		return reconcile.Result{}, e
+	}
+
+	if os.Getenv("POD_NAME") != "" {
+		if e := r.manageOperator(miqInstance); e != nil {
+			return reconcile.Result{}, e
+		}
+	} else {
+		logger.Info("Skipping reconcile of the operator pod; not running in a cluster.")
 	}
 
 	if e := r.generateSecrets(miqInstance); e != nil {
@@ -431,6 +440,33 @@ func (r *ReconcileManageIQ) generateSecrets(cr *miqv1alpha1.ManageIQ) error {
 		return err
 	}
 
+	if cr.Spec.ImagePullSecret != "" {
+		imagePullSecret, mutateFunc := miqtool.ImagePullSecret(cr, r.client)
+		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, imagePullSecret, mutateFunc); err != nil {
+			return err
+		} else if result != controllerutil.OperationResultNone {
+			logger.Info("Image Pull Secret has been reconciled", "component", "operator", "result", result)
+		}
+	}
+
+	if cr.Spec.HttpdAuthenticationType == "openid-connect" {
+		oidcClientSecret, mutateFunc := miqtool.OidcClientSecret(cr, r.client)
+		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, oidcClientSecret, mutateFunc); err != nil {
+			return err
+		} else if result != controllerutil.OperationResultNone {
+			logger.Info("OIDC Client Secret has been reconciled", "component", "operator", "result", result)
+		}
+
+		if cr.Spec.OIDCCACertSecret != "" {
+			oidcCaCertSecret, mutateFunc := miqtool.OidcCaCertSecret(cr, r.client)
+			if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, oidcCaCertSecret, mutateFunc); err != nil {
+				return err
+			} else if result != controllerutil.OperationResultNone {
+				logger.Info("OIDC CA Secret has been reconciled", "component", "operator", "result", result)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -440,6 +476,38 @@ func (r *ReconcileManageIQ) manageCR(cr *miqv1alpha1.ManageIQ) error {
 		return err
 	} else if result != controllerutil.OperationResultNone {
 		logger.Info("CR has been reconciled", "component", "app", "result", result)
+	}
+
+	return nil
+}
+
+func (r *ReconcileManageIQ) manageOperator(cr *miqv1alpha1.ManageIQ) error {
+	operator, mutateFunc := miqtool.ManageOperator(cr, r.client)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, operator, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("Operator has been reconciled", "component", "app", "result", result)
+	}
+
+	serviceAccount, mutateFunc := miqtool.ManageOperatorServiceAccount(cr, r.client)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, serviceAccount, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("Service Account has been reconciled", "component", "operator", "result", result)
+	}
+
+	role, mutateFunc := miqtool.ManageOperatorRole(cr, r.client)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, role, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("Role has been reconciled", "component", "operator", "result", result)
+	}
+
+	roleBinding, mutateFunc := miqtool.ManageOperatorRoleBinding(cr, r.client)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, roleBinding, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("Role Binding has been reconciled", "component", "operator", "result", result)
 	}
 
 	return nil

@@ -61,6 +61,13 @@ func addAppLabel(appName string, meta *metav1.ObjectMeta) {
 	meta.Labels["app"] = appName
 }
 
+func addBackupLabel(backupLabel string, meta *metav1.ObjectMeta) {
+	if meta.Labels == nil {
+		meta.Labels = make(map[string]string)
+	}
+	meta.Labels[backupLabel] = "t"
+}
+
 func addBackupAnnotation(volumesToBackup string, meta *metav1.ObjectMeta) {
 	if meta.Annotations == nil {
 		meta.Annotations = make(map[string]string)

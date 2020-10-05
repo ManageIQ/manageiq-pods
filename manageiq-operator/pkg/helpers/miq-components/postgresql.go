@@ -12,10 +12,7 @@ import (
 )
 
 func DefaultPostgresqlSecret(cr *miqv1alpha1.ManageIQ) *corev1.Secret {
-	labels := map[string]string{
-		"app": cr.Spec.AppName,
-	}
-	secret := map[string]string{
+	secretData := map[string]string{
 		"dbname":   "vmdb_production",
 		"username": "root",
 		"password": generatePassword(),
@@ -23,14 +20,18 @@ func DefaultPostgresqlSecret(cr *miqv1alpha1.ManageIQ) *corev1.Secret {
 		"port":     "5432",
 	}
 
-	return &corev1.Secret{
+	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      postgresqlSecretName(cr),
 			Namespace: cr.ObjectMeta.Namespace,
-			Labels:    labels,
 		},
-		StringData: secret,
+		StringData: secretData,
 	}
+
+	addAppLabel(cr.Spec.AppName, &secret.ObjectMeta)
+	addBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
+
+	return secret
 }
 
 func postgresqlSecretName(cr *miqv1alpha1.ManageIQ) string {
@@ -227,6 +228,8 @@ func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*ap
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)
+		addBackupLabel(cr.Spec.BackupLabelName, &deployment.ObjectMeta)
+		addBackupLabel(cr.Spec.BackupLabelName, &deployment.Spec.Template.ObjectMeta)
 		addBackupAnnotation("miq-pgdb-volume", &deployment.Spec.Template.ObjectMeta)
 		var repNum int32 = 1
 		deployment.Spec.Replicas = &repNum
