@@ -176,16 +176,6 @@ Additional options are also available:
   - `-s` Run a release build, using the latest tagged rpm build, excluding nightly rpm builds
   - `-t <tag>` Tag the built images with the specified tag (default: latest)
 
-Additionally the source fork and git ref for manageiq-appliance-build can be set using the following environment variables:
-  - `BUILD_REF`
-  - `BUILD_ORG`
-
-A more complicated example would be to build and push all the images to the quay.io repository "test" using the source from the "feature" branch on the "example" fork:
-
-```bash
-BUILD_ORG=example BUILD_REF=feature ./bin/build -d images -r quay.io/test -p
-```
-
 ### Building RPMs locally
 
 If you want to build images containing your fork or different branches of ManageIQ source code, the `-b` option can be used, which will build RPMs locally before building the images. RPMs are built in `manageiq/rpm_build` container image but a different image can be used if needed.
