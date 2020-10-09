@@ -1,16 +1,3 @@
-FROM registry.access.redhat.com/ubi8/ubi:latest as appliance_build
-
-ARG BUILD_REF=master
-ARG BUILD_ORG=ManageIQ
-ARG CORE_REPO_NAME=manageiq
-ARG GIT_HOST=github.com
-ARG GIT_AUTH
-
-RUN mkdir build && \
-    if [[ -n "$GIT_AUTH" ]]; then GIT_HOST=${GIT_AUTH}@${GIT_HOST}; fi && curl -L https://${GIT_HOST}/${BUILD_ORG}/${CORE_REPO_NAME}-appliance-build/tarball/${BUILD_REF} | tar vxz -C build --strip 1
-
-################################################################################
-
 FROM registry.access.redhat.com/ubi8/ubi
 MAINTAINER ManageIQ https://manageiq.org
 
@@ -72,13 +59,6 @@ RUN dnf config-manager --setopt=tsflags=nodocs --setopt=install_weak_deps=False 
 
 # Add in the container_env file now that the APP_ROOT is created from the RPM
 ADD container-assets/container_env ${APP_ROOT}
-
-# Install python packages the same way the appliance does
-COPY --from=appliance_build build/kickstarts/partials/post/python_modules.ks.erb /tmp/python_modules
-RUN bash /tmp/python_modules && \
-    rm -f /tmp/python_modules && \
-    rm -rf /root/.cache/pip && \
-    clean_dnf_rpm
 
 # Build the RPM manifest
 RUN source /etc/default/evm && \

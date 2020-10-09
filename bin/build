@@ -2,14 +2,7 @@
 
 TAG=latest
 
-BUILD_REF=${BUILD_REF:-master}
-BUILD_ORG=${BUILD_ORG:-ManageIQ}
-
 ARCH=`uname -m`
-CORE_REPO_NAME=${CORE_REPO_NAME:-manageiq}
-
-GIT_HOST=${GIT_HOST:-github.com}
-GIT_AUTH=${GIT_AUTH:-""}
 
 RPM_BUILD_OPTIONS=${RPM_BUILD_OPTIONS:-""}
 RPM_BUILD_IMAGE=${RPM_BUILD_IMAGE:-"manageiq/rpm_build:$TAG"}
@@ -68,11 +61,6 @@ pushd $IMAGE_DIR
 
   cmd+=" --tag $REPO/manageiq-base:$TAG \
          --pull \
-         --build-arg BUILD_REF=$BUILD_REF \
-         --build-arg BUILD_ORG=$BUILD_ORG \
-         --build-arg GIT_AUTH=$GIT_AUTH \
-         --build-arg GIT_HOST=$GIT_HOST \
-         --build-arg CORE_REPO_NAME=$CORE_REPO_NAME \
          --build-arg ARCH=$ARCH \
          --build-arg RPM_PREFIX=$RPM_PREFIX"
 
