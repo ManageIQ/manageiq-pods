@@ -450,11 +450,13 @@ func (r *ReconcileManageIQ) generateSecrets(cr *miqv1alpha1.ManageIQ) error {
 	}
 
 	if cr.Spec.HttpdAuthenticationType == "openid-connect" {
-		oidcClientSecret, mutateFunc := miqtool.OidcClientSecret(cr, r.client)
-		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, oidcClientSecret, mutateFunc); err != nil {
-			return err
-		} else if result != controllerutil.OperationResultNone {
-			logger.Info("OIDC Client Secret has been reconciled", "component", "operator", "result", result)
+		if cr.Spec.OIDCClientSecret != "" {
+			oidcClientSecret, mutateFunc := miqtool.OidcClientSecret(cr, r.client)
+			if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, oidcClientSecret, mutateFunc); err != nil {
+				return err
+			} else if result != controllerutil.OperationResultNone {
+				logger.Info("OIDC Client Secret has been reconciled", "component", "operator", "result", result)
+			}
 		}
 
 		if cr.Spec.OIDCCACertSecret != "" {
