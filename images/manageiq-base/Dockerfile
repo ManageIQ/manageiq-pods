@@ -1,6 +1,6 @@
 FROM registry.access.redhat.com/ubi8/ubi:8.2
 
-ARG BUILD_REF=master
+ARG BUILD_REF=kasparov
 ARG BUILD_ORG=ManageIQ
 
 ARG CORE_REPO_NAME=manageiq

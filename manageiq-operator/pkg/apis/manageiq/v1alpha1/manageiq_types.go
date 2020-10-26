@@ -148,7 +148,7 @@ type ManageIQSpec struct {
 	// Image namespace used for the orchestrator and worker deployments (default: manageiq)
 	// +optional
 	OrchestratorImageNamespace string `json:"orchestratorImageNamespace"`
-	// Image tag used for the orchestrator and worker deployments (default: latest)
+	// Image tag used for the orchestrator and worker deployments (default: latest-kasparov)
 	// +optional
 	OrchestratorImageTag string `json:"orchestratorImageTag"`
 	// Number of seconds to wait before starting the orchestrator liveness check (default: 480)

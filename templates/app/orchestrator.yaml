@@ -130,7 +130,7 @@ parameters:
 - name: ORCHESTRATOR_IMAGE_NAME
   value: manageiq-orchestrator
 - name: ORCHESTRATOR_IMAGE_TAG
-  value: latest
+  value: latest-kasparov
 - name: ORCHESTRATOR_CPU_REQ
   value: 1000m
 - name: ORCHESTRATOR_MEM_REQ
