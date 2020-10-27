@@ -1,17 +1,18 @@
+---
 language: ruby
 rvm:
-- 2.5.7
-- 2.6.5
+- 2.6.6
 arch:
 - amd64
 - ppc64le
 cache:
   bundler: true
   directories:
-  - $HOME/.cache/go-build
-  - $HOME/gopath/pkg/mod
+  - "$HOME/.cache/go-build"
+  - "$HOME/gopath/pkg/mod"
 before_script:
 - eval "$(gimme 1.14)"
-- curl -L https://github.com/operator-framework/operator-sdk/releases/download/v0.15.1/operator-sdk-v0.15.1-$(uname -m)-linux-gnu -o /home/travis/bin/operator-sdk && chmod +x /home/travis/bin/operator-sdk
+- curl -L https://github.com/operator-framework/operator-sdk/releases/download/v0.15.1/operator-sdk-v0.15.1-$(uname
+  -m)-linux-gnu -o /home/travis/bin/operator-sdk && chmod +x /home/travis/bin/operator-sdk
 script:
 - bundle exec rspec
