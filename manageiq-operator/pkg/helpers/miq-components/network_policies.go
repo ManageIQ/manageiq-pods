@@ -19,11 +19,7 @@ func NetworkPolicyDefaultDeny(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) 
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &networkPolicy.ObjectMeta)
-
-		if len(networkPolicy.Spec.PolicyTypes) == 0 {
-			networkPolicy.Spec.PolicyTypes = append(networkPolicy.Spec.PolicyTypes, "Ingress")
-		}
-		networkPolicy.Spec.PolicyTypes[0] = "Ingress"
+		setIngressPolicyType(networkPolicy)
 
 		return nil
 	}
@@ -39,13 +35,9 @@ func NetworkPolicyAllowInboundHttpd(cr *miqv1alpha1.ManageIQ, scheme *runtime.Sc
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &networkPolicy.ObjectMeta)
+		setIngressPolicyType(networkPolicy)
 
 		networkPolicy.Spec.PodSelector.MatchLabels = map[string]string{"name": "httpd"}
-
-		if len(networkPolicy.Spec.PolicyTypes) != 1 {
-			networkPolicy.Spec.PolicyTypes = append(networkPolicy.Spec.PolicyTypes, "Ingress")
-		}
-		networkPolicy.Spec.PolicyTypes[0] = "Ingress"
 
 		if len(networkPolicy.Spec.Ingress) != 1 {
 			networkPolicy.Spec.Ingress = []extensionsv1beta1.NetworkPolicyIngressRule{
@@ -82,13 +74,9 @@ func NetworkPolicyAllowHttpdApi(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &networkPolicy.ObjectMeta)
+		setIngressPolicyType(networkPolicy)
 
 		networkPolicy.Spec.PodSelector.MatchLabels = map[string]string{"service": "web-service"}
-
-		if len(networkPolicy.Spec.PolicyTypes) != 1 {
-			networkPolicy.Spec.PolicyTypes = append(networkPolicy.Spec.PolicyTypes, "Ingress")
-		}
-		networkPolicy.Spec.PolicyTypes[0] = "Ingress"
 
 		if len(networkPolicy.Spec.Ingress) != 1 {
 			networkPolicy.Spec.Ingress = []extensionsv1beta1.NetworkPolicyIngressRule{
@@ -125,13 +113,9 @@ func NetworkPolicyAllowHttpdUi(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme)
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &networkPolicy.ObjectMeta)
+		setIngressPolicyType(networkPolicy)
 
 		networkPolicy.Spec.PodSelector.MatchLabels = map[string]string{"service": "ui"}
-
-		if len(networkPolicy.Spec.PolicyTypes) != 1 {
-			networkPolicy.Spec.PolicyTypes = append(networkPolicy.Spec.PolicyTypes, "Ingress")
-		}
-		networkPolicy.Spec.PolicyTypes[0] = "Ingress"
 
 		if len(networkPolicy.Spec.Ingress) != 1 {
 			networkPolicy.Spec.Ingress = []extensionsv1beta1.NetworkPolicyIngressRule{
@@ -168,13 +152,9 @@ func NetworkPolicyAllowMemcached(cr *miqv1alpha1.ManageIQ, scheme *runtime.Schem
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &networkPolicy.ObjectMeta)
+		setIngressPolicyType(networkPolicy)
 
 		networkPolicy.Spec.PodSelector.MatchLabels = map[string]string{"name": "memcached"}
-
-		if len(networkPolicy.Spec.PolicyTypes) != 1 {
-			networkPolicy.Spec.PolicyTypes = append(networkPolicy.Spec.PolicyTypes, "Ingress")
-		}
-		networkPolicy.Spec.PolicyTypes[0] = "Ingress"
 
 		pod := orchestratorPod(*c)
 		if pod == nil {
@@ -221,13 +201,9 @@ func NetworkPolicyAllowPostgres(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &networkPolicy.ObjectMeta)
+		setIngressPolicyType(networkPolicy)
 
 		networkPolicy.Spec.PodSelector.MatchLabels = map[string]string{"name": "postgresql"}
-
-		if len(networkPolicy.Spec.PolicyTypes) != 1 {
-			networkPolicy.Spec.PolicyTypes = append(networkPolicy.Spec.PolicyTypes, "Ingress")
-		}
-		networkPolicy.Spec.PolicyTypes[0] = "Ingress"
 
 		pod := orchestratorPod(*c)
 		if pod == nil {
@@ -273,4 +249,11 @@ func newNetworkPolicy(cr *miqv1alpha1.ManageIQ, name string) *extensionsv1beta1.
 			Namespace: cr.ObjectMeta.Namespace,
 		},
 	}
+}
+
+func setIngressPolicyType(networkPolicy *extensionsv1beta1.NetworkPolicy) {
+	if len(networkPolicy.Spec.PolicyTypes) != 1 {
+		networkPolicy.Spec.PolicyTypes = append(networkPolicy.Spec.PolicyTypes, "Ingress")
+	}
+	networkPolicy.Spec.PolicyTypes[0] = "Ingress"
 }
