@@ -39,11 +39,7 @@ func NetworkPolicyAllowInboundHttpd(cr *miqv1alpha1.ManageIQ, scheme *runtime.Sc
 
 		networkPolicy.Spec.PodSelector.MatchLabels = map[string]string{"name": "httpd"}
 
-		if len(networkPolicy.Spec.Ingress) != 1 {
-			networkPolicy.Spec.Ingress = []extensionsv1beta1.NetworkPolicyIngressRule{
-				extensionsv1beta1.NetworkPolicyIngressRule{},
-			}
-		}
+		ensureIngressRule(networkPolicy)
 		if len(networkPolicy.Spec.Ingress[0].From) != 1 {
 			networkPolicy.Spec.Ingress[0].From = []extensionsv1beta1.NetworkPolicyPeer{
 				extensionsv1beta1.NetworkPolicyPeer{},
@@ -78,11 +74,7 @@ func NetworkPolicyAllowHttpdApi(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme
 
 		networkPolicy.Spec.PodSelector.MatchLabels = map[string]string{"service": "web-service"}
 
-		if len(networkPolicy.Spec.Ingress) != 1 {
-			networkPolicy.Spec.Ingress = []extensionsv1beta1.NetworkPolicyIngressRule{
-				extensionsv1beta1.NetworkPolicyIngressRule{},
-			}
-		}
+		ensureIngressRule(networkPolicy)
 		if len(networkPolicy.Spec.Ingress[0].From) != 1 {
 			networkPolicy.Spec.Ingress[0].From = []extensionsv1beta1.NetworkPolicyPeer{
 				extensionsv1beta1.NetworkPolicyPeer{},
@@ -117,11 +109,7 @@ func NetworkPolicyAllowHttpdUi(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme)
 
 		networkPolicy.Spec.PodSelector.MatchLabels = map[string]string{"service": "ui"}
 
-		if len(networkPolicy.Spec.Ingress) != 1 {
-			networkPolicy.Spec.Ingress = []extensionsv1beta1.NetworkPolicyIngressRule{
-				extensionsv1beta1.NetworkPolicyIngressRule{},
-			}
-		}
+		ensureIngressRule(networkPolicy)
 		if len(networkPolicy.Spec.Ingress[0].From) != 1 {
 			networkPolicy.Spec.Ingress[0].From = []extensionsv1beta1.NetworkPolicyPeer{
 				extensionsv1beta1.NetworkPolicyPeer{},
@@ -161,11 +149,7 @@ func NetworkPolicyAllowMemcached(cr *miqv1alpha1.ManageIQ, scheme *runtime.Schem
 			return nil
 		}
 
-		if len(networkPolicy.Spec.Ingress) != 1 {
-			networkPolicy.Spec.Ingress = []extensionsv1beta1.NetworkPolicyIngressRule{
-				extensionsv1beta1.NetworkPolicyIngressRule{},
-			}
-		}
+		ensureIngressRule(networkPolicy)
 		if len(networkPolicy.Spec.Ingress[0].From) != 2 {
 			networkPolicy.Spec.Ingress[0].From = []extensionsv1beta1.NetworkPolicyPeer{
 				extensionsv1beta1.NetworkPolicyPeer{},
@@ -210,11 +194,7 @@ func NetworkPolicyAllowPostgres(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme
 			return nil
 		}
 
-		if len(networkPolicy.Spec.Ingress) != 1 {
-			networkPolicy.Spec.Ingress = []extensionsv1beta1.NetworkPolicyIngressRule{
-				extensionsv1beta1.NetworkPolicyIngressRule{},
-			}
-		}
+		ensureIngressRule(networkPolicy)
 		if len(networkPolicy.Spec.Ingress[0].From) != 2 {
 			networkPolicy.Spec.Ingress[0].From = []extensionsv1beta1.NetworkPolicyPeer{
 				extensionsv1beta1.NetworkPolicyPeer{},
@@ -256,4 +236,12 @@ func setIngressPolicyType(networkPolicy *extensionsv1beta1.NetworkPolicy) {
 		networkPolicy.Spec.PolicyTypes = append(networkPolicy.Spec.PolicyTypes, "Ingress")
 	}
 	networkPolicy.Spec.PolicyTypes[0] = "Ingress"
+}
+
+func ensureIngressRule(networkPolicy *extensionsv1beta1.NetworkPolicy) {
+	if len(networkPolicy.Spec.Ingress) != 1 {
+		networkPolicy.Spec.Ingress = []extensionsv1beta1.NetworkPolicyIngressRule{
+			extensionsv1beta1.NetworkPolicyIngressRule{},
+		}
+	}
 }
