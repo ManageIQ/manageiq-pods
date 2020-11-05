@@ -40,21 +40,14 @@ func NetworkPolicyAllowInboundHttpd(cr *miqv1alpha1.ManageIQ, scheme *runtime.Sc
 		networkPolicy.Spec.PodSelector.MatchLabels = map[string]string{"name": "httpd"}
 
 		ensureIngressRule(networkPolicy)
+		setFirstIngressTCPPort(networkPolicy, 8080)
 		if len(networkPolicy.Spec.Ingress[0].From) != 1 {
 			networkPolicy.Spec.Ingress[0].From = []extensionsv1beta1.NetworkPolicyPeer{
 				extensionsv1beta1.NetworkPolicyPeer{},
 			}
 		}
-		if len(networkPolicy.Spec.Ingress[0].Ports) != 1 {
-			networkPolicy.Spec.Ingress[0].Ports = []extensionsv1beta1.NetworkPolicyPort{
-				extensionsv1beta1.NetworkPolicyPort{},
-			}
-		}
-		tcp := corev1.ProtocolTCP
 		networkPolicy.Spec.Ingress[0].From[0].IPBlock = &extensionsv1beta1.IPBlock{}
 		networkPolicy.Spec.Ingress[0].From[0].IPBlock.CIDR = "0.0.0.0/0"
-		networkPolicy.Spec.Ingress[0].Ports[0].Protocol = &tcp
-		networkPolicy.Spec.Ingress[0].Ports[0].Port = &intstr.IntOrString{Type: intstr.Int, IntVal: 8080}
 
 		return nil
 	}
@@ -75,21 +68,14 @@ func NetworkPolicyAllowHttpdApi(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme
 		networkPolicy.Spec.PodSelector.MatchLabels = map[string]string{"service": "web-service"}
 
 		ensureIngressRule(networkPolicy)
+		setFirstIngressTCPPort(networkPolicy, 3000)
 		if len(networkPolicy.Spec.Ingress[0].From) != 1 {
 			networkPolicy.Spec.Ingress[0].From = []extensionsv1beta1.NetworkPolicyPeer{
 				extensionsv1beta1.NetworkPolicyPeer{},
 			}
 		}
-		if len(networkPolicy.Spec.Ingress[0].Ports) != 1 {
-			networkPolicy.Spec.Ingress[0].Ports = []extensionsv1beta1.NetworkPolicyPort{
-				extensionsv1beta1.NetworkPolicyPort{},
-			}
-		}
-		tcp := corev1.ProtocolTCP
 		networkPolicy.Spec.Ingress[0].From[0].PodSelector = &metav1.LabelSelector{}
 		networkPolicy.Spec.Ingress[0].From[0].PodSelector.MatchLabels = map[string]string{"name": "httpd"}
-		networkPolicy.Spec.Ingress[0].Ports[0].Protocol = &tcp
-		networkPolicy.Spec.Ingress[0].Ports[0].Port = &intstr.IntOrString{Type: intstr.Int, IntVal: 3000}
 
 		return nil
 	}
@@ -110,21 +96,14 @@ func NetworkPolicyAllowHttpdUi(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme)
 		networkPolicy.Spec.PodSelector.MatchLabels = map[string]string{"service": "ui"}
 
 		ensureIngressRule(networkPolicy)
+		setFirstIngressTCPPort(networkPolicy, 3000)
 		if len(networkPolicy.Spec.Ingress[0].From) != 1 {
 			networkPolicy.Spec.Ingress[0].From = []extensionsv1beta1.NetworkPolicyPeer{
 				extensionsv1beta1.NetworkPolicyPeer{},
 			}
 		}
-		if len(networkPolicy.Spec.Ingress[0].Ports) != 1 {
-			networkPolicy.Spec.Ingress[0].Ports = []extensionsv1beta1.NetworkPolicyPort{
-				extensionsv1beta1.NetworkPolicyPort{},
-			}
-		}
-		tcp := corev1.ProtocolTCP
 		networkPolicy.Spec.Ingress[0].From[0].PodSelector = &metav1.LabelSelector{}
 		networkPolicy.Spec.Ingress[0].From[0].PodSelector.MatchLabels = map[string]string{"name": "httpd"}
-		networkPolicy.Spec.Ingress[0].Ports[0].Protocol = &tcp
-		networkPolicy.Spec.Ingress[0].Ports[0].Port = &intstr.IntOrString{Type: intstr.Int, IntVal: 3000}
 
 		return nil
 	}
@@ -150,26 +129,19 @@ func NetworkPolicyAllowMemcached(cr *miqv1alpha1.ManageIQ, scheme *runtime.Schem
 		}
 
 		ensureIngressRule(networkPolicy)
+		setFirstIngressTCPPort(networkPolicy, 11211)
 		if len(networkPolicy.Spec.Ingress[0].From) != 2 {
 			networkPolicy.Spec.Ingress[0].From = []extensionsv1beta1.NetworkPolicyPeer{
 				extensionsv1beta1.NetworkPolicyPeer{},
 				extensionsv1beta1.NetworkPolicyPeer{},
 			}
 		}
-		if len(networkPolicy.Spec.Ingress[0].Ports) != 1 {
-			networkPolicy.Spec.Ingress[0].Ports = []extensionsv1beta1.NetworkPolicyPort{
-				extensionsv1beta1.NetworkPolicyPort{},
-			}
-		}
 		orchestratedByLabelKey := cr.Spec.AppName + "-orchestrated-by"
 		orchestratedByLabelValue := pod.Name
-		tcp := corev1.ProtocolTCP
 		networkPolicy.Spec.Ingress[0].From[0].PodSelector = &metav1.LabelSelector{}
 		networkPolicy.Spec.Ingress[0].From[0].PodSelector.MatchLabels = map[string]string{"name": "orchestrator"}
 		networkPolicy.Spec.Ingress[0].From[1].PodSelector = &metav1.LabelSelector{}
 		networkPolicy.Spec.Ingress[0].From[1].PodSelector.MatchLabels = map[string]string{orchestratedByLabelKey: orchestratedByLabelValue}
-		networkPolicy.Spec.Ingress[0].Ports[0].Protocol = &tcp
-		networkPolicy.Spec.Ingress[0].Ports[0].Port = &intstr.IntOrString{Type: intstr.Int, IntVal: 11211}
 
 		return nil
 	}
@@ -195,26 +167,19 @@ func NetworkPolicyAllowPostgres(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme
 		}
 
 		ensureIngressRule(networkPolicy)
+		setFirstIngressTCPPort(networkPolicy, 5432)
 		if len(networkPolicy.Spec.Ingress[0].From) != 2 {
 			networkPolicy.Spec.Ingress[0].From = []extensionsv1beta1.NetworkPolicyPeer{
 				extensionsv1beta1.NetworkPolicyPeer{},
 				extensionsv1beta1.NetworkPolicyPeer{},
 			}
 		}
-		if len(networkPolicy.Spec.Ingress[0].Ports) != 1 {
-			networkPolicy.Spec.Ingress[0].Ports = []extensionsv1beta1.NetworkPolicyPort{
-				extensionsv1beta1.NetworkPolicyPort{},
-			}
-		}
 		orchestratedByLabelKey := cr.Spec.AppName + "-orchestrated-by"
 		orchestratedByLabelValue := pod.Name
-		tcp := corev1.ProtocolTCP
 		networkPolicy.Spec.Ingress[0].From[0].PodSelector = &metav1.LabelSelector{}
 		networkPolicy.Spec.Ingress[0].From[0].PodSelector.MatchLabels = map[string]string{"name": "orchestrator"}
 		networkPolicy.Spec.Ingress[0].From[1].PodSelector = &metav1.LabelSelector{}
 		networkPolicy.Spec.Ingress[0].From[1].PodSelector.MatchLabels = map[string]string{orchestratedByLabelKey: orchestratedByLabelValue}
-		networkPolicy.Spec.Ingress[0].Ports[0].Protocol = &tcp
-		networkPolicy.Spec.Ingress[0].Ports[0].Port = &intstr.IntOrString{Type: intstr.Int, IntVal: 5432}
 
 		return nil
 	}
@@ -244,4 +209,16 @@ func ensureIngressRule(networkPolicy *extensionsv1beta1.NetworkPolicy) {
 			extensionsv1beta1.NetworkPolicyIngressRule{},
 		}
 	}
+}
+
+func setFirstIngressTCPPort(networkPolicy *extensionsv1beta1.NetworkPolicy, port int32) {
+	if len(networkPolicy.Spec.Ingress[0].Ports) != 1 {
+		networkPolicy.Spec.Ingress[0].Ports = []extensionsv1beta1.NetworkPolicyPort{
+			extensionsv1beta1.NetworkPolicyPort{},
+		}
+	}
+	tcp := corev1.ProtocolTCP
+	ports := &networkPolicy.Spec.Ingress[0].Ports[0]
+	ports.Protocol = &tcp
+	ports.Port = &intstr.IntOrString{Type: intstr.Int, IntVal: port}
 }
