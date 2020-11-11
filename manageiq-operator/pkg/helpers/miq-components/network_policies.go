@@ -12,7 +12,7 @@ import (
 )
 
 func NetworkPolicyDefaultDeny(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*extensionsv1beta1.NetworkPolicy, controllerutil.MutateFn) {
-	networkPolicy := newNetworkPolicy(cr, "-default-deny")
+	networkPolicy := newNetworkPolicy(cr, "default-deny")
 
 	f := func() error {
 		if err := controllerutil.SetControllerReference(cr, networkPolicy, scheme); err != nil {
@@ -28,7 +28,7 @@ func NetworkPolicyDefaultDeny(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) 
 }
 
 func NetworkPolicyAllowInboundHttpd(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*extensionsv1beta1.NetworkPolicy, controllerutil.MutateFn) {
-	networkPolicy := newNetworkPolicy(cr, "-allow-inbound-httpd")
+	networkPolicy := newNetworkPolicy(cr, "allow-inbound-httpd")
 
 	f := func() error {
 		if err := controllerutil.SetControllerReference(cr, networkPolicy, scheme); err != nil {
@@ -56,7 +56,7 @@ func NetworkPolicyAllowInboundHttpd(cr *miqv1alpha1.ManageIQ, scheme *runtime.Sc
 }
 
 func NetworkPolicyAllowHttpdApi(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*extensionsv1beta1.NetworkPolicy, controllerutil.MutateFn) {
-	networkPolicy := newNetworkPolicy(cr, "-allow-httpd-api")
+	networkPolicy := newNetworkPolicy(cr, "allow-httpd-api")
 
 	f := func() error {
 		if err := controllerutil.SetControllerReference(cr, networkPolicy, scheme); err != nil {
@@ -84,7 +84,7 @@ func NetworkPolicyAllowHttpdApi(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme
 }
 
 func NetworkPolicyAllowHttpdUi(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*extensionsv1beta1.NetworkPolicy, controllerutil.MutateFn) {
-	networkPolicy := newNetworkPolicy(cr, "-allow-httpd-ui")
+	networkPolicy := newNetworkPolicy(cr, "allow-httpd-ui")
 
 	f := func() error {
 		if err := controllerutil.SetControllerReference(cr, networkPolicy, scheme); err != nil {
@@ -112,7 +112,7 @@ func NetworkPolicyAllowHttpdUi(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme)
 }
 
 func NetworkPolicyAllowMemcached(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, c *client.Client) (*extensionsv1beta1.NetworkPolicy, controllerutil.MutateFn) {
-	networkPolicy := newNetworkPolicy(cr, "-allow-memcached")
+	networkPolicy := newNetworkPolicy(cr, "allow-memcached")
 
 	f := func() error {
 		if err := controllerutil.SetControllerReference(cr, networkPolicy, scheme); err != nil {
@@ -150,7 +150,7 @@ func NetworkPolicyAllowMemcached(cr *miqv1alpha1.ManageIQ, scheme *runtime.Schem
 }
 
 func NetworkPolicyAllowPostgres(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, c *client.Client) (*extensionsv1beta1.NetworkPolicy, controllerutil.MutateFn) {
-	networkPolicy := newNetworkPolicy(cr, "-allow-postgres")
+	networkPolicy := newNetworkPolicy(cr, "allow-postgres")
 
 	f := func() error {
 		if err := controllerutil.SetControllerReference(cr, networkPolicy, scheme); err != nil {
@@ -190,7 +190,7 @@ func NetworkPolicyAllowPostgres(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme
 func newNetworkPolicy(cr *miqv1alpha1.ManageIQ, name string) *extensionsv1beta1.NetworkPolicy {
 	return &extensionsv1beta1.NetworkPolicy{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      cr.Spec.AppName + name,
+			Name:      cr.Spec.AppName + "-" + name,
 			Namespace: cr.ObjectMeta.Namespace,
 		},
 	}
