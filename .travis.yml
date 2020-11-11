@@ -13,6 +13,6 @@ cache:
   - "$HOME/gopath/pkg/mod"
 before_script:
 - eval "$(gimme 1.14)"
-- curl -L https://github.com/operator-framework/operator-sdk/releases/download/v0.15.1/operator-sdk-v0.15.1-$(uname -m)-linux-gnu -o /home/travis/bin/operator-sdk && chmod +x /home/travis/bin/operator-sdk
+- travis_wait curl -L https://github.com/operator-framework/operator-sdk/releases/download/v0.15.1/operator-sdk-v0.15.1-$(uname -m)-linux-gnu -o /home/travis/bin/operator-sdk && chmod +x /home/travis/bin/operator-sdk
 script:
 - bundle exec rspec
