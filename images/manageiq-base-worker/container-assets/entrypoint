@@ -11,6 +11,8 @@ KEY
 
 echo "${GUID}" > ${APP_ROOT}/GUID
 
-[[ -n $EMS_IDS ]] && WORKER_OPTIONS="--ems-id=${EMS_IDS} "
+WORKER_OPTIONS=""
+[[ -n $EMS_IDS ]] && WORKER_OPTIONS="${WORKER_OPTIONS} --ems-id=${EMS_IDS} "
+[[ -n $HOSTNAME ]] && WORKER_OPTIONS="${WORKER_OPTIONS} --system-uid=$HOSTNAME "
 
 exec ruby ${APP_ROOT}/lib/workers/bin/run_single_worker.rb --heartbeat ${WORKER_OPTIONS}${WORKER_CLASS_NAME}
