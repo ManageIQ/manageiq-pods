@@ -361,6 +361,9 @@ func HttpdDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.
 		addAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)
 		var repNum int32 = 1
 		deployment.Spec.Replicas = &repNum
+		deployment.Spec.Strategy = appsv1.DeploymentStrategy{
+			Type: "Recreate",
+		}
 		deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
 		deployment.Spec.Template.Spec.Volumes = []corev1.Volume{
 			corev1.Volume{
