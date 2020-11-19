@@ -250,6 +250,9 @@ func KafkaDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.
 		addBackupLabel(cr.Spec.BackupLabelName, &deployment.Spec.Template.ObjectMeta)
 		var repNum int32 = 1
 		deployment.Spec.Replicas = &repNum
+		deployment.Spec.Strategy = appsv1.DeploymentStrategy{
+			Type: "Recreate",
+		}
 		deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
 		deployment.Spec.Template.Spec.ServiceAccountName = defaultServiceAccountName(cr.Spec.AppName)
 		var termSecs int64 = 10
@@ -330,6 +333,9 @@ func ZookeeperDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*app
 		addBackupLabel(cr.Spec.BackupLabelName, &deployment.Spec.Template.ObjectMeta)
 		var repNum int32 = 1
 		deployment.Spec.Replicas = &repNum
+		deployment.Spec.Strategy = appsv1.DeploymentStrategy{
+			Type: "Recreate",
+		}
 		deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
 		deployment.Spec.Template.Spec.ServiceAccountName = defaultServiceAccountName(cr.Spec.AppName)
 		deployment.Spec.Template.Spec.Volumes = []corev1.Volume{

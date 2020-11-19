@@ -88,6 +88,9 @@ func NewMemcachedDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*
 		addAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)
 		var repNum int32 = 1
 		deployment.Spec.Replicas = &repNum
+		deployment.Spec.Strategy = appsv1.DeploymentStrategy{
+			Type: "Recreate",
+		}
 		deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
 		deployment.Spec.Template.Spec.ServiceAccountName = defaultServiceAccountName(cr.Spec.AppName)
 		return nil

@@ -346,6 +346,9 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*
 		addAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)
 		var repNum int32 = 1
 		deployment.Spec.Replicas = &repNum
+		deployment.Spec.Strategy = appsv1.DeploymentStrategy{
+			Type: "Recreate",
+		}
 		deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
 		var termSecs int64 = 90
 		deployment.Spec.Template.Spec.ServiceAccountName = cr.Spec.AppName + "-orchestrator"
