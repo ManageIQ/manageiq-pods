@@ -2,6 +2,7 @@ package miqtools
 
 import (
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
@@ -197,8 +198,15 @@ func postgresqlSharedBuffers(cr *miqv1alpha1.ManageIQ) string {
 	}
 }
 
-func serverGuid(cr *miqv1alpha1.ManageIQ) string {
+func serverGuid(cr *miqv1alpha1.ManageIQ, c *client.Client) string {
 	if cr.Spec.ServerGuid == "" {
+		if pod := orchestratorPod(*c); pod != nil {
+			for _, env := range pod.Spec.Containers[0].Env {
+				if env.Name == "GUID" {
+					return env.Value
+				}
+			}
+		}
 		return string(cr.GetUID())
 	} else {
 		return cr.Spec.ServerGuid
@@ -253,7 +261,7 @@ func zookeeperVolumeCapacity(cr *miqv1alpha1.ManageIQ) string {
 	}
 }
 
-func ManageCR(cr *miqv1alpha1.ManageIQ) (*miqv1alpha1.ManageIQ, controllerutil.MutateFn) {
+func ManageCR(cr *miqv1alpha1.ManageIQ, c *client.Client) (*miqv1alpha1.ManageIQ, controllerutil.MutateFn) {
 	f := func() error {
 		varDeployMessagingService := deployMessagingService(cr)
 		varEnableApplicationLocalLogin := enableApplicationLocalLogin(cr)
@@ -287,7 +295,7 @@ func ManageCR(cr *miqv1alpha1.ManageIQ) (*miqv1alpha1.ManageIQ, controllerutil.M
 		cr.Spec.PostgresqlImageTag = postgresqlImageTag(cr)
 		cr.Spec.PostgresqlMaxConnections = postgresqlMaxConnections(cr)
 		cr.Spec.PostgresqlSharedBuffers = postgresqlSharedBuffers(cr)
-		cr.Spec.ServerGuid = serverGuid(cr)
+		cr.Spec.ServerGuid = serverGuid(cr, c)
 		cr.Spec.ZookeeperImageName = zookeeperImageName(cr)
 		cr.Spec.ZookeeperImageTag = zookeeperImageTag(cr)
 		cr.Spec.ZookeeperVolumeCapacity = zookeeperVolumeCapacity(cr)

@@ -473,7 +473,7 @@ func (r *ReconcileManageIQ) generateSecrets(cr *miqv1alpha1.ManageIQ) error {
 }
 
 func (r *ReconcileManageIQ) manageCR(cr *miqv1alpha1.ManageIQ) error {
-	manageiq, mutateFunc := miqtool.ManageCR(cr)
+	manageiq, mutateFunc := miqtool.ManageCR(cr, &r.client)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, manageiq, mutateFunc); err != nil {
 		return err
 	} else if result != controllerutil.OperationResultNone {
