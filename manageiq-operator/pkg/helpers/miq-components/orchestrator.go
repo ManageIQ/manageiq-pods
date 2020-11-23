@@ -1,12 +1,14 @@
 package miqtools
 
 import (
+	"context"
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"strconv"
 	"strings"
@@ -358,4 +360,17 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*
 	}
 
 	return deployment, f, nil
+}
+
+func orchestratorPod(c client.Client) *corev1.Pod {
+	podList := &corev1.PodList{}
+	c.List(context.TODO(), podList)
+
+	for _, pod := range podList.Items {
+		if pod.ObjectMeta.Labels["name"] == "orchestrator" {
+			return &pod
+		}
+	}
+
+	return nil
 }
