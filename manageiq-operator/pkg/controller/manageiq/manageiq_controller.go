@@ -125,6 +125,9 @@ func (r *ReconcileManageIQ) Reconcile(request reconcile.Request) (reconcile.Resu
 		logger.Info("Skipping reconcile of the operator pod; not running in a cluster.")
 	}
 
+	if e := r.generateNetworkPolicies(miqInstance); e != nil {
+		return reconcile.Result{}, e
+	}
 	if e := r.generateSecrets(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
@@ -420,6 +423,52 @@ func (r *ReconcileManageIQ) generateOrchestratorResources(cr *miqv1alpha1.Manage
 		return err
 	} else if result != controllerutil.OperationResultNone {
 		logger.Info("Deployment has been reconciled", "component", "orchestrator", "result", result)
+	}
+
+	return nil
+}
+
+func (r *ReconcileManageIQ) generateNetworkPolicies(cr *miqv1alpha1.ManageIQ) error {
+	networkPolicyDefaultDeny, mutateFunc := miqtool.NetworkPolicyDefaultDeny(cr, r.scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, networkPolicyDefaultDeny, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("NetworkPolicy default-deny has been reconciled", "component", "network_policy", "result", result)
+	}
+
+	networkPolicyAllowInboundHttpd, mutateFunc := miqtool.NetworkPolicyAllowInboundHttpd(cr, r.scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, networkPolicyAllowInboundHttpd, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("NetworkPolicy allow inbound-httpd has been reconciled", "component", "network_policy", "result", result)
+	}
+
+	networkPolicyAllowHttpdApi, mutateFunc := miqtool.NetworkPolicyAllowHttpdApi(cr, r.scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, networkPolicyAllowHttpdApi, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("NetworkPolicy allow httpd-api has been reconciled", "component", "network_policy", "result", result)
+	}
+
+	networkPolicyAllowHttpdUi, mutateFunc := miqtool.NetworkPolicyAllowHttpdUi(cr, r.scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, networkPolicyAllowHttpdUi, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("NetworkPolicy allow httpd-ui has been reconciled", "component", "network_policy", "result", result)
+	}
+
+	networkPolicyAllowMemcached, mutateFunc := miqtool.NetworkPolicyAllowMemcached(cr, r.scheme, &r.client)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, networkPolicyAllowMemcached, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("NetworkPolicy allow memcached has been reconciled", "component", "network_policy", "result", result)
+	}
+
+	networkPolicyAllowPostgres, mutateFunc := miqtool.NetworkPolicyAllowPostgres(cr, r.scheme, &r.client)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, networkPolicyAllowPostgres, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("NetworkPolicy allow postgres has been reconciled", "component", "network_policy", "result", result)
 	}
 
 	return nil
