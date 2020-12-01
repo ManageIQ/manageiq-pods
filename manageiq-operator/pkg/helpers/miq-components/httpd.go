@@ -516,7 +516,7 @@ func HttpdDbusAPIService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*cor
 }
 
 func TLSSecret(cr *miqv1alpha1.ManageIQ) (*corev1.Secret, error) {
-	crt, key, err := tlstools.GenerateCrt("server")
+	crt, key, err := tlstools.GenerateCrt(cr.Spec.ApplicationDomain)
 	if err != nil {
 		return nil, err
 	}
