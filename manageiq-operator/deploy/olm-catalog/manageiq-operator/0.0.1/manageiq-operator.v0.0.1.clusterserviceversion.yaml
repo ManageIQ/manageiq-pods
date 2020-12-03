@@ -73,14 +73,14 @@ spec:
         - apiGroups:
           - ""
           resources:
+          - configmaps
+          - persistentvolumeclaims
           - pods
           - pods/finalizers
-          - services
-          - services/finalizers
-          - persistentvolumeclaims
-          - configmaps
           - secrets
           - serviceaccounts
+          - services
+          - services/finalizers
           verbs:
           - '*'
         - apiGroups:
@@ -111,8 +111,8 @@ spec:
           resources:
           - servicemonitors
           verbs:
-          - get
           - create
+          - get
         - apiGroups:
           - apps
           resourceNames:
