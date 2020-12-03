@@ -89,6 +89,7 @@ spec:
           - deployments
           - deployments/scale
           - ingresses
+          - networkpolicies
           verbs:
           - '*'
         - apiGroups:

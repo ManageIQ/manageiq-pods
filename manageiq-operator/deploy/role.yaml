@@ -23,6 +23,7 @@ rules:
   - deployments
   - deployments/scale
   - ingresses
+  - networkpolicies
   verbs:
   - '*'
 - apiGroups:
