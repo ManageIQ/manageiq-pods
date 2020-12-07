@@ -7,14 +7,14 @@ rules:
 - apiGroups:
   - ""
   resources:
+  - configmaps
+  - persistentvolumeclaims
   - pods
   - pods/finalizers
-  - services
-  - services/finalizers
-  - persistentvolumeclaims
-  - configmaps
   - secrets
   - serviceaccounts
+  - services
+  - services/finalizers
   verbs:
   - '*'
 - apiGroups:
@@ -23,6 +23,7 @@ rules:
   - deployments
   - deployments/scale
   - ingresses
+  - networkpolicies
   verbs:
   - '*'
 - apiGroups:
@@ -45,8 +46,8 @@ rules:
   resources:
   - servicemonitors
   verbs:
-  - get
   - create
+  - get
 - apiGroups:
   - apps
   resourceNames:
