@@ -24,7 +24,7 @@ func GenerateCrt(CN string) (crt []byte, key []byte, err error) {
 	template := x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
-			Organization: []string{CN},
+			CommonName: CN,
 		},
 		NotBefore: notBefore,
 		NotAfter:  notAfter,
