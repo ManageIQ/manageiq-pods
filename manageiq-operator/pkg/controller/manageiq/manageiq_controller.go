@@ -109,14 +109,17 @@ func (r *ReconcileManageIQ) Reconcile(request reconcile.Request) (reconcile.Resu
 		return reconcile.Result{}, nil
 	}
 
+	logger.Info("Reconciling the CR...")
 	if e := r.manageCR(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
 
+	logger.Info("Validating the CR...")
 	if e := miqInstance.Validate(); e != nil {
 		return reconcile.Result{}, e
 	}
 
+	logger.Info("Reconciling the operator pod...")
 	if os.Getenv("POD_NAME") != "" {
 		if e := r.manageOperator(miqInstance); e != nil {
 			return reconcile.Result{}, e
@@ -125,29 +128,37 @@ func (r *ReconcileManageIQ) Reconcile(request reconcile.Request) (reconcile.Resu
 		logger.Info("Skipping reconcile of the operator pod; not running in a cluster.")
 	}
 
+	logger.Info("Reconciling the NetworkPolicies...")
 	if e := r.generateNetworkPolicies(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
+	logger.Info("Reconciling the Secrets...")
 	if e := r.generateSecrets(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
+	logger.Info("Reconciling the default Service Account...")
 	if e := r.generateDefaultServiceAccount(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
+	logger.Info("Reconciling the Postgresql resources...")
 	if e := r.generatePostgresqlResources(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
+	logger.Info("Reconciling the HTTPD resources...")
 	if e := r.generateHttpdResources(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
+	logger.Info("Reconciling the Memcached resources...")
 	if e := r.generateMemcachedResources(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
 	if *miqInstance.Spec.DeployMessagingService {
+		logger.Info("Reconciling the Kafka resources...")
 		if e := r.generateKafkaResources(miqInstance); e != nil {
 			return reconcile.Result{}, e
 		}
 	}
+	logger.Info("Reconciling the Orchestrator resources...")
 	if e := r.generateOrchestratorResources(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
