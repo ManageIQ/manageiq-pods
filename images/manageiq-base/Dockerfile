@@ -18,7 +18,7 @@ RUN mkdir build && \
 # Hooks should make modifications to the source in the build directory
 RUN if [[ -n "$HOOKS_SCRIPT_URL" ]]; then curl -L ${HOOKS_SCRIPT_URL} | bash; fi
 
-FROM registry.access.redhat.com/ubi8/ubi:8.2
+FROM registry.access.redhat.com/ubi8/ubi:8.3
 MAINTAINER ManageIQ https://manageiq.org
 
 ARG ARCH=x86_64
