@@ -124,6 +124,12 @@ If you want to use a custom TLS certificate, one can be created with:
 oc create secret tls tls-secret --cert=tls.crt --key=tls.key` and setting the secret name as `tlsSecret` in `manageiq.org_v1alpha1_manageiq_cr.yaml`.
 ```
 
+### Configuring an image pull secret
+
+If authentication is required in order to pull the images, a secret containing the credentials needs to be created.
+If your secret is named `image-pull-secret`, no additional changes are required to the custom resource.
+If you use a different name for the secret, that will need to be defined in the custom resource as `imagePullSecret: your-secret-name`
+
 ### Configuring the application domain name
 
 Modify `deploy/crds/manageiq.org_v1alpha1_manageiq_cr.yaml` as follows:
