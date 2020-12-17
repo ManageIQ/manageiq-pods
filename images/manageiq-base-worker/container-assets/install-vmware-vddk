@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Skip the install if the VDDK library is not found
+[[ -d /usr/lib/vmware-vix-disklib/lib64/ ]] || exit 0
+
+echo "VDDK library found, installing..."
+for SO in $(ls /usr/lib/vmware-vix-disklib/lib64/libvixDiskLib.so*)
+  do ln -s $SO /usr/lib/$(basename $SO)
+done
+
+ldconfig
