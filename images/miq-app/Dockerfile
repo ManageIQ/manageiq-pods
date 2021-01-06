@@ -87,7 +87,7 @@ RUN ${APPLIANCE_ROOT}/setup && \
 WORKDIR ${APP_ROOT}
 RUN source /etc/default/evm && \
     export RAILS_USE_MEMORY_STORE="true" && \
-    gem install bundler -v ">=1.16.2" && \
+    gem install bundler -v 2.1.4 && \
     bundle config set with 'qpid_proton' && \
     bundle install && \
     bin/rails log:clear tmp:clear && \
