@@ -4,5 +4,6 @@ manageiq-operator/build/_output/*
 parameters
 manageiq-operator/vendor/*
 images/manageiq-base/rpms
+images/manageiq-base-worker/container-assets/VMware-*
 
 *.swp
