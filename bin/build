@@ -105,7 +105,7 @@ popd
 
 if [ -z "$NO_OPERATOR" ]; then
   pushd "$OPERATOR_DIR"
-    cmd="operator-sdk build $REPO/manageiq-operator:$TAG"
+    cmd="operator-sdk build --image-build-args --pull $REPO/manageiq-operator:$TAG"
     echo "Building manageiq-operator: $cmd"
     $cmd
   popd
