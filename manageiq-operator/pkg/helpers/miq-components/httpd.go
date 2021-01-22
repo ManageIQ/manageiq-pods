@@ -13,6 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	intstr "k8s.io/apimachinery/pkg/util/intstr"
 	"net/http"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
@@ -175,6 +176,18 @@ func addOIDCEnv(secretName string, podSpec *corev1.PodSpec) {
 	podSpec.Containers[0].Env = append(podSpec.Containers[0].Env, clientSecret)
 }
 
+func configureHttpdOIDCEnv(podSpec *corev1.PodSpec, managed_client_id string, managed_client_secret string, managed_app_domain string, managed_mgmt_domain string) {
+	managedCfgClientId := corev1.EnvVar{Name: "MANAGED_CFG_CLIENT_ID", Value: managed_client_id}
+	managedCfgClientSecret := corev1.EnvVar{Name: "MANAGED_CFG_CLIENT_SECRET", Value: managed_client_secret}
+	managedCfgAppDomain := corev1.EnvVar{Name: "MANAGED_CFG_APP_DOMAIN", Value: managed_app_domain}
+	managedCfgMgmtDomain := corev1.EnvVar{Name: "MANAGED_CFG_MGMT_DOMAIN", Value: managed_mgmt_domain}
+
+	podSpec.Containers[0].Env = append(podSpec.Containers[0].Env, managedCfgClientId)
+	podSpec.Containers[0].Env = append(podSpec.Containers[0].Env, managedCfgClientSecret)
+	podSpec.Containers[0].Env = append(podSpec.Containers[0].Env, managedCfgAppDomain)
+	podSpec.Containers[0].Env = append(podSpec.Containers[0].Env, managedCfgMgmtDomain)
+}
+
 func addAuthConfigVolume(podSpec *corev1.PodSpec) {
 	vol := corev1.Volume{
 		Name: "httpd-auth-config",
@@ -307,7 +320,7 @@ func initializeHttpdContainer(spec *miqv1alpha1.ManageIQSpec, privileged bool, c
 	return nil
 }
 
-func HttpdDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
+func HttpdDeployment(client client.Client, cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
 	privileged := PrivilegedHttpd(cr.Spec.HttpdAuthenticationType)
 
 	container := corev1.Container{}
@@ -337,6 +350,17 @@ func HttpdDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.
 				},
 			},
 		},
+	}
+
+	authType := cr.Spec.HttpdAuthenticationType
+	authConfig := cr.Spec.HttpdAuthConfig
+
+	managed_client_id, managed_client_secret, managed_app_domain, managed_mgmt_domain := "", "", "", ""
+	if authType == "openid-connect" && authConfig != "" {
+		managed_client_id = GetSecretKeyValue(client, cr.Namespace, authConfig, "managed.cfg.client_id")
+		managed_client_secret = GetSecretKeyValue(client, cr.Namespace, authConfig, "managed.cfg.client_secret")
+		managed_app_domain = GetSecretKeyValue(client, cr.Namespace, authConfig, "managed.cfg.app_domain")
+		managed_mgmt_domain = GetSecretKeyValue(client, cr.Namespace, authConfig, "managed.cfg.mgmt_domain")
 	}
 
 	f := func() error {
@@ -370,6 +394,9 @@ func HttpdDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.
 		}
 
 		configureHttpdAuth(&cr.Spec, &deployment.Spec.Template.Spec)
+		if authType == "openid-connect" {
+			configureHttpdOIDCEnv(&deployment.Spec.Template.Spec, managed_client_id, managed_client_secret, managed_app_domain, managed_mgmt_domain)
+		}
 		return nil
 	}
 
