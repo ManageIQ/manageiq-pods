@@ -159,6 +159,16 @@ func addMessagingEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
 	return
 }
 
+func addPostgresEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
+	c.Env = append(c.Env, corev1.EnvVar{Name: "DATABASE_REGION",   Value: cr.Spec.DatabaseRegion})
+
+	c.Env = append(c.Env, corev1.EnvVar{Name: "DATABASE_HOSTNAME", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)}, Key: "hostname"}}})
+	c.Env = append(c.Env, corev1.EnvVar{Name: "DATABASE_NAME",     ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)}, Key: "dbname"}}})
+	c.Env = append(c.Env, corev1.EnvVar{Name: "DATABASE_PASSWORD", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)}, Key: "password"}}})
+	c.Env = append(c.Env, corev1.EnvVar{Name: "DATABASE_PORT",     ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)}, Key: "port"}}})
+	c.Env = append(c.Env, corev1.EnvVar{Name: "DATABASE_USER",     ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)}, Key: "username"}}})
+}
+
 func addWorkerImageEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
 	// If any of the images were not provided, add the orchestrator namespace and tag
 	if cr.Spec.BaseWorkerImage == "" || cr.Spec.WebserverWorkerImage == "" || cr.Spec.UIWorkerImage == "" {
@@ -231,55 +241,6 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*
 				Value: cr.Spec.ServerGuid,
 			},
 			corev1.EnvVar{
-				Name:  "DATABASE_REGION",
-				Value: cr.Spec.DatabaseRegion,
-			},
-			corev1.EnvVar{
-				Name: "DATABASE_HOSTNAME",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)},
-						Key:                  "hostname",
-					},
-				},
-			},
-			corev1.EnvVar{
-				Name: "DATABASE_NAME",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)},
-						Key:                  "dbname",
-					},
-				},
-			},
-			corev1.EnvVar{
-				Name: "DATABASE_PASSWORD",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)},
-						Key:                  "password",
-					},
-				},
-			},
-			corev1.EnvVar{
-				Name: "DATABASE_PORT",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)},
-						Key:                  "port",
-					},
-				},
-			},
-			corev1.EnvVar{
-				Name: "DATABASE_USER",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)},
-						Key:                  "username",
-					},
-				},
-			},
-			corev1.EnvVar{
 				Name: "ENCRYPTION_KEY",
 				ValueFrom: &corev1.EnvVarSource{
 					SecretKeyRef: &corev1.SecretKeySelector{
@@ -316,6 +277,7 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*
 	}
 
 	addMessagingEnv(cr, &container)
+	addPostgresEnv(cr, &container)
 	addWorkerImageEnv(cr, &container)
 	err = addResourceReqs(cr.Spec.OrchestratorMemoryLimit, cr.Spec.OrchestratorMemoryRequest, cr.Spec.OrchestratorCpuLimit, cr.Spec.OrchestratorCpuRequest, &container)
 	if err != nil {
