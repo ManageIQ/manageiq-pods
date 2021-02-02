@@ -1,13 +1,16 @@
 package miqtools
 
 import (
+	"context"
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	resource "k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	intstr "k8s.io/apimachinery/pkg/util/intstr"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
@@ -41,6 +44,14 @@ func postgresqlSecretName(cr *miqv1alpha1.ManageIQ) string {
 	}
 
 	return secretName
+}
+
+func postgresqlSecret(cr *miqv1alpha1.ManageIQ, client client.Client) *corev1.Secret {
+	secretKey := types.NamespacedName{Namespace: cr.Namespace, Name: postgresqlSecretName(cr)}
+	secret := &corev1.Secret{}
+	client.Get(context.TODO(), secretKey, secret)
+
+	return secret
 }
 
 func PostgresqlConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.ConfigMap, controllerutil.MutateFn) {

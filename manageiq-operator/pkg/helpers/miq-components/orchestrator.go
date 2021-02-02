@@ -8,7 +8,6 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"strconv"
@@ -179,14 +178,6 @@ func addPostgresConfig(cr *miqv1alpha1.ManageIQ, d *appsv1.Deployment, client cl
 		secret := corev1.SecretVolumeSource{SecretName: postgresqlSecretName(cr), Items: []corev1.KeyToPath{corev1.KeyToPath{Key: "rootcertificate", Path: "root.crt"}}}
 		d.Spec.Template.Spec.Volumes = []corev1.Volume{corev1.Volume{Name: "pg-root-certificate", VolumeSource: corev1.VolumeSource{Secret: &secret}}}
 	}
-}
-
-func postgresqlSecret(cr *miqv1alpha1.ManageIQ, client client.Client) *corev1.Secret {
-	secretKey := types.NamespacedName{Namespace: cr.Namespace, Name: postgresqlSecretName(cr)}
-	secret := &corev1.Secret{}
-	client.Get(context.TODO(), secretKey, secret)
-
-	return secret
 }
 
 func addWorkerImageEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
