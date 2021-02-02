@@ -8,6 +8,7 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"strconv"
@@ -159,14 +160,33 @@ func addMessagingEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
 	return
 }
 
-func addPostgresEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
-	c.Env = append(c.Env, corev1.EnvVar{Name: "DATABASE_REGION",   Value: cr.Spec.DatabaseRegion})
+func addPostgresConfig(cr *miqv1alpha1.ManageIQ, d *appsv1.Deployment, client client.Client) {
+	d.Spec.Template.Spec.Containers[0].Env = append(d.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "DATABASE_REGION", Value: cr.Spec.DatabaseRegion})
 
-	c.Env = append(c.Env, corev1.EnvVar{Name: "DATABASE_HOSTNAME", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)}, Key: "hostname"}}})
-	c.Env = append(c.Env, corev1.EnvVar{Name: "DATABASE_NAME",     ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)}, Key: "dbname"}}})
-	c.Env = append(c.Env, corev1.EnvVar{Name: "DATABASE_PASSWORD", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)}, Key: "password"}}})
-	c.Env = append(c.Env, corev1.EnvVar{Name: "DATABASE_PORT",     ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)}, Key: "port"}}})
-	c.Env = append(c.Env, corev1.EnvVar{Name: "DATABASE_USER",     ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)}, Key: "username"}}})
+	d.Spec.Template.Spec.Containers[0].Env = append(d.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "DATABASE_HOSTNAME", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)}, Key: "hostname"}}})
+	d.Spec.Template.Spec.Containers[0].Env = append(d.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "DATABASE_NAME", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)}, Key: "dbname"}}})
+	d.Spec.Template.Spec.Containers[0].Env = append(d.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "DATABASE_PASSWORD", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)}, Key: "password"}}})
+	d.Spec.Template.Spec.Containers[0].Env = append(d.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "DATABASE_PORT", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)}, Key: "port"}}})
+	d.Spec.Template.Spec.Containers[0].Env = append(d.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "DATABASE_USER", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)}, Key: "username"}}})
+
+	pgSecret := postgresqlSecret(cr, client)
+	if pgSecret.Data["sslmode"] != nil {
+		d.Spec.Template.Spec.Containers[0].Env = append(d.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "DATABASE_SSL_MODE", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)}, Key: "sslmode"}}})
+	}
+	if pgSecret.Data["rootcertificate"] != nil {
+		d.Spec.Template.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{corev1.VolumeMount{Name: "pg-root-certificate", MountPath: "/.postgresql", ReadOnly: true}}
+
+		secret := corev1.SecretVolumeSource{SecretName: postgresqlSecretName(cr), Items: []corev1.KeyToPath{corev1.KeyToPath{Key: "rootcertificate", Path: "root.crt"}}}
+		d.Spec.Template.Spec.Volumes = []corev1.Volume{corev1.Volume{Name: "pg-root-certificate", VolumeSource: corev1.VolumeSource{Secret: &secret}}}
+	}
+}
+
+func postgresqlSecret(cr *miqv1alpha1.ManageIQ, client client.Client) *corev1.Secret {
+	secretKey := types.NamespacedName{Namespace: cr.Namespace, Name: postgresqlSecretName(cr)}
+	secret := &corev1.Secret{}
+	client.Get(context.TODO(), secretKey, secret)
+
+	return secret
 }
 
 func addWorkerImageEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
@@ -187,7 +207,7 @@ func addWorkerImageEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
 	}
 }
 
-func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
+func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, client client.Client) (*appsv1.Deployment, controllerutil.MutateFn, error) {
 	delaySecs, err := strconv.Atoi(cr.Spec.OrchestratorInitialDelay)
 	if err != nil {
 		return nil, nil, err
@@ -277,7 +297,6 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*
 	}
 
 	addMessagingEnv(cr, &container)
-	addPostgresEnv(cr, &container)
 	addWorkerImageEnv(cr, &container)
 	err = addResourceReqs(cr.Spec.OrchestratorMemoryLimit, cr.Spec.OrchestratorMemoryRequest, cr.Spec.OrchestratorCpuLimit, cr.Spec.OrchestratorCpuRequest, &container)
 	if err != nil {
@@ -303,6 +322,9 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*
 		},
 	}
 
+	deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
+	addPostgresConfig(cr, deployment, client)
+
 	f := func() error {
 		if err := controllerutil.SetControllerReference(cr, deployment, scheme); err != nil {
 			return err
@@ -313,7 +335,6 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*
 		deployment.Spec.Strategy = appsv1.DeploymentStrategy{
 			Type: "Recreate",
 		}
-		deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
 		var termSecs int64 = 90
 		deployment.Spec.Template.Spec.ServiceAccountName = cr.Spec.AppName + "-orchestrator"
 		deployment.Spec.Template.Spec.TerminationGracePeriodSeconds = &termSecs

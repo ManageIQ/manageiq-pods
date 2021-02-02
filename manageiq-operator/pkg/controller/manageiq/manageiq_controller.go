@@ -425,7 +425,7 @@ func (r *ReconcileManageIQ) generateOrchestratorResources(cr *miqv1alpha1.Manage
 		logger.Info("Role Binding has been reconciled", "component", "orchestrator", "result", result)
 	}
 
-	deployment, mutateFunc, err := miqtool.OrchestratorDeployment(cr, r.scheme)
+	deployment, mutateFunc, err := miqtool.OrchestratorDeployment(cr, r.scheme, r.client)
 	if err != nil {
 		return err
 	}
