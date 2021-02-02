@@ -110,7 +110,17 @@ $ podman push docker.io/example/manageiq-bundle:0.0.1
 
 ### Configuring external Postgres
 
-ManageIQ can be run with an external Postgres server. To do this, create the required OpenShift secret with the correct parameters using the template for [Postgres](templates/app/postgresql-secrets.yaml) and provide those secret names as `databaseSecret` in `manageiq.org_v1alpha1_manageiq_cr.yaml`.
+ManageIQ can be run with an external Postgres server. To do this, manually create the postgresql secret:
+```
+$ oc create secret generic postgresql-secrets \
+  --from-literal=dbname=vmdb_production \
+  --from-literal=hostname=YOUR_HOSTNAME \
+  --from-literal=port=5432 \
+  --from-literal=password=YOUR_PASSWORD_HERE \
+  --from-literal=username=YOUR_USERNAME_HERE \
+  --from-literal=sslmode=verify-full \ # optional
+  --from-file=rootcertificate=path/to/optional/certificate.pem # optional
+```
 
 ### Configuring external messaging
 
