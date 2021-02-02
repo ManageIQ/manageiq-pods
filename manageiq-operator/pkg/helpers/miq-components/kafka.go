@@ -7,6 +7,7 @@ import (
 	resource "k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"os"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
@@ -174,9 +175,14 @@ func KafkaDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.
 		"app":  cr.Spec.AppName,
 	}
 
+	kafkaImage := os.Getenv("KAFKA_IMAGE")
+	if kafkaImage == "" {
+		kafkaImage = cr.Spec.KafkaImageName + ":" + cr.Spec.KafkaImageTag
+	}
+
 	container := corev1.Container{
 		Name:            "kafka",
-		Image:           cr.Spec.KafkaImageName + ":" + cr.Spec.KafkaImageTag,
+		Image:           kafkaImage,
 		ImagePullPolicy: corev1.PullIfNotPresent,
 		Ports: []corev1.ContainerPort{
 			corev1.ContainerPort{
@@ -279,9 +285,14 @@ func ZookeeperDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*app
 		"app":  cr.Spec.AppName,
 	}
 
+	zookeeperImage := os.Getenv("ZOOKEEPER_IMAGE")
+	if zookeeperImage == "" {
+		zookeeperImage = cr.Spec.ZookeeperImageName + ":" + cr.Spec.ZookeeperImageTag
+	}
+
 	container := corev1.Container{
 		Name:            "zookeeper",
-		Image:           cr.Spec.ZookeeperImageName + ":" + cr.Spec.ZookeeperImageTag,
+		Image:           zookeeperImage,
 		ImagePullPolicy: corev1.PullIfNotPresent,
 		Ports: []corev1.ContainerPort{
 			corev1.ContainerPort{

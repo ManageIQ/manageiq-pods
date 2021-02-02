@@ -8,6 +8,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	intstr "k8s.io/apimachinery/pkg/util/intstr"
+	"os"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
@@ -138,9 +139,14 @@ func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*ap
 	}
 	var initialDelaySecs int32 = 60
 
+	postgresqlImage := os.Getenv("POSTGRESQL_IMAGE")
+	if postgresqlImage == "" {
+		postgresqlImage = cr.Spec.PostgresqlImageName + ":" + cr.Spec.PostgresqlImageTag
+	}
+
 	container := corev1.Container{
 		Name:            "postgresql",
-		Image:           cr.Spec.PostgresqlImageName + ":" + cr.Spec.PostgresqlImageTag,
+		Image:           postgresqlImage,
 		ImagePullPolicy: corev1.PullIfNotPresent,
 		Ports: []corev1.ContainerPort{
 			corev1.ContainerPort{
@@ -218,7 +224,9 @@ func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*ap
 					Labels: deploymentLabels,
 					Name:   "postgresql",
 				},
-				Spec: corev1.PodSpec{},
+				Spec: corev1.PodSpec{
+					ServiceAccountName: defaultServiceAccountName(cr.Spec.AppName),
+				},
 			},
 		},
 	}

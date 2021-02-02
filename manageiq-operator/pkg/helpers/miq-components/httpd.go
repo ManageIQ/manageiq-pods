@@ -13,6 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	intstr "k8s.io/apimachinery/pkg/util/intstr"
 	"net/http"
+	"os"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
@@ -245,6 +246,12 @@ func configureHttpdAuth(spec *miqv1alpha1.ManageIQSpec, podSpec *corev1.PodSpec)
 
 func httpdImage(namespace, tag string, privileged bool) string {
 	var image string
+
+	envHttpdImage := os.Getenv("HTTPD_IMAGE")
+	if envHttpdImage != "" {
+		return envHttpdImage
+	}
+
 	if privileged {
 		image = "httpd-init"
 	} else {

@@ -7,13 +7,19 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	intstr "k8s.io/apimachinery/pkg/util/intstr"
+	"os"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 func NewMemcachedDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
+	memcachedImage := os.Getenv("MEMCACHED_IMAGE")
+	if memcachedImage == "" {
+		memcachedImage = cr.Spec.MemcachedImageName + ":" + cr.Spec.MemcachedImageTag
+	}
+
 	container := corev1.Container{
 		Name:            "memcached",
-		Image:           cr.Spec.MemcachedImageName + ":" + cr.Spec.MemcachedImageTag,
+		Image:           memcachedImage,
 		ImagePullPolicy: corev1.PullIfNotPresent,
 		Ports: []corev1.ContainerPort{
 			corev1.ContainerPort{
@@ -76,7 +82,9 @@ func NewMemcachedDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*
 					Name:   "memcached",
 					Labels: podLabels,
 				},
-				Spec: corev1.PodSpec{},
+				Spec: corev1.PodSpec{
+					ServiceAccountName: defaultServiceAccountName(cr.Spec.AppName),
+				},
 			},
 		},
 	}

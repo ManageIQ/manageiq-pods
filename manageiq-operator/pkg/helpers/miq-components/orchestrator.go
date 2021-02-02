@@ -8,6 +8,7 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"strconv"
@@ -160,20 +161,35 @@ func addMessagingEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
 }
 
 func addWorkerImageEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
+	baseWorkerImage := os.Getenv("BASEWORKER_IMAGE")
+	if baseWorkerImage == "" {
+		baseWorkerImage = cr.Spec.BaseWorkerImage
+	}
+
+	webserverWorkerImage := os.Getenv("WEBSERVERWORKER_IMAGE")
+	if webserverWorkerImage == "" {
+		webserverWorkerImage = cr.Spec.WebserverWorkerImage
+	}
+
+	uiWorkerImage := os.Getenv("UIWORKER_IMAGE")
+	if uiWorkerImage == "" {
+		uiWorkerImage = cr.Spec.UIWorkerImage
+	}
+
 	// If any of the images were not provided, add the orchestrator namespace and tag
-	if cr.Spec.BaseWorkerImage == "" || cr.Spec.WebserverWorkerImage == "" || cr.Spec.UIWorkerImage == "" {
+	if baseWorkerImage == "" || webserverWorkerImage == "" || uiWorkerImage == "" {
 		c.Env = append(c.Env, corev1.EnvVar{Name: "CONTAINER_IMAGE_NAMESPACE", Value: cr.Spec.OrchestratorImageNamespace})
 		c.Env = append(c.Env, corev1.EnvVar{Name: "CONTAINER_IMAGE_TAG", Value: cr.Spec.OrchestratorImageTag})
 	}
 
-	if cr.Spec.BaseWorkerImage != "" {
-		c.Env = append(c.Env, corev1.EnvVar{Name: "BASE_WORKER_IMAGE", Value: cr.Spec.BaseWorkerImage})
+	if baseWorkerImage != "" {
+		c.Env = append(c.Env, corev1.EnvVar{Name: "BASE_WORKER_IMAGE", Value: baseWorkerImage})
 	}
-	if cr.Spec.WebserverWorkerImage != "" {
-		c.Env = append(c.Env, corev1.EnvVar{Name: "WEBSERVER_WORKER_IMAGE", Value: cr.Spec.WebserverWorkerImage})
+	if webserverWorkerImage != "" {
+		c.Env = append(c.Env, corev1.EnvVar{Name: "WEBSERVER_WORKER_IMAGE", Value: webserverWorkerImage})
 	}
-	if cr.Spec.UIWorkerImage != "" {
-		c.Env = append(c.Env, corev1.EnvVar{Name: "UI_WORKER_IMAGE", Value: cr.Spec.UIWorkerImage})
+	if uiWorkerImage != "" {
+		c.Env = append(c.Env, corev1.EnvVar{Name: "UI_WORKER_IMAGE", Value: uiWorkerImage})
 	}
 }
 
@@ -192,9 +208,14 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*
 		"app":  cr.Spec.AppName,
 	}
 
+	orchestratorImage := os.Getenv("ORCHESTRATOR_IMAGE")
+	if orchestratorImage == "" {
+		orchestratorImage = cr.Spec.OrchestratorImageNamespace + "/" + cr.Spec.OrchestratorImageName + ":" + cr.Spec.OrchestratorImageTag
+	}
+
 	container := corev1.Container{
 		Name:            "orchestrator",
-		Image:           cr.Spec.OrchestratorImageNamespace + "/" + cr.Spec.OrchestratorImageName + ":" + cr.Spec.OrchestratorImageTag,
+		Image:           orchestratorImage,
 		ImagePullPolicy: pullPolicy,
 		LivenessProbe: &corev1.Probe{
 			Handler: corev1.Handler{
