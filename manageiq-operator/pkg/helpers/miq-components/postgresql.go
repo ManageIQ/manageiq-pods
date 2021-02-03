@@ -233,6 +233,9 @@ func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*ap
 			},
 		},
 	}
+	if len(cr.Spec.AppAnnotations) > 0 {
+		deployment.Spec.Template.ObjectMeta.Annotations = cr.Spec.AppAnnotations
+	}
 
 	f := func() error {
 		if err := controllerutil.SetControllerReference(cr, deployment, scheme); err != nil {

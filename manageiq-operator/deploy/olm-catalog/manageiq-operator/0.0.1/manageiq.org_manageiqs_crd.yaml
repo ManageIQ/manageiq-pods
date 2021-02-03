@@ -31,6 +31,12 @@ spec:
         spec:
           description: ManageIQSpec defines the desired state of ManageIQ
           properties:
+            appAnnotations:
+              additionalProperties:
+                type: string
+              description: Optional Annotations to apply to the Httpd, Kafka, Memcached,
+                Orchestrator and PostgresQL Pods
+              type: object
             appName:
               description: 'Application name used for deployed objects (default: manageiq)'
               type: string

@@ -326,6 +326,9 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 		deployment.Spec.Strategy = appsv1.DeploymentStrategy{
 			Type: "Recreate",
 		}
+		if len(cr.Spec.AppAnnotations) > 0 {
+			deployment.Spec.Template.ObjectMeta.Annotations = cr.Spec.AppAnnotations
+		}
 		var termSecs int64 = 90
 		deployment.Spec.Template.Spec.ServiceAccountName = cr.Spec.AppName + "-orchestrator"
 		deployment.Spec.Template.Spec.TerminationGracePeriodSeconds = &termSecs
