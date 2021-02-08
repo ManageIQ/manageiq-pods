@@ -243,8 +243,13 @@ func configureHttpdAuth(spec *miqv1alpha1.ManageIQSpec, podSpec *corev1.PodSpec)
 	}
 }
 
-func httpdImage(namespace, tag string, privileged bool) string {
+func httpdImage(imageref string, namespace string, tag string, privileged bool) string {
 	var image string
+
+	if imageref != "" {
+		return imageref
+	}
+
 	if privileged {
 		image = "httpd-init"
 	} else {
@@ -272,7 +277,7 @@ func assignHttpdPorts(privileged bool, c *corev1.Container) {
 
 func initializeHttpdContainer(spec *miqv1alpha1.ManageIQSpec, privileged bool, c *corev1.Container) error {
 	c.Name = "httpd"
-	c.Image = httpdImage(spec.HttpdImageNamespace, spec.HttpdImageTag, privileged)
+	c.Image = httpdImage(spec.HttpdImage, spec.HttpdImageNamespace, spec.HttpdImageTag, privileged)
 	c.ImagePullPolicy = corev1.PullIfNotPresent
 	if privileged {
 		c.LivenessProbe = &corev1.Probe{
