@@ -209,29 +209,3 @@ spec:
   ...
   oidcCaCertSecret: <name of your openshift OIDC CA cert>
 ```
-
-### Backup and restore with Velero and Restic
-
-We will assume that Velero and Restic are already installed and working.
-The operator adds labels and/or annotations to everything that needs to be backed up so that anyone can easily and quickly backup only what is required.
-The operator will add annotations for restic volume backups i.e. `backup.velero.io/backup-volumes: miq-pgdb-volume`.
-The backup label key can be configured by adding the following to the CR, but by default it will apply the label `manageiq.org/backup=t` if nothing else is specified.
-
-```yaml
-...
-spec:
-  ...
-  backupLabelName: <name of your openshift OIDC CA cert> (default: manageiq.org/backup)
-```
-
-Creating a backup is as simple as:
-```bash
-velero backup create <your backup name> --include-namespaces <your namespace> -l manageiq.org/backup=t
-```
-
-Restoring the backup is as simple as:
-- Ensure the ManageIQ CRD already exists
-```bash
-oc new-project <your namespace>
-velero restore create --from-backup <your backup name>
-```
