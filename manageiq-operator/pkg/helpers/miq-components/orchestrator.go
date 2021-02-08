@@ -159,6 +159,27 @@ func addMessagingEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
 	return
 }
 
+func addPostgresConfig(cr *miqv1alpha1.ManageIQ, d *appsv1.Deployment, client client.Client) {
+	d.Spec.Template.Spec.Containers[0].Env = append(d.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "DATABASE_REGION", Value: cr.Spec.DatabaseRegion})
+
+	d.Spec.Template.Spec.Containers[0].Env = append(d.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "DATABASE_HOSTNAME", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)}, Key: "hostname"}}})
+	d.Spec.Template.Spec.Containers[0].Env = append(d.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "DATABASE_NAME", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)}, Key: "dbname"}}})
+	d.Spec.Template.Spec.Containers[0].Env = append(d.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "DATABASE_PASSWORD", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)}, Key: "password"}}})
+	d.Spec.Template.Spec.Containers[0].Env = append(d.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "DATABASE_PORT", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)}, Key: "port"}}})
+	d.Spec.Template.Spec.Containers[0].Env = append(d.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "DATABASE_USER", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)}, Key: "username"}}})
+
+	pgSecret := postgresqlSecret(cr, client)
+	if pgSecret.Data["sslmode"] != nil {
+		d.Spec.Template.Spec.Containers[0].Env = append(d.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "DATABASE_SSL_MODE", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)}, Key: "sslmode"}}})
+	}
+	if pgSecret.Data["rootcertificate"] != nil {
+		d.Spec.Template.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{corev1.VolumeMount{Name: "pg-root-certificate", MountPath: "/.postgresql", ReadOnly: true}}
+
+		secret := corev1.SecretVolumeSource{SecretName: postgresqlSecretName(cr), Items: []corev1.KeyToPath{corev1.KeyToPath{Key: "rootcertificate", Path: "root.crt"}}}
+		d.Spec.Template.Spec.Volumes = []corev1.Volume{corev1.Volume{Name: "pg-root-certificate", VolumeSource: corev1.VolumeSource{Secret: &secret}}}
+	}
+}
+
 func addWorkerImageEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
 	// If any of the images were not provided, add the orchestrator namespace and tag
 	if cr.Spec.BaseWorkerImage == "" || cr.Spec.WebserverWorkerImage == "" || cr.Spec.UIWorkerImage == "" {
@@ -177,7 +198,7 @@ func addWorkerImageEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
 	}
 }
 
-func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
+func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, client client.Client) (*appsv1.Deployment, controllerutil.MutateFn, error) {
 	delaySecs, err := strconv.Atoi(cr.Spec.OrchestratorInitialDelay)
 	if err != nil {
 		return nil, nil, err
@@ -229,55 +250,6 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*
 			corev1.EnvVar{
 				Name:  "GUID",
 				Value: cr.Spec.ServerGuid,
-			},
-			corev1.EnvVar{
-				Name:  "DATABASE_REGION",
-				Value: cr.Spec.DatabaseRegion,
-			},
-			corev1.EnvVar{
-				Name: "DATABASE_HOSTNAME",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)},
-						Key:                  "hostname",
-					},
-				},
-			},
-			corev1.EnvVar{
-				Name: "DATABASE_NAME",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)},
-						Key:                  "dbname",
-					},
-				},
-			},
-			corev1.EnvVar{
-				Name: "DATABASE_PASSWORD",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)},
-						Key:                  "password",
-					},
-				},
-			},
-			corev1.EnvVar{
-				Name: "DATABASE_PORT",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)},
-						Key:                  "port",
-					},
-				},
-			},
-			corev1.EnvVar{
-				Name: "DATABASE_USER",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)},
-						Key:                  "username",
-					},
-				},
 			},
 			corev1.EnvVar{
 				Name: "ENCRYPTION_KEY",
@@ -341,6 +313,9 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*
 		},
 	}
 
+	deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
+	addPostgresConfig(cr, deployment, client)
+
 	f := func() error {
 		if err := controllerutil.SetControllerReference(cr, deployment, scheme); err != nil {
 			return err
@@ -351,7 +326,6 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*
 		deployment.Spec.Strategy = appsv1.DeploymentStrategy{
 			Type: "Recreate",
 		}
-		deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
 		var termSecs int64 = 90
 		deployment.Spec.Template.Spec.ServiceAccountName = cr.Spec.AppName + "-orchestrator"
 		deployment.Spec.Template.Spec.TerminationGracePeriodSeconds = &termSecs
