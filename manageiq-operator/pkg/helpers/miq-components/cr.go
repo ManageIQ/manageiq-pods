@@ -1,7 +1,10 @@
 package miqtools
 
 import (
+	"context"
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
@@ -92,6 +95,22 @@ func httpdImageTag(cr *miqv1alpha1.ManageIQ) string {
 	} else {
 		return cr.Spec.HttpdImageTag
 	}
+}
+
+func imagePullSecretName(cr *miqv1alpha1.ManageIQ, client client.Client) string {
+	// If the CR does not have the ImagePullSecret defined, set it to 'image-pull-secret' if a secret with that name exists
+	if cr.Spec.ImagePullSecret == "" {
+		defaultSecretName := "image-pull-secret"
+		secretKey := types.NamespacedName{Namespace: cr.Namespace, Name: defaultSecretName}
+		secret := &corev1.Secret{}
+		client.Get(context.TODO(), secretKey, secret)
+
+		if secret.Name == defaultSecretName {
+			return secret.Name
+		}
+	}
+
+	return cr.Spec.ImagePullSecret
 }
 
 func memcachedImageName(cr *miqv1alpha1.ManageIQ) string {
@@ -279,6 +298,7 @@ func ManageCR(cr *miqv1alpha1.ManageIQ, c *client.Client) (*miqv1alpha1.ManageIQ
 		cr.Spec.HttpdAuthenticationType = httpdAuthenticationType(cr)
 		cr.Spec.HttpdImageNamespace = httpdImageNamespace(cr)
 		cr.Spec.HttpdImageTag = httpdImageTag(cr)
+		cr.Spec.ImagePullSecret = imagePullSecretName(cr, *c)
 		cr.Spec.KafkaImageName = kafkaImageName(cr)
 		cr.Spec.KafkaImageTag = kafkaImageTag(cr)
 		cr.Spec.KafkaVolumeCapacity = kafkaVolumeCapacity(cr)
