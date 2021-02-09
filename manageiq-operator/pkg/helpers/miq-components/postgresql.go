@@ -149,14 +149,9 @@ func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*ap
 	}
 	var initialDelaySecs int32 = 60
 
-	postgresqlImage := cr.Spec.PostgresqlImage
-	if postgresqlImage == "" {
-		postgresqlImage = cr.Spec.PostgresqlImageName + ":" + cr.Spec.PostgresqlImageTag
-	}
-
 	container := corev1.Container{
 		Name:            "postgresql",
-		Image:           postgresqlImage,
+		Image:           cr.Spec.PostgresqlImage,
 		ImagePullPolicy: corev1.PullIfNotPresent,
 		Ports: []corev1.ContainerPort{
 			corev1.ContainerPort{

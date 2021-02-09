@@ -11,14 +11,9 @@ import (
 )
 
 func NewMemcachedDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
-	memcachedImage := cr.Spec.MemcachedImage
-	if memcachedImage == "" {
-		memcachedImage = cr.Spec.MemcachedImageName + ":" + cr.Spec.MemcachedImageTag
-	}
-
 	container := corev1.Container{
 		Name:            "memcached",
-		Image:           memcachedImage,
+		Image:           cr.Spec.MemcachedImage,
 		ImagePullPolicy: corev1.PullIfNotPresent,
 		Ports: []corev1.ContainerPort{
 			corev1.ContainerPort{
