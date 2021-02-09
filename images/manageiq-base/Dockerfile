@@ -2,21 +2,12 @@ FROM registry.access.redhat.com/ubi8/ubi:8.3
 
 ARG BUILD_REF=master
 ARG BUILD_ORG=ManageIQ
-
 ARG CORE_REPO_NAME=manageiq
-
 ARG GIT_HOST=github.com
 ARG GIT_AUTH
 
-ARG HOOKS_SCRIPT_URL
-
-RUN dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install git
-
 RUN mkdir build && \
     if [[ -n "$GIT_AUTH" ]]; then GIT_HOST=${GIT_AUTH}@${GIT_HOST}; fi && curl -L https://${GIT_HOST}/${BUILD_ORG}/${CORE_REPO_NAME}-appliance-build/tarball/${BUILD_REF} | tar vxz -C build --strip 1
-
-# Hooks should make modifications to the source in the build directory
-RUN if [[ -n "$HOOKS_SCRIPT_URL" ]]; then curl -L ${HOOKS_SCRIPT_URL} | bash; fi
 
 FROM registry.access.redhat.com/ubi8/ubi:8.3
 MAINTAINER ManageIQ https://manageiq.org

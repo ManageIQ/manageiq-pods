@@ -11,8 +11,6 @@ CORE_REPO_NAME=${CORE_REPO_NAME:-manageiq}
 GIT_HOST=${GIT_HOST:-github.com}
 GIT_AUTH=${GIT_AUTH:-""}
 
-HOOKS_SCRIPT_URL=${HOOKS_SCRIPT_URL:-""}
-
 OPERATOR_DIR=${OPERATOR_DIR:-manageiq-operator}
 
 RPM_BUILD_OPTIONS=${RPM_BUILD_OPTIONS:-""}
@@ -71,7 +69,6 @@ pushd $IMAGE_DIR
                     --build-arg BUILD_ORG=$BUILD_ORG \
                     --build-arg GIT_AUTH=$GIT_AUTH \
                     --build-arg GIT_HOST=$GIT_HOST \
-                    --build-arg HOOKS_SCRIPT_URL=$HOOKS_SCRIPT_URL \
                     --build-arg CORE_REPO_NAME=$CORE_REPO_NAME \
                     --build-arg ARCH=$ARCH \
                     --build-arg RPM_PREFIX=$RPM_PREFIX"
