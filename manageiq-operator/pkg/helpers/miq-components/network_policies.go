@@ -21,6 +21,8 @@ func NetworkPolicyDefaultDeny(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) 
 		addAppLabel(cr.Spec.AppName, &networkPolicy.ObjectMeta)
 		setIngressPolicyType(networkPolicy)
 
+		networkPolicy.Spec.PodSelector.MatchLabels = map[string]string{"app": cr.Spec.AppName}
+
 		return nil
 	}
 
