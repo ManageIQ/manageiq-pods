@@ -233,9 +233,6 @@ func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*ap
 			},
 		},
 	}
-	if len(cr.Spec.AppAnnotations) > 0 {
-		deployment.Spec.Template.ObjectMeta.Annotations = cr.Spec.AppAnnotations
-	}
 
 	f := func() error {
 		if err := controllerutil.SetControllerReference(cr, deployment, scheme); err != nil {
@@ -249,6 +246,9 @@ func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*ap
 		deployment.Spec.Replicas = &repNum
 		deployment.Spec.Strategy = appsv1.DeploymentStrategy{
 			Type: "Recreate",
+		}
+		if len(cr.Spec.AppAnnotations) > 0 {
+			deployment.Spec.Template.ObjectMeta.Annotations = cr.Spec.AppAnnotations
 		}
 		deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
 		deployment.Spec.Template.Spec.ServiceAccountName = defaultServiceAccountName(cr.Spec.AppName)
