@@ -57,7 +57,7 @@ type ManageIQSpec struct {
 	StorageClassName string `json:"storageClassName"`
 
 	// Image string used for the httpd deployment
-	// (default: <HttpdImageNamespace>:<HttpdImageTag>)
+	// (default: <HttpdImageNamespace>/httpd[-init]:<HttpdImageTag>)
 	// +optional
 	HttpdImage string `json:"httpdImage"`
 	// Image namespace used for the httpd deployment (default: manageiq)
@@ -151,7 +151,7 @@ type ManageIQSpec struct {
 	MemcachedSlabPageSize string `json:"memcachedSlabPageSize"`
 
 	// Image string used for the orchestrator deployment
-	// (default: <OrchestratorImageName>:<OrchestratorImageTag>)
+	// (default: <OrchestratorImageNamespace>/<OrchestratorImageName>:<OrchestratorImageTag>)
 	// +optional
 	OrchestratorImage string `json:"orchestratorImage"`
 	// Image name used for the orchestrator deployment (default: manageiq-orchestrator)

@@ -88,7 +88,7 @@ spec:
               description: 'Httpd deployment CPU request (default: no request)'
               type: string
             httpdImage:
-              description: 'Image string used for the httpd deployment (default: <HttpdImageNamespace>:<HttpdImageTag>)'
+              description: 'Image string used for the httpd deployment (default: <HttpdImageNamespace>/httpd[-init]:<HttpdImageTag>)'
               type: string
             httpdImageNamespace:
               description: 'Image namespace used for the httpd deployment (default:
@@ -199,7 +199,7 @@ spec:
               type: string
             orchestratorImage:
               description: 'Image string used for the orchestrator deployment (default:
-                <OrchestratorImageName>:<OrchestratorImageTag>)'
+                <OrchestratorImageNamespace>/<OrchestratorImageName>:<OrchestratorImageTag>)'
               type: string
             orchestratorImageName:
               description: 'Image name used for the orchestrator deployment (default:
