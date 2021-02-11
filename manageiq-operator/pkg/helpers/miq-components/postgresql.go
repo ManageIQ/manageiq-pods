@@ -151,7 +151,7 @@ func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*ap
 
 	container := corev1.Container{
 		Name:            "postgresql",
-		Image:           cr.Spec.PostgresqlImageName + ":" + cr.Spec.PostgresqlImageTag,
+		Image:           cr.Spec.PostgresqlImage,
 		ImagePullPolicy: corev1.PullIfNotPresent,
 		Ports: []corev1.ContainerPort{
 			corev1.ContainerPort{

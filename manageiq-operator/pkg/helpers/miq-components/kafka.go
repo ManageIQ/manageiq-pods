@@ -176,7 +176,7 @@ func KafkaDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.
 
 	container := corev1.Container{
 		Name:            "kafka",
-		Image:           cr.Spec.KafkaImageName + ":" + cr.Spec.KafkaImageTag,
+		Image:           cr.Spec.KafkaImage,
 		ImagePullPolicy: corev1.PullIfNotPresent,
 		Ports: []corev1.ContainerPort{
 			corev1.ContainerPort{
@@ -281,7 +281,7 @@ func ZookeeperDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*app
 
 	container := corev1.Container{
 		Name:            "zookeeper",
-		Image:           cr.Spec.ZookeeperImageName + ":" + cr.Spec.ZookeeperImageTag,
+		Image:           cr.Spec.ZookeeperImage,
 		ImagePullPolicy: corev1.PullIfNotPresent,
 		Ports: []corev1.ContainerPort{
 			corev1.ContainerPort{

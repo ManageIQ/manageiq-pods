@@ -215,7 +215,7 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 
 	container := corev1.Container{
 		Name:            "orchestrator",
-		Image:           cr.Spec.OrchestratorImageNamespace + "/" + cr.Spec.OrchestratorImageName + ":" + cr.Spec.OrchestratorImageTag,
+		Image:           cr.Spec.OrchestratorImage,
 		ImagePullPolicy: pullPolicy,
 		LivenessProbe: &corev1.Probe{
 			Handler: corev1.Handler{

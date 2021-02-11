@@ -87,6 +87,9 @@ spec:
             httpdCpuRequest:
               description: 'Httpd deployment CPU request (default: no request)'
               type: string
+            httpdImage:
+              description: 'Image string used for the httpd deployment (default: <HttpdImageNamespace>/httpd[-init]:<HttpdImageTag>)'
+              type: string
             httpdImageNamespace:
               description: 'Image namespace used for the httpd deployment (default:
                 manageiq) Note: the exact image will be determined by the authentication
@@ -115,6 +118,9 @@ spec:
             kafkaCpulimit:
               description: 'Kafka deployment CPU limit (default: no limit)'
               type: string
+            kafkaImage:
+              description: 'Image string used for the kafka deployment (default: <KafkaImageName>:<KafkaImageTag>)'
+              type: string
             kafkaImageName:
               description: 'Image used for the kafka deployment (default: docker.io/bitnami/kafka)'
               type: string
@@ -139,6 +145,10 @@ spec:
               type: string
             memcachedCpuRequest:
               description: 'Memcached deployment CPU request (default: no request)'
+              type: string
+            memcachedImage:
+              description: 'Image string used for the memcached deployment (default:
+                <MemcachedImageName>:<MemcachedImageTag>)'
               type: string
             memcachedImageName:
               description: 'Image used for the memcached deployment (default: manageiq/memcached)'
@@ -187,6 +197,10 @@ spec:
             orchestratorCpuRequest:
               description: 'Orchestrator deployment CPU request (default: no request)'
               type: string
+            orchestratorImage:
+              description: 'Image string used for the orchestrator deployment (default:
+                <OrchestratorImageNamespace>/<OrchestratorImageName>:<OrchestratorImageTag>)'
+              type: string
             orchestratorImageName:
               description: 'Image name used for the orchestrator deployment (default:
                 manageiq-orchestrator)'
@@ -214,6 +228,10 @@ spec:
               type: string
             postgresqlCpuRequest:
               description: 'PostgreSQL deployment CPU request (default: no request)'
+              type: string
+            postgresqlImage:
+              description: 'Image string used for the postgresql deployment (default:
+                <PostgresqlImageName>:<PostgresqlImageTag>)'
               type: string
             postgresqlImageName:
               description: 'Image used for the postgresql deployment (Default: docker.io/manageiq/postgresql)'
@@ -257,6 +275,10 @@ spec:
               type: string
             zookeeperCpulimit:
               description: 'Zookeeper deployment CPU limit (default: no limit)'
+              type: string
+            zookeeperImage:
+              description: 'Image string used for the zookeeper deployment (default:
+                <ZookeeperImageName>:<ZookeeperImageTag>)'
               type: string
             zookeeperImageName:
               description: 'Image used for the zookeeper deployment (default: docker.io/bitnami/zookeeper)'
