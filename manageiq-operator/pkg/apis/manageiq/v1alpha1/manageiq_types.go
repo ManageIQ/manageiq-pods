@@ -57,7 +57,7 @@ type ManageIQSpec struct {
 	StorageClassName string `json:"storageClassName"`
 
 	// Image string used for the httpd deployment
-	// By default HttpdImageNamespace:HttpdImageTag takes effect
+	// (default: <HttpdImageNamespace>:<HttpdImageTag>)
 	// +optional
 	HttpdImage string `json:"httpdImage"`
 	// Image namespace used for the httpd deployment (default: manageiq)
@@ -117,7 +117,7 @@ type ManageIQSpec struct {
 	HttpdMemoryRequest string `json:"httpdMemoryRequest"`
 
 	// Image string used for the memcached deployment
-	// By default MemcachedImageName:MemcachedImageTag takes effect
+	// (default: <MemcachedImageName>:<MemcachedImageTag>)
 	// +optional
 	MemcachedImage string `json:"memcachedImage"`
 	// Image used for the memcached deployment (default: manageiq/memcached)
@@ -151,7 +151,7 @@ type ManageIQSpec struct {
 	MemcachedSlabPageSize string `json:"memcachedSlabPageSize"`
 
 	// Image string used for the orchestrator deployment
-	// By default OrchestratorImageName:OrchestratorImageTag takes effect
+	// (default: <OrchestratorImageName>:<OrchestratorImageTag>)
 	// +optional
 	OrchestratorImage string `json:"orchestratorImage"`
 	// Image name used for the orchestrator deployment (default: manageiq-orchestrator)
@@ -194,7 +194,7 @@ type ManageIQSpec struct {
 	UIWorkerImage string `json:"uiWorkerImage"`
 
 	// Image string used for the postgresql deployment
-	// By default PostgresqlImageName:PostGresqlImageTag takes effect
+	// (default: <PostgresqlImageName>:<PostgresqlImageTag>)
 	// +optional
 	PostgresqlImage string `json:"postgresqlImage"`
 	// Image used for the postgresql deployment (Default: docker.io/manageiq/postgresql)
@@ -233,7 +233,7 @@ type ManageIQSpec struct {
 	DeployMessagingService *bool `json:"deployMessagingService"`
 
 	// Image string used for the kafka deployment
-	// By default KafkaImageName:KafkaImageTag takes effect
+	// (default: <KafkaImageName>:<KafkaImageTag>)
 	// +optional
 	KafkaImage string `json:"kafkaImage"`
 	// Image used for the kafka deployment (default: docker.io/bitnami/kafka)
@@ -259,7 +259,7 @@ type ManageIQSpec struct {
 	KafkaMemoryRequest string `json:"kafkaMemoryRequest"`
 
 	// Image string used for the zookeeper deployment
-	// By default ZookeeperImageName:ZookeeperImageTag takes effect
+	// (default: <ZookeeperImageName>:<ZookeeperImageTag>)
 	// +optional
 	ZookeeperImage string `json:"zookeeperImage"`
 	// Image used for the zookeeper deployment (default: docker.io/bitnami/zookeeper)
