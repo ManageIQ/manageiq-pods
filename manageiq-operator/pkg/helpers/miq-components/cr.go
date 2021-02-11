@@ -98,19 +98,19 @@ func httpdImageTag(cr *miqv1alpha1.ManageIQ) string {
 }
 
 func httpdImage(cr *miqv1alpha1.ManageIQ, privileged bool) string {
-	if cr.Spec.HttpdImage == "" {
-		var image string
-
-		if privileged {
-			image = "httpd-init"
-		} else {
-			image = "httpd"
-		}
-
-		return cr.Spec.HttpdImageNamespace + "/" + image + ":" + cr.Spec.HttpdImageTag
-	} else {
+	if cr.Spec.HttpdImage != "" {
 		return cr.Spec.HttpdImage
 	}
+
+	var image string
+
+	if privileged {
+		image = "httpd-init"
+	} else {
+		image = "httpd"
+	}
+
+	return cr.Spec.HttpdImageNamespace + "/" + image + ":" + cr.Spec.HttpdImageTag
 }
 
 func imagePullSecretName(cr *miqv1alpha1.ManageIQ, client client.Client) string {
