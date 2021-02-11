@@ -142,15 +142,14 @@ func HttpdAuthConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*core
 	return configMap, f
 }
 
-func PrivilegedHttpd(authType string) (bool, error) {
+func PrivilegedHttpd(authType string) bool {
 	switch authType {
 	case "internal", "openid-connect":
-		return false, nil
+		return false
 	case "external", "active-directory", "saml":
-		return true, nil
-	default:
-		return false, fmt.Errorf("unknown authentication type %s", authType)
+		return true
 	}
+	return false
 }
 
 func addOIDCEnv(secretName string, podSpec *corev1.PodSpec) {
@@ -309,13 +308,10 @@ func initializeHttpdContainer(spec *miqv1alpha1.ManageIQSpec, privileged bool, c
 }
 
 func HttpdDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
-	privileged, err := PrivilegedHttpd(cr.Spec.HttpdAuthenticationType)
-	if err != nil {
-		return nil, nil, err
-	}
+	privileged := PrivilegedHttpd(cr.Spec.HttpdAuthenticationType)
 
 	container := corev1.Container{}
-	err = initializeHttpdContainer(&cr.Spec, privileged, &container)
+	err := initializeHttpdContainer(&cr.Spec, privileged, &container)
 	if err != nil {
 		return nil, nil, err
 	}

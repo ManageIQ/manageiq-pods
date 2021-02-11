@@ -72,6 +72,7 @@ type ManageIQSpec struct {
 	// Options: internal, external, active-directory, saml, openid-connect
 	// Note: external, active-directory, and saml require an httpd container with elevated privileges
 	// +optional
+	// +kubebuilder:validation:Pattern=\A(active-directory|external|internal|openid-connect|saml)\z
 	HttpdAuthenticationType string `json:"httpdAuthenticationType"`
 	// URL for the OIDC provider
 	// Only used with the openid-connect authentication type

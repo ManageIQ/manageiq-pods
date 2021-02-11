@@ -97,11 +97,12 @@ func httpdImageTag(cr *miqv1alpha1.ManageIQ) string {
 	}
 }
 
-func httpdImage(cr *miqv1alpha1.ManageIQ, privileged bool) string {
+func httpdImage(cr *miqv1alpha1.ManageIQ) string {
 	if cr.Spec.HttpdImage != "" {
 		return cr.Spec.HttpdImage
 	}
 
+	privileged := PrivilegedHttpd(cr.Spec.HttpdAuthenticationType)
 	var image string
 
 	if privileged {
@@ -354,13 +355,7 @@ func ManageCR(cr *miqv1alpha1.ManageIQ, c *client.Client) (*miqv1alpha1.ManageIQ
 		cr.Spec.HttpdAuthenticationType = httpdAuthenticationType(cr)
 		cr.Spec.HttpdImageNamespace = httpdImageNamespace(cr)
 		cr.Spec.HttpdImageTag = httpdImageTag(cr)
-
-		privileged, err := PrivilegedHttpd(cr.Spec.HttpdAuthenticationType)
-		if err != nil {
-			return err
-		}
-
-		cr.Spec.HttpdImage = httpdImage(cr, privileged)
+		cr.Spec.HttpdImage = httpdImage(cr)
 		cr.Spec.ImagePullSecret = imagePullSecretName(cr, *c)
 		cr.Spec.KafkaImageName = kafkaImageName(cr)
 		cr.Spec.KafkaImageTag = kafkaImageTag(cr)
