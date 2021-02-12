@@ -74,3 +74,14 @@ func addBackupAnnotation(volumesToBackup string, meta *metav1.ObjectMeta) {
 	}
 	meta.Annotations["backup.velero.io/backup-volumes"] = volumesToBackup
 }
+
+func addAnnotations(annotations map[string]string, meta *metav1.ObjectMeta) {
+	if len(annotations) > 0 {
+		if meta.Annotations == nil {
+			meta.Annotations = make(map[string]string)
+		}
+		for key, value := range annotations {
+			meta.Annotations[key] = value
+		}
+	}
+}
