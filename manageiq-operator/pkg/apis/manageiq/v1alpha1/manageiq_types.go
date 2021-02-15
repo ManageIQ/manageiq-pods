@@ -19,6 +19,10 @@ type ManageIQSpec struct {
 	// Domain name for the external route. Used for external authentication configuration
 	ApplicationDomain string `json:"applicationDomain"`
 
+	// Optional Annotations to apply to the Httpd, Kafka, Memcached, Orchestrator and PostgresQL Pods
+	// +optional
+	AppAnnotations map[string]string `json:"appAnnotations,omitempty"`
+
 	// This label will be applied to essential resources that need to be backed up (default: manageiq.org/backup)
 	// +optional
 	BackupLabelName string `json:"backupLabelName"`
