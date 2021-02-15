@@ -86,6 +86,7 @@ spec:
                 internal, external, active-directory, saml, openid-connect Note: external,
                 active-directory, and saml require an httpd container with elevated
                 privileges'
+              pattern: \A(active-directory|external|internal|openid-connect|saml)\z
               type: string
             httpdCpuLimit:
               description: 'Httpd deployment CPU limit (default: no limit)'

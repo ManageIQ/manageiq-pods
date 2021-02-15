@@ -178,10 +178,7 @@ func (r *ReconcileManageIQ) generateDefaultServiceAccount(cr *miqv1alpha1.Manage
 }
 
 func (r *ReconcileManageIQ) generateHttpdResources(cr *miqv1alpha1.ManageIQ) error {
-	privileged, err := miqtool.PrivilegedHttpd(cr.Spec.HttpdAuthenticationType)
-	if err != nil {
-		return err
-	}
+	privileged := miqtool.PrivilegedHttpd(cr.Spec.HttpdAuthenticationType)
 
 	if privileged {
 		httpdServiceAccount, mutateFunc := miqtool.HttpdServiceAccount(cr, r.scheme)
