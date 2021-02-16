@@ -226,3 +226,45 @@ spec:
   ...
   oidcCaCertSecret: <name of your openshift OIDC CA cert>
 ```
+
+## Uninstalling
+
+Uninstalling only involves a few steps:
+
+### Step 1. Remove the CR that was created in Step 6
+
+WARNING: This includes Persistent Volume Claims and secrets, so all data stored by ManageIQ will be removed.
+The following command removes everything except for the operator:
+
+```bash
+$ oc delete -f deploy/crds/manageiq.org_v1alpha1_manageiq_cr.yaml
+```
+
+### Step 2. Remove the Operator deployment
+
+If you deployed the operator using Step 4 option 1 or 2, run the following to remove it:
+
+```bash
+$ oc delete -f deploy/operator.yaml
+```
+
+### Step 3. Remove the RBAC that was added in Step 3
+```bash
+$ oc delete -f deploy/role.yaml
+$ oc delete -f deploy/role_binding.yaml
+$ oc delete -f deploy/service_account.yaml
+```
+
+### Step 4. Remove the Namespace created in Step 2 if it is no longer needed (optional)
+
+```bash
+$ oc delete project manageiq
+```
+
+### Step 5. Remove the CRD (optional)
+
+WARNING: Ensure that there are no other ManageIQs running on the cluster since this is a cluster-wide change.
+
+```bash
+$ oc delete -f deploy/crds/manageiq.org_manageiqs_crd.yaml
+```
