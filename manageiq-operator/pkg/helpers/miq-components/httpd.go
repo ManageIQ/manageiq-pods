@@ -1,6 +1,7 @@
 package miqtools
 
 import (
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -11,6 +12,7 @@ import (
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	intstr "k8s.io/apimachinery/pkg/util/intstr"
 	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -176,16 +178,21 @@ func addOIDCEnv(secretName string, podSpec *corev1.PodSpec) {
 	podSpec.Containers[0].Env = append(podSpec.Containers[0].Env, clientSecret)
 }
 
-func configureHttpdOIDCEnv(podSpec *corev1.PodSpec, managed_client_id string, managed_client_secret string, managed_app_domain string, managed_mgmt_domain string) {
-	managedCfgClientId := corev1.EnvVar{Name: "MANAGED_CFG_CLIENT_ID", Value: managed_client_id}
-	managedCfgClientSecret := corev1.EnvVar{Name: "MANAGED_CFG_CLIENT_SECRET", Value: managed_client_secret}
-	managedCfgAppDomain := corev1.EnvVar{Name: "MANAGED_CFG_APP_DOMAIN", Value: managed_app_domain}
-	managedCfgMgmtDomain := corev1.EnvVar{Name: "MANAGED_CFG_MGMT_DOMAIN", Value: managed_mgmt_domain}
+func getHttpdAuthConfigVersion(client client.Client, namespace string, spec *miqv1alpha1.ManageIQSpec) string {
+	httpd_auth_config_version := ""
+	if spec.HttpdAuthConfig != "" {
+		secret := &corev1.Secret{}
+		secretErr := client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: spec.HttpdAuthConfig}, secret)
+		if secretErr == nil {
+			httpd_auth_config_version = string(secret.GetObjectMeta().GetResourceVersion())
+		}
+	}
+	return httpd_auth_config_version
+}
 
-	podSpec.Containers[0].Env = append(podSpec.Containers[0].Env, managedCfgClientId)
-	podSpec.Containers[0].Env = append(podSpec.Containers[0].Env, managedCfgClientSecret)
-	podSpec.Containers[0].Env = append(podSpec.Containers[0].Env, managedCfgAppDomain)
-	podSpec.Containers[0].Env = append(podSpec.Containers[0].Env, managedCfgMgmtDomain)
+func setManagedHttpdCfgVersion(httpdAuthConfigVersion string, podSpec *corev1.PodSpec) {
+	managedHttpdCfgRevision := corev1.EnvVar{Name: "MANAGED_HTTPD_CFG_VERSION", Value: httpdAuthConfigVersion}
+	podSpec.Containers[0].Env = append(podSpec.Containers[0].Env, managedHttpdCfgRevision)
 }
 
 func addAuthConfigVolume(podSpec *corev1.PodSpec) {
@@ -352,16 +359,7 @@ func HttpdDeployment(client client.Client, cr *miqv1alpha1.ManageIQ, scheme *run
 		},
 	}
 
-	authType := cr.Spec.HttpdAuthenticationType
-	authConfig := cr.Spec.HttpdAuthConfig
-
-	managed_client_id, managed_client_secret, managed_app_domain, managed_mgmt_domain := "", "", "", ""
-	if authType == "openid-connect" && authConfig != "" {
-		managed_client_id = GetSecretKeyValue(client, cr.Namespace, authConfig, "managed.cfg.client_id")
-		managed_client_secret = GetSecretKeyValue(client, cr.Namespace, authConfig, "managed.cfg.client_secret")
-		managed_app_domain = GetSecretKeyValue(client, cr.Namespace, authConfig, "managed.cfg.app_domain")
-		managed_mgmt_domain = GetSecretKeyValue(client, cr.Namespace, authConfig, "managed.cfg.mgmt_domain")
-	}
+	httpdAuthConfigVersion := getHttpdAuthConfigVersion(client, cr.Namespace, &cr.Spec)
 
 	f := func() error {
 		if err := controllerutil.SetControllerReference(cr, deployment, scheme); err != nil {
@@ -394,9 +392,8 @@ func HttpdDeployment(client client.Client, cr *miqv1alpha1.ManageIQ, scheme *run
 		}
 
 		configureHttpdAuth(&cr.Spec, &deployment.Spec.Template.Spec)
-		if authType == "openid-connect" {
-			configureHttpdOIDCEnv(&deployment.Spec.Template.Spec, managed_client_id, managed_client_secret, managed_app_domain, managed_mgmt_domain)
-		}
+		setManagedHttpdCfgVersion(httpdAuthConfigVersion, &deployment.Spec.Template.Spec)
+
 		return nil
 	}
 
