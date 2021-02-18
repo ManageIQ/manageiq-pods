@@ -8,10 +8,11 @@ This operator manages the lifecycle of ManageIQ application on a OCP4 cluster.
 There are five high level steps for running ManageIQ under operator control:
 
   + Step 1. Deploy the ManageIQ Custom Resource Definition (CRD) (If it is not already.)
-  + Step 2. Set up RBAC
-  + Step 3. Run The Operator
-  + Step 4. Perform any optional custom configurations
-  + Step 5. Run ManageIQ by creating the Custom Resource (CR)
+  + Step 2. Ensure that you have a namespace to deploy in
+  + Step 3. Set up RBAC
+  + Step 4. Run The Operator
+  + Step 5. Perform any optional custom configurations
+  + Step 6. Run ManageIQ by creating the Custom Resource (CR)
 
 The details of the five steps are as follows:
 
@@ -31,7 +32,17 @@ If it is not already available it can be deployed with command:
 $ oc create -f deploy/crds/manageiq.org_manageiqs_crd.yaml
 ```
 
-### Step 2. Set up RBAC
+### Step 2. Ensure that you have a namespace to deploy in
+
+If you don't already have a namespace to deploy into, you'll want to create one now.  It's a good idea to deploy ManageIQ in its own namespace, although it can share a namespace if desired.
+
+Use the following command to create a new namespace:
+
+```bash
+$ oc new-project manageiq
+```
+
+### Step 3. Set up RBAC
 
 ```bash
 $ oc create -f deploy/role.yaml
@@ -39,7 +50,7 @@ $ oc create -f deploy/role_binding.yaml
 $ oc create -f deploy/service_account.yaml
 ```
 
-### Step 3. Run The Operator
+### Step 4. Run The Operator
 
 There are three different ways the operator can be run.
 
@@ -85,11 +96,11 @@ There are three different ways the operator can be run.
   $ operator-sdk run --local --namespace=<your namespace>
   ```
 
-### Step 4. Perform any optional custom configurations
+### Step 5. Perform any optional custom configurations
 
 see the *Customizing the installation* section below
 
-### Step 5. Run ManageIQ by creating the Custom Resource (CR)
+### Step 6. Run ManageIQ by creating the Custom Resource (CR)
 
 ```bash
 $ oc create -f deploy/crds/manageiq.org_v1alpha1_manageiq_cr.yaml
@@ -158,7 +169,7 @@ spec:
 
 ### Configuring OpenID-Connect Authentication
 
-To run ManageIQ with OpenID-Connect Authentication, include these steps at **Step 4. Perform any optional custom configurations** from above.
+To run ManageIQ with OpenID-Connect Authentication, include these steps at **Step 5. Perform any optional custom configurations** from above.
 
 For this example we tested with Keycloak version 11.0
 
@@ -214,4 +225,46 @@ Add a line for the `oidcCaCertSecret: ` under the `spec:` section:
 spec:
   ...
   oidcCaCertSecret: <name of your openshift OIDC CA cert>
+```
+
+## Uninstalling
+
+Uninstalling only involves a few steps:
+
+### Step 1. Remove the CR that was created in Step 6
+
+WARNING: This includes Persistent Volume Claims and secrets, so all data stored by ManageIQ will be removed.
+The following command removes everything except for the operator:
+
+```bash
+$ oc delete -f deploy/crds/manageiq.org_v1alpha1_manageiq_cr.yaml
+```
+
+### Step 2. Remove the Operator deployment
+
+If you deployed the operator using Step 4 option 1 or 2, run the following to remove it:
+
+```bash
+$ oc delete -f deploy/operator.yaml
+```
+
+### Step 3. Remove the RBAC that was added in Step 3
+```bash
+$ oc delete -f deploy/role.yaml
+$ oc delete -f deploy/role_binding.yaml
+$ oc delete -f deploy/service_account.yaml
+```
+
+### Step 4. Remove the Namespace created in Step 2 if it is no longer needed (optional)
+
+```bash
+$ oc delete project manageiq
+```
+
+### Step 5. Remove the CRD (optional)
+
+WARNING: Ensure that there are no other ManageIQs running on the cluster since this is a cluster-wide change.
+
+```bash
+$ oc delete -f deploy/crds/manageiq.org_manageiqs_crd.yaml
 ```
