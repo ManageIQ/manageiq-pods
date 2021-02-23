@@ -134,7 +134,7 @@ Depending on your cluster's configuration, kubernetes may not allow deployment o
 
 ```
 Error from server: error when creating "deploy/operator.yaml": admission webhook "trust.hooks.securityenforcement.admission.xxx" denied the request:
-Deny "docker.io/manageiq/manageiq-operator:latest", no matching repositories in ClusterImagePolicy and no ImagePolicies in the "YYY" namespace
+Deny "docker.io/manageiq/manageiq-operator:latest-lasker", no matching repositories in ClusterImagePolicy and no ImagePolicies in the "YYY" namespace
 ```
 
 To allow images from `docker.io/manageiq`, edit the clusterimagepolicies and add `docker.io/manageiq/*` to the list of allowed repositories:
@@ -164,7 +164,7 @@ The bin/build script will build the entire chain of images.
 
 The script requires at a minimum the `-d` option to specify the location of the `images` directory, (`./images` if run from the repo root) and the `-r` option to specify the resulting image repo and namespace.
 
-For example, if you wanted to build all the images tagged as `manageiq/<image-name>:latest`, you would run the following command from the repo root.
+For example, if you wanted to build all the images tagged as `manageiq/<image-name>:latest-lasker`, you would run the following command from the repo root.
 
 ```bash
 ./bin/build -d images -r manageiq
@@ -174,7 +174,7 @@ Additional options are also available:
   - `-n` Use the --no-cache option when running the manageiq-base image build
   - `-p` Push the images after building
   - `-s` Run a release build, using the latest tagged rpm build, excluding nightly rpm builds
-  - `-t <tag>` Tag the built images with the specified tag (default: latest)
+  - `-t <tag>` Tag the built images with the specified tag (default: latest-lasker)
 
 Additionally the source fork and git ref for manageiq-appliance-build can be set using the following environment variables:
   - `BUILD_REF`

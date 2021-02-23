@@ -57,7 +57,7 @@ spec:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: manageiq-operator
-                image: docker.io/manageiq/manageiq-operator:latest
+                image: docker.io/manageiq/manageiq-operator:latest-lasker
                 imagePullPolicy: Always
                 name: manageiq-operator
                 resources:

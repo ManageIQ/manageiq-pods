@@ -10,7 +10,7 @@ func httpdAuthConfigurationConf() string {
 	return `
 # External Authentication Configuration File
 #
-# For details on usage please see https://github.com/ManageIQ/manageiq-pods/blob/master/README.md#configuring-external-authentication
+# For details on usage please see https://github.com/ManageIQ/manageiq-pods/blob/lasker/README.md#configuring-external-authentication
 `
 }
 
