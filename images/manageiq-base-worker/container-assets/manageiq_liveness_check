@@ -1,4 +1,4 @@
 #!/bin/bash
 
-source ${APP_ROOT}/container_env
+[[ -s /etc/default/evm ]] && source /etc/default/evm
 ruby ${APP_ROOT}/lib/workers/bin/heartbeat_check.rb --heartbeat-file=${APP_ROOT}/tmp/worker.hb
