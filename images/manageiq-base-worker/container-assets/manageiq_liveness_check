@@ -1,4 +1,15 @@
 #!/bin/bash
 
-[[ -s /etc/default/evm ]] && source /etc/default/evm
-ruby ${APP_ROOT}/lib/workers/bin/heartbeat_check.rb --heartbeat-file=${APP_ROOT}/tmp/worker.hb
+# We're alive if the heartbeat_file exists and has a unix time
+# "newer" / greater than the current time.
+heartbeat_file="${APP_ROOT}/tmp/worker.hb"
+if [[ ! -f ${heartbeat_file} ]]; then
+  exit 1
+fi
+
+current_time=$(date +%s)
+not_responsive_threshold=$(cat ${heartbeat_file})
+
+if [ $current_time -gt $not_responsive_threshold ]; then
+  exit 1
+fi
