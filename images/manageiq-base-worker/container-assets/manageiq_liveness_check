@@ -1,4 +1,27 @@
 #!/bin/bash
 
-[[ -s /etc/default/evm ]] && source /etc/default/evm
-ruby ${APP_ROOT}/lib/workers/bin/heartbeat_check.rb --heartbeat-file=${APP_ROOT}/tmp/worker.hb
+# hb_file needs to either exist or only contain a time in unix time
+# TODO: Simplify: only write unix time in file (don't rely on mtime)
+hb_file="${APP_ROOT}/tmp/worker.hb"
+if [[ -f ${hb_file} ]]; then
+  current_time=$(date +%s)
+  custom_timeout=$(cat ${hb_file})
+  if [[ -z $custom_timeout ]]; then
+    # TODO: This goes away if we always write unix time in hb file
+    # mtime=$(stat -f "%m" ${hb_file}) # for testing on mac
+    mtime=$(stat -c "%Y" ${hb_file})   # for linux
+
+    # TODO: this hardcoded timeout goes away if we always write unix time in hb file
+    timeout=$((${mtime} + 120))
+  else
+    timeout=$custom_timeout
+  fi
+
+  if [ $current_time -le $timeout ]; then
+    exit 0
+  else
+    exit 1
+  fi
+else
+  exit 1
+fi
