@@ -191,6 +191,7 @@ func getHttpdAuthConfigVersion(client client.Client, namespace string, spec *miq
 }
 
 func setManagedHttpdCfgVersion(httpdAuthConfigVersion string, podSpec *corev1.PodSpec) {
+	// This is not used by the pod, it is defined to trigger a redeployment if the secret was updated
 	managedHttpdCfgRevision := corev1.EnvVar{Name: "MANAGED_HTTPD_CFG_VERSION", Value: httpdAuthConfigVersion}
 	podSpec.Containers[0].Env = append(podSpec.Containers[0].Env, managedHttpdCfgRevision)
 }

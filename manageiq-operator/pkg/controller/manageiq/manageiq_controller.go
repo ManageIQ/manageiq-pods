@@ -108,13 +108,12 @@ func (r *ReconcileManageIQ) Reconcile(request reconcile.Request) (reconcile.Resu
 
 	if strings.HasPrefix(request.Name, "httpd-auth-config-secret-") {
 		// Mapped secret name coming as httpd-auth-config-secret-<miq_instance_name>-<secret_name>
-		rString := strings.TrimPrefix(request.Name, "httpd-auth-config-secret-")
-		nSlices := strings.SplitN(rString, "-", 2)
+		nSlices := strings.SplitN(request.Name, "-", 6)
 		// Fetch the ManageIQ instance
 		miqInstance := &miqv1alpha1.ManageIQ{}
 		err := r.client.Get(context.TODO(), types.NamespacedName{
 			Namespace: request.Namespace,
-			Name:      nSlices[0],
+			Name:      nSlices[4],
 		}, miqInstance)
 		if errors.IsNotFound(err) {
 			return reconcile.Result{}, nil
@@ -607,16 +606,18 @@ func (r *ReconcileManageIQ) createSecretWatchers(cr *miqv1alpha1.ManageIQ) error
 			},
 		}
 
-		err := controller_manageiq.Watch(&source.Kind{Type: &corev1.Secret{
+		authConfigSecret := &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: cr.Namespace,
 				Name:      cr.Spec.HttpdAuthConfig,
 			},
-		}}, &handler.EnqueueRequestsFromMapFunc{
-			ToRequests: mapFn,
-		}, predicateFn)
+		}
 
-		if err != nil {
+		eventHandler := &handler.EnqueueRequestsFromMapFunc{
+			ToRequests: mapFn,
+		}
+
+		if err := controller_manageiq.Watch(&source.Kind{Type: authConfigSecret}, eventHandler, predicateFn); err != nil {
 			return err
 		}
 	}
