@@ -2,6 +2,7 @@ package manageiq
 
 import (
 	"context"
+	"strings"
 
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
 
@@ -16,14 +17,17 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 var logger = log.Log.WithName("controller_manageiq")
+var controller_manageiq controller.Controller
 
 // Add creates a new ManageIQ Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -43,6 +47,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	if err != nil {
 		return err
 	}
+	controller_manageiq = c
 
 	// Watch for changes to primary resource ManageIQ
 	err = c.Watch(&source.Kind{Type: &miqv1alpha1.ManageIQ{}}, &handler.EnqueueRequestForObject{})
@@ -101,6 +106,25 @@ func (r *ReconcileManageIQ) Reconcile(request reconcile.Request) (reconcile.Resu
 	reqLogger := logger.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling ManageIQ")
 
+	if strings.HasPrefix(request.Name, "httpd-auth-config-secret-") {
+		// Mapped secret name coming as httpd-auth-config-secret-<miq_instance_name>-<secret_name>
+		nSlices := strings.SplitN(request.Name, "-", 6)
+		// Fetch the ManageIQ instance
+		miqInstance := &miqv1alpha1.ManageIQ{}
+		err := r.client.Get(context.TODO(), types.NamespacedName{
+			Namespace: request.Namespace,
+			Name:      nSlices[4],
+		}, miqInstance)
+		if errors.IsNotFound(err) {
+			return reconcile.Result{}, nil
+		}
+		logger.Info("Reconciling the HTTPD Deployment ...")
+		if e := r.reconcileHttpdDeployment(miqInstance); e != nil {
+			return reconcile.Result{}, e
+		}
+		return reconcile.Result{}, nil
+	}
+
 	// Fetch the ManageIQ instance
 	miqInstance := &miqv1alpha1.ManageIQ{}
 
@@ -116,6 +140,11 @@ func (r *ReconcileManageIQ) Reconcile(request reconcile.Request) (reconcile.Resu
 
 	logger.Info("Validating the CR...")
 	if e := miqInstance.Validate(); e != nil {
+		return reconcile.Result{}, e
+	}
+
+	logger.Info("Creating Secret Watchers ...")
+	if e := r.createSecretWatchers(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
 
@@ -245,15 +274,8 @@ func (r *ReconcileManageIQ) generateHttpdResources(cr *miqv1alpha1.ManageIQ) err
 		}
 	}
 
-	httpdDeployment, mutateFunc, err := miqtool.HttpdDeployment(cr, r.scheme)
-	if err != nil {
+	if err := r.reconcileHttpdDeployment(cr); err != nil {
 		return err
-	}
-
-	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, httpdDeployment, mutateFunc); err != nil {
-		return err
-	} else if result != controllerutil.OperationResultNone {
-		logger.Info("Deployment has been reconciled", "component", "httpd", "result", result)
 	}
 
 	httpdIngress, mutateFunc := miqtool.Ingress(cr, r.scheme)
@@ -263,6 +285,20 @@ func (r *ReconcileManageIQ) generateHttpdResources(cr *miqv1alpha1.ManageIQ) err
 		logger.Info("Ingress has been reconciled", "component", "httpd", "result", result)
 	}
 
+	return nil
+}
+
+func (r *ReconcileManageIQ) reconcileHttpdDeployment(cr *miqv1alpha1.ManageIQ) error {
+	httpdDeployment, mutateFunc, err := miqtool.HttpdDeployment(r.client, cr, r.scheme)
+	if err != nil {
+		return err
+	}
+
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, httpdDeployment, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("Deployment has been reconciled", "component", "httpd", "result", result)
+	}
 	return nil
 }
 
@@ -537,6 +573,54 @@ func (r *ReconcileManageIQ) manageCR(cr *miqv1alpha1.ManageIQ) error {
 		logger.Info("CR has been reconciled", "component", "app", "result", result)
 	}
 
+	return nil
+}
+
+func (r *ReconcileManageIQ) createSecretWatchers(cr *miqv1alpha1.ManageIQ) error {
+	if cr.Spec.HttpdAuthConfig != "" {
+		secret := &corev1.Secret{}
+		secretErr := r.client.Get(context.TODO(), types.NamespacedName{Namespace: cr.Namespace, Name: cr.Spec.HttpdAuthConfig}, secret)
+		if secretErr != nil {
+			return nil
+		}
+		mapFn := handler.ToRequestsFunc(
+			func(a handler.MapObject) []reconcile.Request {
+				mappedName := a.Meta.GetName()
+				if mappedName == cr.Spec.HttpdAuthConfig {
+					mappedName = "httpd-auth-config-secret-" + cr.Name + "-" + mappedName
+				}
+				return []reconcile.Request{
+					{NamespacedName: types.NamespacedName{
+						Name:      mappedName,
+						Namespace: a.Meta.GetNamespace(),
+					}},
+				}
+			})
+
+		predicateFn := predicate.Funcs{
+			UpdateFunc: func(e event.UpdateEvent) bool {
+				return e.MetaNew.GetName() == cr.Spec.HttpdAuthConfig
+			},
+			CreateFunc: func(e event.CreateEvent) bool {
+				return e.Meta.GetName() == cr.Spec.HttpdAuthConfig
+			},
+		}
+
+		authConfigSecret := &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: cr.Namespace,
+				Name:      cr.Spec.HttpdAuthConfig,
+			},
+		}
+
+		eventHandler := &handler.EnqueueRequestsFromMapFunc{
+			ToRequests: mapFn,
+		}
+
+		if err := controller_manageiq.Watch(&source.Kind{Type: authConfigSecret}, eventHandler, predicateFn); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
