@@ -1,6 +1,7 @@
 package miqtools
 
 import (
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -11,8 +12,10 @@ import (
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	intstr "k8s.io/apimachinery/pkg/util/intstr"
 	"net/http"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
@@ -193,6 +196,24 @@ func addOIDCEnv(secretName string, podSpec *corev1.PodSpec) {
 	podSpec.Containers[0].Env = append(podSpec.Containers[0].Env, clientSecret)
 }
 
+func getHttpdAuthConfigVersion(client client.Client, namespace string, spec *miqv1alpha1.ManageIQSpec) string {
+	httpd_auth_config_version := ""
+	if spec.HttpdAuthConfig != "" {
+		secret := &corev1.Secret{}
+		secretErr := client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: spec.HttpdAuthConfig}, secret)
+		if secretErr == nil {
+			httpd_auth_config_version = string(secret.GetObjectMeta().GetResourceVersion())
+		}
+	}
+	return httpd_auth_config_version
+}
+
+func setManagedHttpdCfgVersion(httpdAuthConfigVersion string, podSpec *corev1.PodSpec) {
+	// This is not used by the pod, it is defined to trigger a redeployment if the secret was updated
+	managedHttpdCfgRevision := corev1.EnvVar{Name: "MANAGED_HTTPD_CFG_VERSION", Value: httpdAuthConfigVersion}
+	podSpec.Containers[0].Env = append(podSpec.Containers[0].Env, managedHttpdCfgRevision)
+}
+
 func addAuthConfigVolume(podSpec *corev1.PodSpec) {
 	vol := corev1.Volume{
 		Name: "httpd-auth-config",
@@ -325,7 +346,7 @@ func initializeHttpdContainer(spec *miqv1alpha1.ManageIQSpec, privileged bool, c
 	return nil
 }
 
-func HttpdDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
+func HttpdDeployment(client client.Client, cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
 	privileged := PrivilegedHttpd(cr.Spec.HttpdAuthenticationType)
 
 	container := corev1.Container{}
@@ -356,6 +377,8 @@ func HttpdDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.
 			},
 		},
 	}
+
+	httpdAuthConfigVersion := getHttpdAuthConfigVersion(client, cr.Namespace, &cr.Spec)
 
 	f := func() error {
 		if err := controllerutil.SetControllerReference(cr, deployment, scheme); err != nil {
@@ -388,6 +411,8 @@ func HttpdDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.
 		}
 
 		configureHttpdAuth(&cr.Spec, &deployment.Spec.Template.Spec)
+		setManagedHttpdCfgVersion(httpdAuthConfigVersion, &deployment.Spec.Template.Spec)
+
 		return nil
 	}
 
