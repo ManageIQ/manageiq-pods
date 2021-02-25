@@ -88,7 +88,8 @@ func main() {
 	if operatorName == "" {
 		operatorName = "manageiq-operator"
 	}
-	err = leader.Become(ctx, operatorName+"-lock")
+	lockName := operatorName + "-lock"
+	err = leader.Become(ctx, lockName)
 	if err != nil {
 		log.Error(err, "")
 		os.Exit(1)
