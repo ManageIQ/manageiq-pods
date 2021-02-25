@@ -84,7 +84,11 @@ func main() {
 
 	ctx := context.TODO()
 	// Become the leader before proceeding
-	err = leader.Become(ctx, "manageiq-operator-lock")
+	operatorName := os.Getenv("OPERATOR_NAME")
+	if operatorName == "" {
+		operatorName = "manageiq-operator"
+	}
+	err = leader.Become(ctx, operatorName+"-lock")
 	if err != nil {
 		log.Error(err, "")
 		os.Exit(1)
