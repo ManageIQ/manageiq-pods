@@ -5,3 +5,4 @@ filename=$(ls VMware-*)
 
 # Skip the install if the VDDK library is not found
 [[ -f $filename ]] && tar -zxvf VMware-* || mkdir vmware-vix-disklib-distrib
+touch /vddk/vmware-vix-disklib-distrib/.keep
