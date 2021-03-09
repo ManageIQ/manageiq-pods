@@ -102,6 +102,12 @@ popd
 
 if [ -z "$NO_OPERATOR" ]; then
   pushd "$OPERATOR_DIR"
+    echo "Building manageiq-operator manifest..."
+    mkdir -p ./build/_output
+    echo "$(date +"%Y%m%d%H%M%S")-$(git rev-parse HEAD)" > ./build/_output/BUILD
+    cat ./build/_output/BUILD
+    echo
+
     cmd="operator-sdk build --image-build-args --pull $REPO/manageiq-operator:$TAG"
     echo "Building manageiq-operator: $cmd"
     $cmd
