@@ -6,6 +6,9 @@ ENV OPERATOR=/usr/local/bin/manageiq-operator \
 
 # install operator binary
 COPY build/_output/bin/manageiq-operator ${OPERATOR}
+# install operator manifest
+RUN mkdir -p /opt/manageiq/manifest
+COPY build/_output/BUILD /opt/manageiq/manifest
 
 COPY build/bin /usr/local/bin
 RUN  /usr/local/bin/user_setup
