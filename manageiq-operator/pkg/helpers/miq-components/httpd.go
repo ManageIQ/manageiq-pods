@@ -142,6 +142,24 @@ func HttpdAuthConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*core
 	return configMap, f
 }
 
+func HttpdAuthConfig(client client.Client, cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Secret, controllerutil.MutateFn) {
+	if cr.Spec.HttpdAuthConfig == "" {
+		return nil, nil
+	}
+
+	secret := &corev1.Secret{}
+	if secretErr := client.Get(context.TODO(), types.NamespacedName{Namespace: cr.Namespace, Name: cr.Spec.HttpdAuthConfig}, secret); secretErr != nil {
+		return nil, nil
+	}
+
+	f := func() error {
+		addBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
+		return nil
+	}
+
+	return secret, f
+}
+
 func PrivilegedHttpd(authType string) bool {
 	switch authType {
 	case "internal", "openid-connect":
