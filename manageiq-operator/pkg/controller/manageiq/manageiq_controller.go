@@ -237,6 +237,14 @@ func (r *ReconcileManageIQ) generateHttpdResources(cr *miqv1alpha1.ManageIQ) err
 		}
 	}
 
+	if httpdAuthConfig, mutateFunc := miqtool.HttpdAuthConfig(r.client, cr, r.scheme); httpdAuthConfig != nil {
+		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, httpdAuthConfig, mutateFunc); err != nil {
+			return err
+		} else if result != controllerutil.OperationResultNone {
+			logger.Info("Secret has been reconciled", "component", "httpd-auth", "result", result)
+		}
+	}
+
 	uiService, mutateFunc := miqtool.UIService(cr, r.scheme)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, uiService, mutateFunc); err != nil {
 		return err
