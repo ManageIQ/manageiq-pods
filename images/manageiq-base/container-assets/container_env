@@ -3,7 +3,7 @@
 [[ -s /etc/default/evm ]] && source /etc/default/evm
 
 function urlescape() {
-  PAYLOAD="$1" ruby -rcgi -e "puts CGI.escape(ENV['PAYLOAD'])"
+  PAYLOAD="$1" ruby --disable-gems -rcgi -e "puts CGI.escape(ENV['PAYLOAD'])"
 }
 
 safeuser=$(urlescape ${DATABASE_USER})
