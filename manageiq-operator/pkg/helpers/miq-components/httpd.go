@@ -1,6 +1,7 @@
 package miqtools
 
 import (
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -11,8 +12,10 @@ import (
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	intstr "k8s.io/apimachinery/pkg/util/intstr"
 	"net/http"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
@@ -140,6 +143,24 @@ func HttpdAuthConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*core
 	}
 
 	return configMap, f
+}
+
+func HttpdAuthConfig(client client.Client, cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Secret, controllerutil.MutateFn) {
+	if cr.Spec.HttpdAuthConfig == "" {
+		return nil, nil
+	}
+
+	secret := &corev1.Secret{}
+	if secretErr := client.Get(context.TODO(), types.NamespacedName{Namespace: cr.Namespace, Name: cr.Spec.HttpdAuthConfig}, secret); secretErr != nil {
+		return nil, nil
+	}
+
+	f := func() error {
+		addBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
+		return nil
+	}
+
+	return secret, f
 }
 
 func PrivilegedHttpd(authType string) (bool, error) {
