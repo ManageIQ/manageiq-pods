@@ -291,7 +291,6 @@ func httpdAuthLoadModulesConf() string {
 LoadModule authnz_pam_module            modules/mod_authnz_pam.so
 LoadModule intercept_form_submit_module modules/mod_intercept_form_submit.so
 LoadModule lookup_identity_module       modules/mod_lookup_identity.so
-LoadModule auth_kerb_module             modules/mod_auth_kerb.so
 `
 }
 
