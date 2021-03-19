@@ -228,15 +228,6 @@ func (r *ReconcileManageIQ) generateHttpdResources(cr *miqv1alpha1.ManageIQ) err
 		logger.Info("ConfigMap has been reconciled", "component", "httpd", "result", result)
 	}
 
-	if cr.Spec.HttpdAuthenticationType != "internal" && cr.Spec.HttpdAuthenticationType != "openid-connect" {
-		httpdAuthConfigMap, mutateFunc := miqtool.HttpdAuthConfigMap(cr, r.scheme)
-		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, httpdAuthConfigMap, mutateFunc); err != nil {
-			return err
-		} else if result != controllerutil.OperationResultNone {
-			logger.Info("ConfigMap has been reconciled", "component", "httpd-auth", "result", result)
-		}
-	}
-
 	if httpdAuthConfig, mutateFunc := miqtool.HttpdAuthConfig(r.client, cr, r.scheme); httpdAuthConfig != nil {
 		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, httpdAuthConfig, mutateFunc); err != nil {
 			return err

@@ -5,15 +5,6 @@ import (
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
 )
 
-// auth-configuration.conf
-func httpdAuthConfigurationConf() string {
-	return `
-# External Authentication Configuration File
-#
-# For details on usage please see https://github.com/ManageIQ/manageiq-pods/blob/master/README.md#configuring-external-authentication
-`
-}
-
 // application.conf
 func httpdApplicationConf(applicationDomain string) string {
 	s := `

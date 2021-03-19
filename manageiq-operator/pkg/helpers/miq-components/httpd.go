@@ -120,31 +120,6 @@ func HttpdConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.C
 	return configMap, f, nil
 }
 
-func HttpdAuthConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.ConfigMap, controllerutil.MutateFn) {
-	data := map[string]string{
-		"auth-configuration.conf": httpdAuthConfigurationConf(),
-	}
-
-	configMap := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "httpd-auth-configs",
-			Namespace: cr.ObjectMeta.Namespace,
-		},
-	}
-
-	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, configMap, scheme); err != nil {
-			return err
-		}
-		addAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
-		addBackupLabel(cr.Spec.BackupLabelName, &configMap.ObjectMeta)
-		configMap.Data = data
-		return nil
-	}
-
-	return configMap, f
-}
-
 func HttpdAuthConfig(client client.Client, cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Secret, controllerutil.MutateFn) {
 	if cr.Spec.HttpdAuthConfig == "" {
 		return nil, nil
@@ -214,24 +189,9 @@ func setManagedHttpdCfgVersion(httpdAuthConfigVersion string, podSpec *corev1.Po
 	podSpec.Containers[0].Env = append(podSpec.Containers[0].Env, managedHttpdCfgRevision)
 }
 
-func addAuthConfigVolume(podSpec *corev1.PodSpec) {
+func addAuthConfigVolume(secretName string, podSpec *corev1.PodSpec) {
 	vol := corev1.Volume{
 		Name: "httpd-auth-config",
-		VolumeSource: corev1.VolumeSource{
-			ConfigMap: &corev1.ConfigMapVolumeSource{
-				LocalObjectReference: corev1.LocalObjectReference{Name: "httpd-auth-configs"},
-			},
-		},
-	}
-	podSpec.Volumes = append(podSpec.Volumes, vol)
-
-	mount := corev1.VolumeMount{Name: "httpd-auth-config", MountPath: "/etc/httpd/auth-conf.d"}
-	podSpec.Containers[0].VolumeMounts = append(podSpec.Containers[0].VolumeMounts, mount)
-}
-
-func addUserAuthVolume(secretName string, podSpec *corev1.PodSpec) {
-	vol := corev1.Volume{
-		Name: "user-auth-config",
 		VolumeSource: corev1.VolumeSource{
 			Secret: &corev1.SecretVolumeSource{
 				SecretName: secretName,
@@ -240,7 +200,7 @@ func addUserAuthVolume(secretName string, podSpec *corev1.PodSpec) {
 	}
 	podSpec.Volumes = append(podSpec.Volumes, vol)
 
-	mount := corev1.VolumeMount{Name: "user-auth-config", MountPath: "/etc/httpd/user-conf.d"}
+	mount := corev1.VolumeMount{Name: "httpd-auth-config", MountPath: "/etc/httpd/auth-conf.d"}
 	podSpec.Containers[0].VolumeMounts = append(podSpec.Containers[0].VolumeMounts, mount)
 }
 
@@ -267,7 +227,7 @@ func configureHttpdAuth(spec *miqv1alpha1.ManageIQSpec, podSpec *corev1.PodSpec)
 	}
 
 	if spec.HttpdAuthConfig != "" {
-		addUserAuthVolume(spec.HttpdAuthConfig, podSpec)
+		addAuthConfigVolume(spec.HttpdAuthConfig, podSpec)
 	}
 
 	if spec.OIDCCACertSecret != "" {
@@ -276,8 +236,6 @@ func configureHttpdAuth(spec *miqv1alpha1.ManageIQSpec, podSpec *corev1.PodSpec)
 
 	if authType == "openid-connect" && spec.OIDCClientSecret != "" {
 		addOIDCEnv(spec.OIDCClientSecret, podSpec)
-	} else if authType != "openid-connect" {
-		addAuthConfigVolume(podSpec)
 	}
 }
 
@@ -323,6 +281,9 @@ func initializeHttpdContainer(spec *miqv1alpha1.ManageIQSpec, privileged bool, c
 	}
 	c.VolumeMounts = []corev1.VolumeMount{
 		corev1.VolumeMount{Name: "httpd-config", MountPath: "/etc/httpd/conf.d"},
+	}
+	c.Env = []corev1.EnvVar{
+		corev1.EnvVar{Name: "HTTPD_AUTH_TYPE", Value: spec.HttpdAuthenticationType},
 	}
 
 	// Add Lifecycle object for saving the environment if we're running with init
