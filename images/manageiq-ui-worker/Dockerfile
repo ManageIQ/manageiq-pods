@@ -16,6 +16,9 @@ RUN sed -i '/^Listen 80/d' /etc/httpd/conf/httpd.conf
 
 COPY container-assets/manageiq-http.conf /etc/httpd/conf.d
 
-RUN source /etc/default/evm && /usr/bin/generate_rpm_manifest.sh
+RUN source /etc/default/evm && \
+    /usr/bin/generate_rpm_manifest.sh && \
+    dnf clean all && \
+    rm -rf /var/cache/dnf
 
 RUN rm -rf /tmp/rpms /create_local_yum_repo.sh /etc/yum.repos.d/local_rpm.repo

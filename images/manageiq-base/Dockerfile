@@ -50,21 +50,27 @@ RUN dnf -y --disableplugin=subscription-manager install \
       ${RPM_PREFIX}-pods          \
       python3-devel               \
       &&                          \
-    dnf -y --disableplugin=subscription-manager upgrade && \
-    dnf clean all
+    dnf clean all && \
+    rm -rf /var/cache/dnf && \
+    chgrp -R 0 $APP_ROOT && \
+    chmod -R g=u $APP_ROOT
 
 # Install python packages the same way the appliance does
 COPY --from=0 build/kickstarts/partials/post/python_modules.ks.erb /tmp/python_modules
-RUN bash /tmp/python_modules && rm -f /tmp/python_modules
-
-RUN chgrp -R 0 $APP_ROOT && \
-    chmod -R g=u $APP_ROOT
+RUN bash /tmp/python_modules && \
+    rm -f /tmp/python_modules && \
+    rm -rf /root/.cache/pip && \
+    dnf clean all && \
+    rm -rf /var/cache/dnf
 
 ADD container-assets/container_env ${APP_ROOT}
 
 RUN curl -L -o /usr/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.2/dumb-init_1.2.2_${ARCH} && \
     chmod +x /usr/bin/dumb-init
 
-RUN source /etc/default/evm && /usr/bin/generate_rpm_manifest.sh
+RUN source /etc/default/evm && \
+    /usr/bin/generate_rpm_manifest.sh && \
+    dnf clean all && \
+    rm -rf /var/cache/dnf
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--single-child", "--"]

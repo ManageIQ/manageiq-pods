@@ -21,6 +21,9 @@ COPY --from=vddk /vddk/vmware-vix-disklib-distrib/ /usr/lib/vmware-vix-disklib/
 COPY container-assets/install-vmware-vddk /tmp/
 RUN /tmp/install-vmware-vddk
 
-RUN source /etc/default/evm && /usr/bin/generate_rpm_manifest.sh
+RUN source /etc/default/evm && \
+    /usr/bin/generate_rpm_manifest.sh && \
+    dnf clean all && \
+    rm -rf /var/cache/dnf
 
 CMD ["entrypoint"]
