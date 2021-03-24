@@ -63,8 +63,8 @@ Options SymLinksIfOwnerMatch
   ProxyPassReverse /ws/console ws://remote-console:3000/ws/console
 
   # Ensures httpd stdout/stderr are seen by 'docker logs'.
-  ErrorLog  "| /usr/bin/tee /proc/1/fd/2 /var/log/httpd/error_log"
-  CustomLog "| /usr/bin/tee /proc/1/fd/1 /var/log/httpd/access_log" common
+  ErrorLog  "/dev/stderr"
+  CustomLog "/dev/stdout" common
 </VirtualHost>
 `
 	return fmt.Sprintf(s, applicationDomain, applicationDomain)
