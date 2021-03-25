@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi:8.3
+FROM registry.access.redhat.com/ubi8/ubi:8.3 as appliance_build
 
 ARG BUILD_REF=master
 ARG BUILD_ORG=ManageIQ
@@ -56,7 +56,7 @@ RUN dnf -y --disableplugin=subscription-manager install \
     chmod -R g=u $APP_ROOT
 
 # Install python packages the same way the appliance does
-COPY --from=0 build/kickstarts/partials/post/python_modules.ks.erb /tmp/python_modules
+COPY --from=appliance_build build/kickstarts/partials/post/python_modules.ks.erb /tmp/python_modules
 RUN bash /tmp/python_modules && \
     rm -f /tmp/python_modules && \
     rm -rf /root/.cache/pip && \
