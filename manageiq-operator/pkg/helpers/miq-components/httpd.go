@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
+	controllertools "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/helpers/controllertools"
 	tlstools "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/helpers/tlstools"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -28,7 +29,7 @@ func HttpdServiceAccount(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*cor
 	}
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, serviceAccount, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, serviceAccount, scheme); err != nil {
 			return err
 		}
 
@@ -51,7 +52,7 @@ func Ingress(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*extensionsv1bet
 	}
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, ingress, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, ingress, scheme); err != nil {
 			return err
 		}
 		if len(ingress.Spec.TLS) == 0 {
@@ -109,7 +110,7 @@ func HttpdConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.C
 	}
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, configMap, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, configMap, scheme); err != nil {
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
@@ -133,7 +134,7 @@ func HttpdAuthConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*core
 	}
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, configMap, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, configMap, scheme); err != nil {
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
@@ -381,7 +382,7 @@ func HttpdDeployment(client client.Client, cr *miqv1alpha1.ManageIQ, scheme *run
 	httpdAuthConfigVersion := getHttpdAuthConfigVersion(client, cr.Namespace, &cr.Spec)
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, deployment, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, deployment, scheme); err != nil {
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)
@@ -428,7 +429,7 @@ func UIService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Servic
 	}
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, service, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, service, scheme); err != nil {
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &service.ObjectMeta)
@@ -453,7 +454,7 @@ func WebService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Servi
 	}
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, service, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, service, scheme); err != nil {
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &service.ObjectMeta)
@@ -478,7 +479,7 @@ func RemoteConsoleService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*co
 	}
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, service, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, service, scheme); err != nil {
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &service.ObjectMeta)
@@ -503,7 +504,7 @@ func HttpdService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Ser
 	}
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, service, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, service, scheme); err != nil {
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &service.ObjectMeta)
@@ -528,7 +529,7 @@ func HttpdDbusAPIService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*cor
 	}
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, service, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, service, scheme); err != nil {
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &service.ObjectMeta)

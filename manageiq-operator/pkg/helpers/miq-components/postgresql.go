@@ -3,6 +3,7 @@ package miqtools
 import (
 	"context"
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
+	controllertools "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/helpers/controllertools"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	resource "k8s.io/apimachinery/pkg/api/resource"
@@ -67,7 +68,7 @@ func PostgresqlConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*cor
 	}
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, configMap, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, configMap, scheme); err != nil {
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
@@ -99,7 +100,7 @@ func PostgresqlPVC(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Pe
 	}
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, pvc, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, pvc, scheme); err != nil {
 			return err
 		}
 
@@ -125,7 +126,7 @@ func PostgresqlService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev
 	}
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, service, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, service, scheme); err != nil {
 			return err
 		}
 
@@ -235,7 +236,7 @@ func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*ap
 	}
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, deployment, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, deployment, scheme); err != nil {
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)

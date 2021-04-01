@@ -3,6 +3,7 @@ package miqtools
 import (
 	"context"
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
+	controllertools "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/helpers/controllertools"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -23,7 +24,7 @@ func OrchestratorServiceAccount(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme
 	}
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, sa, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, sa, scheme); err != nil {
 			return err
 		}
 
@@ -46,7 +47,7 @@ func OrchestratorRole(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*rbacv1
 	}
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, role, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, role, scheme); err != nil {
 			return err
 		}
 
@@ -83,7 +84,7 @@ func OrchestratorRoleBinding(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (
 	}
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, rb, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, rb, scheme); err != nil {
 			return err
 		}
 
@@ -317,7 +318,7 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 	addPostgresConfig(cr, deployment, client)
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, deployment, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, deployment, scheme); err != nil {
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)

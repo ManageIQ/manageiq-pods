@@ -2,6 +2,7 @@ package miqtools
 
 import (
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
+	controllertools "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/helpers/controllertools"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	resource "k8s.io/apimachinery/pkg/api/resource"
@@ -61,7 +62,7 @@ func KafkaPVC(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Persist
 	}
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, pvc, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, pvc, scheme); err != nil {
 			return err
 		}
 
@@ -99,7 +100,7 @@ func ZookeeperPVC(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Per
 	}
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, pvc, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, pvc, scheme); err != nil {
 			return err
 		}
 
@@ -125,7 +126,7 @@ func KafkaService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Ser
 	}
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, service, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, service, scheme); err != nil {
 			return err
 		}
 
@@ -151,7 +152,7 @@ func ZookeeperService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1
 	}
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, service, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, service, scheme); err != nil {
 			return err
 		}
 
@@ -241,7 +242,7 @@ func KafkaDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.
 	}
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, deployment, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, deployment, scheme); err != nil {
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)
@@ -324,7 +325,7 @@ func ZookeeperDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*app
 	}
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, deployment, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, deployment, scheme); err != nil {
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)

@@ -2,6 +2,7 @@ package miqtools
 
 import (
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
+	controllertools "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/helpers/controllertools"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -15,7 +16,7 @@ func NetworkPolicyDefaultDeny(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) 
 	networkPolicy := newNetworkPolicy(cr, "default-deny")
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, networkPolicy, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, networkPolicy, scheme); err != nil {
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &networkPolicy.ObjectMeta)
@@ -33,7 +34,7 @@ func NetworkPolicyAllowInboundHttpd(cr *miqv1alpha1.ManageIQ, scheme *runtime.Sc
 	networkPolicy := newNetworkPolicy(cr, "allow-inbound-httpd")
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, networkPolicy, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, networkPolicy, scheme); err != nil {
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &networkPolicy.ObjectMeta)
@@ -61,7 +62,7 @@ func NetworkPolicyAllowHttpdApi(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme
 	networkPolicy := newNetworkPolicy(cr, "allow-httpd-api")
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, networkPolicy, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, networkPolicy, scheme); err != nil {
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &networkPolicy.ObjectMeta)
@@ -89,7 +90,7 @@ func NetworkPolicyAllowHttpdUi(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme)
 	networkPolicy := newNetworkPolicy(cr, "allow-httpd-ui")
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, networkPolicy, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, networkPolicy, scheme); err != nil {
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &networkPolicy.ObjectMeta)
@@ -117,7 +118,7 @@ func NetworkPolicyAllowMemcached(cr *miqv1alpha1.ManageIQ, scheme *runtime.Schem
 	networkPolicy := newNetworkPolicy(cr, "allow-memcached")
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, networkPolicy, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, networkPolicy, scheme); err != nil {
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &networkPolicy.ObjectMeta)
@@ -155,7 +156,7 @@ func NetworkPolicyAllowPostgres(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme
 	networkPolicy := newNetworkPolicy(cr, "allow-postgres")
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, networkPolicy, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, networkPolicy, scheme); err != nil {
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &networkPolicy.ObjectMeta)

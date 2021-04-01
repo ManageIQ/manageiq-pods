@@ -2,6 +2,7 @@ package miqtools
 
 import (
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
+	controllertools "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/helpers/controllertools"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -82,7 +83,7 @@ func NewMemcachedDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*
 	}
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, deployment, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, deployment, scheme); err != nil {
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)
@@ -109,7 +110,7 @@ func NewMemcachedService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*cor
 	}
 
 	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, service, scheme); err != nil {
+		if err := controllertools.ReplaceControllerReference(cr, service, scheme); err != nil {
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &service.ObjectMeta)
