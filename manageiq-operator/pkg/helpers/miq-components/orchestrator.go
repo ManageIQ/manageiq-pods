@@ -183,19 +183,36 @@ func addPostgresConfig(cr *miqv1alpha1.ManageIQ, d *appsv1.Deployment, client cl
 func addWorkerImageEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
 	// If any of the images were not provided, add the orchestrator namespace and tag
 	if cr.Spec.BaseWorkerImage == "" || cr.Spec.WebserverWorkerImage == "" || cr.Spec.UIWorkerImage == "" {
-		c.Env = append(c.Env, corev1.EnvVar{Name: "CONTAINER_IMAGE_NAMESPACE", Value: cr.Spec.OrchestratorImageNamespace})
-		c.Env = append(c.Env, corev1.EnvVar{Name: "CONTAINER_IMAGE_TAG", Value: cr.Spec.OrchestratorImageTag})
+		c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "CONTAINER_IMAGE_NAMESPACE", Value: cr.Spec.OrchestratorImageNamespace})
+		c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "CONTAINER_IMAGE_TAG", Value: cr.Spec.OrchestratorImageTag})
 	}
 
 	if cr.Spec.BaseWorkerImage != "" {
-		c.Env = append(c.Env, corev1.EnvVar{Name: "BASE_WORKER_IMAGE", Value: cr.Spec.BaseWorkerImage})
+		c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "BASE_WORKER_IMAGE", Value: cr.Spec.BaseWorkerImage})
 	}
 	if cr.Spec.WebserverWorkerImage != "" {
-		c.Env = append(c.Env, corev1.EnvVar{Name: "WEBSERVER_WORKER_IMAGE", Value: cr.Spec.WebserverWorkerImage})
+		c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "WEBSERVER_WORKER_IMAGE", Value: cr.Spec.WebserverWorkerImage})
 	}
 	if cr.Spec.UIWorkerImage != "" {
-		c.Env = append(c.Env, corev1.EnvVar{Name: "UI_WORKER_IMAGE", Value: cr.Spec.UIWorkerImage})
+		c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "UI_WORKER_IMAGE", Value: cr.Spec.UIWorkerImage})
 	}
+}
+
+func addOrUpdateEnvVar(environment []corev1.EnvVar, variable corev1.EnvVar) []corev1.EnvVar {
+	index := -1
+	for i, env := range environment {
+		if env.Name == variable.Name {
+			index = i
+		}
+	}
+
+	if index == -1 {
+		environment = append(environment, variable)
+	} else {
+		environment[index] = variable
+	}
+
+	return environment
 }
 
 func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, client client.Client) (*appsv1.Deployment, controllerutil.MutateFn, error) {
@@ -288,7 +305,6 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 	}
 
 	addMessagingEnv(cr, &container)
-	addWorkerImageEnv(cr, &container)
 	err = addResourceReqs(cr.Spec.OrchestratorMemoryLimit, cr.Spec.OrchestratorMemoryRequest, cr.Spec.OrchestratorCpuLimit, cr.Spec.OrchestratorCpuRequest, &container)
 	if err != nil {
 		return nil, nil, err
@@ -330,6 +346,7 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 		var termSecs int64 = 90
 		deployment.Spec.Template.Spec.ServiceAccountName = cr.Spec.AppName + "-orchestrator"
 		deployment.Spec.Template.Spec.TerminationGracePeriodSeconds = &termSecs
+		addWorkerImageEnv(cr, &deployment.Spec.Template.Spec.Containers[0])
 
 		return nil
 	}
