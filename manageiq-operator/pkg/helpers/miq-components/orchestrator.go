@@ -347,6 +347,7 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 		deployment.Spec.Template.Spec.ServiceAccountName = cr.Spec.AppName + "-orchestrator"
 		deployment.Spec.Template.Spec.TerminationGracePeriodSeconds = &termSecs
 		addWorkerImageEnv(cr, &deployment.Spec.Template.Spec.Containers[0])
+		deployment.Spec.Template.Spec.Containers[0].Image = cr.Spec.OrchestratorImage
 
 		return nil
 	}
