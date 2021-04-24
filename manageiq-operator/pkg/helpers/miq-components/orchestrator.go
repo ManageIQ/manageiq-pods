@@ -180,7 +180,16 @@ func addPostgresConfig(cr *miqv1alpha1.ManageIQ, d *appsv1.Deployment, client cl
 	}
 }
 
-func addWorkerImageEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
+func updateOrchestratorEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
+	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "ADMIN_GROUP", Value: cr.Spec.InitialAdminGroupName})
+	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "APP_NAME", Value: cr.Spec.AppName})
+	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "AUTH_SSO", Value: strconv.FormatBool(*cr.Spec.EnableSSO)})
+	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "AUTH_TYPE", Value: cr.Spec.HttpdAuthenticationType})
+	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "GUID", Value: cr.Spec.ServerGuid})
+	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "LOCAL_LOGIN_ENABLED", Value: strconv.FormatBool(*cr.Spec.EnableApplicationLocalLogin)})
+	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "WORKER_RESOURCES", Value: strconv.FormatBool(*cr.Spec.EnforceWorkerResourceConstraints)})
+	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "WORKER_SERVICE_ACCOUNT", Value: defaultServiceAccountName(cr.Spec.AppName)})
+
 	// If any of the images were not provided, add the orchestrator namespace and tag
 	if cr.Spec.BaseWorkerImage == "" || cr.Spec.WebserverWorkerImage == "" || cr.Spec.UIWorkerImage == "" {
 		c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "CONTAINER_IMAGE_NAMESPACE", Value: cr.Spec.OrchestratorImageNamespace})
@@ -249,26 +258,6 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 				Value: "true",
 			},
 			corev1.EnvVar{
-				Name:  "APP_NAME",
-				Value: cr.Spec.AppName,
-			},
-			corev1.EnvVar{
-				Name:  "AUTH_TYPE",
-				Value: cr.Spec.HttpdAuthenticationType,
-			},
-			corev1.EnvVar{
-				Name:  "AUTH_SSO",
-				Value: strconv.FormatBool(*cr.Spec.EnableSSO),
-			},
-			corev1.EnvVar{
-				Name:  "LOCAL_LOGIN_ENABLED",
-				Value: strconv.FormatBool(*cr.Spec.EnableApplicationLocalLogin),
-			},
-			corev1.EnvVar{
-				Name:  "GUID",
-				Value: cr.Spec.ServerGuid,
-			},
-			corev1.EnvVar{
 				Name: "ENCRYPTION_KEY",
 				ValueFrom: &corev1.EnvVarSource{
 					SecretKeyRef: &corev1.SecretKeySelector{
@@ -288,18 +277,6 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 				ValueFrom: &corev1.EnvVarSource{
 					FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.uid"},
 				},
-			},
-			corev1.EnvVar{
-				Name:  "ADMIN_GROUP",
-				Value: cr.Spec.InitialAdminGroupName,
-			},
-			corev1.EnvVar{
-				Name:  "WORKER_RESOURCES",
-				Value: strconv.FormatBool(*cr.Spec.EnforceWorkerResourceConstraints),
-			},
-			corev1.EnvVar{
-				Name:  "WORKER_SERVICE_ACCOUNT",
-				Value: defaultServiceAccountName(cr.Spec.AppName),
 			},
 		},
 	}
@@ -346,7 +323,8 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 		var termSecs int64 = 90
 		deployment.Spec.Template.Spec.ServiceAccountName = cr.Spec.AppName + "-orchestrator"
 		deployment.Spec.Template.Spec.TerminationGracePeriodSeconds = &termSecs
-		addWorkerImageEnv(cr, &deployment.Spec.Template.Spec.Containers[0])
+
+		updateOrchestratorEnv(cr, &deployment.Spec.Template.Spec.Containers[0])
 		deployment.Spec.Template.Spec.Containers[0].Image = cr.Spec.OrchestratorImage
 
 		return nil
