@@ -66,6 +66,7 @@ func KafkaPVC(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Persist
 		}
 
 		addAppLabel(cr.Spec.AppName, &pvc.ObjectMeta)
+		addBackupLabel(cr.Spec.BackupLabelName, &pvc.ObjectMeta)
 		pvc.Spec.AccessModes = accessModes
 		pvc.Spec.Resources = resources
 
@@ -104,6 +105,7 @@ func ZookeeperPVC(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Per
 		}
 
 		addAppLabel(cr.Spec.AppName, &pvc.ObjectMeta)
+		addBackupLabel(cr.Spec.BackupLabelName, &pvc.ObjectMeta)
 		pvc.Spec.AccessModes = accessModes
 		pvc.Spec.Resources = resources
 
