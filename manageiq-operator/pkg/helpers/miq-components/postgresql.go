@@ -104,6 +104,7 @@ func PostgresqlPVC(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Pe
 		}
 
 		addAppLabel(cr.Spec.AppName, &pvc.ObjectMeta)
+		addBackupLabel(cr.Spec.BackupLabelName, &pvc.ObjectMeta)
 		pvc.Spec.AccessModes = accessModes
 		pvc.Spec.Resources = resources
 
