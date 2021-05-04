@@ -8,6 +8,7 @@ import (
 func Migrate(cr *miqv1alpha1.ManageIQ) (*miqv1alpha1.ManageIQ, controllerutil.MutateFn) {
 	f := func() error {
 		cr = migrate20210503163000(cr)
+		cr = migrate20210504113000(cr)
 
 		return nil
 	}

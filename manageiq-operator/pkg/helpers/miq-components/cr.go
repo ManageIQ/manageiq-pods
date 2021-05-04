@@ -89,14 +89,6 @@ func httpdAuthenticationType(cr *miqv1alpha1.ManageIQ) string {
 	}
 }
 
-func httpdImageNamespace(cr *miqv1alpha1.ManageIQ) string {
-	if cr.Spec.HttpdImageNamespace == "" {
-		return "manageiq"
-	} else {
-		return cr.Spec.HttpdImageNamespace
-	}
-}
-
 func httpdImage(cr *miqv1alpha1.ManageIQ) string {
 	if cr.Spec.HttpdImage != "" {
 		return cr.Spec.HttpdImage
@@ -111,7 +103,15 @@ func httpdImage(cr *miqv1alpha1.ManageIQ) string {
 		image = "httpd"
 	}
 
-	return cr.Spec.HttpdImageNamespace + "/" + image + ":" + cr.Spec.HttpdImageTag
+	return httpdImageNamespace(cr) + "/" + image + ":" + httpdImageTag(cr)
+}
+
+func httpdImageNamespace(cr *miqv1alpha1.ManageIQ) string {
+	if cr.Spec.HttpdImageNamespace == "" {
+		return "manageiq"
+	} else {
+		return cr.Spec.HttpdImageNamespace
+	}
 }
 
 func httpdImageTag(cr *miqv1alpha1.ManageIQ) string {
@@ -363,8 +363,6 @@ func ManageCR(cr *miqv1alpha1.ManageIQ, c *client.Client) (*miqv1alpha1.ManageIQ
 		cr.Spec.EnforceWorkerResourceConstraints = &varEnforceWorkerResourceConstraints
 		cr.Spec.HttpdAuthenticationType = httpdAuthenticationType(cr)
 		cr.Spec.HttpdImage = httpdImage(cr)
-		cr.Spec.HttpdImageNamespace = httpdImageNamespace(cr)
-		cr.Spec.HttpdImageTag = httpdImageTag(cr)
 		cr.Spec.ImagePullSecret = imagePullSecretName(cr, *c)
 		cr.Spec.KafkaImage = kafkaImage(cr)
 		cr.Spec.KafkaImageName = kafkaImageName(cr)
