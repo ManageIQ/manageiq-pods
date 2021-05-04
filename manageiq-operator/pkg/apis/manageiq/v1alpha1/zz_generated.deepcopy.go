@@ -99,6 +99,11 @@ func (in *ManageIQSpec) DeepCopyInto(out *ManageIQSpec) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.MigrationsRan != nil {
+		in, out := &in.MigrationsRan, &out.MigrationsRan
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	return
 }
 
