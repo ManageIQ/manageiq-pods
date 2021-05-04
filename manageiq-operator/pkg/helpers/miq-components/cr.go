@@ -220,7 +220,7 @@ func memcachedSlabPageSize(cr *miqv1alpha1.ManageIQ) string {
 
 func orchestratorImage(cr *miqv1alpha1.ManageIQ) string {
 	if cr.Spec.OrchestratorImage == "" {
-		return cr.Spec.OrchestratorImageNamespace + "/" + cr.Spec.OrchestratorImageName + ":" + cr.Spec.OrchestratorImageTag
+		return orchestratorImageNamespace(cr) + "/" + orchestratorImageName(cr) + ":" + orchestratorImageTag(cr)
 	} else {
 		return cr.Spec.OrchestratorImage
 	}
@@ -371,9 +371,6 @@ func ManageCR(cr *miqv1alpha1.ManageIQ, c *client.Client) (*miqv1alpha1.ManageIQ
 		cr.Spec.MemcachedMaxMemory = memcachedMaxMemory(cr)
 		cr.Spec.MemcachedSlabPageSize = memcachedSlabPageSize(cr)
 		cr.Spec.OrchestratorImage = orchestratorImage(cr)
-		cr.Spec.OrchestratorImageName = orchestratorImageName(cr)
-		cr.Spec.OrchestratorImageNamespace = orchestratorImageNamespace(cr)
-		cr.Spec.OrchestratorImageTag = orchestratorImageTag(cr)
 		cr.Spec.OrchestratorInitialDelay = orchestratorInitialDelay(cr)
 		cr.Spec.PostgresqlImage = postgresqlImage(cr)
 		cr.Spec.PostgresqlMaxConnections = postgresqlMaxConnections(cr)

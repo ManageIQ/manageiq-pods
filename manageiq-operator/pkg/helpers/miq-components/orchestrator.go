@@ -192,8 +192,10 @@ func updateOrchestratorEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
 
 	// If any of the images were not provided, add the orchestrator namespace and tag
 	if cr.Spec.BaseWorkerImage == "" || cr.Spec.WebserverWorkerImage == "" || cr.Spec.UIWorkerImage == "" {
-		c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "CONTAINER_IMAGE_NAMESPACE", Value: cr.Spec.OrchestratorImageNamespace})
-		c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "CONTAINER_IMAGE_TAG", Value: cr.Spec.OrchestratorImageTag})
+		string1 := strings.Split(cr.Spec.OrchestratorImage, ":")
+		string2 := strings.Split(string1[0], "/")
+		c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "CONTAINER_IMAGE_NAMESPACE", Value: string2[0]})
+		c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "CONTAINER_IMAGE_TAG", Value: string1[1]})
 	}
 
 	if cr.Spec.BaseWorkerImage != "" {
@@ -230,7 +232,8 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 		return nil, nil, err
 	}
 	pullPolicy := corev1.PullIfNotPresent
-	if strings.Contains(cr.Spec.OrchestratorImageTag, "latest") {
+
+	if s := strings.Split(cr.Spec.OrchestratorImage, ":"); strings.Contains(s[1], "latest") {
 		pullPolicy = corev1.PullAlways
 	}
 

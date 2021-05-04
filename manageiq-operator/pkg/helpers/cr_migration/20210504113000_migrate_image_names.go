@@ -44,6 +44,14 @@ func migrate20210504113000(cr *miqv1alpha1.ManageIQ) *miqv1alpha1.ManageIQ {
 	cr.Spec.MemcachedImageName = ""
 	cr.Spec.MemcachedImageTag = ""
 
+	// Prefer OrchestratorImage rather than OrchestratorImageNamespace, OrchestratorImageName and OrchestratorImageTag
+	if cr.Spec.OrchestratorImage == "" && cr.Spec.OrchestratorImageNamespace != "" && cr.Spec.OrchestratorImageName != "" && cr.Spec.OrchestratorImageTag != "" {
+		cr.Spec.OrchestratorImage = cr.Spec.OrchestratorImageNamespace + "/" + cr.Spec.OrchestratorImageName + ":" + cr.Spec.OrchestratorImageTag
+	}
+	cr.Spec.OrchestratorImageName = ""
+	cr.Spec.OrchestratorImageNamespace = ""
+	cr.Spec.OrchestratorImageTag = ""
+
 	// Prefer PostgresqlImage rather than PostgresqlImageName and PostgresqlImageTag
 	if cr.Spec.PostgresqlImage == "" && cr.Spec.PostgresqlImageName != "" && cr.Spec.PostgresqlImageTag != "" {
 		cr.Spec.PostgresqlImage = cr.Spec.PostgresqlImageName + ":" + cr.Spec.PostgresqlImageTag
