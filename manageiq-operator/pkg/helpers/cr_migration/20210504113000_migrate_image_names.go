@@ -30,6 +30,33 @@ func migrate20210504113000(cr *miqv1alpha1.ManageIQ) *miqv1alpha1.ManageIQ {
 	cr.Spec.HttpdImageNamespace = ""
 	cr.Spec.HttpdImageTag = ""
 
+	// Prefer KafkaImage rather than KafkaImageName and KafkaImageTag
+	if cr.Spec.KafkaImage == "" && cr.Spec.KafkaImageName != "" && cr.Spec.KafkaImageTag != "" {
+		cr.Spec.KafkaImage = cr.Spec.KafkaImageName + ":" + cr.Spec.KafkaImageTag
+	}
+	cr.Spec.KafkaImageName = ""
+	cr.Spec.KafkaImageTag = ""
+
+	// Prefer MemcachedImage rather than MemcachedImageName and MemcachedImageTag
+	if cr.Spec.MemcachedImage == "" && cr.Spec.MemcachedImageName != "" && cr.Spec.MemcachedImageTag != "" {
+		cr.Spec.MemcachedImage = cr.Spec.MemcachedImageName + ":" + cr.Spec.MemcachedImageTag
+	}
+	cr.Spec.MemcachedImageName = ""
+	cr.Spec.MemcachedImageTag = ""
+
+	// Prefer PostgresqlImage rather than PostgresqlImageName and PostgresqlImageTag
+	if cr.Spec.PostgresqlImage == "" && cr.Spec.PostgresqlImageName != "" && cr.Spec.PostgresqlImageTag != "" {
+		cr.Spec.PostgresqlImage = cr.Spec.PostgresqlImageName + ":" + cr.Spec.PostgresqlImageTag
+	}
+	cr.Spec.PostgresqlImageName = ""
+	cr.Spec.PostgresqlImageTag = ""
+
+	// Prefer ZookeeperImage rather than ZookeeperImageName and ZookeeperImageTag
+	if cr.Spec.ZookeeperImage == "" && cr.Spec.ZookeeperImageName != "" && cr.Spec.ZookeeperImageTag != "" {
+		cr.Spec.ZookeeperImage = cr.Spec.ZookeeperImageName + ":" + cr.Spec.ZookeeperImageTag
+	}
+	cr.Spec.ZookeeperImageName = ""
+	cr.Spec.ZookeeperImageTag = ""
 
 	cr.Spec.MigrationsRan = append(cr.Spec.MigrationsRan, migrationId)
 
