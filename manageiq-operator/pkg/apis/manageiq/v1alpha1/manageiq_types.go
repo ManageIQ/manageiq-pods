@@ -12,65 +12,58 @@ import (
 type ManageIQSpec struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 
-	// Application name used for deployed objects (default: manageiq)
+	// Optional Annotations to apply to the Httpd, Kafka, Memcached, Orchestrator and PostgresQL Pods
 	// +optional
-	AppName string `json:"appName"`
+	AppAnnotations map[string]string `json:"appAnnotations,omitempty"`
 
 	// Domain name for the external route. Used for external authentication configuration
 	ApplicationDomain string `json:"applicationDomain"`
 
-	// Optional Annotations to apply to the Httpd, Kafka, Memcached, Orchestrator and PostgresQL Pods
+	// Application name used for deployed objects (default: manageiq)
 	// +optional
-	AppAnnotations map[string]string `json:"appAnnotations,omitempty"`
+	AppName string `json:"appName"`
 
 	// This label will be applied to essential resources that need to be backed up (default: manageiq.org/backup)
 	// +optional
 	BackupLabelName string `json:"backupLabelName"`
 
+	// Image string used for the base worker deployments
+	// By default this is determined by the orchestrator pod
+	// +optional
+	BaseWorkerImage string `json:"baseWorkerImage"`
+
 	// Database region number (default: 0)
 	// +optional
 	DatabaseRegion string `json:"databaseRegion"`
-
-	// Group name to create with the super admin role.
-	// This can be used to seed a group when using external authentication
-	// +optional
-	InitialAdminGroupName string `json:"initialAdminGroupName"`
-
-	// Flag to trigger worker resource constraint enforcement (default: false)
-	// +optional
-	EnforceWorkerResourceConstraints *bool `json:"enforceWorkerResourceConstraints"`
-
-	// Database volume size (default: 15Gi)
-	// +optional
-	DatabaseVolumeCapacity string `json:"databaseVolumeCapacity"`
 
 	// Secret containing the database access information, content generated if not provided (default: postgresql-secrets)
 	// +optional
 	DatabaseSecret string `json:"databaseSecret"`
 
-	// Secret containing the tls cert and key for the ingress, content generated if not provided (default: tls-secret)
+	// Database volume size (default: 15Gi)
 	// +optional
-	TLSSecret string `json:"tlsSecret"`
+	DatabaseVolumeCapacity string `json:"databaseVolumeCapacity"`
 
-	// Secret containing the image registry authentication information needed for the manageiq images
+	// Flag to indicate if Kafka and Zookeeper should be deployed (default: false)
 	// +optional
-	ImagePullSecret string `json:"imagePullSecret"`
+	DeployMessagingService *bool `json:"deployMessagingService"`
 
-	// StorageClass name that will be used by manageiq data stores
+	// Flag to allow logging into the application without SSO (default: true)
 	// +optional
-	StorageClassName string `json:"storageClassName"`
+	EnableApplicationLocalLogin *bool `json:"enableApplicationLocalLogin"`
 
-	// Image string used for the httpd deployment
-	// (default: <HttpdImageNamespace>/httpd[-init]:<HttpdImageTag>)
+	// Flag to enable SSO in the application (default: false)
 	// +optional
-	HttpdImage string `json:"httpdImage"`
-	// Image namespace used for the httpd deployment (default: manageiq)
-	// Note: the exact image will be determined by the authentication method selected
+	EnableSSO *bool `json:"enableSSO"`
+
+	// Flag to trigger worker resource constraint enforcement (default: false)
 	// +optional
-	HttpdImageNamespace string `json:"httpdImageNamespace"`
-	// Image tag used for the httpd deployment (default: latest)
+	EnforceWorkerResourceConstraints *bool `json:"enforceWorkerResourceConstraints"`
+
+	// Secret containing the httpd configuration files
+	// Mutually exclusive with the OIDCClientSecret and OIDCProviderURL if using openid-connect
 	// +optional
-	HttpdImageTag string `json:"httpdImageTag"`
+	HttpdAuthConfig string `json:"httpdAuthConfig"`
 
 	// Type of httpd authentication (default: internal)
 	// Options: internal, external, active-directory, saml, openid-connect
@@ -78,14 +71,134 @@ type ManageIQSpec struct {
 	// +optional
 	// +kubebuilder:validation:Pattern=\A(active-directory|external|internal|openid-connect|saml)\z
 	HttpdAuthenticationType string `json:"httpdAuthenticationType"`
-	// URL for the OIDC provider
-	// Only used with the openid-connect authentication type
+
+	// Httpd deployment CPU limit (default: no limit)
 	// +optional
-	OIDCProviderURL string `json:"oidcProviderURL"`
+	HttpdCpuLimit string `json:"httpdCpuLimit"`
+
+	// Httpd deployment CPU request (default: no request)
+	// +optional
+	HttpdCpuRequest string `json:"httpdCpuRequest"`
+
+	// Image string used for the httpd deployment
+	// (default: <HttpdImageNamespace>/httpd[-init]:<HttpdImageTag>)
+	// +optional
+	HttpdImage string `json:"httpdImage"`
+
+	// Image namespace used for the httpd deployment (default: manageiq)
+	// Note: the exact image will be determined by the authentication method selected
+	// +optional
+	HttpdImageNamespace string `json:"httpdImageNamespace"`
+
+	// Image tag used for the httpd deployment (default: latest)
+	// +optional
+	HttpdImageTag string `json:"httpdImageTag"`
+
+	// Httpd deployment memory limit (default: no limit)
+	// +optional
+	HttpdMemoryLimit string `json:"httpdMemoryLimit"`
+
+	// Httpd deployment memory request (default: no limit)
+	// +optional
+	HttpdMemoryRequest string `json:"httpdMemoryRequest"`
+
+	// Secret containing the image registry authentication information needed for the manageiq images
+	// +optional
+	ImagePullSecret string `json:"imagePullSecret"`
+
+	// Group name to create with the super admin role.
+	// This can be used to seed a group when using external authentication
+	// +optional
+	InitialAdminGroupName string `json:"initialAdminGroupName"`
+
+	// Kafka deployment CPU limit (default: no limit)
+	// +optional
+	KafkaCpuLimit string `json:"kafkaCpulimit"`
+
+	// Kafka deployment CPU request (default: no request)
+	// +optional
+	KafkaCpuRequest string `json:"kafkaCpuRequest"`
+
+	// Image string used for the kafka deployment
+	// (default: <KafkaImageName>:<KafkaImageTag>)
+	// +optional
+	KafkaImage string `json:"kafkaImage"`
+
+	// Image used for the kafka deployment (default: docker.io/bitnami/kafka)
+	// +optional
+	KafkaImageName string `json:"kafkaImageName"`
+
+	// Image tag used for the kafka deployment (default: latest)
+	// +optional
+	KafkaImageTag string `json:"kafkaImageTag"`
+
+	// Kafka deployment memory limit (default: no limit)
+	// +optional
+	KafkaMemoryLimit string `json:"kafkaMemoryLimit"`
+
+	// Kafka deployment memory request (default: no limit)
+	// +optional
+	KafkaMemoryRequest string `json:"kafkaMemoryRequest"`
+
+	// Secret containing the kafka access information, content generated if not provided (default: kafka-secrets)
+	// +optional
+	KafkaSecret string `json:"kafkaSecret"`
+
+	// Kafka volume size (default: 1Gi)
+	// +optional
+	KafkaVolumeCapacity string `json:"kafkaVolumeCapacity"`
+
+	// Memcached deployment CPU limit (default: no limit)
+	// +optional
+	MemcachedCpuLimit string `json:"memcachedCpuLimit"`
+
+	// Memcached deployment CPU request (default: no request)
+	// +optional
+	MemcachedCpuRequest string `json:"memcachedCpuRequest"`
+
+	// Image string used for the memcached deployment
+	// (default: <MemcachedImageName>:<MemcachedImageTag>)
+	// +optional
+	MemcachedImage string `json:"memcachedImage"`
+
+	// Image used for the memcached deployment (default: manageiq/memcached)
+	// +optional
+	MemcachedImageName string `json:"memcachedImageName"`
+
+	// Image tag used for the memcached deployment (default: latest)
+	// +optional
+	MemcachedImageTag string `json:"memcachedImageTag"`
+
+	// Memcached max simultaneous connections (default: 1024)
+	// +optional
+	MemcachedMaxConnection string `json:"memcachedMaxConnection"`
+
+	// Memcached item memory in megabytes (default: 64)
+	// +optional
+	MemcachedMaxMemory string `json:"memcachedMaxMemory"`
+
+	// Memcached deployment memory limit (default: no limit)
+	// +optional
+	MemcachedMemoryLimit string `json:"memcachedMemoryLimit"`
+
+	// Memcached deployment memory request (default: no limit)
+	// +optional
+	MemcachedMemoryRequest string `json:"memcachedMemoryRequest"`
+
+	// Memcached max item size (default: 1m, min: 1k, max: 1024m)
+	// +optional
+	MemcachedSlabPageSize string `json:"memcachedSlabPageSize"`
+
 	// Secret containing the trusted CA certificate file(s) for the OIDC server.
 	// Only used with the openid-connect authentication type
 	// +optional
 	OIDCCACertSecret string `json:"oidcCaCertSecret"`
+
+	// Secret name containing the OIDC client id and secret
+	// Only used with the openid-connect authentication type
+	// +optional
+	OIDCClientSecret string `json:"oidcClientSecret"`
+
 	// URL for OIDC authentication introspection
 	// Only used with the openid-connect authentication type.
 	// If not specified, the operator will attempt to fetch its value from the
@@ -93,138 +206,82 @@ type ManageIQSpec struct {
 	// OIDCProviderURL provided.
 	// +optional
 	OIDCOAuthIntrospectionURL string `json:"oidcAuthIntrospectionURL"`
-	// Secret name containing the OIDC client id and secret
+
+	// URL for the OIDC provider
 	// Only used with the openid-connect authentication type
 	// +optional
-	OIDCClientSecret string `json:"oidcClientSecret"`
-	// Secret containing the httpd configuration files
-	// Mutually exclusive with the OIDCClientSecret and OIDCProviderURL if using openid-connect
-	// +optional
-	HttpdAuthConfig string `json:"httpdAuthConfig"`
-	// Flag to enable SSO in the application (default: false)
-	// +optional
-	EnableSSO *bool `json:"enableSSO"`
-	// Flag to allow logging into the application without SSO (default: true)
-	// +optional
-	EnableApplicationLocalLogin *bool `json:"enableApplicationLocalLogin"`
+	OIDCProviderURL string `json:"oidcProviderURL"`
 
-	// Httpd deployment CPU limit (default: no limit)
+	// Orchestrator deployment CPU limit (default: no limit)
 	// +optional
-	HttpdCpuLimit string `json:"httpdCpuLimit"`
-	// Httpd deployment CPU request (default: no request)
-	// +optional
-	HttpdCpuRequest string `json:"httpdCpuRequest"`
-	// Httpd deployment memory limit (default: no limit)
-	// +optional
-	HttpdMemoryLimit string `json:"httpdMemoryLimit"`
-	// Httpd deployment memory request (default: no limit)
-	// +optional
-	HttpdMemoryRequest string `json:"httpdMemoryRequest"`
+	OrchestratorCpuLimit string `json:"orchestratorCpuLimit"`
 
-	// Image string used for the memcached deployment
-	// (default: <MemcachedImageName>:<MemcachedImageTag>)
+	// Orchestrator deployment CPU request (default: no request)
 	// +optional
-	MemcachedImage string `json:"memcachedImage"`
-	// Image used for the memcached deployment (default: manageiq/memcached)
-	// +optional
-	MemcachedImageName string `json:"memcachedImageName"`
-	// Image tag used for the memcached deployment (default: latest)
-	// +optional
-	MemcachedImageTag string `json:"memcachedImageTag"`
-
-	// Memcached deployment CPU limit (default: no limit)
-	// +optional
-	MemcachedCpuLimit string `json:"memcachedCpuLimit"`
-	// Memcached deployment CPU request (default: no request)
-	// +optional
-	MemcachedCpuRequest string `json:"memcachedCpuRequest"`
-	// Memcached deployment memory limit (default: no limit)
-	// +optional
-	MemcachedMemoryLimit string `json:"memcachedMemoryLimit"`
-	// Memcached deployment memory request (default: no limit)
-	// +optional
-	MemcachedMemoryRequest string `json:"memcachedMemoryRequest"`
-
-	// Memcached max simultaneous connections (default: 1024)
-	// +optional
-	MemcachedMaxConnection string `json:"memcachedMaxConnection"`
-	// Memcached item memory in megabytes (default: 64)
-	// +optional
-	MemcachedMaxMemory string `json:"memcachedMaxMemory"`
-	// Memcached max item size (default: 1m, min: 1k, max: 1024m)
-	// +optional
-	MemcachedSlabPageSize string `json:"memcachedSlabPageSize"`
+	OrchestratorCpuRequest string `json:"orchestratorCpuRequest"`
 
 	// Image string used for the orchestrator deployment
 	// (default: <OrchestratorImageNamespace>/<OrchestratorImageName>:<OrchestratorImageTag>)
 	// +optional
 	OrchestratorImage string `json:"orchestratorImage"`
+
 	// Image name used for the orchestrator deployment (default: manageiq-orchestrator)
 	// +optional
 	OrchestratorImageName string `json:"orchestratorImageName"`
+
 	// Image namespace used for the orchestrator and worker deployments (default: manageiq)
 	// +optional
 	OrchestratorImageNamespace string `json:"orchestratorImageNamespace"`
+
 	// Image tag used for the orchestrator and worker deployments (default: latest)
 	// +optional
 	OrchestratorImageTag string `json:"orchestratorImageTag"`
+
 	// Number of seconds to wait before starting the orchestrator liveness check (default: 480)
 	// +optional
 	OrchestratorInitialDelay string `json:"orchestratorInitialDelay"`
 
-	// Orchestrator deployment CPU limit (default: no limit)
-	// +optional
-	OrchestratorCpuLimit string `json:"orchestratorCpuLimit"`
-	// Orchestrator deployment CPU request (default: no request)
-	// +optional
-	OrchestratorCpuRequest string `json:"orchestratorCpuRequest"`
 	// Orchestrator deployment memory limit (default: no limit)
 	// +optional
 	OrchestratorMemoryLimit string `json:"orchestratorMemoryLimit"`
+
 	// Orchestrator deployment memory request (default: no limit)
 	// +optional
 	OrchestratorMemoryRequest string `json:"orchestratorMemoryRequest"`
 
-	// Image string used for the base worker deployments
-	// By default this is determined by the orchestrator pod
+	// PostgreSQL deployment CPU limit (default: no limit)
 	// +optional
-	BaseWorkerImage string `json:"baseWorkerImage"`
-	// Image string used for the webserver worker deployments
-	// By default this is determined by the orchestrator pod
+	PostgresqlCpuLimit string `json:"postgresqlCpuLimit"`
+
+	// PostgreSQL deployment CPU request (default: no request)
 	// +optional
-	WebserverWorkerImage string `json:"webserverWorkerImage"`
-	// Image string used for the UI worker deployments
-	// By default this is determined by the orchestrator pod
-	// +optional
-	UIWorkerImage string `json:"uiWorkerImage"`
+	PostgresqlCpuRequest string `json:"postgresqlCpuRequest"`
 
 	// Image string used for the postgresql deployment
 	// (default: <PostgresqlImageName>:<PostgresqlImageTag>)
 	// +optional
 	PostgresqlImage string `json:"postgresqlImage"`
+
 	// Image used for the postgresql deployment (Default: docker.io/manageiq/postgresql)
 	// +optional
 	PostgresqlImageName string `json:"postgresqlImageName"`
+
 	// Image tag used for the postgresql deployment (Default: 10)
 	// +optional
 	PostgresqlImageTag string `json:"postgresqlImageTag"`
 
-	// PostgreSQL deployment CPU limit (default: no limit)
+	// PostgreSQL maximum connection setting (default: 1000)
 	// +optional
-	PostgresqlCpuLimit string `json:"postgresqlCpuLimit"`
-	// PostgreSQL deployment CPU request (default: no request)
-	// +optional
-	PostgresqlCpuRequest string `json:"postgresqlCpuRequest"`
+	PostgresqlMaxConnections string `json:"postgresqlMaxConnections"`
+
 	// PostgreSQL deployment memory limit (default: no limit)
 	// +optional
 	PostgresqlMemoryLimit string `json:"postgresqlMemoryLimit"`
+
 	// PostgreSQL deployment memory request (default: no limit)
 	// +optional
 	PostgresqlMemoryRequest string `json:"postgresqlMemoryRequest"`
 
-	// PostgreSQL maximum connection setting (default: 1000)
-	// +optional
-	PostgresqlMaxConnections string `json:"postgresqlMaxConnections"`
 	// PostgreSQL shared buffers setting (default: 1GB)
 	// +optional
 	PostgresqlSharedBuffers string `json:"postgresqlSharedBuffers"`
@@ -233,65 +290,56 @@ type ManageIQSpec struct {
 	// +optional
 	ServerGuid string `json:"serverGuid"`
 
-	// Flag to indicate if Kafka and Zookeeper should be deployed (default: false)
+	// StorageClass name that will be used by manageiq data stores
 	// +optional
-	DeployMessagingService *bool `json:"deployMessagingService"`
+	StorageClassName string `json:"storageClassName"`
 
-	// Image string used for the kafka deployment
-	// (default: <KafkaImageName>:<KafkaImageTag>)
+	// Secret containing the tls cert and key for the ingress, content generated if not provided (default: tls-secret)
 	// +optional
-	KafkaImage string `json:"kafkaImage"`
-	// Image used for the kafka deployment (default: docker.io/bitnami/kafka)
+	TLSSecret string `json:"tlsSecret"`
+
+	// Image string used for the UI worker deployments
+	// By default this is determined by the orchestrator pod
 	// +optional
-	KafkaImageName string `json:"kafkaImageName"`
-	// Image tag used for the kafka deployment (default: latest)
+	UIWorkerImage string `json:"uiWorkerImage"`
+
+	// Image string used for the webserver worker deployments
+	// By default this is determined by the orchestrator pod
 	// +optional
-	KafkaImageTag string `json:"kafkaImageTag"`
-	// Kafka volume size (default: 1Gi)
+	WebserverWorkerImage string `json:"webserverWorkerImage"`
+
+	// Zookeeper deployment CPU limit (default: no limit)
 	// +optional
-	KafkaVolumeCapacity string `json:"kafkaVolumeCapacity"`
-	// Kafka deployment CPU limit (default: no limit)
+	ZookeeperCpuLimit string `json:"zookeeperCpulimit"`
+
+	// Zookeeper deployment CPU request (default: no request)
 	// +optional
-	KafkaCpuLimit string `json:"kafkaCpulimit"`
-	// Kafka deployment CPU request (default: no request)
-	// +optional
-	KafkaCpuRequest string `json:"kafkaCpuRequest"`
-	// Kafka deployment memory limit (default: no limit)
-	// +optional
-	KafkaMemoryLimit string `json:"kafkaMemoryLimit"`
-	// Kafka deployment memory request (default: no limit)
-	// +optional
-	KafkaMemoryRequest string `json:"kafkaMemoryRequest"`
+	ZookeeperCpuRequest string `json:"zookeeperCpuRequest"`
 
 	// Image string used for the zookeeper deployment
 	// (default: <ZookeeperImageName>:<ZookeeperImageTag>)
 	// +optional
 	ZookeeperImage string `json:"zookeeperImage"`
+
 	// Image used for the zookeeper deployment (default: docker.io/bitnami/zookeeper)
 	// +optional
 	ZookeeperImageName string `json:"zookeeperImageName"`
+
 	// Image tag used for the zookeeper deployment (default: latest)
 	// +optional
 	ZookeeperImageTag string `json:"zookeeperImageTag"`
-	// Zookeeper volume size (default: 1Gi)
-	// +optional
-	ZookeeperVolumeCapacity string `json:"zookeeperVolumeCapacity"`
-	// Zookeeper deployment CPU limit (default: no limit)
-	// +optional
-	ZookeeperCpuLimit string `json:"zookeeperCpulimit"`
-	// Zookeeper deployment CPU request (default: no request)
-	// +optional
-	ZookeeperCpuRequest string `json:"zookeeperCpuRequest"`
+
 	// Zookeeper deployment memory limit (default: no limit)
 	// +optional
 	ZookeeperMemoryLimit string `json:"zookeeperMemoryLimit"`
+
 	// Zookeeper deployment memory request (default: no limit)
 	// +optional
 	ZookeeperMemoryRequest string `json:"zookeeperMemoryRequest"`
 
-	// Secret containing the kafka access information, content generated if not provided (default: kafka-secrets)
+	// Zookeeper volume size (default: 1Gi)
 	// +optional
-	KafkaSecret string `json:"kafkaSecret"`
+	ZookeeperVolumeCapacity string `json:"zookeeperVolumeCapacity"`
 }
 
 // ManageIQStatus defines the observed state of ManageIQ
