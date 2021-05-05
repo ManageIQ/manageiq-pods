@@ -18,8 +18,11 @@ func httpdAuthConfigurationConf() string {
 func httpdApplicationConf(applicationDomain string) string {
 	s := `
 Listen 8080
+
 # Timeout: The number of seconds before receives and sends time out.
 Timeout 120
+ServerSignature Off
+ServerTokens Prod
 
 RewriteEngine On
 Options SymLinksIfOwnerMatch
