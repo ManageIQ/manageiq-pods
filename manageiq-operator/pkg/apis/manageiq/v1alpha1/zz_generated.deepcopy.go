@@ -79,13 +79,8 @@ func (in *ManageIQSpec) DeepCopyInto(out *ManageIQSpec) {
 			(*out)[key] = val
 		}
 	}
-	if in.EnforceWorkerResourceConstraints != nil {
-		in, out := &in.EnforceWorkerResourceConstraints, &out.EnforceWorkerResourceConstraints
-		*out = new(bool)
-		**out = **in
-	}
-	if in.EnableSSO != nil {
-		in, out := &in.EnableSSO, &out.EnableSSO
+	if in.DeployMessagingService != nil {
+		in, out := &in.DeployMessagingService, &out.DeployMessagingService
 		*out = new(bool)
 		**out = **in
 	}
@@ -94,8 +89,13 @@ func (in *ManageIQSpec) DeepCopyInto(out *ManageIQSpec) {
 		*out = new(bool)
 		**out = **in
 	}
-	if in.DeployMessagingService != nil {
-		in, out := &in.DeployMessagingService, &out.DeployMessagingService
+	if in.EnableSSO != nil {
+		in, out := &in.EnableSSO, &out.EnableSSO
+		*out = new(bool)
+		**out = **in
+	}
+	if in.EnforceWorkerResourceConstraints != nil {
+		in, out := &in.EnforceWorkerResourceConstraints, &out.EnforceWorkerResourceConstraints
 		*out = new(bool)
 		**out = **in
 	}
