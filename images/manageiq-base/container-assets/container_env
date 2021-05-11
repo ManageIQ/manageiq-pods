@@ -10,6 +10,6 @@ safeuser=$(urlescape ${DATABASE_USER})
 safepass=$(urlescape ${DATABASE_PASSWORD})
 
 database_url="postgresql://${safeuser}:${safepass}@${DATABASE_HOSTNAME}:${DATABASE_PORT}/${DATABASE_NAME}?encoding=utf8&pool=5&wait_timeout=5&sslmode=${DATABASE_SSL_MODE:-prefer}"
-[[ -f /.postgresql/postgresql.crt ]] && database_url="$database_url&sslrootcert=/.postgresql/postgresql.crt"
+[[ -f /.postgresql/root.crt ]] && database_url="$database_url&sslrootcert=/.postgresql/root.crt"
 
 export DATABASE_URL=$database_url
