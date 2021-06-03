@@ -44,7 +44,7 @@ RUN dnf -y --disableplugin=subscription-manager install \
     dnf -y --disableplugin=subscription-manager module enable nodejs:12 && \
     dnf -y --disableplugin=subscription-manager module enable ruby:2.6 && \
     if [[ "$RELEASE_BUILD" != "true" ]]; then dnf config-manager --enable manageiq-13-morphy-nightly; fi && \
-    dnf config-manager --setopt=ubi-8-*.exclude=dracut*,net-snmp*,redhat-release* --save && \
+    dnf config-manager --setopt=ubi-8-*.exclude=dracut*,net-snmp*,perl-*,redhat-release* --save && \
     if [[ "$LOCAL_RPM" = "true" ]]; then /create_local_yum_repo.sh; fi && \
     dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
       ${RPM_PREFIX}-pods          \
