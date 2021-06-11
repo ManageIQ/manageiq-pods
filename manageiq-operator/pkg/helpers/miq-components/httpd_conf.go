@@ -255,12 +255,20 @@ OIDCOAuthIntrospectionEndpointAuth client_secret_post
 <Location /oidc_login>
   AuthType                   openid-connect
   Require                    valid-user
+  FileETag                   None
+  Header Set Cache-Control   "max-age=0, no-store, no-cache, must-revalidate"
+  Header Set Pragma          "no-cache"
+  Header Unset ETag
 </Location>
 
 <Location /ui/service/oidc_login>
   AuthType                   openid-connect
   Require                    valid-user
-  Header set Set-Cookie      "miq_oidc_access_token=%%{OIDC_access_token}e; Max-Age=10; Path=/ui/service"
+  FileETag                   None
+  Header Set Cache-Control   "max-age=0, no-store, no-cache, must-revalidate"
+  Header Set Pragma          "no-cache"
+  Header Set Set-Cookie      "miq_oidc_access_token=%%{OIDC_access_token}e; Max-Age=10; Path=/ui/service"
+  Header Unset ETag
 </Location>
 %s
 
