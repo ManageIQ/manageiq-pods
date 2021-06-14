@@ -96,6 +96,7 @@ objects:
         - name: kafka-data
           persistentVolumeClaim:
             claimName: kafka-data
+        hostname: kafka
 - apiVersion: apps/v1
   kind: Deployment
   metadata:
