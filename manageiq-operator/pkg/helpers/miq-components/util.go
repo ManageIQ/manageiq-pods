@@ -1,9 +1,13 @@
 package miqtools
 
 import (
+	"context"
+	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func addResourceReqs(memLimit, memReq, cpuLimit, cpuReq string, c *corev1.Container) error {
@@ -84,4 +88,14 @@ func addAnnotations(annotations map[string]string, meta *metav1.ObjectMeta) {
 			meta.Annotations[key] = value
 		}
 	}
+}
+
+func InternalCertificatesSecret(cr *miqv1alpha1.ManageIQ, client client.Client) *corev1.Secret {
+	name := cr.Spec.InternalCertificatesSecret
+
+	secretKey := types.NamespacedName{Namespace: cr.Namespace, Name: name}
+	secret := &corev1.Secret{}
+	client.Get(context.TODO(), secretKey, secret)
+
+	return secret
 }

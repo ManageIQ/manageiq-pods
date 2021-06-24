@@ -119,6 +119,10 @@ spec:
               description: Group name to create with the super admin role. This can
                 be used to seed a group when using external authentication
               type: string
+            internalCertificatesSecret:
+              description: 'Secret containing all of the necessary certificates to
+                secure communication between pods (default: internal-certificates-secret)'
+              type: string
             kafkaCpuRequest:
               description: 'Kafka deployment CPU request (default: no request)'
               type: string

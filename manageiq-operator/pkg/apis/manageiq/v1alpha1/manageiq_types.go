@@ -111,6 +111,10 @@ type ManageIQSpec struct {
 	// +optional
 	InitialAdminGroupName string `json:"initialAdminGroupName,omitempty"`
 
+	// Secret containing all of the necessary certificates to secure communication between pods (default: internal-certificates-secret)
+	// +optional
+	InternalCertificatesSecret string `json:"internalCertificatesSecret,omitempty"`
+
 	// Kafka deployment CPU limit (default: no limit)
 	// +optional
 	KafkaCpuLimit string `json:"kafkaCpulimit,omitempty"`
