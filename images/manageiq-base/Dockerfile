@@ -35,9 +35,10 @@ COPY container-assets/create_local_yum_repo.sh /
 
 RUN curl -L https://releases.ansible.com/ansible-runner/ansible-runner.el8.repo > /etc/yum.repos.d/ansible-runner.repo
 
-RUN dnf -y --disableplugin=subscription-manager install \
+RUN if [ ${ARCH} != "s390x" ] ; then dnf -y --disableplugin=subscription-manager install \
       http://mirror.centos.org/centos/8-stream/BaseOS/${ARCH}/os/Packages/centos-stream-repos-8-2.el8.noarch.rpm \
-      http://mirror.centos.org/centos/8-stream/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-8-2.el8.noarch.rpm \
+      http://mirror.centos.org/centos/8-stream/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-8-2.el8.noarch.rpm; fi && \
+      dnf -y --disableplugin=subscription-manager install \
       https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm \
       https://rpm.manageiq.org/release/13-morphy/el8/noarch/manageiq-release-13.0-1.el8.noarch.rpm \
       https://resources.ovirt.org/pub/yum-repo/ovirt-release44.rpm && \
