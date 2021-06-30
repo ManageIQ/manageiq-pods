@@ -3,6 +3,7 @@ module github.com/ManageIQ/manageiq-pods/manageiq-operator
 go 1.14
 
 require (
+	github.com/openshift/api v0.0.0-20200205133042-34f0ec8dab87
 	github.com/operator-framework/operator-sdk v0.17.2
 	github.com/spf13/pflag v1.0.5
 	k8s.io/api v0.17.4

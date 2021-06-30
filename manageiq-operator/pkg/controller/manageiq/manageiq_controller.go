@@ -228,7 +228,7 @@ func (r *ReconcileManageIQ) generateHttpdResources(cr *miqv1alpha1.ManageIQ) err
 		}
 	}
 
-	httpdConfigMap, mutateFunc, err := miqtool.HttpdConfigMap(cr, r.scheme)
+	httpdConfigMap, mutateFunc, err := miqtool.HttpdConfigMap(cr, r.scheme, r.client)
 	if err != nil {
 		return err
 	}
@@ -296,11 +296,20 @@ func (r *ReconcileManageIQ) generateHttpdResources(cr *miqv1alpha1.ManageIQ) err
 		return err
 	}
 
-	httpdIngress, mutateFunc := miqtool.Ingress(cr, r.scheme)
-	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, httpdIngress, mutateFunc); err != nil {
-		return err
-	} else if result != controllerutil.OperationResultNone {
-		logger.Info("Ingress has been reconciled", "component", "httpd", "result", result)
+	if internalCerts := miqtool.InternalCertificatesSecret(cr, r.client); internalCerts.Data["httpd_crt"] != nil {
+		httpdRoute, mutateFunc := miqtool.Route(cr, r.scheme, r.client)
+		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, httpdRoute, mutateFunc); err != nil {
+			return err
+		} else if result != controllerutil.OperationResultNone {
+			logger.Info("Route has been reconciled", "component", "httpd", "result", result)
+		}
+	} else {
+		httpdIngress, mutateFunc := miqtool.Ingress(cr, r.scheme)
+		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, httpdIngress, mutateFunc); err != nil {
+			return err
+		} else if result != controllerutil.OperationResultNone {
+			logger.Info("Ingress has been reconciled", "component", "httpd", "result", result)
+		}
 	}
 
 	return nil

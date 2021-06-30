@@ -115,6 +115,23 @@ func addInternalCertificate(cr *miqv1alpha1.ManageIQ, d *appsv1.Deployment, clie
 	}
 }
 
+func addOrUpdateEnvVar(environment []corev1.EnvVar, variable corev1.EnvVar) []corev1.EnvVar {
+	index := -1
+	for i, env := range environment {
+		if env.Name == variable.Name {
+			index = i
+		}
+	}
+
+	if index == -1 {
+		environment = append(environment, variable)
+	} else {
+		environment[index] = variable
+	}
+
+	return environment
+}
+
 func addOrUpdateVolumeMount(volumeMounts []corev1.VolumeMount, volumeMount corev1.VolumeMount) []corev1.VolumeMount {
 	if volumeMounts == nil {
 		volumeMounts = []corev1.VolumeMount{}

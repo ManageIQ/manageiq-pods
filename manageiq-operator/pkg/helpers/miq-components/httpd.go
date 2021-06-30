@@ -7,6 +7,7 @@ import (
 	"fmt"
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
 	tlstools "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/helpers/tlstools"
+	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
@@ -40,6 +41,58 @@ func HttpdServiceAccount(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*cor
 	}
 
 	return serviceAccount, f
+}
+
+func Route(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, client client.Client) (*routev1.Route, controllerutil.MutateFn) {
+	route := &routev1.Route{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "httpd",
+			Namespace: cr.ObjectMeta.Namespace,
+		},
+		Spec: routev1.RouteSpec{
+			Port: &routev1.RoutePort{
+				TargetPort: intstr.FromString("http"),
+			},
+			TLS: &routev1.TLSConfig{
+				InsecureEdgeTerminationPolicy: "Redirect",
+				Termination:                   "reencrypt",
+			},
+			To: routev1.RouteTargetReference{
+				Kind: "Service",
+				Name: "httpd",
+			},
+			WildcardPolicy: routev1.WildcardPolicyNone,
+		},
+	}
+
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, route, scheme); err != nil {
+			return err
+		}
+
+		route.Spec.Host = cr.Spec.ApplicationDomain
+
+		var public = tlsSecret(cr, client)
+		route.Spec.TLS.Certificate = string(public.Data["tls.crt"])
+		route.Spec.TLS.Key = string(public.Data["tls.key"])
+
+		internalCerts := InternalCertificatesSecret(cr, client)
+		route.Spec.TLS.DestinationCACertificate = string(internalCerts.Data["root_crt"])
+
+		return nil
+	}
+
+	return route, f
+}
+
+func tlsSecret(cr *miqv1alpha1.ManageIQ, client client.Client) *corev1.Secret {
+	name := tlsSecretName(cr)
+
+	secretKey := types.NamespacedName{Namespace: cr.Namespace, Name: name}
+	secret := &corev1.Secret{}
+	client.Get(context.TODO(), secretKey, secret)
+
+	return secret
 }
 
 func Ingress(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*extensionsv1beta1.Ingress, controllerutil.MutateFn) {
@@ -87,7 +140,7 @@ func Ingress(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*extensionsv1bet
 	return ingress, f
 }
 
-func HttpdConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.ConfigMap, controllerutil.MutateFn, error) {
+func HttpdConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, client client.Client) (*corev1.ConfigMap, controllerutil.MutateFn, error) {
 	if cr.Spec.HttpdAuthenticationType == "openid-connect" && cr.Spec.OIDCProviderURL != "" && cr.Spec.OIDCOAuthIntrospectionURL == "" {
 		introspectionURL, err := fetchIntrospectionUrl(cr.Spec.OIDCProviderURL)
 		if err != nil {
@@ -96,16 +149,12 @@ func HttpdConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.C
 		cr.Spec.OIDCOAuthIntrospectionURL = introspectionURL
 	}
 
-	data := map[string]string{
-		"application.conf":    httpdApplicationConf(cr.Spec.ApplicationDomain),
-		"authentication.conf": httpdAuthenticationConf(&cr.Spec),
-	}
-
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "httpd-configs",
 			Namespace: cr.ObjectMeta.Namespace,
 		},
+		Data: make(map[string]string),
 	}
 
 	f := func() error {
@@ -113,7 +162,20 @@ func HttpdConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.C
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
-		configMap.Data = data
+
+		uiHttpProtocol, uiWebSocketProtocol := "http", "ws"
+		apiHttpProtocol := "http"
+		configMap.Data["application.conf"] = httpdApplicationConf(cr.Spec.ApplicationDomain, uiHttpProtocol, uiWebSocketProtocol, apiHttpProtocol)
+		configMap.Data["authentication.conf"] = httpdAuthenticationConf(&cr.Spec)
+
+		if certSecret := InternalCertificatesSecret(cr, client); certSecret.Data["httpd_crt"] != nil && certSecret.Data["httpd_key"] != nil {
+			configMap.Data["ssl_config"] = httpdSslConfig()
+		}
+
+		if certSecret := InternalCertificatesSecret(cr, client); certSecret.Data["ui_crt"] != nil && certSecret.Data["ui_key"] != nil {
+			configMap.Data["ssl_proxy_config"] = httpdSslProxyConfig()
+		}
+
 		return nil
 	}
 
@@ -121,15 +183,12 @@ func HttpdConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.C
 }
 
 func HttpdAuthConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.ConfigMap, controllerutil.MutateFn) {
-	data := map[string]string{
-		"auth-configuration.conf": httpdAuthConfigurationConf(),
-	}
-
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "httpd-auth-configs",
 			Namespace: cr.ObjectMeta.Namespace,
 		},
+		Data: make(map[string]string),
 	}
 
 	f := func() error {
@@ -138,7 +197,9 @@ func HttpdAuthConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*core
 		}
 		addAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
 		addBackupLabel(cr.Spec.BackupLabelName, &configMap.ObjectMeta)
-		configMap.Data = data
+
+		configMap.Data["auth-configuration.conf"] = httpdAuthConfigurationConf()
+
 		return nil
 	}
 
@@ -392,16 +453,9 @@ func HttpdDeployment(client client.Client, cr *miqv1alpha1.ManageIQ, scheme *run
 		}
 		addAnnotations(cr.Spec.AppAnnotations, &deployment.Spec.Template.ObjectMeta)
 		deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
-		deployment.Spec.Template.Spec.Volumes = []corev1.Volume{
-			corev1.Volume{
-				Name: "httpd-config",
-				VolumeSource: corev1.VolumeSource{
-					ConfigMap: &corev1.ConfigMapVolumeSource{
-						LocalObjectReference: corev1.LocalObjectReference{Name: "httpd-configs"},
-					},
-				},
-			},
-		}
+
+		configMapVolumeSource := corev1.ConfigMapVolumeSource{LocalObjectReference: corev1.LocalObjectReference{Name: "httpd-configs"}}
+		deployment.Spec.Template.Spec.Volumes = addOrUpdateVolume(deployment.Spec.Template.Spec.Volumes, corev1.Volume{Name: "httpd-config", VolumeSource: corev1.VolumeSource{ConfigMap: &configMapVolumeSource}})
 
 		// Only assign the service account if we need additional privileges
 		if privileged {
@@ -412,6 +466,17 @@ func HttpdDeployment(client client.Client, cr *miqv1alpha1.ManageIQ, scheme *run
 
 		configureHttpdAuth(&cr.Spec, &deployment.Spec.Template.Spec)
 		setManagedHttpdCfgVersion(httpdAuthConfigVersion, &deployment.Spec.Template.Spec)
+		addInternalCertificate(cr, deployment, client, "httpd", "/root")
+
+		secret := InternalCertificatesSecret(cr, client)
+		if secret.Data["root_crt"] != nil {
+			volumeName := "internal-root-certificate"
+			volumeMount := corev1.VolumeMount{Name: volumeName, MountPath: "/etc/pki/ca-trust/source/anchors", ReadOnly: true}
+			deployment.Spec.Template.Spec.Containers[0].VolumeMounts = addOrUpdateVolumeMount(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, volumeMount)
+
+			secretVolumeSource := corev1.SecretVolumeSource{SecretName: secret.Name, Items: []corev1.KeyToPath{corev1.KeyToPath{Key: "root_crt", Path: "root.crt"}}}
+			deployment.Spec.Template.Spec.Volumes = addOrUpdateVolume(deployment.Spec.Template.Spec.Volumes, corev1.Volume{Name: volumeName, VolumeSource: corev1.VolumeSource{Secret: &secretVolumeSource}})
+		}
 
 		return nil
 	}
