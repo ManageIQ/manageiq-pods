@@ -314,6 +314,8 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 		updateOrchestratorEnv(cr, &deployment.Spec.Template.Spec.Containers[0])
 		deployment.Spec.Template.Spec.Containers[0].Image = cr.Spec.OrchestratorImage
 
+		addInternalRootCertificate(cr, deployment, client)
+
 		return nil
 	}
 
@@ -336,11 +338,17 @@ func orchestratorPod(c client.Client) *corev1.Pod {
 func addInternalRootCertificate(cr *miqv1alpha1.ManageIQ, d *appsv1.Deployment, client client.Client) {
 	secret := InternalCertificatesSecret(cr, client)
 	if secret.Data["root_crt"] != nil {
-		d.Spec.Template.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{corev1.VolumeMount{Name: "internal-root-certificate", MountPath: "/etc/pki/ca-trust/source/anchors", ReadOnly: true}}
+		volumeMount := corev1.VolumeMount{Name: "internal-root-certificate", MountPath: "/etc/pki/ca-trust/source/anchors", ReadOnly: true}
+		d.Spec.Template.Spec.Containers[0].VolumeMounts = addOrUpdateVolumeMount(d.Spec.Template.Spec.Containers[0].VolumeMounts, volumeMount)
 
 		secretVolumeSource := corev1.SecretVolumeSource{SecretName: secret.Name, Items: []corev1.KeyToPath{corev1.KeyToPath{Key: "root_crt", Path: "root.crt"}}}
-		d.Spec.Template.Spec.Volumes = []corev1.Volume{corev1.Volume{Name: "internal-root-certificate", VolumeSource: corev1.VolumeSource{Secret: &secretVolumeSource}}}
+		d.Spec.Template.Spec.Volumes = addOrUpdateVolume(d.Spec.Template.Spec.Volumes, corev1.Volume{Name: "internal-root-certificate", VolumeSource: corev1.VolumeSource{Secret: &secretVolumeSource}})
 
 		d.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(d.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "SSL_SECRET_NAME", Value: cr.Spec.InternalCertificatesSecret})
+
+		if secret.Data["memcached_crt"] != nil && secret.Data["memcached_key"] != nil {
+			d.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(d.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "MEMCACHED_ENABLE_SSL", Value: "true"})
+			d.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(d.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "MEMCACHED_SSL_CA", Value: "/etc/pki/ca-trust/source/anchors/root.crt"})
+		}
 	}
 }
