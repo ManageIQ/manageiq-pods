@@ -25,7 +25,7 @@ func DefaultPostgresqlSecret(cr *miqv1alpha1.ManageIQ) *corev1.Secret {
 
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      postgresqlSecretName(cr),
+			Name:      cr.Spec.DatabaseSecret,
 			Namespace: cr.ObjectMeta.Namespace,
 		},
 		StringData: secretData,
@@ -37,17 +37,8 @@ func DefaultPostgresqlSecret(cr *miqv1alpha1.ManageIQ) *corev1.Secret {
 	return secret
 }
 
-func postgresqlSecretName(cr *miqv1alpha1.ManageIQ) string {
-	secretName := "postgresql-secrets"
-	if cr.Spec.DatabaseSecret != "" {
-		secretName = cr.Spec.DatabaseSecret
-	}
-
-	return secretName
-}
-
 func postgresqlSecret(cr *miqv1alpha1.ManageIQ, client client.Client) *corev1.Secret {
-	secretKey := types.NamespacedName{Namespace: cr.Namespace, Name: postgresqlSecretName(cr)}
+	secretKey := types.NamespacedName{Namespace: cr.Namespace, Name: cr.Spec.DatabaseSecret}
 	secret := &corev1.Secret{}
 	client.Get(context.TODO(), secretKey, secret)
 
@@ -173,7 +164,7 @@ func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*ap
 				Name: "POSTGRESQL_USER",
 				ValueFrom: &corev1.EnvVarSource{
 					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)},
+						LocalObjectReference: corev1.LocalObjectReference{Name: cr.Spec.DatabaseSecret},
 						Key:                  "username",
 					},
 				},
@@ -182,7 +173,7 @@ func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*ap
 				Name: "POSTGRESQL_PASSWORD",
 				ValueFrom: &corev1.EnvVarSource{
 					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)},
+						LocalObjectReference: corev1.LocalObjectReference{Name: cr.Spec.DatabaseSecret},
 						Key:                  "password",
 					},
 				},
@@ -191,7 +182,7 @@ func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*ap
 				Name: "POSTGRESQL_DATABASE",
 				ValueFrom: &corev1.EnvVarSource{
 					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{Name: postgresqlSecretName(cr)},
+						LocalObjectReference: corev1.LocalObjectReference{Name: cr.Spec.DatabaseSecret},
 						Key:                  "dbname",
 					},
 				},

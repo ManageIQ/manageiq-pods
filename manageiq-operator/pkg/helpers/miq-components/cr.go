@@ -25,6 +25,14 @@ func backupLabelName(cr *miqv1alpha1.ManageIQ) string {
 	}
 }
 
+func databaseSecret(cr *miqv1alpha1.ManageIQ) string {
+	if cr.Spec.DatabaseSecret == "" {
+		return "postgresql-secrets"
+	} else {
+		return cr.Spec.DatabaseSecret
+	}
+}
+
 func enableApplicationLocalLogin(cr *miqv1alpha1.ManageIQ) bool {
 	if cr.Spec.EnableApplicationLocalLogin == nil {
 		return true
@@ -347,6 +355,7 @@ func ManageCR(cr *miqv1alpha1.ManageIQ, c *client.Client) (*miqv1alpha1.ManageIQ
 		cr.Spec.AppName = appName(cr)
 		cr.Spec.BackupLabelName = backupLabelName(cr)
 		cr.Spec.DatabaseRegion = databaseRegion(cr)
+		cr.Spec.DatabaseSecret = databaseSecret(cr)
 		cr.Spec.DatabaseVolumeCapacity = databaseVolumeCapacity(cr)
 		cr.Spec.DeployMessagingService = &varDeployMessagingService
 		cr.Spec.EnableApplicationLocalLogin = &varEnableApplicationLocalLogin
