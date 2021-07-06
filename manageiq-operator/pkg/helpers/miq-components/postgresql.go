@@ -14,7 +14,28 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func DefaultPostgresqlSecret(cr *miqv1alpha1.ManageIQ) *corev1.Secret {
+func ManagePostgresqlSecret(cr *miqv1alpha1.ManageIQ, client client.Client, scheme *runtime.Scheme) (*corev1.Secret, controllerutil.MutateFn) {
+	secretKey := types.NamespacedName{Namespace: cr.ObjectMeta.Namespace, Name: cr.Spec.DatabaseSecret}
+	secret := &corev1.Secret{}
+	secretErr := client.Get(context.TODO(), secretKey, secret)
+	if secretErr != nil {
+		secret = defaultPostgresqlSecret(cr)
+	}
+
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, secret, scheme); err != nil {
+			return err
+		}
+
+		addAppLabel(cr.Spec.AppName, &secret.ObjectMeta)
+		addBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
+		return nil
+	}
+
+	return secret, f
+}
+
+func defaultPostgresqlSecret(cr *miqv1alpha1.ManageIQ) *corev1.Secret {
 	secretData := map[string]string{
 		"dbname":   "vmdb_production",
 		"username": "root",
@@ -30,9 +51,6 @@ func DefaultPostgresqlSecret(cr *miqv1alpha1.ManageIQ) *corev1.Secret {
 		},
 		StringData: secretData,
 	}
-
-	addAppLabel(cr.Spec.AppName, &secret.ObjectMeta)
-	addBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
 
 	return secret
 }

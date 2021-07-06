@@ -333,15 +333,17 @@ func (r *ReconcileManageIQ) generateMemcachedResources(cr *miqv1alpha1.ManageIQ)
 }
 
 func (r *ReconcileManageIQ) generatePostgresqlResources(cr *miqv1alpha1.ManageIQ) error {
+	secret, mutateFunc := miqtool.ManagePostgresqlSecret(cr, r.client, r.scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, secret, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("Secret has been reconciled", "component", "postgresql", "result", result)
+	}
+
 	hostName := getSecretKeyValue(r.client, cr.Namespace, cr.Spec.DatabaseSecret, "hostname")
 	if hostName != "postgresql" {
 		logger.Info("External PostgreSQL Database selected, skipping postgresql service reconciliation", "hostname", hostName)
 		return nil
-	}
-
-	secret := miqtool.DefaultPostgresqlSecret(cr)
-	if err := r.createk8sResIfNotExist(cr, secret, &corev1.Secret{}); err != nil {
-		return err
 	}
 
 	configMap, mutateFunc := miqtool.PostgresqlConfigMap(cr, r.scheme)
