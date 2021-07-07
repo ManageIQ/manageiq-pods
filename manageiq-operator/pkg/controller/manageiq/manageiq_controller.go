@@ -340,7 +340,7 @@ func (r *ReconcileManageIQ) generatePostgresqlResources(cr *miqv1alpha1.ManageIQ
 		logger.Info("Secret has been reconciled", "component", "postgresql", "result", result)
 	}
 
-	hostName := getSecretKeyValue(r.client, cr.Namespace, cr.Spec.DatabaseSecret, "hostname")
+	hostName := string(secret.Data["hostname"])
 	if hostName != "postgresql" {
 		logger.Info("External PostgreSQL Database selected, skipping postgresql service reconciliation", "hostname", hostName)
 		return nil
