@@ -334,7 +334,7 @@ func (r *ReconcileManageIQ) generateMemcachedResources(cr *miqv1alpha1.ManageIQ)
 
 func (r *ReconcileManageIQ) generatePostgresqlResources(cr *miqv1alpha1.ManageIQ) error {
 	hostName := getSecretKeyValue(r.client, cr.Namespace, cr.Spec.DatabaseSecret, "hostname")
-	if hostName != "" {
+	if hostName != "postgresql" {
 		logger.Info("External PostgreSQL Database selected, skipping postgresql service reconciliation", "hostname", hostName)
 		return nil
 	}
