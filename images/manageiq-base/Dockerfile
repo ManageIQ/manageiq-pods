@@ -30,6 +30,9 @@ LABEL name="manageiq-base" \
       io.k8s.description="ManageIQ is a management and automation platform for virtual, private, and hybrid cloud infrastructures." \
       io.openshift.tags="ManageIQ,miq,manageiq"
 
+RUN chmod -R g+w /etc/pki/ca-trust && \
+    chmod -R g+w /usr/share/pki/ca-trust-legacy
+
 COPY rpms/* /tmp/rpms/
 COPY container-assets/create_local_yum_repo.sh /
 
