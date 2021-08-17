@@ -379,6 +379,7 @@ RequestHeader set X_REMOTE_USER_GROUPS    %{REMOTE_USER_GROUPS}e    env=REMOTE_U
 RequestHeader set X_REMOTE_USER_DOMAIN    %{REMOTE_USER_DOMAIN}e    env=REMOTE_USER_DOMAIN
 `
 }
+
 func uiHttpdConfig(protocol string) string {
 	s := `
 ## ManageIQ HTTP Virtual Host Context
@@ -428,6 +429,41 @@ LimitRequestFieldSize 524288
     ErrorDocument 403 /error/noindex.html
     ErrorDocument 404 /error/noindex.html
   </Location>
+</VirtualHost>
+`
+	return fmt.Sprintf(s, protocol)
+}
+
+func apiHttpdConfig(protocol string) string {
+	s := `
+## ManageIQ HTTP Virtual Host Context
+
+Listen 3000
+
+# Timeout: The number of seconds before receives and sends time out.
+Timeout 120
+ServerSignature Off
+ServerTokens Prod
+
+RewriteEngine On
+Options SymLinksIfOwnerMatch
+
+# LimitRequestFieldSize: Expand this to a large number to allow pass-through.
+#   This does not introduce a potential DoS, because the value is validated by
+#   the httpd container first.  However, if a user changes this value in the
+#   httpd container, we need to be able to accomodate that value here also.
+LimitRequestFieldSize 524288
+
+<VirtualHost *:3000>
+  IncludeOptional conf.d/*_config
+
+  ServerName %s://web-service
+  DocumentRoot /var/www/miq/vmdb/public
+
+  RewriteRule ^/ http://localhost:3001%{REQUEST_URI} [P,QSA,L]
+  ProxyPassReverse / http://localhost:3001/
+
+  ProxyPreserveHost on
 </VirtualHost>
 `
 	return fmt.Sprintf(s, protocol)
