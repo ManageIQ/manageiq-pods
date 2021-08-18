@@ -350,7 +350,7 @@ func (r *ReconcileManageIQ) generatePostgresqlResources(cr *miqv1alpha1.ManageIQ
 		return nil
 	}
 
-	configMap, mutateFunc := miqtool.PostgresqlConfigMap(cr, r.scheme)
+	configMap, mutateFunc := miqtool.PostgresqlConfigMap(cr, r.client, r.scheme)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, configMap, mutateFunc); err != nil {
 		return err
 	} else if result != controllerutil.OperationResultNone {
@@ -371,7 +371,7 @@ func (r *ReconcileManageIQ) generatePostgresqlResources(cr *miqv1alpha1.ManageIQ
 		logger.Info("Service has been reconciled", "component", "postgresql", "result", result)
 	}
 
-	deployment, mutateFunc, err := miqtool.PostgresqlDeployment(cr, r.scheme)
+	deployment, mutateFunc, err := miqtool.PostgresqlDeployment(cr, r.client, r.scheme)
 	if err != nil {
 		return err
 	}

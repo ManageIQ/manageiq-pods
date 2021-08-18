@@ -29,6 +29,15 @@ func ManagePostgresqlSecret(cr *miqv1alpha1.ManageIQ, client client.Client, sche
 
 		addAppLabel(cr.Spec.AppName, &secret.ObjectMeta)
 		addBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
+
+		if certSecret := InternalCertificatesSecret(cr, client); certSecret.Data["postgresql_crt"] != nil && certSecret.Data["postgresql_key"] != nil && string(secret.Data["hostname"]) == "postgresql" {
+			d := map[string]string{
+				"rootcertificate": string(certSecret.Data["root_crt"]),
+				"sslmode":         "verify-full",
+			}
+			secret.StringData = d
+		}
+
 		return nil
 	}
 
@@ -63,10 +72,8 @@ func postgresqlSecret(cr *miqv1alpha1.ManageIQ, client client.Client) *corev1.Se
 	return secret
 }
 
-func PostgresqlConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.ConfigMap, controllerutil.MutateFn) {
-	data := map[string]string{
-		"01_miq_overrides.conf": postgresqlOverrideConf(),
-	}
+func PostgresqlConfigMap(cr *miqv1alpha1.ManageIQ, client client.Client, scheme *runtime.Scheme) (*corev1.ConfigMap, controllerutil.MutateFn) {
+	postgresOverrideConfig := postgresqlOverrideConf()
 
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
@@ -80,7 +87,18 @@ func PostgresqlConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*cor
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
-		configMap.Data = data
+
+		if configMap.Data == nil {
+			configMap.Data = map[string]string{}
+		}
+		configMap.Data["01_miq_overrides.conf"] = postgresOverrideConfig
+
+		if secret := InternalCertificatesSecret(cr, client); secret.Data["postgresql_crt"] != nil && secret.Data["postgresql_key"] != nil {
+			configMap.Data["02_ssl.conf"] = postgresqlSslConf()
+		} else {
+			delete(configMap.Data, "02_ssl.conf")
+		}
+
 		return nil
 	}
 
@@ -152,7 +170,7 @@ func PostgresqlService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev
 	return service, f
 }
 
-func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
+func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, client client.Client, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
 	deploymentLabels := map[string]string{
 		"name": "postgresql",
 		"app":  cr.Spec.AppName,
@@ -278,6 +296,9 @@ func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*ap
 				},
 			},
 		}
+
+		addInternalCertificate(cr, deployment, client, "postgresql", "/opt/app-root/src/certificates")
+
 		return nil
 	}
 

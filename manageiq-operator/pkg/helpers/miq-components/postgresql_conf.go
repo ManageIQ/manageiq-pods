@@ -70,3 +70,18 @@ escape_string_warning = off
 standard_conforming_strings = off
 `
 }
+
+func postgresqlSslConf() string {
+	return `
+#------------------------------------------------------------------------------
+# SSL CONFIG
+#------------------------------------------------------------------------------
+
+ssl = on
+ssl_cert_file = '/var/lib/pgsql/data/userdata/server.crt' # server certificate
+ssl_key_file =  '/var/lib/pgsql/data/userdata/server.key' # server private key
+#ssl_ca_file                                   # trusted certificate authorities
+#ssl_crl_file                                  # certificates revoked by certificate authorities
+
+`
+}
