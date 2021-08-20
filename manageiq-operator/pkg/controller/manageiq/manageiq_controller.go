@@ -191,6 +191,10 @@ func (r *ReconcileManageIQ) Reconcile(request reconcile.Request) (reconcile.Resu
 	if e := r.generateOrchestratorResources(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
+	logger.Info("Reconciling the application resources...")
+	if e := r.manageApplicationResources(miqInstance); e != nil {
+		return reconcile.Result{}, e
+	}
 
 	return reconcile.Result{}, nil
 }
@@ -694,4 +698,15 @@ func getSecretKeyValue(client client.Client, nameSpace string, secretName string
 		return ""
 	}
 	return string(secret.Data[keyName])
+}
+
+func (r *ReconcileManageIQ) manageApplicationResources(cr *miqv1alpha1.ManageIQ) error {
+	configMap, mutateFunc := miqtool.ApplicationUiHttpdConfigMap(cr, r.scheme, r.client)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, configMap, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("ConfigMap has been reconciled", "component", "application ui", "result", result)
+	}
+
+	return nil
 }

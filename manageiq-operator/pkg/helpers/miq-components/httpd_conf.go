@@ -379,3 +379,56 @@ RequestHeader set X_REMOTE_USER_GROUPS    %{REMOTE_USER_GROUPS}e    env=REMOTE_U
 RequestHeader set X_REMOTE_USER_DOMAIN    %{REMOTE_USER_DOMAIN}e    env=REMOTE_USER_DOMAIN
 `
 }
+func uiHttpdConfig(protocol string) string {
+	s := `
+## ManageIQ HTTP Virtual Host Context
+
+Listen 3000
+
+# Timeout: The number of seconds before receives and sends time out.
+Timeout 120
+ServerSignature Off
+ServerTokens Prod
+
+RewriteEngine On
+Options SymLinksIfOwnerMatch
+
+# LimitRequestFieldSize: Expand this to a large number to allow pass-through.
+#   This does not introduce a potential DoS, because the value is validated by
+#   the httpd container first.  However, if a user changes this value in the
+#   httpd container, we need to be able to accomodate that value here also.
+LimitRequestFieldSize 524288
+
+<VirtualHost *:3000>
+  IncludeOptional conf.d/*_config
+
+  ServerName %s://ui
+  DocumentRoot /var/www/miq/vmdb/public
+
+  RewriteCond %{REQUEST_URI}     ^/ws/notifications [NC]
+  RewriteCond %{HTTP:UPGRADE}    ^websocket$ [NC]
+  RewriteCond %{HTTP:CONNECTION} ^Upgrade$   [NC]
+  RewriteRule .* ws://localhost:3001%{REQUEST_URI}  [P,QSA,L]
+  ProxyPassReverse /ws/notifications ws://localhost:3001/ws/notifications
+
+  RewriteRule ^/ui/service(?!/(assets|images|img|styles|js|fonts|vendor|gettext)) /ui/service/index.html [L]
+  RewriteCond %{REQUEST_URI} !^/proxy_pages
+  RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_FILENAME} !-f
+  RewriteRule ^/ http://localhost:3001%{REQUEST_URI} [P,QSA,L]
+  ProxyPassReverse / http://localhost:3001/
+
+  ProxyPreserveHost on
+  <Location /assets/>
+    Header unset ETag
+    FileETag None
+    ExpiresActive On
+    ExpiresDefault "access plus 1 year"
+  </Location>
+  <Location /proxy_pages/>
+    ErrorDocument 403 /error/noindex.html
+    ErrorDocument 404 /error/noindex.html
+  </Location>
+</VirtualHost>
+`
+	return fmt.Sprintf(s, protocol)
+}
