@@ -13,6 +13,8 @@ RUN dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install 
     dnf clean all && \
     rm -rf /var/cache/dnf
 
+COPY container-assets/service-worker-entrypoint /usr/local/bin
+
 RUN source /etc/default/evm && \
     /usr/bin/generate_rpm_manifest.sh && \
     dnf clean all && \

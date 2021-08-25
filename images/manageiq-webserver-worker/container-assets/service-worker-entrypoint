@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# Launch httpd in the background
+/usr/sbin/httpd -DFOREGROUND &
+
+exec /usr/local/bin/entrypoint
