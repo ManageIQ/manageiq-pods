@@ -20,3 +20,5 @@ RUN source /etc/default/evm && \
     rm -rf /var/cache/dnf
 
 RUN rm -rf /tmp/rpms /create_local_yum_repo.sh /etc/yum.repos.d/local_rpm.repo
+
+CMD ["service-worker-entrypoint"]
