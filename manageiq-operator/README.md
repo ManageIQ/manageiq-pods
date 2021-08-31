@@ -69,19 +69,19 @@ There are three different ways the operator can be run.
   1 - Build your operator image:
 
     ```bash
-    $ operator-sdk build docker.io/<your_username_or_organization>/manageiq-operator:latest-morphy-lasker
+    $ operator-sdk build docker.io/<your_username_or_organization>/manageiq-operator:latest-morphy
     ```
 
   2 - Push your new custom image to the registry:
 
     ```bash
-    $ docker push docker.io/<your_username_or_organization>/manageiq-operator:latest-morphy-lasker
+    $ docker push docker.io/<your_username_or_organization>/manageiq-operator:latest-morphy
     ```
 
   3 - Update the operator deployment yaml file with your custom image:
 
     ```bash
-    $ sed -i 's|docker.io/manageiq/manageiq-operator:latest-morphy-lasker|docker.io/<your_username_or_organization>/manageiq-operator:latest-morphy-lasker|g' deploy/operator.yaml
+    $ sed -i 's|docker.io/manageiq/manageiq-operator:latest-morphy|docker.io/<your_username_or_organization>/manageiq-operator:latest-morphy|g' deploy/operator.yaml
     ```
 
   4 - Run your custom image from the registry:

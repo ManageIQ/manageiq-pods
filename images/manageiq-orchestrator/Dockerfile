@@ -1,5 +1,5 @@
 ARG FROM_REPO=manageiq
-ARG FROM_TAG=latest-morphy-lasker
+ARG FROM_TAG=latest-morphy
 
 FROM ${FROM_REPO}/manageiq-base:${FROM_TAG}
 MAINTAINER ManageIQ https://manageiq.org

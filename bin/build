@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TAG=latest-morphy-lasker
+TAG=latest-morphy
 
 BUILD_REF=${BUILD_REF:-morphy]}
 BUILD_ORG=${BUILD_ORG:-ManageIQ}
