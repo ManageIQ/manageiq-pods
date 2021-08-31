@@ -28,49 +28,49 @@ namespace :release do
     # Modify operator README
     operator_readme = root.join("manageiq-operator", "README.md")
     content = operator_readme.read
-    operator_readme.write(content.gsub(%r{(/manageiq-operator:)\w+}, "\\1latest-#{branch}"))
+    operator_readme.write(content.gsub(%r{(/manageiq-operator:)[-\w]+}, "\\1latest-#{branch}"))
 
     # Modify CR
     cr = root.join("manageiq-operator", "pkg", "helpers", "miq-components", "cr.go")
     content = cr.read
-    cr.write(content.sub(/(cr\.Spec\.OrchestratorImageTag.+?\n\s+return ")\w+(")/, "\\1latest-#{branch}\\2"))
+    cr.write(content.sub(/(cr\.Spec\.OrchestratorImageTag.+?\n\s+return ")[^"]+(")/, "\\1latest-#{branch}\\2"))
 
     # Modify types
     types = root.join("manageiq-operator", "pkg", "apis", "manageiq", "v1alpha1", "manageiq_types.go")
     content = types.read
-    types.write(content.sub(/(tag used for the orchestrator and worker deployments \(default: )\w+(\))/, "\\1latest-#{branch}\\2"))
+    types.write(content.sub(/(tag used for the orchestrator and worker deployments \(default: )[^\)]+(\))/, "\\1latest-#{branch}\\2"))
 
     # Modify deploy operator.yaml
     deploy_operator = root.join("manageiq-operator", "deploy", "operator.yaml")
     content = deploy_operator.read
-    deploy_operator.write(content.sub(%r{(docker.io/manageiq/manageiq-operator:)\w+}, "\\1latest-#{branch}"))
+    deploy_operator.write(content.sub(%r{(docker.io/manageiq/manageiq-operator:).+$}, "\\1latest-#{branch}"))
 
     # Modify deploy CRD
     deploy_crd = root.join("manageiq-operator", "deploy", "crds", "manageiq.org_manageiqs_crd.yaml")
     content = deploy_crd.read
-    deploy_crd.write(content.sub(/(tag used for the orchestrator and worker deployments\n\s+\(default: )\w+(\))/, "\\1latest-#{branch}\\2"))
+    deploy_crd.write(content.sub(/(tag used for the orchestrator and worker deployments\n\s+\(default: )[^\)]+(\))/, "\\1latest-#{branch}\\2"))
 
     # Modify deploy CSV
     deploy_csv = root.join("manageiq-operator", "deploy", "olm-catalog", "manageiq-operator", "0.0.1", "manageiq-operator.v0.0.1.clusterserviceversion.yaml")
     content = deploy_csv.read
-    deploy_csv.write(content.sub(%r{(docker.io/manageiq/manageiq-operator:)\w+}, "\\1latest-#{branch}"))
+    deploy_csv.write(content.sub(%r{(docker.io/manageiq/manageiq-operator:).+$}, "\\1latest-#{branch}"))
 
     # Modify catalog CRD
     catalog_crd = root.join("manageiq-operator", "deploy", "olm-catalog", "manageiq-operator", "0.0.1", "manageiq.org_manageiqs_crd.yaml")
     content = catalog_crd.read
-    catalog_crd.write(content.sub(/(tag used for the orchestrator and worker deployments\n\s+\(default: )\w+(\))/, "\\1latest-#{branch}\\2"))
+    catalog_crd.write(content.sub(/(tag used for the orchestrator and worker deployments\n\s+\(default: )[^\)]+(\))/, "\\1latest-#{branch}\\2"))
 
     # Modify bin/build
     build_script = root.join("bin", "build")
     content = build_script.read
-    content.sub!(/^(TAG=)\w+/, "\\1latest-#{branch}")
+    content.sub!(/^(TAG=).+$/, "\\1latest-#{branch}")
     content.sub!(/(BUILD_REF:-)\w+(\})/, "\\1#{branch}]\\2")
     build_script.write(content)
 
     # Modify bin/remove_images
     remove_script = root.join("bin", "remove_images")
     content = remove_script.read
-    remove_script.write(content.sub(/^(TAG=)\w+/, "\\1latest-#{branch}"))
+    remove_script.write(content.sub(/^(TAG=).+$/, "\\1latest-#{branch}"))
 
     # Modify base Dockerfile
     base_dockerfile = root.join("images", "manageiq-base", "Dockerfile")
@@ -85,7 +85,7 @@ namespace :release do
     dockerfiles = %w[manageiq-base-worker manageiq-webserver-worker manageiq-ui-worker manageiq-orchestrator].map do |worker|
       root.join("images", worker, "Dockerfile").tap do |dockerfile|
         content = dockerfile.read
-        dockerfile.write(content.sub(/^(ARG FROM_TAG=)\w+/, "\\1latest-#{branch}"))
+        dockerfile.write(content.sub(/^(ARG FROM_TAG=).+$/, "\\1latest-#{branch}"))
       end
     end
 
