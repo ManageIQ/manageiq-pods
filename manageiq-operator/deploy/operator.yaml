@@ -15,7 +15,7 @@ spec:
       serviceAccountName: manageiq-operator
       containers:
         - name: manageiq-operator
-          image: docker.io/manageiq/manageiq-operator:latest-lasker
+          image: docker.io/manageiq/manageiq-operator:latest-morphy-lasker
           command:
           - manageiq-operator
           imagePullPolicy: Always

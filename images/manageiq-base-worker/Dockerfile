@@ -1,5 +1,5 @@
 ARG FROM_REPO=manageiq
-ARG FROM_TAG=latest-lasker
+ARG FROM_TAG=latest-morphy-lasker
 
 FROM ${FROM_REPO}/manageiq-base:${FROM_TAG} AS vddk
 
