@@ -51,12 +51,12 @@ namespace :release do
     deploy_crd.write(content.sub(/(tag used for the orchestrator and worker deployments\n\s+\(default: )\w+(\))/, "\\1latest-#{branch}\\2"))
 
     # Modify deploy CSV
-    deploy_csv = root.join("manageiq-operator", "deploy", "olm-catalog", "manageiq-operator", "manifests", "manageiq-operator.clusterserviceversion.yaml")
+    deploy_csv = root.join("manageiq-operator", "deploy", "olm-catalog", "manageiq-operator", "0.0.1", "manageiq-operator.v0.0.1.clusterserviceversion.yaml")
     content = deploy_csv.read
     deploy_csv.write(content.sub(%r{(docker.io/manageiq/manageiq-operator:)\w+}, "\\1latest-#{branch}"))
 
     # Modify catalog CRD
-    catalog_crd = root.join("manageiq-operator", "deploy", "olm-catalog", "manageiq-operator", "manifests", "manageiq.org_manageiqs_crd.yaml")
+    catalog_crd = root.join("manageiq-operator", "deploy", "olm-catalog", "manageiq-operator", "0.0.1", "manageiq.org_manageiqs_crd.yaml")
     content = catalog_crd.read
     catalog_crd.write(content.sub(/(tag used for the orchestrator and worker deployments\n\s+\(default: )\w+(\))/, "\\1latest-#{branch}\\2"))
 
