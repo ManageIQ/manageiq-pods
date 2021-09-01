@@ -1,3 +1,4 @@
+require 'pathname'
 ROOT = Pathname.new(__dir__).join("..")
 
 # Load everything under spec/support

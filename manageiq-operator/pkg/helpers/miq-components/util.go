@@ -1,9 +1,15 @@
 package miqtools
 
 import (
+	"context"
+	"fmt"
+	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func addResourceReqs(memLimit, memReq, cpuLimit, cpuReq string, c *corev1.Container) error {
@@ -84,4 +90,69 @@ func addAnnotations(annotations map[string]string, meta *metav1.ObjectMeta) {
 			meta.Annotations[key] = value
 		}
 	}
+}
+
+func InternalCertificatesSecret(cr *miqv1alpha1.ManageIQ, client client.Client) *corev1.Secret {
+	name := cr.Spec.InternalCertificatesSecret
+
+	secretKey := types.NamespacedName{Namespace: cr.Namespace, Name: name}
+	secret := &corev1.Secret{}
+	client.Get(context.TODO(), secretKey, secret)
+
+	return secret
+}
+
+func addInternalCertificate(cr *miqv1alpha1.ManageIQ, d *appsv1.Deployment, client client.Client, name string, mountPoint string) {
+	secret := InternalCertificatesSecret(cr, client)
+	if secret.Data[fmt.Sprintf("%s_crt", name)] != nil && secret.Data[fmt.Sprintf("%s_key", name)] != nil {
+		volumeName := fmt.Sprintf("%s-certificate", name)
+
+		volumeMount := corev1.VolumeMount{Name: volumeName, MountPath: mountPoint, ReadOnly: true}
+		d.Spec.Template.Spec.Containers[0].VolumeMounts = addOrUpdateVolumeMount(d.Spec.Template.Spec.Containers[0].VolumeMounts, volumeMount)
+
+		secretVolumeSource := corev1.SecretVolumeSource{SecretName: secret.Name, Items: []corev1.KeyToPath{corev1.KeyToPath{Key: fmt.Sprintf("%s_crt", name), Path: "server.crt"}, corev1.KeyToPath{Key: fmt.Sprintf("%s_key", name), Path: "server.key"}}}
+		d.Spec.Template.Spec.Volumes = addOrUpdateVolume(d.Spec.Template.Spec.Volumes, corev1.Volume{Name: volumeName, VolumeSource: corev1.VolumeSource{Secret: &secretVolumeSource}})
+	}
+}
+
+func addOrUpdateVolumeMount(volumeMounts []corev1.VolumeMount, volumeMount corev1.VolumeMount) []corev1.VolumeMount {
+	if volumeMounts == nil {
+		volumeMounts = []corev1.VolumeMount{}
+	}
+
+	index := -1
+	for i, v := range volumeMounts {
+		if v.Name == volumeMount.Name {
+			index = i
+		}
+	}
+
+	if index == -1 {
+		volumeMounts = append(volumeMounts, volumeMount)
+	} else {
+		volumeMounts[index] = volumeMount
+	}
+
+	return volumeMounts
+}
+
+func addOrUpdateVolume(volumes []corev1.Volume, volume corev1.Volume) []corev1.Volume {
+	if volumes == nil {
+		volumes = []corev1.Volume{}
+	}
+
+	index := -1
+	for i, v := range volumes {
+		if v.Name == volume.Name {
+			index = i
+		}
+	}
+
+	if index == -1 {
+		volumes = append(volumes, volume)
+	} else {
+		volumes[index] = volume
+	}
+
+	return volumes
 }
