@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
+	cr_migration "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/helpers/cr_migration"
 
 	miqtool "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/helpers/miq-components"
 	appsv1 "k8s.io/api/apps/v1"
@@ -131,6 +132,11 @@ func (r *ReconcileManageIQ) Reconcile(request reconcile.Request) (reconcile.Resu
 	err := r.client.Get(context.TODO(), request.NamespacedName, miqInstance)
 	if errors.IsNotFound(err) {
 		return reconcile.Result{}, nil
+	}
+
+	logger.Info("Migrating the CR...")
+	if e := r.migrateCR(miqInstance); e != nil {
+		return reconcile.Result{}, e
 	}
 
 	logger.Info("Reconciling the CR...")
@@ -574,6 +580,17 @@ func (r *ReconcileManageIQ) generateSecrets(cr *miqv1alpha1.ManageIQ) error {
 				logger.Info("OIDC CA Secret has been reconciled", "component", "operator", "result", result)
 			}
 		}
+	}
+
+	return nil
+}
+
+func (r *ReconcileManageIQ) migrateCR(cr *miqv1alpha1.ManageIQ) error {
+	manageiq, mutateFunc := cr_migration.Migrate(cr)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, manageiq, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("CR has been migrated", "component", "app", "result", result)
 	}
 
 	return nil

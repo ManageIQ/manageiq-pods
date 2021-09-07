@@ -179,6 +179,11 @@ spec:
             memcachedSlabPageSize:
               description: 'Memcached max item size (default: 1m, min: 1k, max: 1024m)'
               type: string
+            migrationsRan:
+              description: A list of CR data migrations that have been run
+              items:
+                type: string
+              type: array
             oidcAuthIntrospectionURL:
               description: URL for OIDC authentication introspection Only used with
                 the openid-connect authentication type. If not specified, the operator
