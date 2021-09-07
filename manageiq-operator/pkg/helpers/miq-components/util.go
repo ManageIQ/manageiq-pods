@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
+	enumerable "github.com/thoas/go-funk"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -120,12 +121,9 @@ func addOrUpdateVolumeMount(volumeMounts []corev1.VolumeMount, volumeMount corev
 		volumeMounts = []corev1.VolumeMount{}
 	}
 
-	index := -1
-	for i, v := range volumeMounts {
-		if v.Name == volumeMount.Name {
-			index = i
-		}
-	}
+	index := enumerable.IndexOf(volumeMounts, func(v corev1.VolumeMount) bool {
+		return v.Name == volumeMount.Name
+	})
 
 	if index == -1 {
 		volumeMounts = append(volumeMounts, volumeMount)
@@ -141,12 +139,9 @@ func addOrUpdateVolume(volumes []corev1.Volume, volume corev1.Volume) []corev1.V
 		volumes = []corev1.Volume{}
 	}
 
-	index := -1
-	for i, v := range volumes {
-		if v.Name == volume.Name {
-			index = i
-		}
-	}
+	index := enumerable.IndexOf(volumes, func(v corev1.Volume) bool {
+		return v.Name == volume.Name
+	})
 
 	if index == -1 {
 		volumes = append(volumes, volume)

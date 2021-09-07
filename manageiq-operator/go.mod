@@ -5,6 +5,7 @@ go 1.14
 require (
 	github.com/operator-framework/operator-sdk v0.17.2
 	github.com/spf13/pflag v1.0.5
+	github.com/thoas/go-funk v0.9.0
 	k8s.io/api v0.17.4
 	k8s.io/apimachinery v0.17.4
 	k8s.io/client-go v12.0.0+incompatible
