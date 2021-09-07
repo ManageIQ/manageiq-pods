@@ -193,6 +193,10 @@ type ManageIQSpec struct {
 	// +optional
 	MemcachedSlabPageSize string `json:"memcachedSlabPageSize,omitempty"`
 
+	// A list of CR data migrations that have been run
+	// +optional
+	MigrationsRan []string `json:"migrationsRan,omitempty"`
+
 	// Secret containing the trusted CA certificate file(s) for the OIDC server.
 	// Only used with the openid-connect authentication type
 	// +optional

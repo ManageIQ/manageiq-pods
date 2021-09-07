@@ -89,14 +89,6 @@ func httpdAuthenticationType(cr *miqv1alpha1.ManageIQ) string {
 	}
 }
 
-func httpdImageNamespace(cr *miqv1alpha1.ManageIQ) string {
-	if cr.Spec.HttpdImageNamespace == "" {
-		return "manageiq"
-	} else {
-		return cr.Spec.HttpdImageNamespace
-	}
-}
-
 func httpdImage(cr *miqv1alpha1.ManageIQ) string {
 	if cr.Spec.HttpdImage != "" {
 		return cr.Spec.HttpdImage
@@ -111,7 +103,15 @@ func httpdImage(cr *miqv1alpha1.ManageIQ) string {
 		image = "httpd"
 	}
 
-	return cr.Spec.HttpdImageNamespace + "/" + image + ":" + cr.Spec.HttpdImageTag
+	return httpdImageNamespace(cr) + "/" + image + ":" + httpdImageTag(cr)
+}
+
+func httpdImageNamespace(cr *miqv1alpha1.ManageIQ) string {
+	if cr.Spec.HttpdImageNamespace == "" {
+		return "manageiq"
+	} else {
+		return cr.Spec.HttpdImageNamespace
+	}
 }
 
 func httpdImageTag(cr *miqv1alpha1.ManageIQ) string {
@@ -140,7 +140,7 @@ func imagePullSecretName(cr *miqv1alpha1.ManageIQ, client client.Client) string 
 
 func kafkaImage(cr *miqv1alpha1.ManageIQ) string {
 	if cr.Spec.KafkaImage == "" {
-		return cr.Spec.KafkaImageName + ":" + cr.Spec.KafkaImageTag
+		return kafkaImageName(cr) + ":" + kafkaImageTag(cr)
 	} else {
 		return cr.Spec.KafkaImage
 	}
@@ -172,7 +172,7 @@ func kafkaVolumeCapacity(cr *miqv1alpha1.ManageIQ) string {
 
 func memcachedImage(cr *miqv1alpha1.ManageIQ) string {
 	if cr.Spec.MemcachedImage == "" {
-		return cr.Spec.MemcachedImageName + ":" + cr.Spec.MemcachedImageTag
+		return memcachedImageName(cr) + ":" + memcachedImageTag(cr)
 	} else {
 		return cr.Spec.MemcachedImage
 	}
@@ -220,7 +220,7 @@ func memcachedSlabPageSize(cr *miqv1alpha1.ManageIQ) string {
 
 func orchestratorImage(cr *miqv1alpha1.ManageIQ) string {
 	if cr.Spec.OrchestratorImage == "" {
-		return cr.Spec.OrchestratorImageNamespace + "/" + cr.Spec.OrchestratorImageName + ":" + cr.Spec.OrchestratorImageTag
+		return orchestratorImageNamespace(cr) + "/" + orchestratorImageName(cr) + ":" + orchestratorImageTag(cr)
 	} else {
 		return cr.Spec.OrchestratorImage
 	}
@@ -260,7 +260,7 @@ func orchestratorInitialDelay(cr *miqv1alpha1.ManageIQ) string {
 
 func postgresqlImage(cr *miqv1alpha1.ManageIQ) string {
 	if cr.Spec.PostgresqlImage == "" {
-		return cr.Spec.PostgresqlImageName + ":" + cr.Spec.PostgresqlImageTag
+		return postgresqlImageName(cr) + ":" + postgresqlImageTag(cr)
 	} else {
 		return cr.Spec.PostgresqlImage
 	}
@@ -315,7 +315,7 @@ func serverGuid(cr *miqv1alpha1.ManageIQ, c *client.Client) string {
 
 func zookeeperImage(cr *miqv1alpha1.ManageIQ) string {
 	if cr.Spec.ZookeeperImage == "" {
-		return cr.Spec.ZookeeperImageName + ":" + cr.Spec.ZookeeperImageTag
+		return zookeeperImageName(cr) + ":" + zookeeperImageTag(cr)
 	} else {
 		return cr.Spec.ZookeeperImage
 	}
@@ -363,33 +363,20 @@ func ManageCR(cr *miqv1alpha1.ManageIQ, c *client.Client) (*miqv1alpha1.ManageIQ
 		cr.Spec.EnforceWorkerResourceConstraints = &varEnforceWorkerResourceConstraints
 		cr.Spec.HttpdAuthenticationType = httpdAuthenticationType(cr)
 		cr.Spec.HttpdImage = httpdImage(cr)
-		cr.Spec.HttpdImageNamespace = httpdImageNamespace(cr)
-		cr.Spec.HttpdImageTag = httpdImageTag(cr)
 		cr.Spec.ImagePullSecret = imagePullSecretName(cr, *c)
 		cr.Spec.KafkaImage = kafkaImage(cr)
-		cr.Spec.KafkaImageName = kafkaImageName(cr)
-		cr.Spec.KafkaImageTag = kafkaImageTag(cr)
 		cr.Spec.KafkaVolumeCapacity = kafkaVolumeCapacity(cr)
 		cr.Spec.MemcachedImage = memcachedImage(cr)
-		cr.Spec.MemcachedImageName = memcachedImageName(cr)
-		cr.Spec.MemcachedImageTag = memcachedImageTag(cr)
 		cr.Spec.MemcachedMaxConnection = memcachedMaxConnection(cr)
 		cr.Spec.MemcachedMaxMemory = memcachedMaxMemory(cr)
 		cr.Spec.MemcachedSlabPageSize = memcachedSlabPageSize(cr)
 		cr.Spec.OrchestratorImage = orchestratorImage(cr)
-		cr.Spec.OrchestratorImageName = orchestratorImageName(cr)
-		cr.Spec.OrchestratorImageNamespace = orchestratorImageNamespace(cr)
-		cr.Spec.OrchestratorImageTag = orchestratorImageTag(cr)
 		cr.Spec.OrchestratorInitialDelay = orchestratorInitialDelay(cr)
 		cr.Spec.PostgresqlImage = postgresqlImage(cr)
-		cr.Spec.PostgresqlImageName = postgresqlImageName(cr)
-		cr.Spec.PostgresqlImageTag = postgresqlImageTag(cr)
 		cr.Spec.PostgresqlMaxConnections = postgresqlMaxConnections(cr)
 		cr.Spec.PostgresqlSharedBuffers = postgresqlSharedBuffers(cr)
 		cr.Spec.ServerGuid = serverGuid(cr, c)
 		cr.Spec.ZookeeperImage = zookeeperImage(cr)
-		cr.Spec.ZookeeperImageName = zookeeperImageName(cr)
-		cr.Spec.ZookeeperImageTag = zookeeperImageTag(cr)
 		cr.Spec.ZookeeperVolumeCapacity = zookeeperVolumeCapacity(cr)
 
 		addBackupLabel(backupLabelName(cr), &cr.ObjectMeta)
