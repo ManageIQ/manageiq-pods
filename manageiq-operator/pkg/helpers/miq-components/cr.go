@@ -188,7 +188,7 @@ func memcachedImageName(cr *miqv1alpha1.ManageIQ) string {
 
 func memcachedImageTag(cr *miqv1alpha1.ManageIQ) string {
 	if cr.Spec.MemcachedImageTag == "" {
-		return "latest"
+		return "1.5"
 	} else {
 		return cr.Spec.MemcachedImageTag
 	}

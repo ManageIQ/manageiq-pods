@@ -169,7 +169,7 @@ type ManageIQSpec struct {
 	// +optional
 	MemcachedImageName string `json:"memcachedImageName,omitempty"`
 
-	// Image tag used for the memcached deployment (default: latest)
+	// Image tag used for the memcached deployment (default: 1.5)
 	// +optional
 	MemcachedImageTag string `json:"memcachedImageTag,omitempty"`
 
