@@ -13,4 +13,6 @@ cache:
   - "$HOME/gopath/pkg/mod"
 before_script:
 - eval "$(gimme 1.14)"
-- travis_wait curl -L https://github.com/operator-framework/operator-sdk/releases/download/v0.17.2/operator-sdk-v0.17.2-$(uname -m)-linux-gnu -o /home/travis/bin/operator-sdk && chmod +x /home/travis/bin/operator-sdk
+- OPERATOR_SDK_VERSION=$(grep operator-sdk manageiq-operator/go.mod | cut -d ' ' -f 2)
+- echo "** Downloading operator-sdk $OPERATOR_SDK_VERSION"
+- travis_wait curl -L https://github.com/operator-framework/operator-sdk/releases/download/$OPERATOR_SDK_VERSION/operator-sdk-$OPERATOR_SDK_VERSION-$(uname -m)-linux-gnu -o /home/travis/bin/operator-sdk && chmod +x /home/travis/bin/operator-sdk
