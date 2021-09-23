@@ -405,16 +405,16 @@ LimitRequestFieldSize 524288
   ServerName %s://ui
   DocumentRoot /var/www/miq/vmdb/public
 
-  RewriteCond %{REQUEST_URI}     ^/ws/notifications [NC]
-  RewriteCond %{HTTP:UPGRADE}    ^websocket$ [NC]
-  RewriteCond %{HTTP:CONNECTION} ^Upgrade$   [NC]
-  RewriteRule .* ws://localhost:3001%{REQUEST_URI}  [P,QSA,L]
+  RewriteCond %%{REQUEST_URI}     ^/ws/notifications [NC]
+  RewriteCond %%{HTTP:UPGRADE}    ^websocket$ [NC]
+  RewriteCond %%{HTTP:CONNECTION} ^Upgrade$   [NC]
+  RewriteRule .* ws://localhost:3001%%{REQUEST_URI}  [P,QSA,L]
   ProxyPassReverse /ws/notifications ws://localhost:3001/ws/notifications
 
   RewriteRule ^/ui/service(?!/(assets|images|img|styles|js|fonts|vendor|gettext)) /ui/service/index.html [L]
-  RewriteCond %{REQUEST_URI} !^/proxy_pages
-  RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_FILENAME} !-f
-  RewriteRule ^/ http://localhost:3001%{REQUEST_URI} [P,QSA,L]
+  RewriteCond %%{REQUEST_URI} !^/proxy_pages
+  RewriteCond %%{DOCUMENT_ROOT}/%%{REQUEST_FILENAME} !-f
+  RewriteRule ^/ http://localhost:3001%%{REQUEST_URI} [P,QSA,L]
   ProxyPassReverse / http://localhost:3001/
 
   ProxyPreserveHost on
