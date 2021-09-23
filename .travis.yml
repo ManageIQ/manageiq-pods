@@ -14,5 +14,3 @@ cache:
 before_script:
 - eval "$(gimme 1.14)"
 - travis_wait curl -L https://github.com/operator-framework/operator-sdk/releases/download/v0.17.2/operator-sdk-v0.17.2-$(uname -m)-linux-gnu -o /home/travis/bin/operator-sdk && chmod +x /home/travis/bin/operator-sdk
-script:
-- bundle exec rspec
