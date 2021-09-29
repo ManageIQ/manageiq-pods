@@ -42,6 +42,11 @@ Options SymLinksIfOwnerMatch
   RewriteRule .* ws://ui:3000%%{REQUEST_URI}  [P,QSA,L]
   ProxyPassReverse /ws/notifications ws://ui:3000/ws/notifications
 
+  RewriteCond %%{REQUEST_URI}     ^/ws/console [NC]
+  RewriteCond %%{HTTP:UPGRADE}    ^websocket$  [NC]
+  RewriteCond %%{HTTP:CONNECTION} ^Upgrade$    [NC]
+  RewriteRule .* ws://remote-console:3000%%{REQUEST_URI}  [P,QSA,L]
+
   RewriteCond %%{REQUEST_URI} !^/api
 
   # For httpd, some ErrorDocuments must by served by the httpd pod
@@ -58,12 +63,6 @@ Options SymLinksIfOwnerMatch
 
   ProxyPass /api http://web-service:3000/api
   ProxyPassReverse /api http://web-service:3000/api
-
-  RewriteCond %%{REQUEST_URI}     ^/ws/console [NC]
-  RewriteCond %%{HTTP:UPGRADE}    ^websocket$  [NC]
-  RewriteCond %%{HTTP:CONNECTION} ^Upgrade$    [NC]
-  RewriteRule .* ws://remote-console:3000%%{REQUEST_URI}  [P,QSA,L]
-  ProxyPassReverse /ws/console ws://remote-console:3000/ws/console
 
   # Ensures httpd stdout/stderr are seen by 'docker logs'.
   ErrorLog  "/dev/stderr"
