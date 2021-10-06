@@ -45,6 +45,7 @@ RUN if [ ${ARCH} != "s390x" ] ; then dnf -y --disableplugin=subscription-manager
       https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm \
       https://rpm.manageiq.org/release/14-najdorf/el8/noarch/manageiq-release-14.0-1.el8.noarch.rpm \
       https://resources.ovirt.org/pub/yum-repo/ovirt-release44.rpm && \
+    rm -f /etc/yum.repos.d/ovirt-4.4-dependencies.repo && \
     dnf -y --disableplugin=subscription-manager module enable nodejs:12 && \
     dnf -y --disableplugin=subscription-manager module enable ruby:2.6 && \
     if [[ "$RELEASE_BUILD" != "true" ]]; then dnf config-manager --enable manageiq-14-najdorf-nightly; fi && \
