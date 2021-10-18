@@ -187,6 +187,7 @@ func updateOrchestratorEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
 	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "AUTH_TYPE", Value: cr.Spec.HttpdAuthenticationType})
 	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "GUID", Value: cr.Spec.ServerGuid})
 	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "LOCAL_LOGIN_ENABLED", Value: strconv.FormatBool(*cr.Spec.EnableApplicationLocalLogin)})
+	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "MEMCACHED_SERVER", Value: "memcached:11211"})
 	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "WORKER_RESOURCES", Value: strconv.FormatBool(*cr.Spec.EnforceWorkerResourceConstraints)})
 	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "WORKER_SERVICE_ACCOUNT", Value: defaultServiceAccountName(cr.Spec.AppName)})
 
