@@ -47,7 +47,7 @@ RUN if [ ${ARCH} != "s390x" ] ; then dnf -y --disableplugin=subscription-manager
       https://resources.ovirt.org/pub/yum-repo/ovirt-release44.rpm && \
     rm -f /etc/yum.repos.d/ovirt-4.4-dependencies.repo && \
     dnf -y --disableplugin=subscription-manager module enable nodejs:12 && \
-    dnf -y --disableplugin=subscription-manager module enable ruby:2.6 && \
+    dnf -y --disableplugin=subscription-manager module enable ruby:2.7 && \
     if [[ "$RELEASE_BUILD" != "true" ]]; then dnf config-manager --enable manageiq-14-najdorf-nightly; fi && \
     dnf config-manager --setopt=ubi-8-*.exclude=dracut*,net-snmp*,perl-*,redhat-release* --save && \
     if [[ "$LOCAL_RPM" = "true" ]]; then /create_local_yum_repo.sh; fi && \
