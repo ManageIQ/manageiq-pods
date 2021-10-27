@@ -210,23 +210,6 @@ func updateOrchestratorEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
 	}
 }
 
-func addOrUpdateEnvVar(environment []corev1.EnvVar, variable corev1.EnvVar) []corev1.EnvVar {
-	index := -1
-	for i, env := range environment {
-		if env.Name == variable.Name {
-			index = i
-		}
-	}
-
-	if index == -1 {
-		environment = append(environment, variable)
-	} else {
-		environment[index] = variable
-	}
-
-	return environment
-}
-
 func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, client client.Client) (*appsv1.Deployment, controllerutil.MutateFn, error) {
 	delaySecs, err := strconv.Atoi(cr.Spec.OrchestratorInitialDelay)
 	if err != nil {

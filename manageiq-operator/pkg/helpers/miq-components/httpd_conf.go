@@ -15,7 +15,7 @@ func httpdAuthConfigurationConf() string {
 }
 
 // application.conf
-func httpdApplicationConf(applicationDomain string) string {
+func httpdApplicationConf(applicationDomain string, uiHttpProtocol string, uiWebSocketProtocol string, apiHttpProtocol string) string {
 	s := `
 Listen 8080
 
@@ -28,19 +28,22 @@ RewriteEngine On
 Options SymLinksIfOwnerMatch
 
 <VirtualHost *:8080>
+  IncludeOptional conf.d/ssl_config
+  IncludeOptional conf.d/ssl_proxy_config
+
   KeepAlive on
   # Without ServerName mod_auth_mellon compares against http:// and not https:// from the IdP
   ServerName https://%%{REQUEST_HOST}
 
   ProxyPreserveHost on
-  RequestHeader set Host %s
-  RequestHeader set X-Forwarded-Host %s
+  RequestHeader set Host %[1]s
+  RequestHeader set X-Forwarded-Host %[1]s
 
   RewriteCond %%{REQUEST_URI}     ^/ws/notifications [NC]
   RewriteCond %%{HTTP:UPGRADE}    ^websocket$ [NC]
   RewriteCond %%{HTTP:CONNECTION} ^Upgrade$   [NC]
-  RewriteRule .* ws://ui:3000%%{REQUEST_URI}  [P,QSA,L]
-  ProxyPassReverse /ws/notifications ws://ui:3000/ws/notifications
+  RewriteRule .* %[2]s://ui:3000%%{REQUEST_URI}  [P,QSA,L]
+  ProxyPassReverse /ws/notifications %[2]s://ui:3000/ws/notifications
 
   RewriteCond %%{REQUEST_URI} !^/api
 
@@ -53,11 +56,11 @@ Options SymLinksIfOwnerMatch
   # For OpenID-Connect /openid-connect is only served by mod_auth_openidc
   RewriteCond %%{REQUEST_URI} !^/openid-connect
 
-  RewriteRule ^/ http://ui:3000%%{REQUEST_URI} [P,QSA,L]
-  ProxyPassReverse / http://ui:3000/
+  RewriteRule ^/ %[3]s://ui:3000%%{REQUEST_URI} [P,QSA,L]
+  ProxyPassReverse / %[3]s://ui:3000/
 
-  ProxyPass /api http://web-service:3000/api
-  ProxyPassReverse /api http://web-service:3000/api
+  ProxyPass /api %[4]s://web-service:3000/api
+  ProxyPassReverse /api %[4]s://web-service:3000/api
 
   RewriteCond %%{REQUEST_URI}     ^/ws/console [NC]
   RewriteCond %%{HTTP:UPGRADE}    ^websocket$  [NC]
@@ -70,7 +73,7 @@ Options SymLinksIfOwnerMatch
   CustomLog "/dev/stdout" common
 </VirtualHost>
 `
-	return fmt.Sprintf(s, applicationDomain, applicationDomain)
+	return fmt.Sprintf(s, applicationDomain, uiWebSocketProtocol, uiHttpProtocol, apiHttpProtocol)
 }
 
 // authentication.conf
@@ -467,4 +470,24 @@ LimitRequestFieldSize 524288
 </VirtualHost>
 `
 	return fmt.Sprintf(s, protocol)
+}
+
+func httpdSslConfig() string {
+	return `
+SSLEngine on
+SSLCertificateFile "/root/server.crt"
+SSLCertificateKeyFile "/root/server.key"
+RequestHeader set X_FORWARDED_PROTO 'https'
+`
+}
+
+func httpdSslProxyConfig() string {
+	return `
+SSLProxyEngine on
+SSLProxyCACertificateFile /etc/pki/ca-trust/source/anchors/root.crt
+SSLProxyCheckPeerCN on
+SSLProxyCheckPeerExpire on
+SSLProxyCheckPeerName on
+SSLProxyVerify require
+`
 }
