@@ -330,7 +330,7 @@ func (r *ReconcileManageIQ) reconcileHttpdDeployment(cr *miqv1alpha1.ManageIQ) e
 }
 
 func (r *ReconcileManageIQ) generateMemcachedResources(cr *miqv1alpha1.ManageIQ) error {
-	deployment, mutateFunc, err := miqtool.NewMemcachedDeployment(cr, r.scheme)
+	deployment, mutateFunc, err := miqtool.NewMemcachedDeployment(cr, r.scheme, r.client)
 	if err != nil {
 		return err
 	}
