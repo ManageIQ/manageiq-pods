@@ -102,15 +102,15 @@ func InternalCertificatesSecret(cr *miqv1alpha1.ManageIQ, client client.Client) 
 	return secret
 }
 
-func addInternalCertificate(cr *miqv1alpha1.ManageIQ, d *appsv1.Deployment, client client.Client, name string, mountPoint string) {
+func addInternalCertificate(cr *miqv1alpha1.ManageIQ, d *appsv1.Deployment, client client.Client, name string) {
 	secret := InternalCertificatesSecret(cr, client)
 	if secret.Data[fmt.Sprintf("%s_crt", name)] != nil && secret.Data[fmt.Sprintf("%s_key", name)] != nil {
 		volumeName := fmt.Sprintf("%s-certificate", name)
 
-		volumeMount := corev1.VolumeMount{Name: volumeName, MountPath: mountPoint, ReadOnly: true}
+		volumeMount := corev1.VolumeMount{Name: volumeName, MountPath: "/etc/pki/tls", ReadOnly: true}
 		d.Spec.Template.Spec.Containers[0].VolumeMounts = addOrUpdateVolumeMount(d.Spec.Template.Spec.Containers[0].VolumeMounts, volumeMount)
 
-		secretVolumeSource := corev1.SecretVolumeSource{SecretName: secret.Name, Items: []corev1.KeyToPath{corev1.KeyToPath{Key: fmt.Sprintf("%s_crt", name), Path: "server.crt"}, corev1.KeyToPath{Key: fmt.Sprintf("%s_key", name), Path: "server.key"}}}
+		secretVolumeSource := corev1.SecretVolumeSource{SecretName: secret.Name, Items: []corev1.KeyToPath{corev1.KeyToPath{Key: fmt.Sprintf("%s_crt", name), Path: "certs/server.crt"}, corev1.KeyToPath{Key: fmt.Sprintf("%s_key", name), Path: "private/server.key"}}}
 		d.Spec.Template.Spec.Volumes = addOrUpdateVolume(d.Spec.Template.Spec.Volumes, corev1.Volume{Name: volumeName, VolumeSource: corev1.VolumeSource{Secret: &secretVolumeSource}})
 	}
 }

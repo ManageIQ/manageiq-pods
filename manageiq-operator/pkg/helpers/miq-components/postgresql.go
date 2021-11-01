@@ -297,7 +297,7 @@ func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, client client.Client, scheme
 			},
 		}
 
-		addInternalCertificate(cr, deployment, client, "postgresql", "/opt/app-root/src/certificates")
+		addInternalCertificate(cr, deployment, client, "postgresql")
 
 		return nil
 	}

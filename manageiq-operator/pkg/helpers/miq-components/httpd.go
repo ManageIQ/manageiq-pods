@@ -466,7 +466,7 @@ func HttpdDeployment(client client.Client, cr *miqv1alpha1.ManageIQ, scheme *run
 
 		configureHttpdAuth(&cr.Spec, &deployment.Spec.Template.Spec)
 		setManagedHttpdCfgVersion(httpdAuthConfigVersion, &deployment.Spec.Template.Spec)
-		addInternalCertificate(cr, deployment, client, "httpd", "/root")
+		addInternalCertificate(cr, deployment, client, "httpd")
 
 		secret := InternalCertificatesSecret(cr, client)
 		if secret.Data["root_crt"] != nil {

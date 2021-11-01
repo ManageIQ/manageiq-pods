@@ -96,10 +96,10 @@ func NewMemcachedDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 		deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
 		deployment.Spec.Template.Spec.ServiceAccountName = defaultServiceAccountName(cr.Spec.AppName)
 
-		addInternalCertificate(cr, deployment, client, "memcached", "/root")
+		addInternalCertificate(cr, deployment, client, "memcached")
 
 		if secret := InternalCertificatesSecret(cr, client); secret.Data["memcached_crt"] != nil && secret.Data["memcached_key"] != nil {
-			deployment.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(deployment.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "MEMCACHED_EXTRA_PARAMETERS", Value: "-Z -o ssl_chain_cert=/root/server.crt -o ssl_key=/root/server.key -p 11211"})
+			deployment.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(deployment.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "MEMCACHED_EXTRA_PARAMETERS", Value: "-Z -o ssl_chain_cert=/etc/pki/tls/certs/server.crt -o ssl_key=/etc/pki/tls/private/server.key -p 11211"})
 		}
 
 		return nil

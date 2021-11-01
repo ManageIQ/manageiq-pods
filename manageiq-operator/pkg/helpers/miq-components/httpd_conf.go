@@ -475,8 +475,8 @@ LimitRequestFieldSize 524288
 func httpdSslConfig() string {
 	return `
 SSLEngine on
-SSLCertificateFile "/root/server.crt"
-SSLCertificateKeyFile "/root/server.key"
+SSLCertificateFile "/etc/pki/tls/certs/server.crt"
+SSLCertificateKeyFile "/etc/pki/tls/private/server.key"
 RequestHeader set X_FORWARDED_PROTO 'https'
 `
 }
