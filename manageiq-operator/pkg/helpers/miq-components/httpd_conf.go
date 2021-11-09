@@ -481,6 +481,15 @@ RequestHeader set X_FORWARDED_PROTO 'https'
 `
 }
 
+func appHttpdSslConfig() string {
+	return `
+SSLEngine on
+SSLCertificateFile "/etc/pki/tls/certs/server.crt"
+SSLCertificateKeyFile "/etc/pki/tls/private/server.key"
+RequestHeader set X_FORWARDED_PROTO 'https'
+`
+}
+
 func httpdSslProxyConfig() string {
 	return `
 SSLProxyEngine on

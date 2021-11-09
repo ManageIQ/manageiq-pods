@@ -164,7 +164,15 @@ func HttpdConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, client cli
 		addAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
 
 		uiHttpProtocol, uiWebSocketProtocol := "http", "ws"
+		if certSecret := InternalCertificatesSecret(cr, client); certSecret.Data["ui_crt"] != nil && certSecret.Data["ui_key"] != nil {
+			uiHttpProtocol, uiWebSocketProtocol = "https", "wss"
+		}
+
 		apiHttpProtocol := "http"
+		if certSecret := InternalCertificatesSecret(cr, client); certSecret.Data["api_crt"] != nil && certSecret.Data["api_key"] != nil {
+			apiHttpProtocol = "https"
+		}
+
 		configMap.Data["application.conf"] = httpdApplicationConf(cr.Spec.ApplicationDomain, uiHttpProtocol, uiWebSocketProtocol, apiHttpProtocol)
 		configMap.Data["authentication.conf"] = httpdAuthenticationConf(&cr.Spec)
 

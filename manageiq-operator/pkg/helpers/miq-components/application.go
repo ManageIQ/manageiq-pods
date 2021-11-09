@@ -27,6 +27,11 @@ func ApplicationUiHttpdConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Schem
 
 		protocol := "http"
 
+		if certSecret := InternalCertificatesSecret(cr, client); certSecret.Data["ui_crt"] != nil && certSecret.Data["ui_key"] != nil {
+			protocol = "https"
+			configMap.Data["ssl_config"] = appHttpdSslConfig()
+		}
+
 		configMap.Data["manageiq-http.conf"] = uiHttpdConfig(protocol)
 
 		return nil
@@ -52,6 +57,11 @@ func ApplicationApiHttpdConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Sche
 		addBackupLabel(cr.Spec.BackupLabelName, &configMap.ObjectMeta)
 
 		protocol := "http"
+
+		if certSecret := InternalCertificatesSecret(cr, client); certSecret.Data["api_crt"] != nil && certSecret.Data["api_key"] != nil {
+			protocol = "https"
+			configMap.Data["ssl_config"] = appHttpdSslConfig()
+		}
 
 		configMap.Data["manageiq-http.conf"] = apiHttpdConfig(protocol)
 
