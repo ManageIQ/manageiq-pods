@@ -9,7 +9,7 @@ ARG RPM_PREFIX=manageiq
 LABEL name="manageiq-webserver-worker" \
       summary="ManageIQ web server worker image"
 
-RUN dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install ${RPM_PREFIX}-ui && \
+RUN dnf -y --setopt=tsflags=nodocs install ${RPM_PREFIX}-ui && \
     dnf clean all && \
     rm -rf /var/cache/dnf
 
