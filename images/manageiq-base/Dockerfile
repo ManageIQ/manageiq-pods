@@ -45,7 +45,6 @@ RUN dnf -y remove subscription-manager* && \
     dnf -y install \
       https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm \
       https://rpm.manageiq.org/release/14-najdorf/el8/noarch/manageiq-release-14.0-2.el8.noarch.rpm && \
-    rm -f /etc/yum.repos.d/ovirt-4.4-dependencies.repo && \
     dnf -y module enable nodejs:12 && \
     dnf -y module enable ruby:2.7 && \
     if [[ "$RELEASE_BUILD" != "true" ]]; then dnf config-manager --enable manageiq-14-najdorf-nightly; fi && \
