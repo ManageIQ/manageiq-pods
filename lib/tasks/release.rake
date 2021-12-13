@@ -64,7 +64,7 @@ namespace :release do
     build_script = root.join("bin", "build")
     content = build_script.read
     content.sub!(/^(TAG=).+$/, "\\1latest-#{branch}")
-    content.sub!(/(BUILD_REF:-)\w+(\})/, "\\1#{branch}]\\2")
+    content.sub!(/(BUILD_REF:-)\w+(\})/, "\\1#{branch}\\2")
     build_script.write(content)
 
     # Modify bin/remove_images
