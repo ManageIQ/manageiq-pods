@@ -2,7 +2,7 @@
 
 TAG=latest-morphy
 
-BUILD_REF=${BUILD_REF:-morphy]}
+BUILD_REF=${BUILD_REF:-morphy}
 BUILD_ORG=${BUILD_ORG:-ManageIQ}
 
 ARCH=`uname -m`
