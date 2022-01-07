@@ -1,4 +1,4 @@
-apiVersion: apiextensions.k8s.io/v1beta1
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   name: manageiqs.manageiq.org
@@ -10,317 +10,323 @@ spec:
     plural: manageiqs
     singular: manageiq
   scope: Namespaced
-  subresources:
-    status: {}
-  validation:
-    openAPIV3Schema:
-      description: ManageIQ is the Schema for the manageiqs API
-      properties:
-        apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation
-            of an object. Servers should convert recognized schemas to the latest
-            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-          type: string
-        kind:
-          description: 'Kind is a string value representing the REST resource this
-            object represents. Servers may infer this from the endpoint the client
-            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-          type: string
-        metadata:
-          type: object
-        spec:
-          description: ManageIQSpec defines the desired state of ManageIQ
-          properties:
-            appAnnotations:
-              additionalProperties:
-                type: string
-              description: Optional Annotations to apply to the Httpd, Kafka, Memcached,
-                Orchestrator and PostgresQL Pods
-              type: object
-            appName:
-              description: 'Application name used for deployed objects (default: manageiq)'
-              type: string
-            applicationDomain:
-              description: Domain name for the external route. Used for external authentication
-                configuration
-              type: string
-            backupLabelName:
-              description: 'This label will be applied to essential resources that
-                need to be backed up (default: manageiq.org/backup)'
-              type: string
-            baseWorkerImage:
-              description: Image string used for the base worker deployments By default
-                this is determined by the orchestrator pod
-              type: string
-            databaseRegion:
-              description: 'Database region number (default: 0)'
-              type: string
-            databaseSecret:
-              description: 'Secret containing the database access information, content
-                generated if not provided (default: postgresql-secrets)'
-              type: string
-            databaseVolumeCapacity:
-              description: 'Database volume size (default: 15Gi)'
-              type: string
-            deployMessagingService:
-              description: 'Flag to indicate if Kafka and Zookeeper should be deployed
-                (default: false)'
-              type: boolean
-            enableApplicationLocalLogin:
-              description: 'Flag to allow logging into the application without SSO
-                (default: true)'
-              type: boolean
-            enableSSO:
-              description: 'Flag to enable SSO in the application (default: false)'
-              type: boolean
-            enforceWorkerResourceConstraints:
-              description: 'Flag to trigger worker resource constraint enforcement
-                (default: false)'
-              type: boolean
-            httpdAuthConfig:
-              description: Secret containing the httpd configuration files Mutually
-                exclusive with the OIDCClientSecret and OIDCProviderURL if using openid-connect
-              type: string
-            httpdAuthenticationType:
-              description: 'Type of httpd authentication (default: internal) Options:
-                internal, external, active-directory, saml, openid-connect Note: external,
-                active-directory, and saml require an httpd container with elevated
-                privileges'
-              pattern: \A(active-directory|external|internal|openid-connect|saml)\z
-              type: string
-            httpdCpuLimit:
-              description: 'Httpd deployment CPU limit (default: no limit)'
-              type: string
-            httpdCpuRequest:
-              description: 'Httpd deployment CPU request (default: no request)'
-              type: string
-            httpdImage:
-              description: 'Image string used for the httpd deployment (default: <HttpdImageNamespace>/httpd[-init]:<HttpdImageTag>)'
-              type: string
-            httpdImageNamespace:
-              description: 'Image namespace used for the httpd deployment (default:
-                manageiq) Note: the exact image will be determined by the authentication
-                method selected'
-              type: string
-            httpdImageTag:
-              description: 'Image tag used for the httpd deployment (default: latest)'
-              type: string
-            httpdMemoryLimit:
-              description: 'Httpd deployment memory limit (default: no limit)'
-              type: string
-            httpdMemoryRequest:
-              description: 'Httpd deployment memory request (default: no limit)'
-              type: string
-            imagePullSecret:
-              description: Secret containing the image registry authentication information
-                needed for the manageiq images
-              type: string
-            initialAdminGroupName:
-              description: Group name to create with the super admin role. This can
-                be used to seed a group when using external authentication
-              type: string
-            internalCertificatesSecret:
-              description: 'Secret containing all of the necessary certificates to
-                secure communication between pods (default: internal-certificates-secret)'
-              type: string
-            kafkaCpuRequest:
-              description: 'Kafka deployment CPU request (default: no request)'
-              type: string
-            kafkaCpulimit:
-              description: 'Kafka deployment CPU limit (default: no limit)'
-              type: string
-            kafkaImage:
-              description: 'Image string used for the kafka deployment (default: <KafkaImageName>:<KafkaImageTag>)'
-              type: string
-            kafkaImageName:
-              description: 'Image used for the kafka deployment (default: docker.io/bitnami/kafka)'
-              type: string
-            kafkaImageTag:
-              description: 'Image tag used for the kafka deployment (default: latest)'
-              type: string
-            kafkaMemoryLimit:
-              description: 'Kafka deployment memory limit (default: no limit)'
-              type: string
-            kafkaMemoryRequest:
-              description: 'Kafka deployment memory request (default: no limit)'
-              type: string
-            kafkaSecret:
-              description: 'Secret containing the kafka access information, content
-                generated if not provided (default: kafka-secrets)'
-              type: string
-            kafkaVolumeCapacity:
-              description: 'Kafka volume size (default: 1Gi)'
-              type: string
-            memcachedCpuLimit:
-              description: 'Memcached deployment CPU limit (default: no limit)'
-              type: string
-            memcachedCpuRequest:
-              description: 'Memcached deployment CPU request (default: no request)'
-              type: string
-            memcachedImage:
-              description: 'Image string used for the memcached deployment (default:
-                <MemcachedImageName>:<MemcachedImageTag>)'
-              type: string
-            memcachedImageName:
-              description: 'Image used for the memcached deployment (default: manageiq/memcached)'
-              type: string
-            memcachedImageTag:
-              description: 'Image tag used for the memcached deployment (default:
-                1.5)'
-              type: string
-            memcachedMaxConnection:
-              description: 'Memcached max simultaneous connections (default: 1024)'
-              type: string
-            memcachedMaxMemory:
-              description: 'Memcached item memory in megabytes (default: 64)'
-              type: string
-            memcachedMemoryLimit:
-              description: 'Memcached deployment memory limit (default: no limit)'
-              type: string
-            memcachedMemoryRequest:
-              description: 'Memcached deployment memory request (default: no limit)'
-              type: string
-            memcachedSlabPageSize:
-              description: 'Memcached max item size (default: 1m, min: 1k, max: 1024m)'
-              type: string
-            migrationsRan:
-              description: A list of CR data migrations that have been run
-              items:
-                type: string
-              type: array
-            oidcAuthIntrospectionURL:
-              description: URL for OIDC authentication introspection Only used with
-                the openid-connect authentication type. If not specified, the operator
-                will attempt to fetch its value from the "introspection_endpoint"
-                field in the Provider metadata at the OIDCProviderURL provided.
-              type: string
-            oidcCaCertSecret:
-              description: Secret containing the trusted CA certificate file(s) for
-                the OIDC server. Only used with the openid-connect authentication
-                type
-              type: string
-            oidcClientSecret:
-              description: Secret name containing the OIDC client id and secret Only
-                used with the openid-connect authentication type
-              type: string
-            oidcProviderURL:
-              description: URL for the OIDC provider Only used with the openid-connect
-                authentication type
-              type: string
-            orchestratorCpuLimit:
-              description: 'Orchestrator deployment CPU limit (default: no limit)'
-              type: string
-            orchestratorCpuRequest:
-              description: 'Orchestrator deployment CPU request (default: no request)'
-              type: string
-            orchestratorImage:
-              description: 'Image string used for the orchestrator deployment (default:
-                <OrchestratorImageNamespace>/<OrchestratorImageName>:<OrchestratorImageTag>)'
-              type: string
-            orchestratorImageName:
-              description: 'Image name used for the orchestrator deployment (default:
-                manageiq-orchestrator)'
-              type: string
-            orchestratorImageNamespace:
-              description: 'Image namespace used for the orchestrator and worker deployments
-                (default: manageiq)'
-              type: string
-            orchestratorImageTag:
-              description: 'Image tag used for the orchestrator and worker deployments
-                (default: latest)'
-              type: string
-            orchestratorInitialDelay:
-              description: 'Number of seconds to wait before starting the orchestrator
-                liveness check (default: 480)'
-              type: string
-            orchestratorMemoryLimit:
-              description: 'Orchestrator deployment memory limit (default: no limit)'
-              type: string
-            orchestratorMemoryRequest:
-              description: 'Orchestrator deployment memory request (default: no limit)'
-              type: string
-            postgresqlCpuLimit:
-              description: 'PostgreSQL deployment CPU limit (default: no limit)'
-              type: string
-            postgresqlCpuRequest:
-              description: 'PostgreSQL deployment CPU request (default: no request)'
-              type: string
-            postgresqlImage:
-              description: 'Image string used for the postgresql deployment (default:
-                <PostgresqlImageName>:<PostgresqlImageTag>)'
-              type: string
-            postgresqlImageName:
-              description: 'Image used for the postgresql deployment (Default: docker.io/manageiq/postgresql)'
-              type: string
-            postgresqlImageTag:
-              description: 'Image tag used for the postgresql deployment (Default:
-                10)'
-              type: string
-            postgresqlMaxConnections:
-              description: 'PostgreSQL maximum connection setting (default: 1000)'
-              type: string
-            postgresqlMemoryLimit:
-              description: 'PostgreSQL deployment memory limit (default: no limit)'
-              type: string
-            postgresqlMemoryRequest:
-              description: 'PostgreSQL deployment memory request (default: no limit)'
-              type: string
-            postgresqlSharedBuffers:
-              description: 'PostgreSQL shared buffers setting (default: 1GB)'
-              type: string
-            serverGuid:
-              description: 'Server GUID (default: auto-generated)'
-              type: string
-            storageClassName:
-              description: StorageClass name that will be used by manageiq data stores
-              type: string
-            tlsSecret:
-              description: 'Secret containing the tls cert and key for the ingress,
-                content generated if not provided (default: tls-secret)'
-              type: string
-            uiWorkerImage:
-              description: Image string used for the UI worker deployments By default
-                this is determined by the orchestrator pod
-              type: string
-            webserverWorkerImage:
-              description: Image string used for the webserver worker deployments
-                By default this is determined by the orchestrator pod
-              type: string
-            zookeeperCpuRequest:
-              description: 'Zookeeper deployment CPU request (default: no request)'
-              type: string
-            zookeeperCpulimit:
-              description: 'Zookeeper deployment CPU limit (default: no limit)'
-              type: string
-            zookeeperImage:
-              description: 'Image string used for the zookeeper deployment (default:
-                <ZookeeperImageName>:<ZookeeperImageTag>)'
-              type: string
-            zookeeperImageName:
-              description: 'Image used for the zookeeper deployment (default: docker.io/bitnami/zookeeper)'
-              type: string
-            zookeeperImageTag:
-              description: 'Image tag used for the zookeeper deployment (default:
-                latest)'
-              type: string
-            zookeeperMemoryLimit:
-              description: 'Zookeeper deployment memory limit (default: no limit)'
-              type: string
-            zookeeperMemoryRequest:
-              description: 'Zookeeper deployment memory request (default: no limit)'
-              type: string
-            zookeeperVolumeCapacity:
-              description: 'Zookeeper volume size (default: 1Gi)'
-              type: string
-          required:
-          - applicationDomain
-          type: object
-        status:
-          description: ManageIQStatus defines the observed state of ManageIQ
-          type: object
-      type: object
-  version: v1alpha1
   versions:
   - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: ManageIQ is the Schema for the manageiqs API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ManageIQSpec defines the desired state of ManageIQ
+            properties:
+              appAnnotations:
+                additionalProperties:
+                  type: string
+                description: Optional Annotations to apply to the Httpd, Kafka, Memcached,
+                  Orchestrator and PostgresQL Pods
+                type: object
+              appName:
+                description: 'Application name used for deployed objects (default:
+                  manageiq)'
+                type: string
+              applicationDomain:
+                description: Domain name for the external route. Used for external
+                  authentication configuration
+                type: string
+              backupLabelName:
+                description: 'This label will be applied to essential resources that
+                  need to be backed up (default: manageiq.org/backup)'
+                type: string
+              baseWorkerImage:
+                description: Image string used for the base worker deployments By
+                  default this is determined by the orchestrator pod
+                type: string
+              databaseRegion:
+                description: 'Database region number (default: 0)'
+                type: string
+              databaseSecret:
+                description: 'Secret containing the database access information, content
+                  generated if not provided (default: postgresql-secrets)'
+                type: string
+              databaseVolumeCapacity:
+                description: 'Database volume size (default: 15Gi)'
+                type: string
+              deployMessagingService:
+                description: 'Flag to indicate if Kafka and Zookeeper should be deployed
+                  (default: false)'
+                type: boolean
+              enableApplicationLocalLogin:
+                description: 'Flag to allow logging into the application without SSO
+                  (default: true)'
+                type: boolean
+              enableSSO:
+                description: 'Flag to enable SSO in the application (default: false)'
+                type: boolean
+              enforceWorkerResourceConstraints:
+                description: 'Flag to trigger worker resource constraint enforcement
+                  (default: false)'
+                type: boolean
+              httpdAuthConfig:
+                description: Secret containing the httpd configuration files Mutually
+                  exclusive with the OIDCClientSecret and OIDCProviderURL if using
+                  openid-connect
+                type: string
+              httpdAuthenticationType:
+                description: 'Type of httpd authentication (default: internal) Options:
+                  internal, external, active-directory, saml, openid-connect Note:
+                  external, active-directory, and saml require an httpd container
+                  with elevated privileges'
+                pattern: \A(active-directory|external|internal|openid-connect|saml)\z
+                type: string
+              httpdCpuLimit:
+                description: 'Httpd deployment CPU limit (default: no limit)'
+                type: string
+              httpdCpuRequest:
+                description: 'Httpd deployment CPU request (default: no request)'
+                type: string
+              httpdImage:
+                description: 'Image string used for the httpd deployment (default:
+                  <HttpdImageNamespace>/httpd[-init]:<HttpdImageTag>)'
+                type: string
+              httpdImageNamespace:
+                description: 'Image namespace used for the httpd deployment (default:
+                  manageiq) Note: the exact image will be determined by the authentication
+                  method selected'
+                type: string
+              httpdImageTag:
+                description: 'Image tag used for the httpd deployment (default: latest)'
+                type: string
+              httpdMemoryLimit:
+                description: 'Httpd deployment memory limit (default: no limit)'
+                type: string
+              httpdMemoryRequest:
+                description: 'Httpd deployment memory request (default: no limit)'
+                type: string
+              imagePullSecret:
+                description: Secret containing the image registry authentication information
+                  needed for the manageiq images
+                type: string
+              initialAdminGroupName:
+                description: Group name to create with the super admin role. This
+                  can be used to seed a group when using external authentication
+                type: string
+              internalCertificatesSecret:
+                description: 'Secret containing all of the necessary certificates
+                  to secure communication between pods (default: internal-certificates-secret)'
+                type: string
+              kafkaCpuRequest:
+                description: 'Kafka deployment CPU request (default: no request)'
+                type: string
+              kafkaCpulimit:
+                description: 'Kafka deployment CPU limit (default: no limit)'
+                type: string
+              kafkaImage:
+                description: 'Image string used for the kafka deployment (default:
+                  <KafkaImageName>:<KafkaImageTag>)'
+                type: string
+              kafkaImageName:
+                description: 'Image used for the kafka deployment (default: docker.io/bitnami/kafka)'
+                type: string
+              kafkaImageTag:
+                description: 'Image tag used for the kafka deployment (default: latest)'
+                type: string
+              kafkaMemoryLimit:
+                description: 'Kafka deployment memory limit (default: no limit)'
+                type: string
+              kafkaMemoryRequest:
+                description: 'Kafka deployment memory request (default: no limit)'
+                type: string
+              kafkaSecret:
+                description: 'Secret containing the kafka access information, content
+                  generated if not provided (default: kafka-secrets)'
+                type: string
+              kafkaVolumeCapacity:
+                description: 'Kafka volume size (default: 1Gi)'
+                type: string
+              memcachedCpuLimit:
+                description: 'Memcached deployment CPU limit (default: no limit)'
+                type: string
+              memcachedCpuRequest:
+                description: 'Memcached deployment CPU request (default: no request)'
+                type: string
+              memcachedImage:
+                description: 'Image string used for the memcached deployment (default:
+                  <MemcachedImageName>:<MemcachedImageTag>)'
+                type: string
+              memcachedImageName:
+                description: 'Image used for the memcached deployment (default: manageiq/memcached)'
+                type: string
+              memcachedImageTag:
+                description: 'Image tag used for the memcached deployment (default:
+                  1.5)'
+                type: string
+              memcachedMaxConnection:
+                description: 'Memcached max simultaneous connections (default: 1024)'
+                type: string
+              memcachedMaxMemory:
+                description: 'Memcached item memory in megabytes (default: 64)'
+                type: string
+              memcachedMemoryLimit:
+                description: 'Memcached deployment memory limit (default: no limit)'
+                type: string
+              memcachedMemoryRequest:
+                description: 'Memcached deployment memory request (default: no limit)'
+                type: string
+              memcachedSlabPageSize:
+                description: 'Memcached max item size (default: 1m, min: 1k, max:
+                  1024m)'
+                type: string
+              migrationsRan:
+                description: A list of CR data migrations that have been run
+                items:
+                  type: string
+                type: array
+              oidcAuthIntrospectionURL:
+                description: URL for OIDC authentication introspection Only used with
+                  the openid-connect authentication type. If not specified, the operator
+                  will attempt to fetch its value from the "introspection_endpoint"
+                  field in the Provider metadata at the OIDCProviderURL provided.
+                type: string
+              oidcCaCertSecret:
+                description: Secret containing the trusted CA certificate file(s)
+                  for the OIDC server. Only used with the openid-connect authentication
+                  type
+                type: string
+              oidcClientSecret:
+                description: Secret name containing the OIDC client id and secret
+                  Only used with the openid-connect authentication type
+                type: string
+              oidcProviderURL:
+                description: URL for the OIDC provider Only used with the openid-connect
+                  authentication type
+                type: string
+              orchestratorCpuLimit:
+                description: 'Orchestrator deployment CPU limit (default: no limit)'
+                type: string
+              orchestratorCpuRequest:
+                description: 'Orchestrator deployment CPU request (default: no request)'
+                type: string
+              orchestratorImage:
+                description: 'Image string used for the orchestrator deployment (default:
+                  <OrchestratorImageNamespace>/<OrchestratorImageName>:<OrchestratorImageTag>)'
+                type: string
+              orchestratorImageName:
+                description: 'Image name used for the orchestrator deployment (default:
+                  manageiq-orchestrator)'
+                type: string
+              orchestratorImageNamespace:
+                description: 'Image namespace used for the orchestrator and worker
+                  deployments (default: manageiq)'
+                type: string
+              orchestratorImageTag:
+                description: 'Image tag used for the orchestrator and worker deployments
+                  (default: latest)'
+                type: string
+              orchestratorInitialDelay:
+                description: 'Number of seconds to wait before starting the orchestrator
+                  liveness check (default: 480)'
+                type: string
+              orchestratorMemoryLimit:
+                description: 'Orchestrator deployment memory limit (default: no limit)'
+                type: string
+              orchestratorMemoryRequest:
+                description: 'Orchestrator deployment memory request (default: no
+                  limit)'
+                type: string
+              postgresqlCpuLimit:
+                description: 'PostgreSQL deployment CPU limit (default: no limit)'
+                type: string
+              postgresqlCpuRequest:
+                description: 'PostgreSQL deployment CPU request (default: no request)'
+                type: string
+              postgresqlImage:
+                description: 'Image string used for the postgresql deployment (default:
+                  <PostgresqlImageName>:<PostgresqlImageTag>)'
+                type: string
+              postgresqlImageName:
+                description: 'Image used for the postgresql deployment (Default: docker.io/manageiq/postgresql)'
+                type: string
+              postgresqlImageTag:
+                description: 'Image tag used for the postgresql deployment (Default:
+                  10)'
+                type: string
+              postgresqlMaxConnections:
+                description: 'PostgreSQL maximum connection setting (default: 1000)'
+                type: string
+              postgresqlMemoryLimit:
+                description: 'PostgreSQL deployment memory limit (default: no limit)'
+                type: string
+              postgresqlMemoryRequest:
+                description: 'PostgreSQL deployment memory request (default: no limit)'
+                type: string
+              postgresqlSharedBuffers:
+                description: 'PostgreSQL shared buffers setting (default: 1GB)'
+                type: string
+              serverGuid:
+                description: 'Server GUID (default: auto-generated)'
+                type: string
+              storageClassName:
+                description: StorageClass name that will be used by manageiq data
+                  stores
+                type: string
+              tlsSecret:
+                description: 'Secret containing the tls cert and key for the ingress,
+                  content generated if not provided (default: tls-secret)'
+                type: string
+              uiWorkerImage:
+                description: Image string used for the UI worker deployments By default
+                  this is determined by the orchestrator pod
+                type: string
+              webserverWorkerImage:
+                description: Image string used for the webserver worker deployments
+                  By default this is determined by the orchestrator pod
+                type: string
+              zookeeperCpuRequest:
+                description: 'Zookeeper deployment CPU request (default: no request)'
+                type: string
+              zookeeperCpulimit:
+                description: 'Zookeeper deployment CPU limit (default: no limit)'
+                type: string
+              zookeeperImage:
+                description: 'Image string used for the zookeeper deployment (default:
+                  <ZookeeperImageName>:<ZookeeperImageTag>)'
+                type: string
+              zookeeperImageName:
+                description: 'Image used for the zookeeper deployment (default: docker.io/bitnami/zookeeper)'
+                type: string
+              zookeeperImageTag:
+                description: 'Image tag used for the zookeeper deployment (default:
+                  latest)'
+                type: string
+              zookeeperMemoryLimit:
+                description: 'Zookeeper deployment memory limit (default: no limit)'
+                type: string
+              zookeeperMemoryRequest:
+                description: 'Zookeeper deployment memory request (default: no limit)'
+                type: string
+              zookeeperVolumeCapacity:
+                description: 'Zookeeper volume size (default: 1Gi)'
+                type: string
+            required:
+            - applicationDomain
+            type: object
+          status:
+            description: ManageIQStatus defines the observed state of ManageIQ
+            type: object
+        type: object
     served: true
     storage: true
+    subresources:
+      status: {}
