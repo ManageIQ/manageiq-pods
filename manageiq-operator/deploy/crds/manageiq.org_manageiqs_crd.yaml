@@ -12,7 +12,6 @@ spec:
   scope: Namespaced
   versions:
   - name: v1alpha1
-    served: true
     schema:
       openAPIV3Schema:
         description: ManageIQ is the Schema for the manageiqs API
@@ -39,19 +38,20 @@ spec:
                   Orchestrator and PostgresQL Pods
                 type: object
               appName:
-                description: 'Application name used for deployed objects (default: manageiq)'
+                description: 'Application name used for deployed objects (default:
+                  manageiq)'
                 type: string
               applicationDomain:
-                description: Domain name for the external route. Used for external authentication
-                  configuration
+                description: Domain name for the external route. Used for external
+                  authentication configuration
                 type: string
               backupLabelName:
                 description: 'This label will be applied to essential resources that
                   need to be backed up (default: manageiq.org/backup)'
                 type: string
               baseWorkerImage:
-                description: Image string used for the base worker deployments By default
-                  this is determined by the orchestrator pod
+                description: Image string used for the base worker deployments By
+                  default this is determined by the orchestrator pod
                 type: string
               databaseRegion:
                 description: 'Database region number (default: 0)'
@@ -80,13 +80,14 @@ spec:
                 type: boolean
               httpdAuthConfig:
                 description: Secret containing the httpd configuration files Mutually
-                  exclusive with the OIDCClientSecret and OIDCProviderURL if using openid-connect
+                  exclusive with the OIDCClientSecret and OIDCProviderURL if using
+                  openid-connect
                 type: string
               httpdAuthenticationType:
                 description: 'Type of httpd authentication (default: internal) Options:
-                  internal, external, active-directory, saml, openid-connect Note: external,
-                  active-directory, and saml require an httpd container with elevated
-                  privileges'
+                  internal, external, active-directory, saml, openid-connect Note:
+                  external, active-directory, and saml require an httpd container
+                  with elevated privileges'
                 pattern: \A(active-directory|external|internal|openid-connect|saml)\z
                 type: string
               httpdCpuLimit:
@@ -96,7 +97,8 @@ spec:
                 description: 'Httpd deployment CPU request (default: no request)'
                 type: string
               httpdImage:
-                description: 'Image string used for the httpd deployment (default: <HttpdImageNamespace>/httpd[-init]:<HttpdImageTag>)'
+                description: 'Image string used for the httpd deployment (default:
+                  <HttpdImageNamespace>/httpd[-init]:<HttpdImageTag>)'
                 type: string
               httpdImageNamespace:
                 description: 'Image namespace used for the httpd deployment (default:
@@ -117,12 +119,12 @@ spec:
                   needed for the manageiq images
                 type: string
               initialAdminGroupName:
-                description: Group name to create with the super admin role. This can
-                  be used to seed a group when using external authentication
+                description: Group name to create with the super admin role. This
+                  can be used to seed a group when using external authentication
                 type: string
               internalCertificatesSecret:
-                description: 'Secret containing all of the necessary certificates to
-                  secure communication between pods (default: internal-certificates-secret)'
+                description: 'Secret containing all of the necessary certificates
+                  to secure communication between pods (default: internal-certificates-secret)'
                 type: string
               kafkaCpuRequest:
                 description: 'Kafka deployment CPU request (default: no request)'
@@ -131,7 +133,8 @@ spec:
                 description: 'Kafka deployment CPU limit (default: no limit)'
                 type: string
               kafkaImage:
-                description: 'Image string used for the kafka deployment (default: <KafkaImageName>:<KafkaImageTag>)'
+                description: 'Image string used for the kafka deployment (default:
+                  <KafkaImageName>:<KafkaImageTag>)'
                 type: string
               kafkaImageName:
                 description: 'Image used for the kafka deployment (default: docker.io/bitnami/kafka)'
@@ -182,7 +185,8 @@ spec:
                 description: 'Memcached deployment memory request (default: no limit)'
                 type: string
               memcachedSlabPageSize:
-                description: 'Memcached max item size (default: 1m, min: 1k, max: 1024m)'
+                description: 'Memcached max item size (default: 1m, min: 1k, max:
+                  1024m)'
                 type: string
               migrationsRan:
                 description: A list of CR data migrations that have been run
@@ -196,13 +200,13 @@ spec:
                   field in the Provider metadata at the OIDCProviderURL provided.
                 type: string
               oidcCaCertSecret:
-                description: Secret containing the trusted CA certificate file(s) for
-                  the OIDC server. Only used with the openid-connect authentication
+                description: Secret containing the trusted CA certificate file(s)
+                  for the OIDC server. Only used with the openid-connect authentication
                   type
                 type: string
               oidcClientSecret:
-                description: Secret name containing the OIDC client id and secret Only
-                  used with the openid-connect authentication type
+                description: Secret name containing the OIDC client id and secret
+                  Only used with the openid-connect authentication type
                 type: string
               oidcProviderURL:
                 description: URL for the OIDC provider Only used with the openid-connect
@@ -223,8 +227,8 @@ spec:
                   manageiq-orchestrator)'
                 type: string
               orchestratorImageNamespace:
-                description: 'Image namespace used for the orchestrator and worker deployments
-                  (default: manageiq)'
+                description: 'Image namespace used for the orchestrator and worker
+                  deployments (default: manageiq)'
                 type: string
               orchestratorImageTag:
                 description: 'Image tag used for the orchestrator and worker deployments
@@ -238,7 +242,8 @@ spec:
                 description: 'Orchestrator deployment memory limit (default: no limit)'
                 type: string
               orchestratorMemoryRequest:
-                description: 'Orchestrator deployment memory request (default: no limit)'
+                description: 'Orchestrator deployment memory request (default: no
+                  limit)'
                 type: string
               postgresqlCpuLimit:
                 description: 'PostgreSQL deployment CPU limit (default: no limit)'
@@ -273,7 +278,8 @@ spec:
                 description: 'Server GUID (default: auto-generated)'
                 type: string
               storageClassName:
-                description: StorageClass name that will be used by manageiq data stores
+                description: StorageClass name that will be used by manageiq data
+                  stores
                 type: string
               tlsSecret:
                 description: 'Secret containing the tls cert and key for the ingress,
@@ -320,6 +326,7 @@ spec:
             description: ManageIQStatus defines the observed state of ManageIQ
             type: object
         type: object
+    served: true
     storage: true
     subresources:
       status: {}
