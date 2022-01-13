@@ -9,7 +9,7 @@ import (
 	tlstools "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/helpers/tlstools"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
+	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -42,8 +42,9 @@ func HttpdServiceAccount(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*cor
 	return serviceAccount, f
 }
 
-func Ingress(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*extensionsv1beta1.Ingress, controllerutil.MutateFn) {
-	ingress := &extensionsv1beta1.Ingress{
+func Ingress(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*networkingv1.Ingress, controllerutil.MutateFn) {
+	implementationSpecific := networkingv1.PathType("ImplementationSpecific")
+	ingress := &networkingv1.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "httpd",
 			Namespace: cr.ObjectMeta.Namespace,
@@ -55,24 +56,29 @@ func Ingress(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*extensionsv1bet
 			return err
 		}
 		if len(ingress.Spec.TLS) == 0 {
-			ingress.Spec.TLS = append(ingress.Spec.TLS, extensionsv1beta1.IngressTLS{})
+			ingress.Spec.TLS = append(ingress.Spec.TLS, networkingv1.IngressTLS{})
 		}
 		if len(ingress.Spec.TLS[0].Hosts) == 0 {
 			ingress.Spec.TLS[0].Hosts = append(ingress.Spec.TLS[0].Hosts, cr.Spec.ApplicationDomain)
 		}
 		ingress.Spec.TLS[0].Hosts[0] = cr.Spec.ApplicationDomain
 		ingress.Spec.TLS[0].SecretName = tlsSecretName(cr)
-		ingress.Spec.Rules = []extensionsv1beta1.IngressRule{
-			extensionsv1beta1.IngressRule{
+		ingress.Spec.Rules = []networkingv1.IngressRule{
+			networkingv1.IngressRule{
 				Host: cr.Spec.ApplicationDomain,
-				IngressRuleValue: extensionsv1beta1.IngressRuleValue{
-					HTTP: &extensionsv1beta1.HTTPIngressRuleValue{
-						Paths: []extensionsv1beta1.HTTPIngressPath{
+				IngressRuleValue: networkingv1.IngressRuleValue{
+					HTTP: &networkingv1.HTTPIngressRuleValue{
+						Paths: []networkingv1.HTTPIngressPath{
 							{
-								Path: "/",
-								Backend: extensionsv1beta1.IngressBackend{
-									ServiceName: "httpd",
-									ServicePort: intstr.FromInt(8080),
+								Path:     "/",
+								PathType: &implementationSpecific,
+								Backend: networkingv1.IngressBackend{
+									Service: &networkingv1.IngressServiceBackend{
+										Name: "httpd",
+										Port: networkingv1.ServiceBackendPort{
+											Number: 8080,
+										},
+									},
 								},
 							},
 						},
