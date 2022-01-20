@@ -284,12 +284,6 @@ func getHttpdAuthConfigVersion(client client.Client, namespace string, spec *miq
 	return httpd_auth_config_version
 }
 
-func setManagedHttpdCfgVersion(httpdAuthConfigVersion string, podSpec *corev1.PodSpec) {
-	// This is not used by the pod, it is defined to trigger a redeployment if the secret was updated
-	managedHttpdCfgRevision := corev1.EnvVar{Name: "MANAGED_HTTPD_CFG_VERSION", Value: httpdAuthConfigVersion}
-	podSpec.Containers[0].Env = append(podSpec.Containers[0].Env, managedHttpdCfgRevision)
-}
-
 func addAuthConfigVolume(podSpec *corev1.PodSpec) {
 	volumeMount := corev1.VolumeMount{Name: "httpd-auth-config", MountPath: "/etc/httpd/auth-conf.d"}
 	podSpec.Containers[0].VolumeMounts = addOrUpdateVolumeMount(podSpec.Containers[0].VolumeMounts, volumeMount)
@@ -433,7 +427,6 @@ func HttpdDeployment(client client.Client, cr *miqv1alpha1.ManageIQ, scheme *run
 		},
 	}
 
-	httpdAuthConfigVersion := getHttpdAuthConfigVersion(client, cr.Namespace, &cr.Spec)
 
 	f := func() error {
 		if err := controllerutil.SetControllerReference(cr, deployment, scheme); err != nil {
@@ -459,7 +452,11 @@ func HttpdDeployment(client client.Client, cr *miqv1alpha1.ManageIQ, scheme *run
 		}
 
 		configureHttpdAuth(&cr.Spec, &deployment.Spec.Template.Spec)
-		setManagedHttpdCfgVersion(httpdAuthConfigVersion, &deployment.Spec.Template.Spec)
+
+		// This is not used by the pod, it is defined to trigger a redeployment if the secret was updated
+		httpdAuthConfigVersion := getHttpdAuthConfigVersion(client, cr.Namespace, &cr.Spec)
+		deployment.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(deployment.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "MANAGED_HTTPD_CFG_VERSION", Value: httpdAuthConfigVersion})
+
 		addInternalCertificate(cr, deployment, client, "httpd", "/root")
 
 		secret := InternalCertificatesSecret(cr, client)
