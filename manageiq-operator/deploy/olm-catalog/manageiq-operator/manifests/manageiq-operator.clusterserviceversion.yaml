@@ -88,13 +88,13 @@ spec:
           resources:
           - deployments
           - deployments/scale
-          - ingresses
           - networkpolicies
           verbs:
           - '*'
         - apiGroups:
           - networking.k8s.io
           resources:
+          - ingresses
           - networkpolicies
           verbs:
           - '*'
