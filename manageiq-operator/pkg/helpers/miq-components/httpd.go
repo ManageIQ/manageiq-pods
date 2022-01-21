@@ -267,8 +267,9 @@ func addOIDCEnv(secretName string, podSpec *corev1.PodSpec) {
 			},
 		},
 	}
-	podSpec.Containers[0].Env = append(podSpec.Containers[0].Env, clientId)
-	podSpec.Containers[0].Env = append(podSpec.Containers[0].Env, clientSecret)
+
+	podSpec.Containers[0].Env = addOrUpdateEnvVar(podSpec.Containers[0].Env, clientId)
+	podSpec.Containers[0].Env = addOrUpdateEnvVar(podSpec.Containers[0].Env, clientSecret)
 }
 
 func getHttpdAuthConfigVersion(client client.Client, namespace string, spec *miqv1alpha1.ManageIQSpec) string {
@@ -283,55 +284,28 @@ func getHttpdAuthConfigVersion(client client.Client, namespace string, spec *miq
 	return httpd_auth_config_version
 }
 
-func setManagedHttpdCfgVersion(httpdAuthConfigVersion string, podSpec *corev1.PodSpec) {
-	// This is not used by the pod, it is defined to trigger a redeployment if the secret was updated
-	managedHttpdCfgRevision := corev1.EnvVar{Name: "MANAGED_HTTPD_CFG_VERSION", Value: httpdAuthConfigVersion}
-	podSpec.Containers[0].Env = append(podSpec.Containers[0].Env, managedHttpdCfgRevision)
-}
-
 func addAuthConfigVolume(podSpec *corev1.PodSpec) {
-	vol := corev1.Volume{
-		Name: "httpd-auth-config",
-		VolumeSource: corev1.VolumeSource{
-			ConfigMap: &corev1.ConfigMapVolumeSource{
-				LocalObjectReference: corev1.LocalObjectReference{Name: "httpd-auth-configs"},
-			},
-		},
-	}
-	podSpec.Volumes = append(podSpec.Volumes, vol)
+	volumeMount := corev1.VolumeMount{Name: "httpd-auth-config", MountPath: "/etc/httpd/auth-conf.d"}
+	podSpec.Containers[0].VolumeMounts = addOrUpdateVolumeMount(podSpec.Containers[0].VolumeMounts, volumeMount)
 
-	mount := corev1.VolumeMount{Name: "httpd-auth-config", MountPath: "/etc/httpd/auth-conf.d"}
-	podSpec.Containers[0].VolumeMounts = append(podSpec.Containers[0].VolumeMounts, mount)
+	configMapVolumeSource := corev1.ConfigMapVolumeSource{LocalObjectReference: corev1.LocalObjectReference{Name: "httpd-auth-configs"}}
+	podSpec.Volumes = addOrUpdateVolume(podSpec.Volumes, corev1.Volume{Name: "httpd-auth-config", VolumeSource: corev1.VolumeSource{ConfigMap: &configMapVolumeSource}})
 }
 
 func addUserAuthVolume(secretName string, podSpec *corev1.PodSpec) {
-	vol := corev1.Volume{
-		Name: "user-auth-config",
-		VolumeSource: corev1.VolumeSource{
-			Secret: &corev1.SecretVolumeSource{
-				SecretName: secretName,
-			},
-		},
-	}
-	podSpec.Volumes = append(podSpec.Volumes, vol)
+	volumeMount := corev1.VolumeMount{Name: "user-auth-config", MountPath: "/etc/httpd/user-conf.d"}
+	podSpec.Containers[0].VolumeMounts = addOrUpdateVolumeMount(podSpec.Containers[0].VolumeMounts, volumeMount)
 
-	mount := corev1.VolumeMount{Name: "user-auth-config", MountPath: "/etc/httpd/user-conf.d"}
-	podSpec.Containers[0].VolumeMounts = append(podSpec.Containers[0].VolumeMounts, mount)
+	secretVolumeSource := corev1.SecretVolumeSource{SecretName: secretName}
+	podSpec.Volumes = addOrUpdateVolume(podSpec.Volumes, corev1.Volume{Name: "user-auth-config", VolumeSource: corev1.VolumeSource{Secret: &secretVolumeSource}})
 }
 
 func addOIDCCACertVolume(secretName string, podSpec *corev1.PodSpec) {
-	vol := corev1.Volume{
-		Name: "oidc-ca-cert",
-		VolumeSource: corev1.VolumeSource{
-			Secret: &corev1.SecretVolumeSource{
-				SecretName: secretName,
-			},
-		},
-	}
-	podSpec.Volumes = append(podSpec.Volumes, vol)
+	volumeMount := corev1.VolumeMount{Name: "oidc-ca-cert", MountPath: "/etc/pki/ca-trust/source/anchors"}
+	podSpec.Containers[0].VolumeMounts = addOrUpdateVolumeMount(podSpec.Containers[0].VolumeMounts, volumeMount)
 
-	mount := corev1.VolumeMount{Name: "oidc-ca-cert", MountPath: "/etc/pki/ca-trust/source/anchors"}
-	podSpec.Containers[0].VolumeMounts = append(podSpec.Containers[0].VolumeMounts, mount)
+	secretVolumeSource := corev1.SecretVolumeSource{SecretName: secretName}
+	podSpec.Volumes = addOrUpdateVolume(podSpec.Volumes, corev1.Volume{Name: "oidc-ca-cert", VolumeSource: corev1.VolumeSource{Secret: &secretVolumeSource}})
 }
 
 func configureHttpdAuth(spec *miqv1alpha1.ManageIQSpec, podSpec *corev1.PodSpec) {
@@ -453,7 +427,6 @@ func HttpdDeployment(client client.Client, cr *miqv1alpha1.ManageIQ, scheme *run
 		},
 	}
 
-	httpdAuthConfigVersion := getHttpdAuthConfigVersion(client, cr.Namespace, &cr.Spec)
 
 	f := func() error {
 		if err := controllerutil.SetControllerReference(cr, deployment, scheme); err != nil {
@@ -479,7 +452,11 @@ func HttpdDeployment(client client.Client, cr *miqv1alpha1.ManageIQ, scheme *run
 		}
 
 		configureHttpdAuth(&cr.Spec, &deployment.Spec.Template.Spec)
-		setManagedHttpdCfgVersion(httpdAuthConfigVersion, &deployment.Spec.Template.Spec)
+
+		// This is not used by the pod, it is defined to trigger a redeployment if the secret was updated
+		httpdAuthConfigVersion := getHttpdAuthConfigVersion(client, cr.Namespace, &cr.Spec)
+		deployment.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(deployment.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "MANAGED_HTTPD_CFG_VERSION", Value: httpdAuthConfigVersion})
+
 		addInternalCertificate(cr, deployment, client, "httpd", "/root")
 
 		secret := InternalCertificatesSecret(cr, client)
