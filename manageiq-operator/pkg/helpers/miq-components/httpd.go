@@ -427,7 +427,6 @@ func HttpdDeployment(client client.Client, cr *miqv1alpha1.ManageIQ, scheme *run
 		},
 	}
 
-
 	f := func() error {
 		if err := controllerutil.SetControllerReference(cr, deployment, scheme); err != nil {
 			return err
