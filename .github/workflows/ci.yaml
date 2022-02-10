@@ -1,0 +1,27 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby-version:
+        - '2.6'
+        - '2.7'
+    steps:
+    - uses: actions/checkout@v2
+    - name: Before install
+      run: bin/before_install
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby-version }}
+        bundler-cache: true
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: '1.14'
+    - name: Run tests
+      run: bundle exec rake
