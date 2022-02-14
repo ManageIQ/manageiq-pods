@@ -1,8 +1,8 @@
 #!/bin/bash
 
-TAG=latest
+TAG=latest-najdorf
 
-BUILD_REF=${BUILD_REF:-master}
+BUILD_REF=${BUILD_REF:-najdorf}
 BUILD_ORG=${BUILD_ORG:-ManageIQ}
 
 ARCH=`uname -m`

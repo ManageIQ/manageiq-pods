@@ -1,5 +1,5 @@
 ARG FROM_REPO=manageiq
-ARG FROM_TAG=latest
+ARG FROM_TAG=latest-najdorf
 
 FROM ${FROM_REPO}/manageiq-base:${FROM_TAG} AS vddk
 
