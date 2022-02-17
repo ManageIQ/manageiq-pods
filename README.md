@@ -169,7 +169,7 @@ The script requires at a minimum the `-d` option to specify the location of the 
 For example, if you wanted to build all the images tagged as `manageiq/<image-name>:latest`, you would run the following command from the repo root.
 
 ```bash
-./bin/build -d images -r manageiq
+./bin/build -d . -r manageiq
 ```
 
 Additional options are also available:
@@ -185,7 +185,7 @@ Additionally the source fork and git ref for manageiq-appliance-build can be set
 A more complicated example would be to build and push all the images to the quay.io repository "test" using the source from the "feature" branch on the "example" fork:
 
 ```bash
-BUILD_ORG=example BUILD_REF=feature ./bin/build -d images -r quay.io/test -p
+BUILD_ORG=example BUILD_REF=feature ./bin/build -d . -r quay.io/test -p
 ```
 
 ### Building RPMs locally
@@ -195,7 +195,7 @@ If you want to build images containing your fork or different branches of Manage
 For example, if you want to build RPMs using `test/rpm_build` image and override rpm_build options using `my_options/options.yml`, you would run:
 
 ```bash
-RPM_BUILD_IMAGE=test/rpm_build RPM_BUILD_OPTIONS=my_options bin/build -d images -r manageiq -b
+RPM_BUILD_IMAGE=test/rpm_build RPM_BUILD_OPTIONS=my_options bin/build -d . -r manageiq -b
 ```
 
 An example options.yml to use "feature" branch on the "example" fork of ManageIQ/manageiq:
@@ -220,7 +220,7 @@ If you already have locally built RPMs and want to use them instead of using RPM
 Then, run:
 
 ```bash
-bin/build -d images -r manageiq -l
+bin/build -d . -r manageiq -l
 ```
 
 ### Including the VMware VDDK in the image build
