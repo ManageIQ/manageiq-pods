@@ -9,7 +9,7 @@ ARG GIT_AUTH
 RUN mkdir build && \
     if [[ -n "$GIT_AUTH" ]]; then GIT_HOST=${GIT_AUTH}@${GIT_HOST}; fi && curl -L https://${GIT_HOST}/${BUILD_ORG}/${CORE_REPO_NAME}-appliance-build/tarball/${BUILD_REF} | tar vxz -C build --strip 1
 
-FROM registry.access.redhat.com/ubi8/ubi:8.4
+FROM registry.access.redhat.com/ubi8/ubi
 MAINTAINER ManageIQ https://manageiq.org
 
 ARG ARCH=x86_64
