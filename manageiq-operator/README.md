@@ -217,6 +217,23 @@ spec:
   oidcCaCertSecret: <name of your openshift OIDC CA cert>
 ```
 
+### Using your own images
+
+If you built your own custom images and want to deploy those you can specify the image names in the deploy/crds/manageiq.org_v1alpha1_manageiq_cr.yaml
+
+```yaml
+apiVersion: manageiq.org/v1alpha1
+kind: ManageIQ
+metadata:
+  name: miq
+spec:
+  applicationDomain: miqproject.apps-crc.testing
+  orchestratorImage: docker.io/<your_username_or_organization>/manageiq-orchestrator:latest
+  baseWorkerImage: docker.io/<your_username_or_organization>/manageiq-base-worker:latest
+  uiWorkerImage: docker.io/<your_username_or_organization>/manageiq-ui-worker:latest
+  webserverWorkerImage: docker.io/<your_username_or_organization>/manageiq-webserver-worker:latest
+```
+
 ## Uninstalling
 
 Uninstalling only involves a few steps:
