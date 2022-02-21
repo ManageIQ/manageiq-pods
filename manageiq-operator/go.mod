@@ -1,6 +1,6 @@
 module github.com/ManageIQ/manageiq-pods/manageiq-operator
 
-go 1.14
+go 1.17
 
 require (
 	github.com/openshift/api v0.0.0-20200205133042-34f0ec8dab87
