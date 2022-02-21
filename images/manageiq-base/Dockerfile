@@ -48,7 +48,7 @@ RUN dnf -y remove *subscription-manager* && \
     dnf -y install \
       https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm \
       https://rpm.manageiq.org/release/15-oparin/el8/noarch/manageiq-release-15.0-1.el8.noarch.rpm && \
-    dnf -y module enable nodejs:12 && \
+    dnf -y module enable nodejs:16 && \
     dnf -y module enable ruby:2.7 && \
     if [[ "$RELEASE_BUILD" != "true" ]]; then dnf config-manager --enable manageiq-15-oparin-nightly; fi && \
     dnf config-manager --setopt=ubi-8-*.exclude=dracut*,net-snmp*,perl-*,redhat-release* --save && \
