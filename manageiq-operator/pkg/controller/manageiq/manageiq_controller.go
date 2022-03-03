@@ -10,6 +10,7 @@ import (
 	miqtool "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/helpers/miq-components"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -80,6 +81,11 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	err = c.Watch(&source.Kind{Type: &corev1.PersistentVolumeClaim{}}, ownerHandler)
+	if err != nil {
+		return err
+	}
+
+	err = c.Watch(&source.Kind{Type: &networkingv1.NetworkPolicy{}}, ownerHandler)
 	if err != nil {
 		return err
 	}
