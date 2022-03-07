@@ -252,6 +252,7 @@ OIDCOAuthClientID                  ${HTTPD_AUTH_OIDC_CLIENT_ID}
 OIDCOAuthClientSecret              ${HTTPD_AUTH_OIDC_CLIENT_SECRET}
 OIDCOAuthIntrospectionEndpoint     %s
 OIDCOAuthIntrospectionEndpointAuth client_secret_post
+OIDCCookieSameSite                 On
 
 %s
 
