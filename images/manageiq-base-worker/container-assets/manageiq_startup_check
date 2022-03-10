@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# We're alive if the heartbeat_file exists and has a unix time
+# "newer" / greater than the current time.
+started_file="${APP_ROOT}/tmp/worker.started"
+if [[ ! -f ${started_file} ]]; then
+  exit 1
+fi
