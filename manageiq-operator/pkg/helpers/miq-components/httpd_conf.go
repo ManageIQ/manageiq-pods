@@ -407,7 +407,7 @@ LimitRequestFieldSize 524288
 
 # For health probes
 <VirtualHost *:4000>
-  RewriteRule ^/ping http://localhost:3001%{REQUEST_URI} [P,QSA,L]
+  RewriteRule ^/ping http://localhost:3001%%{REQUEST_URI} [P,QSA,L]
   ProxyPassReverse / http://localhost:3001/
 </VirtualHost>
 
@@ -468,7 +468,7 @@ LimitRequestFieldSize 524288
 
 # For health probes
 <VirtualHost *:4000>
-  RewriteRule ^/ping http://localhost:3001%{REQUEST_URI} [P,QSA,L]
+  RewriteRule ^/ping http://localhost:3001%%{REQUEST_URI} [P,QSA,L]
   ProxyPassReverse / http://localhost:3001/
 </VirtualHost>
 
