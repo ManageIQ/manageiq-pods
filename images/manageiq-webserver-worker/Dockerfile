@@ -28,5 +28,6 @@ RUN source /etc/default/evm && \
     rm -rf /var/cache/dnf
 
 EXPOSE 3000
+EXPOSE 4000
 
 CMD ["service-worker-entrypoint"]
