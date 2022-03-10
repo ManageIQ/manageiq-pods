@@ -389,6 +389,7 @@ func uiHttpdConfig(protocol string) string {
 ## ManageIQ HTTP Virtual Host Context
 
 Listen 3000
+Listen 4000
 
 # Timeout: The number of seconds before receives and sends time out.
 Timeout 120
@@ -403,6 +404,12 @@ Options SymLinksIfOwnerMatch
 #   the httpd container first.  However, if a user changes this value in the
 #   httpd container, we need to be able to accomodate that value here also.
 LimitRequestFieldSize 524288
+
+# For health probes
+<VirtualHost *:4000>
+  RewriteRule ^/ping http://localhost:3001%{REQUEST_URI} [P,QSA,L]
+  ProxyPassReverse / http://localhost:3001/
+</VirtualHost>
 
 <VirtualHost *:3000>
   IncludeOptional conf.d/*_config
@@ -443,6 +450,7 @@ func apiHttpdConfig(protocol string) string {
 ## ManageIQ HTTP Virtual Host Context
 
 Listen 3000
+Listen 4000
 
 # Timeout: The number of seconds before receives and sends time out.
 Timeout 120
@@ -457,6 +465,12 @@ Options SymLinksIfOwnerMatch
 #   the httpd container first.  However, if a user changes this value in the
 #   httpd container, we need to be able to accomodate that value here also.
 LimitRequestFieldSize 524288
+
+# For health probes
+<VirtualHost *:4000>
+  RewriteRule ^/ping http://localhost:3001%{REQUEST_URI} [P,QSA,L]
+  ProxyPassReverse / http://localhost:3001/
+</VirtualHost>
 
 <VirtualHost *:3000>
   IncludeOptional conf.d/*_config
