@@ -46,9 +46,9 @@ require (
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.9.1 // indirect
 	github.com/prometheus/procfs v0.0.8 // indirect
-	go.uber.org/atomic v1.6.0 // indirect
-	go.uber.org/multierr v1.5.0 // indirect
-	go.uber.org/zap v1.14.1 // indirect
+	go.uber.org/atomic v1.9.0 // indirect
+	go.uber.org/multierr v1.8.0 // indirect
+	go.uber.org/zap v1.21.0 // indirect
 	golang.org/x/crypto v0.0.0-20220307211146-efcb8507fb70 // indirect
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
 	golang.org/x/oauth2 v0.0.0-20220309155454-6242fa91716a // indirect
