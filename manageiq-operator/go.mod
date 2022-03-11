@@ -62,9 +62,10 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.2.8 // indirect
 	k8s.io/klog v1.0.0 // indirect
+	k8s.io/klog/v2 v2.0.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20200121204235-bf4fb3bd569c // indirect
 	k8s.io/kube-state-metrics v1.7.2 // indirect
-	k8s.io/utils v0.0.0-20200324210504-a9aa75ae1b89 // indirect
+	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9 // indirect
 	sigs.k8s.io/structured-merge-diff/v3 v3.0.0 // indirect
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )
