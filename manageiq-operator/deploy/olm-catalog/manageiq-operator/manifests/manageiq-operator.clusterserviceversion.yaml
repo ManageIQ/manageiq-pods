@@ -137,7 +137,7 @@ spec:
         - apiGroups:
           - route.openshift.io
           resources:
-          - routes/custom-host
+          - '*'
           verbs:
           - '*'
         serviceAccountName: manageiq-operator
