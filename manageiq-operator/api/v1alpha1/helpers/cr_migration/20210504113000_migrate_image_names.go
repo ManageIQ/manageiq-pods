@@ -1,8 +1,8 @@
 package cr_migration
 
 import (
-	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
-	miqtool "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/helpers/miq-components"
+	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
+	miqtool "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/helpers/miq-components"
 )
 
 func migrate20210504113000(cr *miqv1alpha1.ManageIQ) *miqv1alpha1.ManageIQ {

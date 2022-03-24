@@ -32,11 +32,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	cr_migration "github.com/ManageIQ/manageiq-pods/manageiq-operator/helpers/cr_migration"
-	// miqtool "github.com/ManageIQ/manageiq-pods/manageiq-operator/helpers/miq-components"
-	miqtool "tmp/manageiq-operator/helpers/miq-components"
-	// miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
-	miqv1alpha1 "tmp/manageiq-operator/api/v1alpha1"
+	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
+	cr_migration "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/helpers/cr_migration"
+	miqtool "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/helpers/miq-components"
 )
 
 // ManageIQReconciler reconciles a ManageIQ object
