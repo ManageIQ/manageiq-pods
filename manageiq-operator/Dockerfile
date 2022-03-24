@@ -1,23 +1,27 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
+# Build the manager binary
+FROM golang:1.17 as builder
 
-LABEL name="ManageIQ Operator" \
-      summary="ManageIQ Operator manages the ManageIQ application on an OCP cluster" \
-      vendor="ManageIQ" \
-      description="ManageIQ is a management and automation platform for virtual, private, and hybrid cloud infrastructures."
+WORKDIR /workspace
+# Copy the Go Modules manifests
+COPY go.mod go.mod
+COPY go.sum go.sum
+# cache deps before building and copying source so that we don't need to re-download as much
+# and so that source changes don't invalidate our downloaded layer
+RUN go mod download
 
-ENV OPERATOR=/usr/local/bin/manageiq-operator \
-    USER_UID=1001 \
-    USER_NAME=manageiq-operator
+# Copy the go source
+COPY main.go main.go
+COPY api/ api/
+COPY controllers/ controllers/
 
-# install operator binary
-COPY build/_output/bin/manageiq-operator ${OPERATOR}
-# install operator manifest
-RUN mkdir -p /opt/manageiq/manifest
-COPY build/_output/BUILD /opt/manageiq/manifest
+# Build
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager main.go
 
-COPY build/bin /usr/local/bin
-RUN  /usr/local/bin/user_setup
+# Use distroless as minimal base image to package the manager binary
+# Refer to https://github.com/GoogleContainerTools/distroless for more details
+FROM gcr.io/distroless/static:nonroot
+WORKDIR /
+COPY --from=builder /workspace/manager .
+USER 65532:65532
 
-ENTRYPOINT ["/usr/local/bin/entrypoint"]
-
-USER ${USER_UID}
+ENTRYPOINT ["/manager"]

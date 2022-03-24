@@ -1,0 +1,24 @@
+# permissions for end users to edit manageiqs.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manageiq-editor-role
+rules:
+- apiGroups:
+  - manageiq.org
+  resources:
+  - manageiqs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - manageiq.org
+  resources:
+  - manageiqs/status
+  verbs:
+  - get

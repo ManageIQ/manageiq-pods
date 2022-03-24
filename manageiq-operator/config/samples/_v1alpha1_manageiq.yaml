@@ -1,0 +1,6 @@
+apiVersion: manageiq.org/v1alpha1
+kind: ManageIQ
+metadata:
+  name: manageiq-sample
+spec:
+  # TODO(user): Add fields here

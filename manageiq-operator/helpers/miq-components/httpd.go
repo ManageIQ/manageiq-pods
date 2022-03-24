@@ -352,7 +352,7 @@ func initializeHttpdContainer(spec *miqv1alpha1.ManageIQSpec, privileged bool, c
 	c.ImagePullPolicy = corev1.PullIfNotPresent
 	if privileged {
 		c.LivenessProbe = &corev1.Probe{
-			Handler: corev1.Handler{
+			ProbeHandler: corev1.ProbeHandler{
 				Exec: &corev1.ExecAction{
 					Command: []string{"pidof", "httpd"},
 				},
@@ -362,7 +362,7 @@ func initializeHttpdContainer(spec *miqv1alpha1.ManageIQSpec, privileged bool, c
 		}
 	}
 	c.ReadinessProbe = &corev1.Probe{
-		Handler: corev1.Handler{
+		ProbeHandler: corev1.ProbeHandler{
 			TCPSocket: &corev1.TCPSocketAction{
 				Port: intstr.FromInt(8080),
 			},
@@ -377,7 +377,7 @@ func initializeHttpdContainer(spec *miqv1alpha1.ManageIQSpec, privileged bool, c
 	// Add Lifecycle object for saving the environment if we're running with init
 	if privileged {
 		c.Lifecycle = &corev1.Lifecycle{
-			PostStart: &corev1.Handler{
+			PostStart: &corev1.LifecycleHandler{
 				Exec: &corev1.ExecAction{
 					Command: []string{"/usr/bin/save-container-environment"},
 				},

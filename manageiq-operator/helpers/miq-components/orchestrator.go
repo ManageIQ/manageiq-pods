@@ -231,7 +231,7 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 		Image:           cr.Spec.OrchestratorImage,
 		ImagePullPolicy: pullPolicy,
 		LivenessProbe: &corev1.Probe{
-			Handler: corev1.Handler{
+			ProbeHandler: corev1.ProbeHandler{
 				Exec: &corev1.ExecAction{
 					Command: []string{"pidof", "MIQ Server"},
 				},

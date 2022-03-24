@@ -23,14 +23,14 @@ func NewMemcachedDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 			},
 		},
 		LivenessProbe: &corev1.Probe{
-			Handler: corev1.Handler{
+			ProbeHandler: corev1.ProbeHandler{
 				TCPSocket: &corev1.TCPSocketAction{
 					Port: intstr.FromInt(11211),
 				},
 			},
 		},
 		ReadinessProbe: &corev1.Probe{
-			Handler: corev1.Handler{
+			ProbeHandler: corev1.ProbeHandler{
 				TCPSocket: &corev1.TCPSocketAction{
 					Port: intstr.FromInt(11211),
 				},

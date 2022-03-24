@@ -189,7 +189,7 @@ func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, client client.Client, scheme
 		},
 		ReadinessProbe: &corev1.Probe{
 			InitialDelaySeconds: initialDelaySecs,
-			Handler: corev1.Handler{
+			ProbeHandler: corev1.ProbeHandler{
 				TCPSocket: &corev1.TCPSocketAction{
 					Port: intstr.FromInt(5432),
 				},
