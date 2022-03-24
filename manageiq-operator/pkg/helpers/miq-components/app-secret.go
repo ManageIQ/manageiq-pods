@@ -1,12 +1,40 @@
 package miqtools
 
 import (
+	"context"
+
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func AppSecret(cr *miqv1alpha1.ManageIQ) *corev1.Secret {
+func ManageAppSecret(cr *miqv1alpha1.ManageIQ, client client.Client, scheme *runtime.Scheme) (*corev1.Secret, controllerutil.MutateFn) {
+	secretKey := types.NamespacedName{Namespace: cr.ObjectMeta.Namespace, Name: cr.Spec.DatabaseSecret}
+	secret := &corev1.Secret{}
+	secretErr := client.Get(context.TODO(), secretKey, secret)
+	if secretErr != nil {
+		secret = defaultAppSecret(cr)
+	}
+
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, secret, scheme); err != nil {
+			return err
+		}
+
+		addAppLabel(cr.Spec.AppName, &secret.ObjectMeta)
+		addBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
+
+		return nil
+	}
+
+	return secret, f
+}
+
+func defaultAppSecret(cr *miqv1alpha1.ManageIQ) *corev1.Secret {
 	secretData := map[string]string{
 		"encryption-key": generateEncryptionKey(),
 	}
@@ -18,9 +46,6 @@ func AppSecret(cr *miqv1alpha1.ManageIQ) *corev1.Secret {
 		},
 		StringData: secretData,
 	}
-
-	addAppLabel(cr.Spec.AppName, &secret.ObjectMeta)
-	addBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
 
 	return secret
 }

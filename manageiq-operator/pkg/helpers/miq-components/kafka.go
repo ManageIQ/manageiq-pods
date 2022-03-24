@@ -1,16 +1,42 @@
 package miqtools
 
 import (
+	"context"
+
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/pkg/apis/manageiq/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	resource "k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func DefaultKafkaSecret(cr *miqv1alpha1.ManageIQ) *corev1.Secret {
+func ManageKafkaSecret(cr *miqv1alpha1.ManageIQ, client client.Client, scheme *runtime.Scheme) (*corev1.Secret, controllerutil.MutateFn) {
+	secretKey := types.NamespacedName{Namespace: cr.ObjectMeta.Namespace, Name: cr.Spec.DatabaseSecret}
+	secret := &corev1.Secret{}
+	secretErr := client.Get(context.TODO(), secretKey, secret)
+	if secretErr != nil {
+		secret = defaultKafkaSecret(cr)
+	}
+
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, secret, scheme); err != nil {
+			return err
+		}
+
+		addAppLabel(cr.Spec.AppName, &secret.ObjectMeta)
+		addBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
+
+		return nil
+	}
+
+	return secret, f
+}
+
+func defaultKafkaSecret(cr *miqv1alpha1.ManageIQ) *corev1.Secret {
 	secretData := map[string]string{
 		"username": "root",
 		"password": generatePassword(),

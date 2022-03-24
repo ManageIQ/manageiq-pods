@@ -379,19 +379,21 @@ func (r *ReconcileManageIQ) generatePostgresqlResources(cr *miqv1alpha1.ManageIQ
 	return nil
 }
 
-func (r *ReconcileManageIQ) generateKafkaResources(cr *miqv1alpha1.ManageIQ) error {
+func (r *ManageIQReconciler) generateKafkaResources(cr *miqv1alpha1.ManageIQ) error {
+	secret, mutateFunc := miqtool.ManageKafkaSecret(cr, r.client, r.Scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, secret, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("Secret has been reconciled", "component", "kafka", "result", result)
+	}
+
 	hostName := getSecretKeyValue(r.client, cr.Namespace, cr.Spec.KafkaSecret, "hostname")
 	if hostName != "" {
 		logger.Info("External Kafka Messaging Service selected, skipping kafka and zookeeper service reconciliation", "hostname", hostName)
 		return nil
 	}
 
-	secret := miqtool.DefaultKafkaSecret(cr)
-	if err := r.createk8sResIfNotExist(cr, secret, &corev1.Secret{}); err != nil {
-		return err
-	}
-
-	kafkaPVC, mutateFunc := miqtool.KafkaPVC(cr, r.scheme)
+	kafkaPVC, mutateFunc := miqtool.KafkaPVC(cr, r.Scheme)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, kafkaPVC, mutateFunc); err != nil {
 		return err
 	} else if result != controllerutil.OperationResultNone {
@@ -533,19 +535,22 @@ func (r *ReconcileManageIQ) generateNetworkPolicies(cr *miqv1alpha1.ManageIQ) er
 	return nil
 }
 
-func (r *ReconcileManageIQ) generateSecrets(cr *miqv1alpha1.ManageIQ) error {
-	appSecret := miqtool.AppSecret(cr)
-	if err := r.createk8sResIfNotExist(cr, appSecret, &corev1.Secret{}); err != nil {
+func (r *ManageIQReconciler) generateSecrets(cr *miqv1alpha1.ManageIQ) error {
+	secret, mutateFunc := miqtool.ManageAppSecret(cr, r.client, r.Scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, secret, mutateFunc); err != nil {
 		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("Secret has been reconciled", "component", "app-secret", "result", result)
 	}
 
-	tlsSecret, err := miqtool.TLSSecret(cr)
+	secret, mutateFunc, err := miqtool.ManageTlsSecret(cr, r.client, r.Scheme)
 	if err != nil {
 		return err
 	}
-
-	if err := r.createk8sResIfNotExist(cr, tlsSecret, &corev1.Secret{}); err != nil {
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, secret, mutateFunc); err != nil {
 		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("Secret has been reconciled", "component", "tls-secret", "result", result)
 	}
 
 	if cr.Spec.ImagePullSecret != "" {
@@ -631,26 +636,6 @@ func (r *ReconcileManageIQ) manageOperator(cr *miqv1alpha1.ManageIQ) error {
 		logger.Info("Role Binding has been reconciled", "component", "operator", "result", result)
 	}
 
-	return nil
-}
-
-func (r *ReconcileManageIQ) createk8sResIfNotExist(cr *miqv1alpha1.ManageIQ, res, restype metav1.Object) error {
-	reqLogger := logger.WithValues("task: ", "create resource")
-	if err := controllerutil.SetControllerReference(cr, res, r.scheme); err != nil {
-		return err
-	}
-	resClient := res.(runtime.Object)
-	resTypeClient := restype.(runtime.Object)
-	err := r.client.Get(context.TODO(), types.NamespacedName{Name: res.GetName(), Namespace: res.GetNamespace()}, resTypeClient.(runtime.Object))
-	if err != nil && errors.IsNotFound(err) {
-		reqLogger.Info("Creating ", "Resource.Namespace", res.GetNamespace(), "Resource.Name", res.GetName())
-		if err = r.client.Create(context.TODO(), resClient); err != nil {
-			return err
-		}
-		return nil
-	} else if err != nil {
-		return err
-	}
 	return nil
 }
 

@@ -599,7 +599,30 @@ func HttpdDbusAPIService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*cor
 	return service, f
 }
 
-func TLSSecret(cr *miqv1alpha1.ManageIQ) (*corev1.Secret, error) {
+func ManageTlsSecret(cr *miqv1alpha1.ManageIQ, client client.Client, scheme *runtime.Scheme) (*corev1.Secret, controllerutil.MutateFn, error) {
+	secretKey := types.NamespacedName{Namespace: cr.ObjectMeta.Namespace, Name: cr.Spec.DatabaseSecret}
+	secret := &corev1.Secret{}
+	secretErr := client.Get(context.TODO(), secretKey, secret)
+	var err error
+	if secretErr != nil {
+		secret, err = defaultTLSSecret(cr)
+	}
+
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, secret, scheme); err != nil {
+			return err
+		}
+
+		addAppLabel(cr.Spec.AppName, &secret.ObjectMeta)
+		addBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
+
+		return nil
+	}
+
+	return secret, f, err
+}
+
+func defaultTLSSecret(cr *miqv1alpha1.ManageIQ) (*corev1.Secret, error) {
 	crt, key, err := tlstools.GenerateCrt(cr.Spec.ApplicationDomain)
 	if err != nil {
 		return nil, err
@@ -618,9 +641,6 @@ func TLSSecret(cr *miqv1alpha1.ManageIQ) (*corev1.Secret, error) {
 		StringData: secretData,
 		Type:       "kubernetes.io/tls",
 	}
-
-	addAppLabel(cr.Spec.AppName, &secret.ObjectMeta)
-	addBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
 
 	return secret, nil
 }
