@@ -2,6 +2,6 @@
 
 if [ -n "$CI" ]; then
   echo "== Installing operator-sdk =="
-  curl -L https://github.com/operator-framework/operator-sdk/releases/download/v0.18.2/operator-sdk-v0.18.2-$(uname -m)-linux-gnu -o /usr/local/bin/operator-sdk
+  curl -L https://github.com/operator-framework/operator-sdk/releases/download/v1.18.1/operator-sdk_linux_$(uname -m) -o /usr/local/bin/operator-sdk
   chmod +x /usr/local/bin/operator-sdk
 fi
