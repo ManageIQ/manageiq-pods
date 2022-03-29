@@ -3,4 +3,4 @@ kind: ManageIQ
 metadata:
   name: manageiq-sample
 spec:
-  # TODO(user): Add fields here
+  applicationDomain: miqproject.apps-crc.testing

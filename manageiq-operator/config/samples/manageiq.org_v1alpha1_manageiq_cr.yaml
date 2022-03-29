@@ -1,6 +1,0 @@
-apiVersion: manageiq.org/v1alpha1
-kind: ManageIQ
-metadata:
-  name: miq
-spec:
-  applicationDomain: miqproject.apps-crc.testing
