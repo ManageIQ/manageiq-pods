@@ -46,7 +46,7 @@ There are three different ways the operator can be run.
 + #### Option 3: Run locally (on your local laptop/computer, outside of the cluster)
 
   ```bash
-  $ operator-sdk run --local --namespace=<your namespace>
+  $ WATCH_NAMESPACE=miq make run
   ```
 
 # Further Notes:
