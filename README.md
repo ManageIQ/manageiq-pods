@@ -13,8 +13,8 @@ This example gives a base template to deploy a multi-pod ManageIQ appliance with
 
 ### Prerequisites:
 
-* OpenShift Origin 1.5 or higher
-* NFS or other compatible volume provider
+* Kubernetes 1.18 or higher
+* A volume provider
 * A cluster-admin user
 
 ### Cluster Sizing
@@ -34,132 +34,14 @@ Other sizing considerations:
 
 `$ git clone https://github.com/ManageIQ/manageiq-pods.git`
 
-### Pre-deployment preparation tasks
-
-_**As basic user**_
-
-Login to OpenShift and create a project
-
-_**Note:**_ This section assumes you have a basic user.
-
-`$ oc login -u <user> -p <password>`
-
-   Next, create the project as follows:
-
-```bash
-$ oc new-project <project_name>
-```
-
 ### Follow the Operator deployment instructions
+
+Production Deployment:
+https://www.manageiq.org/docs/reference/latest/installing_on_kubernetes/index.html#preparing-the-kubernetes-namespace
+
+Development Deployment:
 [README](manageiq-operator/README.md)
 
-### Check readiness of the MIQ pods
-
-_**Note:**_ Please allow ~5 minutes once pods are in Running state for MIQ to start responding on HTTPS
-
-The READY column denotes the number of replicas and their readiness state
-
-```bash
-$ oc get pods
-NAME                                     READY     STATUS    RESTARTS   AGE
-httpd-754985464b-4dzzx                   1/1       Running   0          37s
-manageiq-orchestrator-5997776478-vx4v9   1/1       Running   0          37s
-memcached-696479b955-67fs6               1/1       Running   0          37s
-postgresql-5f954fdbd5-tnlmf              1/1       Running   0          37s
-```
-
-Once the database has been migrated and the orchestrator pod is up and running, it will begin to start worker pods.
-After a few minutes you can see the initial set of worker pods has been deployed and the user interface should be accessible.
-
-```bash
-$ oc get pods
-NAME                                     READY     STATUS    RESTARTS   AGE
-event-handler-747574c54c-xpcvf           1/1       Running   0          32m
-generic-55cc84f79d-gwf5v                 1/1       Running   0          32m
-generic-55cc84f79d-w4vzs                 1/1       Running   0          32m
-httpd-754985464b-4dzzx                   1/1       Running   0          37m
-manageiq-orchestrator-5997776478-vx4v9   1/1       Running   0          37m
-memcached-696479b955-67fs6               1/1       Running   0          37m
-postgresql-5f954fdbd5-tnlmf              1/1       Running   0          37m
-priority-7b6666cdcd-5hkkm                1/1       Running   0          32m
-priority-7b6666cdcd-rcf7l                1/1       Running   0          32m
-remote-console-6958c4cc7b-5kmmj          1/1       Running   0          32m
-reporting-85c8488848-p5fb6               1/1       Running   0          32m
-reporting-85c8488848-z7kjp               1/1       Running   0          32m
-schedule-6fd7bc5688-ptsxp                1/1       Running   0          32m
-ui-5b8c86f6f9-jhd9w                      1/1       Running   0          32m
-web-service-858f55f55d-5tmcr             1/1       Running   0          32m
-
-```
-
-## Scale MIQ
-
-ManageIQ worker deployments can be scaled from within the application web console.
-Navigate to Configuration -> Server -> Workers tab to change the number of worker replicas.
-
-Additional workers for provider operations will be deployed or removed by the orchestrator as providers are added or removed and as roles change.
-
-_**Note:**_ The orchestrator will enforce its desired state over the worker replicas. This means that any changes made to desired replica numbers in the OpenShift UI will be quickly reverted by the orchestrator. 
-
-## Pod access and ingress
-
-### Get a shell on the MIQ pod
-
-`$ oc rsh <pod_name> bash -l`
-
-### Obtain host information from route
-An ingress should have been deployed via template for HTTPS access on the MIQ pod
-When an ingress is deployed in OpenShift, a route is automatically created.
-
-```bash
-$ oc get ingress
-NAME      HOSTS                              ADDRESS   PORTS     AGE
-httpd     miq-dev.apps.example.com                     80, 443   56s
-$ oc get routes
-NAME          HOST/PORT                          PATH      SERVICES   PORT      TERMINATION     WILDCARD
-httpd-qlvmj   miq-dev.apps.example.com           /         httpd      80        edge/Redirect   None
-```
-Examine output and point your web browser to the reported URL/HOST.
-
-### Logging In
-
-Per the ManageIQ project [basic configuration](http://manageiq.org/docs/get-started/basic-configuration) documentation, you can now login to the MIQ web interface using the default username and password (`admin`/`smartvm`).
-
-## Troubleshooting
-Under normal circumstances the entire first time deployment process should take around ~10 minutes, indication of issues can be seen
-by examination of the deployment events and pod logs.
-
-
-### Allow docker.io/manageiq images in kubernetes
-
-Depending on your cluster's configuration, kubernetes may not allow deployment of images from `docker.io/manageiq`.  If so, deploying the operator may raise an error:
-
-```
-Error from server: error when creating "deploy/operator.yaml": admission webhook "trust.hooks.securityenforcement.admission.xxx" denied the request:
-Deny "docker.io/manageiq/manageiq-operator:latest", no matching repositories in ClusterImagePolicy and no ImagePolicies in the "YYY" namespace
-```
-
-To allow images from `docker.io/manageiq`, edit the clusterimagepolicies and add `docker.io/manageiq/*` to the list of allowed repositories:
-
-```
-kubectl edit clusterimagepolicies $(kubectl get clusterimagepolicies --no-headers | awk ‘{print $1}’)
-```
-
-For example:
-
-```
-...
-spec:
-  repositories:
-  ...
-  - name: docker.io/icpdashdb/*
-  - name: docker.io/istio/proxyv2:*
-  - name: docker.io/library/busybox:*
-  - name: docker.io/manageiq/*
-  ...
-```
-
-After saving this change, `docker.io/manageiq` image deployment should now be allowed.
 
 ## Building Images
 The bin/build script will build the entire chain of images.
