@@ -8,6 +8,7 @@ rules:
   - ''
   resources:
   - configmaps
+  - events
   - persistentvolumeclaims
   - pods
   - pods/finalizers
@@ -67,6 +68,16 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
 - apiGroups:
   - extensions
   resources:
