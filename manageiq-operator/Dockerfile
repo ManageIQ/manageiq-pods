@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM golang:1.17 as builder
+FROM docker.io/library/golang:1.17 as builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -23,5 +23,8 @@ FROM gcr.io/distroless/static:nonroot
 WORKDIR /
 COPY --from=builder /workspace/manager .
 USER 65532:65532
+
+# install operator manifest
+COPY BUILD /opt/manageiq/manifest
 
 ENTRYPOINT ["/manager"]
