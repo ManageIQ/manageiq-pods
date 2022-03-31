@@ -5,8 +5,7 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: manager-role
+  name: manageiq-operator
 subjects:
 - kind: ServiceAccount
-  name: controller-manager
-  namespace: system
+  name: manageiq-operator
