@@ -16,8 +16,6 @@ spec:
       containers:
         - name: manageiq-operator
           image: docker.io/manageiq/manageiq-operator:latest
-          command:
-          - manageiq-operator
           imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE
