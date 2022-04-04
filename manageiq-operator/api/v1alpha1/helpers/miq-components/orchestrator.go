@@ -55,17 +55,17 @@ func OrchestratorRole(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*rbacv1
 			rbacv1.PolicyRule{
 				APIGroups: []string{""},
 				Resources: []string{"pods", "pods/finalizers"},
-				Verbs:     []string{"*"},
+				Verbs:     []string{"create", "delete", "get", "list", "patch", "update", "watch"},
 			},
 			rbacv1.PolicyRule{
 				APIGroups: []string{"apps"},
 				Resources: []string{"deployments", "deployments/scale"},
-				Verbs:     []string{"*"},
+				Verbs:     []string{"create", "delete", "get", "list", "patch", "update", "watch"},
 			},
 			rbacv1.PolicyRule{
 				APIGroups: []string{"extensions"},
 				Resources: []string{"deployments", "deployments/scale"},
-				Verbs:     []string{"*"},
+				Verbs:     []string{"create", "delete", "get", "list", "patch", "update", "watch"},
 			},
 		}
 
