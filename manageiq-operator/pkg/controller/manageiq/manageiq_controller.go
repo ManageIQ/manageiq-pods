@@ -747,5 +747,12 @@ func (r *ReconcileManageIQ) manageApplicationResources(cr *miqv1alpha1.ManageIQ)
 		logger.Info("ConfigMap has been reconciled", "component", "application api", "result", result)
 	}
 
+	configMap, mutateFunc = miqtool.ApplicationRemoteConsoleHttpdConfigMap(cr, r.scheme, r.client)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, configMap, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("ConfigMap has been reconciled", "component", "application remote console", "result", result)
+	}
+
 	return nil
 }

@@ -70,3 +70,34 @@ func ApplicationApiHttpdConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Sche
 
 	return configMap, f
 }
+
+func ApplicationRemoteConsoleHttpdConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, client client.Client) (*corev1.ConfigMap, controllerutil.MutateFn) {
+	configMap := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "remote-console-httpd-configs",
+			Namespace: cr.ObjectMeta.Namespace,
+		},
+		Data: make(map[string]string),
+	}
+
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, configMap, scheme); err != nil {
+			return err
+		}
+		addAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
+		addBackupLabel(cr.Spec.BackupLabelName, &configMap.ObjectMeta)
+
+		protocol := "ws"
+
+		if certSecret := InternalCertificatesSecret(cr, client); certSecret.Data["remote_console_crt"] != nil && certSecret.Data["remote_console_key"] != nil {
+			protocol = "wss"
+			configMap.Data["ssl_config"] = appHttpdSslConfig()
+		}
+
+		configMap.Data["manageiq-http.conf"] = remoteConsoleHttpdConfig(protocol)
+
+		return nil
+	}
+
+	return configMap, f
+}
