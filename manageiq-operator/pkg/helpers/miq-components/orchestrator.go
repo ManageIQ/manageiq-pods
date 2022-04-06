@@ -320,6 +320,9 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 		if certSecret.Data["api_crt"] != nil && certSecret.Data["api_key"] != nil {
 			deployment.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(deployment.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "API_SSL_SECRET_NAME", Value: cr.Spec.InternalCertificatesSecret})
 		}
+		if certSecret.Data["remote_console_crt"] != nil && certSecret.Data["remote_console_key"] != nil {
+			deployment.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(deployment.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "REMOTE_CONSOLE_SSL_SECRET_NAME", Value: cr.Spec.InternalCertificatesSecret})
+		}
 		if certSecret.Data["ui_crt"] != nil && certSecret.Data["ui_key"] != nil {
 			deployment.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(deployment.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "UI_SSL_SECRET_NAME", Value: cr.Spec.InternalCertificatesSecret})
 		}
