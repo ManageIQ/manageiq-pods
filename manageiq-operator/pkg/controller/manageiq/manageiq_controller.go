@@ -529,6 +529,13 @@ func (r *ReconcileManageIQ) generateNetworkPolicies(cr *miqv1alpha1.ManageIQ) er
 		logger.Info("NetworkPolicy allow httpd-api has been reconciled", "component", "network_policy", "result", result)
 	}
 
+	networkPolicyAllowHttpdRemoteConsole, mutateFunc := miqtool.NetworkPolicyAllowHttpdRemoteConsole(cr, r.scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, networkPolicyAllowHttpdRemoteConsole, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("NetworkPolicy allow httpd-remote-console has been reconciled", "component", "network_policy", "result", result)
+	}
+
 	networkPolicyAllowHttpdUi, mutateFunc := miqtool.NetworkPolicyAllowHttpdUi(cr, r.scheme)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.client, networkPolicyAllowHttpdUi, mutateFunc); err != nil {
 		return err

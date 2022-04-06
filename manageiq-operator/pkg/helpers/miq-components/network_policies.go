@@ -113,6 +113,34 @@ func NetworkPolicyAllowHttpdUi(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme)
 	return networkPolicy, f
 }
 
+func NetworkPolicyAllowHttpdRemoteConsole(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*networkingv1.NetworkPolicy, controllerutil.MutateFn) {
+	networkPolicy := newNetworkPolicy(cr, "allow-httpd-remote-console")
+
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, networkPolicy, scheme); err != nil {
+			return err
+		}
+		addAppLabel(cr.Spec.AppName, &networkPolicy.ObjectMeta)
+		setIngressPolicyType(networkPolicy)
+
+		networkPolicy.Spec.PodSelector.MatchLabels = map[string]string{"service": "remote-console"}
+
+		ensureIngressRule(networkPolicy)
+		setFirstIngressTCPPort(networkPolicy, 3000)
+		if len(networkPolicy.Spec.Ingress[0].From) != 1 {
+			networkPolicy.Spec.Ingress[0].From = []networkingv1.NetworkPolicyPeer{
+				networkingv1.NetworkPolicyPeer{},
+			}
+		}
+		networkPolicy.Spec.Ingress[0].From[0].PodSelector = &metav1.LabelSelector{}
+		networkPolicy.Spec.Ingress[0].From[0].PodSelector.MatchLabels = map[string]string{"name": "httpd"}
+
+		return nil
+	}
+
+	return networkPolicy, f
+}
+
 func NetworkPolicyAllowMemcached(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, c *client.Client) (*networkingv1.NetworkPolicy, controllerutil.MutateFn) {
 	networkPolicy := newNetworkPolicy(cr, "allow-memcached")
 
