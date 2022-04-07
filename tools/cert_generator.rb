@@ -74,4 +74,5 @@ c.generate_cert("memcached")
 c.generate_cert("postgresql")
 
 c.generate_cert("api", application_domain)
+c.generate_cert("remote-console", application_domain)
 c.generate_cert("ui", application_domain)
