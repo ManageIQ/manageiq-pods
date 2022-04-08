@@ -487,6 +487,51 @@ LimitRequestFieldSize 524288
 	return fmt.Sprintf(s, protocol)
 }
 
+func remoteConsoleHttpdConfig(protocol string) string {
+	s := `
+## ManageIQ HTTP Virtual Host Context
+
+Listen 3000
+Listen 4000
+
+# Timeout: The number of seconds before receives and sends time out.
+Timeout 120
+ServerSignature Off
+ServerTokens Prod
+
+RewriteEngine On
+Options SymLinksIfOwnerMatch
+
+# LimitRequestFieldSize: Expand this to a large number to allow pass-through.
+#   This does not introduce a potential DoS, because the value is validated by
+#   the httpd container first.  However, if a user changes this value in the
+#   httpd container, we need to be able to accomodate that value here also.
+LimitRequestFieldSize 524288
+
+# For health probes
+<VirtualHost *:4000>
+  RewriteRule ^/ping http://localhost:3001%%{REQUEST_URI} [P,QSA,L]
+  ProxyPassReverse / http://localhost:3001/
+</VirtualHost>
+
+<VirtualHost *:3000>
+  IncludeOptional conf.d/*_config
+
+  ServerName %s://remote-console
+  DocumentRoot /var/www/miq/vmdb/public
+
+  RewriteCond %%{REQUEST_URI}     ^/ws/console [NC]
+  RewriteCond %%{HTTP:UPGRADE}    ^websocket$  [NC]
+  RewriteCond %%{HTTP:CONNECTION} ^Upgrade$    [NC]
+  RewriteRule .* ws://remote-console:3000%%{REQUEST_URI}  [P,QSA,L]
+  ProxyPassReverse /ws/console ws://remote-console:3000/ws/console
+
+  ProxyPreserveHost on
+</VirtualHost>
+`
+	return fmt.Sprintf(s, protocol)
+}
+
 func httpdSslConfig() string {
 	return `
 SSLEngine on
