@@ -16,6 +16,57 @@ function check_svc_status() {
   echo "${SVC_NAME}:${SVC_PORT} - accepting connections"
 }
 
+function check_deployment_status() {
+  echo "== Checking deployment status =="
+
+  cd ${APP_ROOT}
+  while true; do
+    bin/rake evm:deployment_status
+    case $? in
+      3) # new_deployment
+        echo "== Starting New Deployment =="
+
+        pushd ${APP_ROOT}
+          set -e
+          REGION=${DATABASE_REGION} bin/rake db:migrate
+          REGION=${DATABASE_REGION} bin/rake db:seed
+          create_initial_group
+        popd
+
+        return 0
+      ;;
+      4) # new_replica
+        echo "New replica is not supported, exiting..."
+
+        return 1
+      ;;
+      5) # redeployment
+        echo "== Starting Re-deployment =="
+
+        return 0
+      ;;
+      6) # upgrade
+        echo "== Starting Upgrade =="
+        pushd ${APP_ROOT}
+          bin/rake db:migrate
+          [ "$?" -ne "0" ] && echo "ERROR: Failed to migrate database" && return 1
+        popd
+
+        return 0
+      ;;
+      7)
+        echo "Database has not been created yet, retrying..."
+
+        sleep 5
+      ;;
+      *)
+        echo "Could not find a suitable deployment type, exiting..."
+
+        return 1
+    esac
+  done
+}
+
 function update_auth_settings() {
   echo "== Updating auth settings =="
   script=$(cat <<- EOS
@@ -75,39 +126,7 @@ KEY
 
 echo "${GUID}" > ${APP_ROOT}/GUID
 
-echo "== Checking deployment status =="
-
-cd ${APP_ROOT}
-bin/rake evm:deployment_status
-case $? in
-  3) # new_deployment
-    echo "== Starting New Deployment =="
-
-    pushd ${APP_ROOT}
-      set -e
-      REGION=${DATABASE_REGION} bin/rake db:migrate
-      REGION=${DATABASE_REGION} bin/rake db:seed
-      create_initial_group
-    popd
-  ;;
-  4) # new_replica
-    echo "New replica is not supported, exiting.."
-    exit 1
-  ;;
-  5) # redeployment
-    echo "== Starting Re-deployment =="
-  ;;
-  6) # upgrade
-    echo "== Starting Upgrade =="
-    pushd ${APP_ROOT}
-      bin/rake db:migrate
-      [ "$?" -ne "0" ] && echo "ERROR: Failed to migrate database" && exit 1
-    popd
-  ;;
-  *)
-    echo "Could not find a suitable deployment type, exiting.."
-    exit 1
-esac
+check_deployment_status || exit 1
 
 pushd ${APP_ROOT}
   update_auth_settings
