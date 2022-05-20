@@ -432,9 +432,27 @@ LimitRequestFieldSize 524288
   ProxyPreserveHost on
   <Location /assets/>
     Header unset ETag
+    Header set Content-Security-Policy            "default-src 'self'; child-src 'self'; connect-src 'self'; font-src 'self' fonts.gstatic.com; script-src 'self'; style-src 'self'; report-uri /dashboard/csp_report"
+    Header set X-Content-Type-Options             "nosniff"
+    Header set X-Frame-Options                    "SAMEORIGIN"
+    Header set X-Permitted-Cross-Domain-Policies  "none"
+    Header set X-XSS-Protection                   "1; mode=block"
     FileETag None
     ExpiresActive On
     ExpiresDefault "access plus 1 year"
+    Header merge Cache-Control public
+  </Location>
+  <Location /packs/>
+    Header unset ETag
+    Header set Content-Security-Policy            "default-src 'self'; child-src 'self'; connect-src 'self'; font-src 'self' fonts.gstatic.com; script-src 'self'; style-src 'self'; report-uri /dashboard/csp_report"
+    Header set X-Content-Type-Options             "nosniff"
+    Header set X-Frame-Options                    "SAMEORIGIN"
+    Header set X-Permitted-Cross-Domain-Policies  "none"
+    Header set X-XSS-Protection                   "1; mode=block"
+    FileETag None
+    ExpiresActive On
+    ExpiresDefault "access plus 1 year"
+    Header merge Cache-Control public
   </Location>
   <Location /proxy_pages/>
     ErrorDocument 403 /error/noindex.html
