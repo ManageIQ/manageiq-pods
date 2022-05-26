@@ -41,8 +41,8 @@ RUN curl -L https://releases.ansible.com/ansible-runner/ansible-runner.el8.repo 
 RUN dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
       httpd \
       mod_ssl && \
-    dnf -y remove *subscription-manager* && \
     if [ ${ARCH} != "s390x" ] ; then \
+      dnf -y remove *subscription-manager* && \
       dnf -y install \
         http://mirror.centos.org/centos/8-stream/BaseOS/${ARCH}/os/Packages/centos-stream-repos-8-2.el8.noarch.rpm \
         http://mirror.centos.org/centos/8-stream/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-8-2.el8.noarch.rpm && \
