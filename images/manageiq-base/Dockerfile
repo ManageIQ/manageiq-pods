@@ -12,7 +12,7 @@ RUN mkdir build && \
 FROM registry.access.redhat.com/ubi8/ubi
 MAINTAINER ManageIQ https://manageiq.org
 
-ARG ARCH=$(uname -m)
+ARG ARCH=x86_64
 ARG LOCAL_RPM
 ARG RELEASE_BUILD
 ARG RPM_PREFIX=manageiq
