@@ -85,6 +85,11 @@ pushd $IMAGE_DIR
     cmd+=" --build-arg RELEASE_BUILD=true"
   fi
 
+  if [ "$ARCH" = "s390x" ]; then
+    # --format docker is needed to ensure the builds are built with docker v2 manifests
+    cmd+=" --format docker"
+  fi
+
   echo "Building manageiq-base: $cmd"
   $cmd manageiq-base
 
@@ -95,6 +100,12 @@ pushd $IMAGE_DIR
                       --build-arg FROM_TAG=$TAG \
                       --build-arg RPM_PREFIX=$RPM_PREFIX \
                       $image"
+
+    if [ "$ARCH" = "s390x" ]; then
+      # --format docker is needed to ensure the builds are built with docker v2 manifests
+      cmd+=" --format docker"
+    fi
+
     echo "Building $image: $cmd"
     $cmd
   done
@@ -108,7 +119,21 @@ if [ -z "$NO_OPERATOR" ]; then
     cat ./build/_output/BUILD
     echo
 
-    cmd="operator-sdk build --image-build-args --pull $REPO/manageiq-operator:$TAG"
+    image_build_args="--image-build-args --pull"
+    image_builder=""
+
+    if [ "$ARCH" = "s390x" ]; then
+      # HACK: Using buildah as, under the covers, this uses --format docker,
+      # which is needed to build v2 manifest builds. Normally, we'd pass
+      # --format docker as above as another arg to image-build-args, however,
+      # there is a bug in operator-sdk v0.18.2 where it cannot accept multiple
+      # args in image-build-args.
+      #
+      # See also https://github.com/operator-framework/operator-sdk/blob/v0.18.2/cmd/operator-sdk/build/cmd.go#L75-L99
+      image_builder="--image-builder buildah"
+    fi
+
+    cmd="operator-sdk build $REPO/manageiq-operator:$TAG $image_build_args $image_builder"
     echo "Building manageiq-operator: $cmd"
     $cmd
   popd
