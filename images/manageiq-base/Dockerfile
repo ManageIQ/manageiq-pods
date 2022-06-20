@@ -47,7 +47,6 @@ RUN dnf -y remove *subscription-manager* && \
       https://rpm.manageiq.org/release/13-morphy/el8/noarch/manageiq-release-13.0-1.el8.noarch.rpm \
       https://resources.ovirt.org/pub/yum-repo/ovirt-release44.rpm && \
     rm -f /etc/yum.repos.d/ovirt-4.4-dependencies.repo && \
-    dnf -y module enable nodejs:12 && \
     dnf -y module enable ruby:2.6 && \
     if [[ "$RELEASE_BUILD" != "true" ]]; then dnf config-manager --enable manageiq-13-morphy-nightly; fi && \
     dnf config-manager --setopt=ubi-8-*.exclude=dracut*,net-snmp*,perl-*,redhat-release* --save && \
