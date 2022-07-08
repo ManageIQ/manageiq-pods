@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Cleanup dnf
+dnf clean all
+rm -rf /var/cache/dnf
+rm -rf /var/lib/dnf/history*
+rm -rf /var/log/dnf*.log
+rm -rf /var/log/hawkey.log
+
+# Cleanup rpm
+rm -rf /var/lib/rpm/__db.*
