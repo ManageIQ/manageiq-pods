@@ -9,23 +9,24 @@ ARG RPM_PREFIX=manageiq
 LABEL name="manageiq-webserver-worker" \
       summary="ManageIQ web server worker image"
 
-RUN dnf -y --setopt=tsflags=nodocs install ${RPM_PREFIX}-ui && \
-    dnf clean all && \
-    rm -rf /var/cache/dnf
-
 COPY container-assets/service-worker-entrypoint /usr/local/bin
 
-RUN rm -f /etc/httpd/conf.d/* && \
-    sed -i '/^Listen 80/d' /etc/httpd/conf/httpd.conf
+RUN dnf -y --setopt=tsflags=nodocs install \
+      ${RPM_PREFIX}-ui && \
+    clean_dnf_rpm && \
+    # Remove httpd default settings
+    rm -f /etc/httpd/conf.d/* && \
+    sed -i '/^Listen 80/d' /etc/httpd/conf/httpd.conf && \
+    # Configure httpd to run without root privileges
+    chgrp root /var/run/httpd && \
+    chmod g+rwx /var/run/httpd && \
+    chgrp root /var/log/httpd && \
+    chmod g+rwx /var/log/httpd
 
-# Configure httpd to run without root privileges
-RUN chgrp root /var/run/httpd && chmod g+rwx /var/run/httpd && \
-    chgrp root /var/log/httpd && chmod g+rwx /var/log/httpd
-
+# Build the RPM manifest
 RUN source /etc/default/evm && \
     /usr/bin/generate_rpm_manifest.sh && \
-    dnf clean all && \
-    rm -rf /var/cache/dnf
+    clean_dnf_rpm
 
 EXPOSE 3000
 EXPOSE 4000
