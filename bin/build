@@ -26,26 +26,19 @@ while getopts "t:d:r:hblnops" opt; do
     r) REPO=$OPTARG ;;
     s) RELEASE_BUILD="true" ;;
     t) TAG=$OPTARG ;;
-    h) echo "Usage: $0 -d BASE_DIR -r IMAGE_REPOSITORY [-hblnops] [ -t IMAGE_TAG ]"; exit 1
+    h) echo "Usage: $0 [-hblnops] [-d BASE_DIR] [-r IMAGE_REPOSITORY] [-t IMAGE_TAG]"; exit 1
   esac
 done
-
-if [ -z "$BASE_DIR" ]; then
-  echo "Required parameter for base directory (-d) is missing"
-  exit 1
-fi
-IMAGE_DIR="$BASE_DIR/images"
-OPERATOR_DIR="$BASE_DIR/manageiq-operator"
-
-if [ -z "$REPO" ]; then
-  echo "Required parameter for repository (-r) is missing"
-  exit 1
-fi
 
 if [ -n "$LOCAL_RPM" ] && [ -n "$REBUILD_RPM" ]; then
   echo "Local rpm (-l) and rebuild rpm (-b) options can't be used together"
   exit 1
 fi
+
+REPO=${REPO:-docker.io/manageiq}
+BASE_DIR=${BASE_DIR:-$PWD}
+IMAGE_DIR="$BASE_DIR/images"
+OPERATOR_DIR="$BASE_DIR/manageiq-operator"
 
 set -e
 
