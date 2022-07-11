@@ -11,7 +11,7 @@ LABEL name="manageiq-webserver-worker" \
 
 COPY container-assets/service-worker-entrypoint /usr/local/bin
 
-RUN dnf -y --setopt=tsflags=nodocs install \
+RUN dnf -y --setopt=tsflags=nodocs --setopt=install_weak_deps=False install \
       ${RPM_PREFIX}-ui && \
     clean_dnf_rpm && \
     # Remove httpd default settings
