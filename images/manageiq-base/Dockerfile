@@ -45,7 +45,8 @@ COPY container-assets/clean_dnf_rpm /usr/local/bin/
 
 RUN curl -L https://releases.ansible.com/ansible-runner/ansible-runner.el8.repo > /etc/yum.repos.d/ansible-runner.repo
 
-RUN dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs --setopt=install_weak_deps=False install \
+RUN dnf config-manager --setopt=tsflags=nodocs --setopt=install_weak_deps=False --save && \
+    dnf -y --disableplugin=subscription-manager install \
       httpd \
       mod_ssl && \
     if [ ${ARCH} != "s390x" ] ; then \
@@ -62,7 +63,7 @@ RUN dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs --setopt
     if [[ "$RELEASE_BUILD" != "true" ]]; then dnf config-manager --enable manageiq-15-oparin-nightly; fi && \
     dnf config-manager --setopt=ubi-8-*.exclude=dracut*,net-snmp*,perl-*,redhat-release* --save && \
     if [[ "$LOCAL_RPM" = "true" ]]; then /create_local_yum_repo.sh; fi && \
-    dnf -y --setopt=tsflags=nodocs --setopt=install_weak_deps=False install \
+    dnf -y install \
       ${RPM_PREFIX}-pods \
       python3-devel && \
     clean_dnf_rpm && \
