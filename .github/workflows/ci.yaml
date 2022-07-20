@@ -28,5 +28,8 @@ jobs:
       uses: actions/setup-go@v3
       with:
         go-version-file: 'manageiq-operator/go.mod'
-    - name: Run tests
+    - name: Run ruby tests
       run: bundle exec rake
+    - name: Run golang tests
+      run: make test
+      working-directory: ./manageiq-operator
