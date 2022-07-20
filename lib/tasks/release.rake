@@ -31,34 +31,24 @@ namespace :release do
     operator_readme.write(content.gsub(%r{(/manageiq-operator:)[-\w]+}, "\\1latest-#{branch}"))
 
     # Modify CR
-    cr = root.join("manageiq-operator", "pkg", "helpers", "miq-components", "cr.go")
+    cr = root.join("manageiq-operator", "helpers", "miq-components", "cr.go")
     content = cr.read
     cr.write(content.sub(/(cr\.Spec\.OrchestratorImageTag.+?\n\s+return ")[^"]+(")/, "\\1latest-#{branch}\\2"))
 
     # Modify types
-    types = root.join("manageiq-operator", "pkg", "apis", "manageiq", "v1alpha1", "manageiq_types.go")
+    types = root.join("manageiq-operator", "api", "v1alpha1", "manageiq_types.go")
     content = types.read
     types.write(content.sub(/(tag used for the orchestrator and worker deployments \(default: )[^\)]+(\))/, "\\1latest-#{branch}\\2"))
 
-    # Modify deploy operator.yaml
-    deploy_operator = root.join("manageiq-operator", "deploy", "operator.yaml")
+    # Modify operator deployment yaml
+    deploy_operator = root.join("config", "manager", "manager.yaml")
     content = deploy_operator.read
     deploy_operator.write(content.sub(%r{(docker.io/manageiq/manageiq-operator:).+$}, "\\1latest-#{branch}"))
 
     # Modify deploy CRD
-    deploy_crd = root.join("manageiq-operator", "deploy", "crds", "manageiq.org_manageiqs_crd.yaml")
+    deploy_crd = root.join("manageiq-operator", "crd", "bases", "manageiq.org_manageiqs.yaml")
     content = deploy_crd.read
     deploy_crd.write(content.sub(/(tag used for the orchestrator and worker deployments\n\s+\(default: )[^\)]+(\))/, "\\1latest-#{branch}\\2"))
-
-    # Modify deploy CSV
-    deploy_csv = root.join("manageiq-operator", "deploy", "olm-catalog", "manageiq-operator", "manifests", "manageiq-operator.clusterserviceversion.yaml")
-    content = deploy_csv.read
-    deploy_csv.write(content.sub(%r{(docker.io/manageiq/manageiq-operator:).+$}, "\\1latest-#{branch}"))
-
-    # Modify catalog CRD
-    catalog_crd = root.join("manageiq-operator", "deploy", "olm-catalog", "manageiq-operator", "manifests", "manageiq.org_manageiqs_crd.yaml")
-    content = catalog_crd.read
-    catalog_crd.write(content.sub(/(tag used for the orchestrator and worker deployments\n\s+\(default: )[^\)]+(\))/, "\\1latest-#{branch}\\2"))
 
     # Modify bin/build
     build_script = root.join("bin", "build")
