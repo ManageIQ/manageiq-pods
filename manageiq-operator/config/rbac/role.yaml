@@ -5,7 +5,7 @@ metadata:
   name: manageiq-operator
 rules:
 - apiGroups:
-  - ''
+  - ""
   resources:
   - configmaps
   - events
