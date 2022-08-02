@@ -57,6 +57,7 @@ fi
 
 pushd $IMAGE_DIR
   cmd="docker build --tag $REPO/manageiq-base:$TAG \
+                    --format docker
                     --pull \
                     --build-arg BUILD_REF=$BUILD_REF \
                     --build-arg BUILD_ORG=$BUILD_ORG \
@@ -89,15 +90,11 @@ pushd $IMAGE_DIR
   build_images="manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker"
   for image in $build_images; do
     cmd="docker build --tag $REPO/$image:$TAG \
+                      --format docker \
                       --build-arg FROM_REPO=$REPO \
                       --build-arg FROM_TAG=$TAG \
                       --build-arg RPM_PREFIX=$RPM_PREFIX \
                       $image"
-
-    if [ "$ARCH" = "s390x" ]; then
-      # --format docker is needed to ensure the builds are built with docker v2 manifests
-      cmd+=" --format docker"
-    fi
 
     echo "Building $image: $cmd"
     $cmd
