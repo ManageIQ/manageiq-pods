@@ -119,7 +119,8 @@ run: manifests generate fmt vet ## Run a controller from your host.
 .PHONY: docker-build
 docker-build: test ## Build docker image with the manager.
 	echo "$(date +"%Y%m%d%H%M%S")-$(git rev-parse HEAD)" > ./BUILD
-	docker build -t ${IMG} .
+	cat ./BUILD
+	docker build -t ${IMG} . --pull --format docker
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
