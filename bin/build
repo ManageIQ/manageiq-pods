@@ -106,9 +106,9 @@ popd
 
 if [ -z "$NO_OPERATOR" ]; then
   pushd "$OPERATOR_DIR"
-    cmd="IMG=$REPO/manageiq-operator:$TAG make build"
+    cmd="IMG=$REPO/manageiq-operator:$TAG make docker-build"
     echo "Building manageiq-operator: $cmd"
-    $cmd
+    bash -c "$cmd"
   popd
 fi
 
