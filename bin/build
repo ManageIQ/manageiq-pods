@@ -40,6 +40,8 @@ BASE_DIR=${BASE_DIR:-$PWD}
 IMAGE_DIR="$BASE_DIR/images"
 OPERATOR_DIR="$BASE_DIR/manageiq-operator"
 
+HAS_PODMAN="$(which podman &>/dev/null && echo "true")"
+
 set -e
 
 if [ -n "$REBUILD_RPM" ]; then
@@ -78,8 +80,8 @@ pushd $IMAGE_DIR
     cmd+=" --build-arg RELEASE_BUILD=true"
   fi
 
-  if [ "$ARCH" = "s390x" ]; then
-    # --format docker is needed to ensure the builds are built with docker v2 manifests
+  # --format docker is needed for podman to ensure the builds are built with docker v2 manifests
+  if [ -n "$HAS_PODMAN" ]; then
     cmd+=" --format docker"
   fi
 
@@ -94,8 +96,8 @@ pushd $IMAGE_DIR
                       --build-arg RPM_PREFIX=$RPM_PREFIX \
                       $image"
 
-    if [ "$ARCH" = "s390x" ]; then
-      # --format docker is needed to ensure the builds are built with docker v2 manifests
+    # --format docker is needed for podman to ensure the builds are built with docker v2 manifests
+    if [ -n "$HAS_PODMAN" ]; then
       cmd+=" --format docker"
     fi
 
