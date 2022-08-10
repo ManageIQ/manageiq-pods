@@ -118,10 +118,10 @@ run: manifests generate fmt vet ## Run a controller from your host.
 
 .PHONY: docker-build
 docker-build: test ## Build docker image with the manager.
-	echo "$(date +"%Y%m%d%H%M%S")-$(git rev-parse HEAD)" > ./BUILD
+	echo "$(shell date +"%Y%m%d%H%M%S")-$(shell git rev-parse HEAD)" > ./BUILD
 	cat ./BUILD
 	# --format docker is needed for podman to ensure the builds are built with docker v2 manifests
-	docker build -t ${IMG} . --pull $(which podman &>/dev/null && echo "--format docker")
+	docker build -t ${IMG} . --pull $(shell which podman &>/dev/null && echo "--format docker")
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
