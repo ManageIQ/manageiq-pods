@@ -74,6 +74,7 @@ require (
 
 replace (
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.3.2+incompatible // Required by OLM
+	github.com/gogo/protobuf v1.3.1 => github.com/gogo/protobuf v1.3.2 // Fix CVE-2021-3121
 	github.com/otiai10/copy => github.com/otiai10/copy v1.0.2
 	github.com/otiai10/mint => github.com/otiai10/mint v1.3.0
 	k8s.io/api => github.com/ManageIQ/kubernetes-api v0.0.0-20220110152537-707adf1e9ef5 // HACK: Temporary fork of the kubernetes-api to include some 0.19 changes until we can get to 0.19
