@@ -4,19 +4,8 @@ update-ca-trust
 
 [[ -s /etc/default/evm ]] && source /etc/default/evm
 
-function urlescape() {
-  PAYLOAD="$1" ruby --disable-gems -rcgi -e "puts CGI.escape(ENV['PAYLOAD'])"
-}
-
-safeuser=$(urlescape ${DATABASE_USER})
-safepass=$(urlescape ${DATABASE_PASSWORD})
-if [ -n "$safeuser" -a -n "$safepass" ]; then
-  safeuserinfo="${safeuser}:${safepass}@"
-else
-  safeuserinfo=""
-fi
-
-database_url="postgresql://${safeuserinfo}${DATABASE_HOSTNAME:-localhost}:${DATABASE_PORT:-5432}/${DATABASE_NAME:-db_unknown}?encoding=utf8&pool=5&wait_timeout=5&sslmode=${DATABASE_SSL_MODE:-prefer}"
-[[ -f /.postgresql/root.crt ]] && database_url="$database_url&sslrootcert=/.postgresql/root.crt"
-
-export DATABASE_URL=$database_url
+DATABASE_USERINFO=""
+[[ -n "$DATABASE_USER" && -n "$DATABASE_PASSWORD" ]] && DATABASE_USERINFO="$(ruby --disable-gems -rcgi -e "puts \"#{CGI.escape(ENV['DATABASE_USER'])}:#{CGI.escape(ENV['DATABASE_PASSWORD'])}@\"")"
+DATABASE_QUERY="encoding=utf8&pool=5&wait_timeout=5&sslmode=${DATABASE_SSL_MODE:-prefer}"
+[[ -f /.postgresql/root.crt ]] && DATABASE_QUERY="${DATABASE_QUERY}&sslrootcert=/.postgresql/root.crt"
+export DATABASE_URL="postgresql://${DATABASE_USERINFO}${DATABASE_HOSTNAME:-localhost}:${DATABASE_PORT:-5432}/${DATABASE_NAME:-db_unknown}?${DATABASE_QUERY}"
