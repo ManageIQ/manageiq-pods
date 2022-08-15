@@ -1,6 +1,6 @@
 #!/bin/bash
 
-update-ca-trust
+[[ -n "$(ls -A /etc/pki/ca-trust/source/anchors)" ]] && update-ca-trust
 
 [[ -s /etc/default/evm ]] && source /etc/default/evm
 
