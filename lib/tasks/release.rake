@@ -31,7 +31,7 @@ namespace :release do
     operator_readme.write(content.gsub(%r{(/manageiq-operator:)[-\w]+}, "\\1latest-#{branch}"))
 
     # Modify CR
-    cr = root.join("manageiq-operator", "helpers", "miq-components", "cr.go")
+    cr = root.join("manageiq-operator", "api", "v1alpha1", "helpers", "miq-components", "cr.go")
     content = cr.read
     cr.write(content.sub(/(cr\.Spec\.OrchestratorImageTag.+?\n\s+return ")[^"]+(")/, "\\1latest-#{branch}\\2"))
 
@@ -41,12 +41,12 @@ namespace :release do
     types.write(content.sub(/(tag used for the orchestrator and worker deployments \(default: )[^\)]+(\))/, "\\1latest-#{branch}\\2"))
 
     # Modify operator deployment yaml
-    deploy_operator = root.join("config", "manager", "manager.yaml")
+    deploy_operator = root.join("manageiq-operator", "config", "manager", "manager.yaml")
     content = deploy_operator.read
     deploy_operator.write(content.sub(%r{(docker.io/manageiq/manageiq-operator:).+$}, "\\1latest-#{branch}"))
 
     # Modify deploy CRD
-    deploy_crd = root.join("manageiq-operator", "crd", "bases", "manageiq.org_manageiqs.yaml")
+    deploy_crd = root.join("manageiq-operator", "config", "crd", "bases", "manageiq.org_manageiqs.yaml")
     content = deploy_crd.read
     deploy_crd.write(content.sub(/(tag used for the orchestrator and worker deployments\n\s+\(default: )[^\)]+(\))/, "\\1latest-#{branch}\\2"))
 
@@ -80,7 +80,7 @@ namespace :release do
     end
 
     # Commit
-    files_to_update = [readme, operator_readme, cr, types, deploy_operator, deploy_crd, deploy_csv, catalog_crd, build_script, remove_script, base_dockerfile, *dockerfiles]
+    files_to_update = [readme, operator_readme, cr, types, deploy_operator, deploy_crd, build_script, remove_script, base_dockerfile, *dockerfiles]
     exit $?.exitstatus unless system("git add #{files_to_update.join(" ")}")
     exit $?.exitstatus unless system("git commit -m 'Changes for new branch #{branch}'")
 
