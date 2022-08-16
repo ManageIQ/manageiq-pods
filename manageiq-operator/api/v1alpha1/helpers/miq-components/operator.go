@@ -17,6 +17,8 @@ func ManageOperator(cr *miqv1alpha1.ManageIQ, client client.Client) (*appsv1.Dep
 	deployment := operatorDeployment(cr, client)
 
 	f := func() error {
+		addAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)
+		addAppLabel(cr.Spec.AppName, &deployment.Spec.Template.ObjectMeta)
 		addBackupLabel(cr.Spec.BackupLabelName, &deployment.ObjectMeta)
 
 		return nil
