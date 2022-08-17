@@ -1,0 +1,37 @@
+name: Update Go Dependencies
+
+on:
+  workflow_dispatch:
+  schedule:
+  - cron: '0 0 * * 0'
+
+jobs:
+  go_dependencies:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version-file: 'manageiq-operator/go.mod'
+    - name: Update all dependencies
+      run: |
+        go get -t -u ./...
+        go mod tidy
+      working-directory: ./manageiq-operator
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v4
+      with:
+        add-paths: |
+          manageiq-operator/go.mod
+          manageiq-operator/go.sum
+        commit-message: Update go dependencies
+        branch: update_go_dependencies
+        author: ManageIQ Bot <bot@manageiq.org>
+        committer: ManageIQ Bot <bot@manageiq.org>
+        delete-branch: true
+        labels: dependencies
+        push-to-fork: miq-bot/manageiq-pods
+        title: Update go dependencies
+        body: Update the operator dependencies in go.mod
+        token: ${{ secrets.DEPLOY_TOKEN }}
