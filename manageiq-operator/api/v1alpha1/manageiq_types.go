@@ -260,7 +260,7 @@ type ManageIQSpec struct {
 	// +optional
 	OrchestratorImageNamespace string `json:"orchestratorImageNamespace,omitempty"`
 
-	// Image tag used for the orchestrator and worker deployments (default: latest)
+	// Image tag used for the orchestrator and worker deployments (default: latest-oparin)
 	// +optional
 	OrchestratorImageTag string `json:"orchestratorImageTag,omitempty"`
 

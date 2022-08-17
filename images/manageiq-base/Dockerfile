@@ -1,6 +1,6 @@
 FROM registry.access.redhat.com/ubi8/ubi:latest as appliance_build
 
-ARG BUILD_REF=master
+ARG BUILD_REF=oparin
 ARG BUILD_ORG=ManageIQ
 ARG CORE_REPO_NAME=manageiq
 ARG GIT_HOST=github.com
