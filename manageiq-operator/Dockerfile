@@ -18,6 +18,12 @@ COPY controllers/ controllers/
 RUN CGO_ENABLED=0 go build -a -o manager main.go
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
+
+LABEL name="ManageIQ Operator" \
+      summary="ManageIQ Operator manages the ManageIQ application on a Kubernetes cluster" \
+      vendor="ManageIQ" \
+      description="ManageIQ is a management and automation platform for virtual, private, and hybrid cloud infrastructures."
+
 WORKDIR /
 COPY --from=builder /workspace/manager .
 USER 65532:65532
