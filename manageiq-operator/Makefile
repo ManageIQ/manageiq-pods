@@ -122,11 +122,11 @@ docker-build: test ## Build docker image with the manager.
 	echo "$(shell date +"%Y%m%d%H%M%S")-$(shell git rev-parse HEAD)" > ./BUILD
 	cat ./BUILD
 	# --format docker is needed for podman to ensure the builds are built with docker v2 manifests
-	docker build -t ${IMG} . --pull $(shell which podman &>/dev/null && echo "--format docker")
+	$(shell which podman &>/dev/null && echo "podman" || echo "docker") build -t ${IMG} . --pull $(shell which podman &>/dev/null && echo "--format docker")
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
-	docker push ${IMG}
+	$(shell which podman &>/dev/null && echo "podman" || echo "docker") push ${IMG}
 
 ##@ Deployment
 
