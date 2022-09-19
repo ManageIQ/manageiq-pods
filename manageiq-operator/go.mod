@@ -1,6 +1,6 @@
 module github.com/ManageIQ/manageiq-pods/manageiq-operator
 
-go 1.17
+go 1.18
 
 require (
 	github.com/operator-framework/operator-sdk v0.18.2
