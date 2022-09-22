@@ -293,7 +293,7 @@ type ManageIQSpec struct {
 	// +optional
 	PostgresqlImageName string `json:"postgresqlImageName,omitempty"`
 
-	// Image tag used for the postgresql deployment (Default: 10)
+	// Image tag used for the postgresql deployment (Default: 13)
 	// +optional
 	PostgresqlImageTag string `json:"postgresqlImageTag,omitempty"`
 
