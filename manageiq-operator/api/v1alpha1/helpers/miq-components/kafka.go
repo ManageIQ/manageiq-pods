@@ -15,7 +15,7 @@ import (
 )
 
 func ManageKafkaSecret(cr *miqv1alpha1.ManageIQ, client client.Client, scheme *runtime.Scheme) (*corev1.Secret, controllerutil.MutateFn) {
-	secretKey := types.NamespacedName{Namespace: cr.ObjectMeta.Namespace, Name: cr.Spec.DatabaseSecret}
+	secretKey := types.NamespacedName{Namespace: cr.ObjectMeta.Namespace, Name: cr.Spec.KafkaSecret}
 	secret := &corev1.Secret{}
 	secretErr := client.Get(context.TODO(), secretKey, secret)
 	if secretErr != nil {
