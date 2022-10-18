@@ -174,7 +174,7 @@ spec:
                 type: string
               memcachedImageTag:
                 description: 'Image tag used for the memcached deployment (default:
-                  1.5)'
+                  1.6)'
                 type: string
               memcachedMaxConnection:
                 description: 'Memcached max simultaneous connections (default: 1024)'
