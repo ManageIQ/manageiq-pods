@@ -74,7 +74,7 @@ namespace :release do
     content = base_dockerfile.read
     content.sub!(/^(ARG BUILD_REF=)\w+/, "\\1#{branch}")
     content.sub!(%r{(/rpm.manageiq.org/release/)\d+-\w+}, "\\1#{rpm_repo_name}")
-    content.sub!(%r{(/el8/noarch/manageiq-release-)\d+\.\d+-\d+}, "\\1#{branch_number}.0-1")
+    content.sub!(%r{(/el\d/noarch/manageiq-release-)\d+\.\d+-\d+}, "\\1#{branch_number}.0-1")
     content.sub!(/(manageiq-)\d+-\w+(-nightly)/, "\\1#{rpm_repo_name}\\2")
     base_dockerfile.write(content)
 
@@ -135,7 +135,7 @@ namespace :release do
     base_dockerfile = root.join("images", "manageiq-base", "Dockerfile")
     content = base_dockerfile.read
     content.sub!(%r{(/rpm.manageiq.org/release/)\d+-\w+}, "\\1#{rpm_repo_name}")
-    content.sub!(%r{(/el8/noarch/manageiq-release-)\d+\.\d+-\d+}, "\\1#{next_branch_number}.0-1")
+    content.sub!(%r{(/el\d/noarch/manageiq-release-)\d+\.\d+-\d+}, "\\1#{next_branch_number}.0-1")
     content.sub!(/(manageiq-)\d+-\w+(-nightly)/, "\\1#{rpm_repo_name}\\2")
     base_dockerfile.write(content)
 

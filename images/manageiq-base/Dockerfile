@@ -1,7 +1,6 @@
-FROM registry.access.redhat.com/ubi8/ubi
+FROM registry.access.redhat.com/ubi9/ubi
 MAINTAINER ManageIQ https://manageiq.org
 
-ARG ARCH=x86_64
 ARG LOCAL_RPM
 ARG RELEASE_BUILD
 ARG RPM_PREFIX=manageiq
@@ -26,34 +25,31 @@ RUN chmod -R g+w /etc/pki/ca-trust && \
     chmod -R g+w /usr/share/pki/ca-trust-legacy
 
 # Install dumb-init to be used as the entrypoint
-RUN curl -L -o /usr/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.2/dumb-init_1.2.2_${ARCH} && \
+RUN ARCH=$(uname -m) && \
+    curl -L -o /usr/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.2/dumb-init_1.2.2_${ARCH} && \
     chmod +x /usr/bin/dumb-init
 
 COPY rpms/* /tmp/rpms/
 COPY container-assets/create_local_yum_repo.sh /
 COPY container-assets/clean_dnf_rpm /usr/local/bin/
 
-RUN dnf config-manager --setopt=tsflags=nodocs --setopt=install_weak_deps=False --save && \
-    if [ ${ARCH} != "s390x" ] ; then \
-      dnf -y --setopt=protected_packages= remove redhat-release && \
-      dnf -y remove *subscription-manager* && \
-      dnf -y install \
-        http://mirror.centos.org/centos/8-stream/BaseOS/${ARCH}/os/Packages/centos-stream-release-8.6-1.el8.noarch.rpm \
-        http://mirror.centos.org/centos/8-stream/BaseOS/${ARCH}/os/Packages/centos-stream-repos-8-6.el8.noarch.rpm \
-        http://mirror.centos.org/centos/8-stream/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-8-6.el8.noarch.rpm && \
-      dnf config-manager --setopt=appstream*.exclude=*httpd*,mod_ssl --save \
-    ; fi && \
+RUN ARCH=$(uname -m) && \
+    dnf config-manager --setopt=tsflags=nodocs --setopt=install_weak_deps=False --save && \
+    dnf -y --setopt=protected_packages= remove redhat-release && \
+    dnf -y remove *subscription-manager* && \
+    dnf -y install \
+      http://mirror.stream.centos.org/9-stream/BaseOS/${ARCH}/os/Packages/centos-stream-release-9.0-24.el9.noarch.rpm \
+      http://mirror.stream.centos.org/9-stream/BaseOS/${ARCH}/os/Packages/centos-stream-repos-9.0-24.el9.noarch.rpm \
+      http://mirror.stream.centos.org/9-stream/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-9.0-24.el9.noarch.rpm && \
+    dnf -y install \
+      https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm \
+      https://rpm.manageiq.org/release/18-radjabov/el9/noarch/manageiq-release-18.0-1.el9.noarch.rpm && \
+    if [[ "$RELEASE_BUILD" != "true" ]]; then dnf config-manager --enable manageiq-18-radjabov-nightly; fi && \
+    if [[ "$LOCAL_RPM" = "true" ]]; then /create_local_yum_repo.sh; fi && \
+    dnf -y module enable ruby:3.1 && \
     dnf -y install \
       httpd \
       mod_ssl \
-      https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm \
-      https://rpm.manageiq.org/release/18-radjabov/el8/noarch/manageiq-release-18.0-1.el8.noarch.rpm && \
-    dnf -y update && \
-    dnf -y module enable postgresql:13 ruby:3.1 && \
-    if [[ "$RELEASE_BUILD" != "true" ]]; then dnf config-manager --enable manageiq-18-radjabov-nightly; fi && \
-    dnf config-manager --setopt=ubi-8-*.exclude=dracut*,net-snmp*,redhat-release* --save && \
-    if [[ "$LOCAL_RPM" = "true" ]]; then /create_local_yum_repo.sh; fi && \
-    dnf -y install \
       ${RPM_PREFIX}-pods \
       python3-devel && \
     clean_dnf_rpm && \
