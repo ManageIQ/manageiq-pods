@@ -17,3 +17,18 @@ jobs:
       run: echo ${{ secrets.REGISTRY_PASSWORD }} | docker login docker.io --password-stdin --username ${{ secrets.REGISTRY_USERNAME }}
     - name: Build pods containers
       run: bin/build -t latest -n -p
+  notify_builders:
+    needs: build_pods
+    if: github.repository_owner == 'ManageIQ'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Notify manageiq-pods on RPM build
+      uses: peter-evans/repository-dispatch@v2
+      with:
+        token: ${{ secrets.DEPLOY_TOKEN }}
+        repository: ManageIQ/manageiq
+        event-type: build
+        client-payload: |
+          { "repository": "${{ github.repository }}",
+            "ref_name": "${{ github.ref_name }}",
+            "sha": "${{ github.sha }}" }
