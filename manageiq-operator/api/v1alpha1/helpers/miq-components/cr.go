@@ -276,7 +276,7 @@ func postgresqlImageName(cr *miqv1alpha1.ManageIQ) string {
 
 func postgresqlImageTag(cr *miqv1alpha1.ManageIQ) string {
 	if cr.Spec.PostgresqlImageTag == "" {
-		return "10"
+		return "13"
 	} else {
 		return cr.Spec.PostgresqlImageTag
 	}

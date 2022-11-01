@@ -264,7 +264,7 @@ spec:
                 type: string
               postgresqlImageTag:
                 description: 'Image tag used for the postgresql deployment (Default:
-                  10)'
+                  13)'
                 type: string
               postgresqlMaxConnections:
                 description: 'PostgreSQL maximum connection setting (default: 1000)'
