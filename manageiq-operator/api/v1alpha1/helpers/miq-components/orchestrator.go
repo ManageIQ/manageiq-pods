@@ -184,6 +184,7 @@ func addPostgresConfig(cr *miqv1alpha1.ManageIQ, d *appsv1.Deployment, client cl
 func updateOrchestratorEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
 	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "ADMIN_GROUP", Value: cr.Spec.InitialAdminGroupName})
 	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "APP_NAME", Value: cr.Spec.AppName})
+	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "APPLICATION_DOMAIN", Value: cr.Spec.ApplicationDomain})
 	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "AUTH_SSO", Value: strconv.FormatBool(*cr.Spec.EnableSSO)})
 	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "AUTH_TYPE", Value: cr.Spec.HttpdAuthenticationType})
 	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "GUID", Value: cr.Spec.ServerGuid})

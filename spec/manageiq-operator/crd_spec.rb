@@ -5,6 +5,8 @@ describe "Generate CRDs" do
 
     AwesomeSpawn.run!("make generate", :chdir => ROOT.join("manageiq-operator"))
 
-    expect(AwesomeSpawn.run!("git diff").output).to be_empty, "Files differ after generating CRDs"
+    diff_output = AwesomeSpawn.run!("git diff manageiq-operator/").output
+    puts diff_output unless diff_output.empty?
+    expect(diff_output).to be_empty, "Files differ after generating CRDs"
   end
 end

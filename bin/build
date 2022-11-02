@@ -2,14 +2,7 @@
 
 TAG=latest-oparin
 
-BUILD_REF=${BUILD_REF:-oparin}
-BUILD_ORG=${BUILD_ORG:-ManageIQ}
-
 ARCH=`uname -m`
-CORE_REPO_NAME=${CORE_REPO_NAME:-manageiq}
-
-GIT_HOST=${GIT_HOST:-github.com}
-GIT_AUTH=${GIT_AUTH:-""}
 
 RPM_BUILD_OPTIONS=${RPM_BUILD_OPTIONS:-""}
 RPM_BUILD_IMAGE=${RPM_BUILD_IMAGE:-"manageiq/rpm_build:$TAG"}
@@ -40,7 +33,7 @@ BASE_DIR=${BASE_DIR:-$PWD}
 IMAGE_DIR="$BASE_DIR/images"
 OPERATOR_DIR="$BASE_DIR/manageiq-operator"
 
-HAS_PODMAN="$(which podman &>/dev/null && echo "true")"
+CONTAINER_COMMAND="$(which podman &>/dev/null && echo "podman" || echo "docker")"
 
 set -e
 
@@ -51,22 +44,25 @@ if [ -n "$REBUILD_RPM" ]; then
   if [ -n "$RPM_BUILD_OPTIONS" ]; then
     options+=" -v $PWD/$RPM_BUILD_OPTIONS:/root/OPTIONS"
   fi
-  docker pull $RPM_BUILD_IMAGE
-  cmd="docker run -it --rm $options $RPM_BUILD_IMAGE build"
+
+  $CONTAINER_COMMAND pull $RPM_BUILD_IMAGE
+  cmd="$CONTAINER_COMMAND run -it --rm $options $RPM_BUILD_IMAGE build"
   echo "Building RPMs locally: $cmd"
   $cmd
 fi
 
 pushd $IMAGE_DIR
-  cmd="docker build --tag $REPO/manageiq-base:$TAG \
-                    --pull \
-                    --build-arg BUILD_REF=$BUILD_REF \
-                    --build-arg BUILD_ORG=$BUILD_ORG \
-                    --build-arg GIT_AUTH=$GIT_AUTH \
-                    --build-arg GIT_HOST=$GIT_HOST \
-                    --build-arg CORE_REPO_NAME=$CORE_REPO_NAME \
-                    --build-arg ARCH=$ARCH \
-                    --build-arg RPM_PREFIX=$RPM_PREFIX"
+  cmd="$CONTAINER_COMMAND build"
+
+  # --format docker is needed for podman to ensure the builds are built with docker v2 manifests
+  if [ "$CONTAINER_COMMAND" == "podman" ]; then
+    cmd+=" --format docker"
+  fi
+
+  cmd+=" --tag $REPO/manageiq-base:$TAG \
+         --pull \
+         --build-arg ARCH=$ARCH \
+         --build-arg RPM_PREFIX=$RPM_PREFIX"
 
   if [ -n "$NO_CACHE" ]; then
     cmd+=" --no-cache"
@@ -80,26 +76,22 @@ pushd $IMAGE_DIR
     cmd+=" --build-arg RELEASE_BUILD=true"
   fi
 
-  # --format docker is needed for podman to ensure the builds are built with docker v2 manifests
-  if [ -n "$HAS_PODMAN" ]; then
-    cmd+=" --format docker"
-  fi
-
   echo "Building manageiq-base: $cmd"
   $cmd manageiq-base
 
   build_images="manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker"
   for image in $build_images; do
-    cmd="docker build --tag $REPO/$image:$TAG \
-                      --build-arg FROM_REPO=$REPO \
-                      --build-arg FROM_TAG=$TAG \
-                      --build-arg RPM_PREFIX=$RPM_PREFIX \
-                      $image"
+    cmd="$CONTAINER_COMMAND build"
 
-    # --format docker is needed for podman to ensure the builds are built with docker v2 manifests
-    if [ -n "$HAS_PODMAN" ]; then
+    if [ "$CONTAINER_COMMAND" == "podman" ]; then
       cmd+=" --format docker"
     fi
+
+    cmd+=" --tag $REPO/$image:$TAG \
+           --build-arg FROM_REPO=$REPO \
+           --build-arg FROM_TAG=$TAG \
+           --build-arg RPM_PREFIX=$RPM_PREFIX \
+           $image"
 
     echo "Building $image: $cmd"
     $cmd
@@ -121,7 +113,12 @@ if [ -n "$PUSH" ]; then
   fi
 
   for image in $push_images; do
-    cmd="docker push $REPO/$image:$TAG"
+    cmd="$CONTAINER_COMMAND push $REPO/$image:$TAG"
+
+    if [ "$CONTAINER_COMMAND" == "podman" ]; then
+      cmd+=" --format docker"
+    fi
+
     echo "Pushing: $cmd"
     $cmd
   done

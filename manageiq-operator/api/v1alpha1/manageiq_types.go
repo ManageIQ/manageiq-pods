@@ -188,7 +188,7 @@ type ManageIQSpec struct {
 	// +optional
 	MemcachedImageName string `json:"memcachedImageName,omitempty"`
 
-	// Image tag used for the memcached deployment (default: 1.5)
+	// Image tag used for the memcached deployment (default: 1.6)
 	// +optional
 	MemcachedImageTag string `json:"memcachedImageTag,omitempty"`
 
@@ -293,7 +293,7 @@ type ManageIQSpec struct {
 	// +optional
 	PostgresqlImageName string `json:"postgresqlImageName,omitempty"`
 
-	// Image tag used for the postgresql deployment (Default: 10)
+	// Image tag used for the postgresql deployment (Default: 13)
 	// +optional
 	PostgresqlImageTag string `json:"postgresqlImageTag,omitempty"`
 

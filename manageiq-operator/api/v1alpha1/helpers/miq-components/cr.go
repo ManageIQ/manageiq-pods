@@ -188,7 +188,7 @@ func memcachedImageName(cr *miqv1alpha1.ManageIQ) string {
 
 func memcachedImageTag(cr *miqv1alpha1.ManageIQ) string {
 	if cr.Spec.MemcachedImageTag == "" {
-		return "1.5"
+		return "1.6"
 	} else {
 		return cr.Spec.MemcachedImageTag
 	}
@@ -276,7 +276,7 @@ func postgresqlImageName(cr *miqv1alpha1.ManageIQ) string {
 
 func postgresqlImageTag(cr *miqv1alpha1.ManageIQ) string {
 	if cr.Spec.PostgresqlImageTag == "" {
-		return "10"
+		return "13"
 	} else {
 		return cr.Spec.PostgresqlImageTag
 	}
