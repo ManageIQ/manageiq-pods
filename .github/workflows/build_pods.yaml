@@ -22,7 +22,7 @@ jobs:
     if: github.repository_owner == 'ManageIQ'
     runs-on: ubuntu-latest
     steps:
-    - name: Notify manageiq-pods on RPM build
+    - name: Notify manageiq on RPM build
       uses: peter-evans/repository-dispatch@v2
       with:
         token: ${{ secrets.DEPLOY_TOKEN }}
