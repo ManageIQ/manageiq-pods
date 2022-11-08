@@ -19,6 +19,9 @@ LABEL name="manageiq-base" \
       io.k8s.description="ManageIQ is a management and automation platform for virtual, private, and hybrid cloud infrastructures." \
       io.openshift.tags="ManageIQ,miq,manageiq"
 
+# Force the sticky bit on /tmp - https://bugzilla.redhat.com/show_bug.cgi?id=2138434
+RUN chmod +t /tmp
+
 RUN chmod -R g+w /etc/pki/ca-trust && \
     chmod -R g+w /usr/share/pki/ca-trust-legacy
 
