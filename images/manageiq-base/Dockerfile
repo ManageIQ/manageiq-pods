@@ -30,6 +30,9 @@ LABEL name="manageiq-base" \
       io.k8s.description="ManageIQ is a management and automation platform for virtual, private, and hybrid cloud infrastructures." \
       io.openshift.tags="ManageIQ,miq,manageiq"
 
+# Force the sticky bit on /tmp - https://bugzilla.redhat.com/show_bug.cgi?id=2138434
+RUN chmod +t /tmp
+
 COPY rpms/* /tmp/rpms/
 COPY container-assets/create_local_yum_repo.sh /
 
