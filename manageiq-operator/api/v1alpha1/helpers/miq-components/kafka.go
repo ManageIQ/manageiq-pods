@@ -10,6 +10,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	intstr "k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
@@ -209,6 +210,20 @@ func KafkaDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.
 		Ports: []corev1.ContainerPort{
 			corev1.ContainerPort{
 				ContainerPort: 9092,
+			},
+		},
+		LivenessProbe: &corev1.Probe{
+			ProbeHandler: corev1.ProbeHandler{
+				TCPSocket: &corev1.TCPSocketAction{
+					Port: intstr.FromInt(9092),
+				},
+			},
+		},
+		ReadinessProbe: &corev1.Probe{
+			ProbeHandler: corev1.ProbeHandler{
+				TCPSocket: &corev1.TCPSocketAction{
+					Port: intstr.FromInt(9092),
+				},
 			},
 		},
 		Env: []corev1.EnvVar{
