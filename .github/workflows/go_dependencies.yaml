@@ -27,6 +27,7 @@ jobs:
           manageiq-operator/go.sum
         commit-message: Update go dependencies
         branch: update_go_dependencies
+        assignees: bdunne
         author: ManageIQ Bot <bot@manageiq.org>
         committer: ManageIQ Bot <bot@manageiq.org>
         delete-branch: true
