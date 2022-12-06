@@ -33,8 +33,6 @@ COPY rpms/* /tmp/rpms/
 COPY container-assets/create_local_yum_repo.sh /
 COPY container-assets/clean_dnf_rpm /usr/local/bin/
 
-RUN curl -L https://releases.ansible.com/ansible-runner/ansible-runner.el8.repo > /etc/yum.repos.d/ansible-runner.repo
-
 RUN dnf config-manager --setopt=tsflags=nodocs --setopt=install_weak_deps=False --save && \
     dnf -y --disableplugin=subscription-manager install \
       httpd \
