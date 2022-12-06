@@ -4,6 +4,8 @@ yum -y install createrepo_c
 createrepo /tmp/rpms
 yum -y remove createrepo_c
 
+ls -al /tmp/rpms
+
 cat > /etc/yum.repos.d/local_rpm.repo << EOF
 [local-rpm]
 baseurl=file:///tmp/rpms/$basearch
