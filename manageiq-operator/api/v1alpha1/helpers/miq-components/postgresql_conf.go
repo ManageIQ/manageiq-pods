@@ -78,8 +78,8 @@ func postgresqlSslConf() string {
 #------------------------------------------------------------------------------
 
 ssl = on
-ssl_cert_file = '/var/lib/pgsql/data/userdata/server.crt' # server certificate
-ssl_key_file =  '/var/lib/pgsql/data/userdata/server.key' # server private key
+ssl_cert_file = '/etc/pki/tls/certs/server.crt' # server certificate
+ssl_key_file =  '/etc/pki/tls/private/server.key' # server private key
 #ssl_ca_file                                   # trusted certificate authorities
 #ssl_crl_file                                  # certificates revoked by certificate authorities
 

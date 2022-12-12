@@ -284,7 +284,7 @@ func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, client client.Client, scheme
 		}
 		deployment.Spec.Template.Spec.Volumes = addOrUpdateVolume(deployment.Spec.Template.Spec.Volumes, corev1.Volume{Name: "env-file", VolumeSource: corev1.VolumeSource{Secret: &secret}})
 
-		addInternalCertificate(cr, deployment, client, "postgresql", "/opt/app-root/src/certificates")
+		addPkiCertificate(cr, deployment, client, "postgresql")
 
 		return nil
 	}
