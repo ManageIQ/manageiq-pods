@@ -35,4 +35,4 @@ jobs:
         push-to-fork: miq-bot/manageiq-pods
         title: Update go dependencies
         body: Update the operator dependencies in go.mod
-        token: ${{ secrets.DEPLOY_TOKEN }}
+        token: ${{ secrets.PR_TOKEN }}
