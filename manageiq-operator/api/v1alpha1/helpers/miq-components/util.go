@@ -174,3 +174,19 @@ func addOrUpdateVolume(volumes []corev1.Volume, volume corev1.Volume) []corev1.V
 
 	return volumes
 }
+
+func DefaultSecurityContext() *corev1.SecurityContext {
+	dropCapability := []corev1.Capability{"ALL"}
+	varFalse := false
+	varTrue := true
+	sc := &corev1.SecurityContext{
+		AllowPrivilegeEscalation: &varFalse,
+		Privileged:               &varFalse,
+		Capabilities: &corev1.Capabilities{
+			Drop: dropCapability,
+		},
+		RunAsNonRoot: &varTrue,
+	}
+
+	return sc
+}
