@@ -315,6 +315,7 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 
 		updateOrchestratorEnv(cr, &deployment.Spec.Template.Spec.Containers[0])
 		deployment.Spec.Template.Spec.Containers[0].Image = cr.Spec.OrchestratorImage
+		deployment.Spec.Template.Spec.Containers[0].SecurityContext = DefaultSecurityContext()
 
 		addInternalRootCertificate(cr, deployment, client)
 

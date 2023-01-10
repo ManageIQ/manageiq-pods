@@ -94,6 +94,7 @@ func NewMemcachedDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 		}
 		addAnnotations(cr.Spec.AppAnnotations, &deployment.Spec.Template.ObjectMeta)
 		deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
+		deployment.Spec.Template.Spec.Containers[0].SecurityContext = DefaultSecurityContext()
 		deployment.Spec.Template.Spec.ServiceAccountName = defaultServiceAccountName(cr.Spec.AppName)
 
 		addInternalCertificate(cr, deployment, client, "memcached", "/root")

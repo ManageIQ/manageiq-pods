@@ -297,6 +297,7 @@ func KafkaDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.
 			Type: "Recreate",
 		}
 		deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
+		deployment.Spec.Template.Spec.Containers[0].SecurityContext = DefaultSecurityContext()
 		deployment.Spec.Template.Spec.ServiceAccountName = defaultServiceAccountName(cr.Spec.AppName)
 		var termSecs int64 = 10
 		deployment.Spec.Template.Spec.TerminationGracePeriodSeconds = &termSecs
@@ -381,6 +382,7 @@ func ZookeeperDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*app
 		}
 		addAnnotations(cr.Spec.AppAnnotations, &deployment.Spec.Template.ObjectMeta)
 		deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
+		deployment.Spec.Template.Spec.Containers[0].SecurityContext = DefaultSecurityContext()
 		deployment.Spec.Template.Spec.ServiceAccountName = defaultServiceAccountName(cr.Spec.AppName)
 		deployment.Spec.Template.Spec.Volumes = []corev1.Volume{
 			corev1.Volume{
