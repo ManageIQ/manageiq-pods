@@ -2,6 +2,7 @@ package miqtools
 
 import (
 	"context"
+	"fmt"
 
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
@@ -30,6 +31,13 @@ func ManageAppSecret(cr *miqv1alpha1.ManageIQ, client client.Client, scheme *run
 		addAppLabel(cr.Spec.AppName, &secret.ObjectMeta)
 		addBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
 
+		encryptionKey := string(secret.Data["encryption-key"])
+		d := map[string]string{
+			"encryption-key": encryptionKey,
+			"v2_key":         v2Key(encryptionKey),
+		}
+		secret.StringData = d
+
 		return nil
 	}
 
@@ -50,4 +58,12 @@ func defaultAppSecret(cr *miqv1alpha1.ManageIQ) *corev1.Secret {
 	}
 
 	return secret
+}
+
+func v2Key(encryptionKey string) string {
+	s := `---
+:algorithm: aes-256-cbc
+:key: %[1]s
+`
+	return fmt.Sprintf(s, encryptionKey)
 }
