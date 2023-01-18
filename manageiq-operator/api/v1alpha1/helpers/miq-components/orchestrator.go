@@ -330,6 +330,12 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 			deployment.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(deployment.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "UI_SSL_SECRET_NAME", Value: cr.Spec.InternalCertificatesSecret})
 		}
 
+		volumeMount := corev1.VolumeMount{Name: "v2key", MountPath: "/run/secrets/manageiq/certs", ReadOnly: true}
+		deployment.Spec.Template.Spec.Containers[0].VolumeMounts = addOrUpdateVolumeMount(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, volumeMount)
+
+		secretVolumeSource := corev1.SecretVolumeSource{SecretName: "app-secrets", Items: []corev1.KeyToPath{corev1.KeyToPath{Key: "v2_key", Path: "v2_key"}}}
+		deployment.Spec.Template.Spec.Volumes = addOrUpdateVolume(deployment.Spec.Template.Spec.Volumes, corev1.Volume{Name: "v2key", VolumeSource: corev1.VolumeSource{Secret: &secretVolumeSource}})
+
 		return nil
 	}
 

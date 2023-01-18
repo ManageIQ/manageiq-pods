@@ -2,12 +2,7 @@
 
 [[ -s ${APP_ROOT}/container_env ]] && source ${APP_ROOT}/container_env
 
-echo "== Writing encryption key =="
-cat > /var/www/miq/vmdb/certs/v2_key << KEY
----
-:algorithm: aes-256-cbc
-:key: ${ENCRYPTION_KEY}
-KEY
+[ ! -f /var/www/miq/vmdb/certs/v2_key ] && ln -s /var/run/secrets/manageiq/certs/v2_key /var/www/miq/vmdb/certs/
 
 echo "${GUID}" > ${APP_ROOT}/GUID
 
