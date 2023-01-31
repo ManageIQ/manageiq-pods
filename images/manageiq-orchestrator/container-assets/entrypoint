@@ -115,16 +115,7 @@ EOS
 }
 
 check_svc_status ${MEMCACHED_SERVICE_HOST} ${MEMCACHED_SERVICE_PORT}
-check_svc_status ${DATABASE_HOSTNAME} ${DATABASE_PORT}
-
-echo "== Writing encryption key =="
-cat > /var/www/miq/vmdb/certs/v2_key << KEY
----
-:algorithm: aes-256-cbc
-:key: ${ENCRYPTION_KEY}
-KEY
-
-echo "${GUID}" > ${APP_ROOT}/GUID
+check_svc_status ${database_hostname} ${database_port}
 
 check_deployment_status || exit 1
 

@@ -2,10 +2,6 @@
 
 [[ -s ${APP_ROOT}/container_env ]] && source ${APP_ROOT}/container_env
 
-[ ! -f /var/www/miq/vmdb/certs/v2_key ] && ln -s /var/run/secrets/manageiq/certs/v2_key /var/www/miq/vmdb/certs/
-
-echo "${GUID}" > ${APP_ROOT}/GUID
-
 WORKER_OPTIONS=""
 [[ -n $EMS_IDS ]] && WORKER_OPTIONS="${WORKER_OPTIONS} --ems-id=${EMS_IDS} "
 [[ -n $HOSTNAME ]] && WORKER_OPTIONS="${WORKER_OPTIONS} --system-uid=$HOSTNAME "

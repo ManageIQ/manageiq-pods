@@ -162,12 +162,6 @@ func addMessagingEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
 
 func addPostgresConfig(cr *miqv1alpha1.ManageIQ, d *appsv1.Deployment, client client.Client) {
 	d.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(d.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "DATABASE_REGION", Value: cr.Spec.DatabaseRegion})
-
-	volumeMount := corev1.VolumeMount{Name: "database-yml", MountPath: "/run/secrets/manageiq/config", ReadOnly: true}
-	d.Spec.Template.Spec.Containers[0].VolumeMounts = addOrUpdateVolumeMount(d.Spec.Template.Spec.Containers[0].VolumeMounts, volumeMount)
-
-	secret := corev1.SecretVolumeSource{SecretName: "app-secrets", Items: []corev1.KeyToPath{corev1.KeyToPath{Key: "database_yml", Path: "database.yml"}}}
-	d.Spec.Template.Spec.Volumes = addOrUpdateVolume(d.Spec.Template.Spec.Volumes, corev1.Volume{Name: "database-yml", VolumeSource: corev1.VolumeSource{Secret: &secret}})
 }
 
 func updateOrchestratorEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
@@ -234,15 +228,6 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 			corev1.EnvVar{
 				Name:  "ALLOW_INSECURE_SESSION",
 				Value: "true",
-			},
-			corev1.EnvVar{
-				Name: "ENCRYPTION_KEY",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{Name: "app-secrets"},
-						Key:                  "encryption-key",
-					},
-				},
 			},
 			corev1.EnvVar{
 				Name: "POD_NAME",
@@ -319,11 +304,23 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 			deployment.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(deployment.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "UI_SSL_SECRET_NAME", Value: cr.Spec.InternalCertificatesSecret})
 		}
 
-		volumeMount := corev1.VolumeMount{Name: "v2key", MountPath: "/run/secrets/manageiq/certs", ReadOnly: true}
+		volumeMount := corev1.VolumeMount{Name: "encryption-key", MountPath: "/run/secrets/manageiq/application", ReadOnly: true}
 		deployment.Spec.Template.Spec.Containers[0].VolumeMounts = addOrUpdateVolumeMount(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, volumeMount)
 
-		secretVolumeSource := corev1.SecretVolumeSource{SecretName: "app-secrets", Items: []corev1.KeyToPath{corev1.KeyToPath{Key: "v2_key", Path: "v2_key"}}}
-		deployment.Spec.Template.Spec.Volumes = addOrUpdateVolume(deployment.Spec.Template.Spec.Volumes, corev1.Volume{Name: "v2key", VolumeSource: corev1.VolumeSource{Secret: &secretVolumeSource}})
+		secretVolumeSource := corev1.SecretVolumeSource{SecretName: "app-secrets", Items: []corev1.KeyToPath{corev1.KeyToPath{Key: "encryption-key", Path: "encryption_key"}}}
+		deployment.Spec.Template.Spec.Volumes = addOrUpdateVolume(deployment.Spec.Template.Spec.Volumes, corev1.Volume{Name: "encryption-key", VolumeSource: corev1.VolumeSource{Secret: &secretVolumeSource}})
+
+		databaseVolumeMount := corev1.VolumeMount{Name: "database-secret", MountPath: "/run/secrets/postgresql", ReadOnly: true}
+		deployment.Spec.Template.Spec.Containers[0].VolumeMounts = addOrUpdateVolumeMount(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, databaseVolumeMount)
+
+		databaseSecretVolumeSource := corev1.SecretVolumeSource{SecretName: cr.Spec.DatabaseSecret, Items: []corev1.KeyToPath{
+			corev1.KeyToPath{Key: "dbname", Path: "POSTGRESQL_DATABASE"},
+			corev1.KeyToPath{Key: "hostname", Path: "POSTGRESQL_HOSTNAME"},
+			corev1.KeyToPath{Key: "password", Path: "POSTGRESQL_PASSWORD"},
+			corev1.KeyToPath{Key: "port", Path: "POSTGRESQL_PORT"},
+			corev1.KeyToPath{Key: "username", Path: "POSTGRESQL_USER"},
+		}}
+		deployment.Spec.Template.Spec.Volumes = addOrUpdateVolume(deployment.Spec.Template.Spec.Volumes, corev1.Volume{Name: "database-secret", VolumeSource: corev1.VolumeSource{Secret: &databaseSecretVolumeSource}})
 
 		return nil
 	}
