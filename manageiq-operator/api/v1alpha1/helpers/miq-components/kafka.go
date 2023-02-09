@@ -253,6 +253,10 @@ func KafkaDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.
 				Name:  "ALLOW_PLAINTEXT_LISTENER",
 				Value: "yes",
 			},
+			corev1.EnvVar{
+				Name:  "KAFKA_CFG_ADVERTISED_LISTENERS",
+				Value: "PLAINTEXT://kafka:9092",
+			},
 		},
 		VolumeMounts: []corev1.VolumeMount{
 			corev1.VolumeMount{Name: "kafka-data", MountPath: "/bitnami/kafka"},
