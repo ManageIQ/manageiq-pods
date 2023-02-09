@@ -164,7 +164,7 @@ func kafkaImageTag(cr *miqv1alpha1.ManageIQ) string {
 
 func kafkaVolumeCapacity(cr *miqv1alpha1.ManageIQ) string {
 	if cr.Spec.KafkaVolumeCapacity == "" {
-		return "1Gi"
+		return "2Gi"
 	} else {
 		return cr.Spec.KafkaVolumeCapacity
 	}
