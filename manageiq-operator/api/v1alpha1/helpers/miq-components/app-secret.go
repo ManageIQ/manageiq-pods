@@ -12,8 +12,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
+const appSecretName = "app-secrets"
+
 func ManageAppSecret(cr *miqv1alpha1.ManageIQ, client client.Client, scheme *runtime.Scheme) (*corev1.Secret, controllerutil.MutateFn) {
-	secretKey := types.NamespacedName{Namespace: cr.ObjectMeta.Namespace, Name: cr.Spec.DatabaseSecret}
+	secretKey := types.NamespacedName{Namespace: cr.ObjectMeta.Namespace, Name: appSecretName}
 	secret := &corev1.Secret{}
 	secretErr := client.Get(context.TODO(), secretKey, secret)
 	if secretErr != nil {
@@ -41,7 +43,7 @@ func defaultAppSecret(cr *miqv1alpha1.ManageIQ) *corev1.Secret {
 
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "app-secrets",
+			Name:      appSecretName,
 			Namespace: cr.ObjectMeta.Namespace,
 		},
 		StringData: secretData,
