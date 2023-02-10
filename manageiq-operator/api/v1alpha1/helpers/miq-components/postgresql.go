@@ -198,33 +198,6 @@ func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, client client.Client, scheme
 		},
 		Env: []corev1.EnvVar{
 			corev1.EnvVar{
-				Name: "POSTGRESQL_USER",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{Name: cr.Spec.DatabaseSecret},
-						Key:                  "username",
-					},
-				},
-			},
-			corev1.EnvVar{
-				Name: "POSTGRESQL_PASSWORD",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{Name: cr.Spec.DatabaseSecret},
-						Key:                  "password",
-					},
-				},
-			},
-			corev1.EnvVar{
-				Name: "POSTGRESQL_DATABASE",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{Name: cr.Spec.DatabaseSecret},
-						Key:                  "dbname",
-					},
-				},
-			},
-			corev1.EnvVar{
 				Name:  "POSTGRESQL_MAX_CONNECTIONS",
 				Value: cr.Spec.PostgresqlMaxConnections,
 			},
@@ -298,6 +271,18 @@ func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, client client.Client, scheme
 				},
 			},
 		}
+
+		volumeMount := corev1.VolumeMount{Name: "env-file", MountPath: "/run/secrets/postgresql", ReadOnly: true}
+		deployment.Spec.Template.Spec.Containers[0].VolumeMounts = addOrUpdateVolumeMount(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, volumeMount)
+		secret := corev1.SecretVolumeSource{
+			SecretName: cr.Spec.DatabaseSecret,
+			Items: []corev1.KeyToPath{
+				corev1.KeyToPath{Key: "dbname", Path: "POSTGRESQL_DATABASE"},
+				corev1.KeyToPath{Key: "password", Path: "POSTGRESQL_PASSWORD"},
+				corev1.KeyToPath{Key: "username", Path: "POSTGRESQL_USER"},
+			},
+		}
+		deployment.Spec.Template.Spec.Volumes = addOrUpdateVolume(deployment.Spec.Template.Spec.Volumes, corev1.Volume{Name: "env-file", VolumeSource: corev1.VolumeSource{Secret: &secret}})
 
 		addInternalCertificate(cr, deployment, client, "postgresql", "/opt/app-root/src/certificates")
 

@@ -4,8 +4,45 @@
 
 [[ -s /etc/default/evm ]] && source /etc/default/evm
 
-DATABASE_USERINFO=""
-[[ -n "$DATABASE_USER" && -n "$DATABASE_PASSWORD" ]] && DATABASE_USERINFO="$(ruby --disable-gems -rcgi -e "puts \"#{CGI.escape(ENV['DATABASE_USER'])}:#{CGI.escape(ENV['DATABASE_PASSWORD'])}@\"")"
-DATABASE_QUERY="encoding=utf8&pool=5&wait_timeout=5&sslmode=${DATABASE_SSL_MODE:-prefer}"
-[[ -f /.postgresql/root.crt ]] && DATABASE_QUERY="${DATABASE_QUERY}&sslrootcert=/.postgresql/root.crt"
-export DATABASE_URL="postgresql://${DATABASE_USERINFO}${DATABASE_HOSTNAME:-localhost}:${DATABASE_PORT:-5432}/${DATABASE_NAME:-db_unknown}?${DATABASE_QUERY}"
+if [[ ! -f /var/www/miq/vmdb/config/database.yml ]]; then
+  [[ -f /run/secrets/postgresql/POSTGRESQL_HOSTNAME ]] && database_hostname_file=$(cat /run/secrets/postgresql/POSTGRESQL_HOSTNAME)
+  [[ -f /run/secrets/postgresql/POSTGRESQL_PASSWORD ]] && database_password_file=$(cat /run/secrets/postgresql/POSTGRESQL_PASSWORD)
+  [[ -f /run/secrets/postgresql/POSTGRESQL_PORT ]] && database_port_file=$(cat /run/secrets/postgresql/POSTGRESQL_PORT)
+  [[ -f /run/secrets/postgresql/POSTGRESQL_USER ]] && database_username_file=$(cat /run/secrets/postgresql/POSTGRESQL_USER)
+  database_hostname=${DATABASE_HOSTNAME:-$database_hostname_file}
+  database_password=${DATABASE_PASSWORD:-$database_password_file}
+  database_port=${DATABASE_PORT:-$database_port_file}
+  DATABASE_SSL_MODE=${DATABASE_SSL_MODE:-prefer}
+  database_username=${DATABASE_USERNAME:-$database_username_file}
+
+  echo "== Writing database config =="
+  cat > /var/www/miq/vmdb/config/database.yml << KEY
+---
+production:
+  adapter: postgresql
+  username: ${database_username}
+  password: ${database_password}
+  host: ${database_hostname}
+  database: vmdb_production
+  port: ${database_port}
+  encoding: utf8
+  pool: 5
+  wait_timeout: 5
+  ssl_mode: ${DATABASE_SSL_MODE}
+KEY
+
+  [[ -f /.postgresql/root.crt ]] && echo "  sslrootcert=/.postgresql/root.crt" >> /var/www/miq/vmdb/config/database.yml
+fi
+
+if [[ ! -f /var/www/miq/vmdb/certs/v2_key ]]; then
+  [[ -f /run/secrets/manageiq/application/encryption_key ]] && encryption_key_file=$(cat /run/secrets/manageiq/application/encryption_key)
+  encryption_key=${ENCRYPTION_KEY:-$encryption_key_file}
+  echo "== Writing encryption key =="
+  cat > /var/www/miq/vmdb/certs/v2_key << KEY
+---
+:algorithm: aes-256-cbc
+:key: ${encryption_key}
+KEY
+fi
+
+echo "${GUID}" > ${APP_ROOT}/GUID
