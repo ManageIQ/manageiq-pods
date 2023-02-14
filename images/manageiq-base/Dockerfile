@@ -59,7 +59,7 @@ RUN dnf config-manager --setopt=tsflags=nodocs --setopt=install_weak_deps=False 
     chmod -R g=u $APP_ROOT
 
 # Add in the container_env file now that the APP_ROOT is created from the RPM
-ADD container-assets/container_env ${APP_ROOT}
+ADD container-assets/container_env ${APP_ROOT}/
 
 # Build the RPM manifest
 RUN source /etc/default/evm && \

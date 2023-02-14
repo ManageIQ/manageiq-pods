@@ -4,7 +4,7 @@
 
 [[ -s /etc/default/evm ]] && source /etc/default/evm
 
-if [[ ! -f /var/www/miq/vmdb/config/database.yml ]]; then
+if [[ ! -f ${APP_ROOT}/config/database.yml ]]; then
   [[ -f /run/secrets/postgresql/POSTGRESQL_HOSTNAME ]] && database_hostname_file=$(cat /run/secrets/postgresql/POSTGRESQL_HOSTNAME)
   [[ -f /run/secrets/postgresql/POSTGRESQL_PASSWORD ]] && database_password_file=$(cat /run/secrets/postgresql/POSTGRESQL_PASSWORD)
   [[ -f /run/secrets/postgresql/POSTGRESQL_PORT ]] && database_port_file=$(cat /run/secrets/postgresql/POSTGRESQL_PORT)
@@ -16,7 +16,7 @@ if [[ ! -f /var/www/miq/vmdb/config/database.yml ]]; then
   database_username=${DATABASE_USERNAME:-$database_username_file}
 
   echo "== Writing database config =="
-  cat > /var/www/miq/vmdb/config/database.yml << KEY
+  cat > ${APP_ROOT}/config/database.yml << KEY
 ---
 production:
   adapter: postgresql
@@ -31,14 +31,14 @@ production:
   ssl_mode: ${DATABASE_SSL_MODE}
 KEY
 
-  [[ -f /.postgresql/root.crt ]] && echo "  sslrootcert=/.postgresql/root.crt" >> /var/www/miq/vmdb/config/database.yml
+  [[ -f /.postgresql/root.crt ]] && echo "  sslrootcert=/.postgresql/root.crt" >> ${APP_ROOT}/config/database.yml
 fi
 
-if [[ ! -f /var/www/miq/vmdb/certs/v2_key ]]; then
+if [[ ! -f ${APP_ROOT}/certs/v2_key ]]; then
   [[ -f /run/secrets/manageiq/application/encryption_key ]] && encryption_key_file=$(cat /run/secrets/manageiq/application/encryption_key)
   encryption_key=${ENCRYPTION_KEY:-$encryption_key_file}
   echo "== Writing encryption key =="
-  cat > /var/www/miq/vmdb/certs/v2_key << KEY
+  cat > ${APP_ROOT}/certs/v2_key << KEY
 ---
 :algorithm: aes-256-cbc
 :key: ${encryption_key}
