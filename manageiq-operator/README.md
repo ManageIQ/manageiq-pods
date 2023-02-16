@@ -34,7 +34,7 @@ There are three different ways the operator can be run.
   2 - Update the operator deployment yaml file with your custom image:
 
     ```bash
-    $ sed -i 's|docker.io/manageiq/manageiq-operator:latest|docker.io/<your_username_or_organization>/manageiq-operator:latest|g' config/manager/manager.yaml
+    $ sed -i 's|docker.io/manageiq/manageiq-operator:latest-petrosian|docker.io/<your_username_or_organization>/manageiq-operator:latest-petrosian|g' config/manager/manager.yaml
     ```
 
   3 - Run your custom image from the registry:
