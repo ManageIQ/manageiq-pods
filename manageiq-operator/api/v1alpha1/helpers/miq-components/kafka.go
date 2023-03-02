@@ -162,8 +162,17 @@ func KafkaService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Ser
 		if len(service.Spec.Ports) == 0 {
 			service.Spec.Ports = append(service.Spec.Ports, corev1.ServicePort{})
 		}
-		service.Spec.Ports[0].Name = "kafka"
-		service.Spec.Ports[0].Port = 9092
+
+		service.Spec.Ports = []corev1.ServicePort{
+			corev1.ServicePort{
+				Name: "kafka",
+				Port: 9092,
+			},
+			corev1.ServicePort{
+				Name: "controller",
+				Port: 9093,
+			},
+		}
 		service.Spec.Selector = map[string]string{"name": "kafka"}
 		return nil
 	}
@@ -197,7 +206,7 @@ func ZookeeperService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1
 	return service, f
 }
 
-func KafkaDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
+func KafkaDeployment(cr *miqv1alpha1.ManageIQ, client client.Client, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
 	deploymentLabels := map[string]string{
 		"name": "kafka",
 		"app":  cr.Spec.AppName,
@@ -210,6 +219,9 @@ func KafkaDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.
 		Ports: []corev1.ContainerPort{
 			corev1.ContainerPort{
 				ContainerPort: 9092,
+			},
+			corev1.ContainerPort{
+				ContainerPort: 9093,
 			},
 		},
 		LivenessProbe: &corev1.Probe{
@@ -228,7 +240,51 @@ func KafkaDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.
 		},
 		Env: []corev1.EnvVar{
 			corev1.EnvVar{
-				Name: "KAFKA_BROKER_USER",
+				Name:  "KAFKA_ENABLE_KRAFT",
+				Value: "yes",
+			},
+			corev1.EnvVar{
+				Name:  "KAFKA_CFG_PROCESS_ROLES",
+				Value: "broker,controller",
+			},
+			corev1.EnvVar{
+				Name:  "KAFKA_CFG_CONTROLLER_LISTENER_NAMES",
+				Value: "CONTROLLER",
+			},
+			corev1.EnvVar{
+				Name:  "KAFKA_CFG_LISTENERS",
+				Value: "INTERNAL://:9092,CONTROLLER://:9093",
+			},
+			corev1.EnvVar{
+				Name:  "KAFKA_CFG_INTER_BROKER_LISTENER_NAME",
+				Value: "INTERNAL",
+			},
+			corev1.EnvVar{
+				Name:  "KAFKA_CFG_ADVERTISED_LISTENERS",
+				Value: "INTERNAL://kafka:9092",
+			},
+			corev1.EnvVar{
+				Name:  "KAFKA_CFG_CONTROLLER_QUORUM_VOTERS",
+				Value: "1@kafka:9093",
+			},
+			corev1.EnvVar{
+				Name:  "KAFKA_CFG_BROKER_ID",
+				Value: "1",
+			},
+			corev1.EnvVar{
+				Name:  "KAFKA_CFG_OFFSETS_TOPIC_NUM_PARTITIONS",
+				Value: "25",
+			},
+		},
+		VolumeMounts: []corev1.VolumeMount{
+			corev1.VolumeMount{Name: "kafka-data", MountPath: "/bitnami/kafka"},
+		},
+	}
+
+	if certSecret := InternalCertificatesSecret(cr, client); certSecret.Data["kafka_truststore"] != nil && certSecret.Data["kafka_keystore"] != nil && certSecret.Data["kafka_keystore_pass"] != nil {
+		container.Env = append(container.Env,
+			corev1.EnvVar{
+				Name: "KAFKA_INTER_BROKER_USER",
 				ValueFrom: &corev1.EnvVarSource{
 					SecretKeyRef: &corev1.SecretKeySelector{
 						LocalObjectReference: corev1.LocalObjectReference{Name: kafkaSecretName(cr)},
@@ -237,7 +293,7 @@ func KafkaDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.
 				},
 			},
 			corev1.EnvVar{
-				Name: "KAFKA_BROKER_PASSWORD",
+				Name: "KAFKA_INTER_BROKER_PASSWORD",
 				ValueFrom: &corev1.EnvVarSource{
 					SecretKeyRef: &corev1.SecretKeySelector{
 						LocalObjectReference: corev1.LocalObjectReference{Name: kafkaSecretName(cr)},
@@ -246,21 +302,48 @@ func KafkaDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.
 				},
 			},
 			corev1.EnvVar{
-				Name:  "KAFKA_ZOOKEEPER_CONNECT",
-				Value: "zookeeper:2181",
+				Name: "KAFKA_CERTIFICATE_PASSWORD",
+				ValueFrom: &corev1.EnvVarSource{
+					SecretKeyRef: &corev1.SecretKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{Name: certSecret.Name},
+						Key:                  "kafka_keystore_pass",
+					},
+				},
+			},
+			corev1.EnvVar{
+				Name:  "KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP",
+				Value: "INTERNAL:SASL_SSL,CONTROLLER:SASL_SSL",
+			},
+			corev1.EnvVar{
+				Name:  "KAFKA_CFG_LISTENER_NAME_INTERNAL_SSL_CLIENT_AUTH",
+				Value: "required",
+			},
+			corev1.EnvVar{
+				Name:  "KAFKA_CFG_LISTENER_NAME_CONTROLLER_SSL_CLIENT_AUTH",
+				Value: "required",
+			},
+			corev1.EnvVar{
+				Name:  "KAFKA_CFG_SASL_MECHANISM_INTER_BROKER_PROTOCOL",
+				Value: "PLAIN",
+			},
+			corev1.EnvVar{
+				Name:  "KAFKA_CFG_SASL_MECHANISM_CONTROLLER_PROTOCOL",
+				Value: "PLAIN",
+			},
+			corev1.EnvVar{
+				Name:  "KAFKA_CFG_SASL_ENABLED_MECHANISMS",
+				Value: "PLAIN",
+			})
+	} else {
+		container.Env = append(container.Env,
+			corev1.EnvVar{
+				Name:  "KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP",
+				Value: "INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT",
 			},
 			corev1.EnvVar{
 				Name:  "ALLOW_PLAINTEXT_LISTENER",
 				Value: "yes",
-			},
-			corev1.EnvVar{
-				Name:  "KAFKA_CFG_ADVERTISED_LISTENERS",
-				Value: "PLAINTEXT://kafka:9092",
-			},
-		},
-		VolumeMounts: []corev1.VolumeMount{
-			corev1.VolumeMount{Name: "kafka-data", MountPath: "/bitnami/kafka"},
-		},
+			})
 	}
 
 	err := addResourceReqs(cr.Spec.KafkaMemoryLimit, cr.Spec.KafkaMemoryRequest, cr.Spec.KafkaCpuLimit, cr.Spec.KafkaCpuRequest, &container)
@@ -282,7 +365,9 @@ func KafkaDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.
 					Labels: deploymentLabels,
 					Name:   "kafka",
 				},
-				Spec: corev1.PodSpec{},
+				Spec: corev1.PodSpec{
+					Hostname: "kafka",
+				},
 			},
 		},
 	}
@@ -315,6 +400,8 @@ func KafkaDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.
 				},
 			},
 		}
+		addKafkaStores(cr, deployment, client, "/opt/bitnami/kafka/config/certs")
+
 		return nil
 	}
 

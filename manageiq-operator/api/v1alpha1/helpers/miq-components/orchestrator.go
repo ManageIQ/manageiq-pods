@@ -348,6 +348,25 @@ func addInternalRootCertificate(cr *miqv1alpha1.ManageIQ, d *appsv1.Deployment, 
 		d.Spec.Template.Spec.Containers[0].VolumeMounts = addOrUpdateVolumeMount(d.Spec.Template.Spec.Containers[0].VolumeMounts, volumeMount)
 
 		secretVolumeSource := corev1.SecretVolumeSource{SecretName: secret.Name, Items: []corev1.KeyToPath{corev1.KeyToPath{Key: "root_crt", Path: "root.crt"}}}
+
+		if secret.Data["kafka_truststore"] != nil && secret.Data["kafka_keystore"] != nil && secret.Data["kafka_keystore_pass"] != nil {
+			secretVolumeSource.Items = append(secretVolumeSource.Items, corev1.KeyToPath{Key: "kafka_keystore", Path: "kafka.keystore.jks"})
+
+			d.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(d.Spec.Template.Spec.Containers[0].Env,
+				corev1.EnvVar{
+					Name: "MESSAGING_KEYSTORE_PASSWORD",
+					ValueFrom: &corev1.EnvVarSource{
+						SecretKeyRef: &corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{Name: secret.Name},
+							Key:                  "kafka_keystore_pass",
+						},
+					},
+				},
+			)
+			d.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(d.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "MESSAGING_SSL_CA", Value: "/etc/pki/ca-trust/source/anchors/root.crt"})
+			d.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(d.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "MESSAGING_KEYSTORE", Value: "/etc/pki/ca-trust/source/anchors/kafka.keystore.jks"})
+		}
+
 		d.Spec.Template.Spec.Volumes = addOrUpdateVolume(d.Spec.Template.Spec.Volumes, corev1.Volume{Name: "internal-root-certificate", VolumeSource: corev1.VolumeSource{Secret: &secretVolumeSource}})
 
 		d.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(d.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "SSL_SECRET_NAME", Value: cr.Spec.InternalCertificatesSecret})
