@@ -162,8 +162,19 @@ func KafkaService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Ser
 		if len(service.Spec.Ports) == 0 {
 			service.Spec.Ports = append(service.Spec.Ports, corev1.ServicePort{})
 		}
-		service.Spec.Ports[0].Name = "kafka"
-		service.Spec.Ports[0].Port = 9092
+		// service.Spec.Ports[0].Name = "kafka"
+		// service.Spec.Ports[0].Port = 9092
+
+		service.Spec.Ports = []corev1.ServicePort{
+			corev1.ServicePort{
+				Name: "kafka",
+				Port: 9092,
+			},
+			corev1.ServicePort{
+				Name: "localhost",
+				Port: 9093,
+			},
+		}
 		service.Spec.Selector = map[string]string{"name": "kafka"}
 		return nil
 	}
@@ -190,6 +201,17 @@ func ZookeeperService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1
 		}
 		service.Spec.Ports[0].Name = "zookeeper"
 		service.Spec.Ports[0].Port = 2181
+
+		// service.Spec.Ports = []corev1.ServicePort{
+		// 	corev1.ServicePort{
+		// 		Name: "zookeeperplain",
+		// 		Port: 2181,
+		// 	},
+		// 	corev1.ServicePort{
+		// 		Name: "zookeeper",
+		// 		Port: 2182,
+		// 	},
+		// }
 		service.Spec.Selector = map[string]string{"name": "zookeeper"}
 		return nil
 	}
@@ -197,7 +219,7 @@ func ZookeeperService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1
 	return service, f
 }
 
-func KafkaDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
+func KafkaDeployment(cr *miqv1alpha1.ManageIQ, client client.Client, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
 	deploymentLabels := map[string]string{
 		"name": "kafka",
 		"app":  cr.Spec.AppName,
@@ -210,6 +232,9 @@ func KafkaDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.
 		Ports: []corev1.ContainerPort{
 			corev1.ContainerPort{
 				ContainerPort: 9092,
+			},
+			corev1.ContainerPort{
+				ContainerPort: 9093,
 			},
 		},
 		LivenessProbe: &corev1.Probe{
@@ -245,18 +270,130 @@ func KafkaDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.
 					},
 				},
 			},
+			// corev1.EnvVar{
+			// 	Name:  "KAFKA_BROKER_USER",
+			// 	Value: "user",
+			// },
+			// corev1.EnvVar{
+			// 	Name:  "KAFKA_BROKER_PASSWORD",
+			// 	Value: "password",
+			// },
+			// corev1.EnvVar{
+			// 	Name:  "KAFKA_INTER_BROKER_PASSWORD",
+			// 	Value: "password",
+			// },
 			corev1.EnvVar{
-				Name:  "KAFKA_ZOOKEEPER_CONNECT",
-				Value: "zookeeper:2181",
+				Name:  "KAFKA_ClIENT_USERS",
+				Value: "user",
+			},
+			corev1.EnvVar{
+				Name:  "KAFKA_CLIENT_PASSWORDS",
+				Value: "password",
+			},
+			corev1.EnvVar{
+				Name:  "KAFKA_ZOOKEEPER_USER",
+				Value: "user",
+			},
+			corev1.EnvVar{
+				Name:  "KAFKA_ZOOKEEPER_PASSWORD",
+				Value: "password",
 			},
 			corev1.EnvVar{
 				Name:  "ALLOW_PLAINTEXT_LISTENER",
 				Value: "yes",
 			},
 			corev1.EnvVar{
-				Name:  "KAFKA_CFG_ADVERTISED_LISTENERS",
-				Value: "PLAINTEXT://kafka:9092",
+				Name:  "KAFKA_ZOOKEEPER_CONNECT",
+				Value: "zookeeper:2181",
 			},
+			corev1.EnvVar{
+				Name:  "KAFKA_ZOOKEEPER_PROTOCOL",
+				Value: "SASL",
+			},
+			// corev1.EnvVar{
+			// 	Name:  "KAFKA_ZOOKEEPER_TLS_KEYSTORE_PASSWORD",
+			// 	Value: "nasar123",
+			// },
+			// corev1.EnvVar{
+			// 	Name:  "KAFKA_ZOOKEEPER_TLS_TRUSTSTORE_PASSWORD",
+			// 	Value: "nasar123",
+			// },
+			// corev1.EnvVar{ // NOTE: may need to adjust path to /opt/.. and/or change name to zookeeper.truststore.jks
+			// 	Name:  "KAFKA_ZOOKEEPER_TLS_TRUSTSTORE_FILE",
+			// 	Value: "/opt/bitnami/kafka/config/certs/kafka.truststore.jks",
+			// },
+			corev1.EnvVar{
+				Name:  "KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP",
+				Value: "INTERNAL:SASL_SSL,CLIENT:SASL_SSL",
+			},
+			// corev1.EnvVar{
+			// 	Name:  "KAFKA_CFG_LISTENERS",
+			// 	Value: "INTERNAL://:9093,CLIENT://:9092",
+			// },
+			// corev1.EnvVar{
+			// 	Name:  "KAFKA_CFG_INTER_BROKER_LISTENER_NAME",
+			// 	Value: "INTERNAL",
+			// },
+			// corev1.EnvVar{
+			// 	Name:  "KAFKA_CFG_ADVERTISED_LISTENERS",
+			// 	Value: "INTERNAL://localhost:9093,CLIENT://kafka:9092",
+			// },
+			corev1.EnvVar{
+				Name:  "KAFKA_CFG_LISTENERS",
+				Value: "INTERNAL://:9092,CLIENT://:9093",
+			},
+			corev1.EnvVar{
+				Name:  "KAFKA_CFG_INTER_BROKER_LISTENER_NAME",
+				Value: "INTERNAL",
+			},
+			corev1.EnvVar{
+				Name:  "KAFKA_CFG_ADVERTISED_LISTENERS",
+				Value: "INTERNAL://kafka:9092,CLIENT://localhost:9093",
+			},
+			corev1.EnvVar{
+				Name:  "KAFKA_CFG_LISTENER_NAME_INTERNAL_SSL_CLIENT_AUTH",
+				Value: "required",
+			},
+			corev1.EnvVar{
+				Name:  "KAFKA_CFG_LISTENER_NAME_CLIENT_SSL_CLIENT_AUTH",
+				Value: "required",
+			},
+			// corev1.EnvVar{
+			// 	Name:  "KAFKA_CFG_LISTENERS",
+			// 	Value: "SASL_SSL://kafka:9092",
+			// },
+			// corev1.EnvVar{
+			// 	Name:  "KAFKA_CFG_ADVERTISED_LISTENERS",
+			// 	Value: "SASL_SSL://kafka:9092",
+			// },
+			// corev1.EnvVar{
+			// 	Name:  "KAFKA_CFG_INTER_BROKER_LISTENER_NAME",
+			// 	Value: "SASL_SSL",
+			// },
+			corev1.EnvVar{
+				Name:  "KAFKA_CFG_SASL_MECHANISM_INTER_BROKER_PROTOCOL",
+				Value: "PLAIN",
+			},
+			corev1.EnvVar{
+				Name:  "KAFKA_CERTIFICATE_PASSWORD",
+				Value: "nasar123",
+			},
+			// corev1.EnvVar{
+			// 	Name:  "KAFKA_CFG_LISTENER_NAME_SASL_SSL_PLAIN_SASL_JAAS_CONFIG",
+			// 	Value: "KafkaServer {org.apache.kafka.common.security.plain.PlainLoginModule required username=\"user\" password=\"password\" user_admin=\"password\";};",
+			// },
+			corev1.EnvVar{
+				Name:  "BITNAMI_DEBUG",
+				Value: "true",
+			},
+			// corev1.EnvVar{
+			// 	Name:  "KAFKA_OPTS",
+			// 	Value: "-Djava.security.auth.login.config=/opt/bitnami/kafka/config/kafka_jaas.conf",
+			// },
+			// corev1.EnvVar{
+			// 	Name:  "KAFKA_CFG_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM",
+			// 	Value: "",
+			// },
 		},
 		VolumeMounts: []corev1.VolumeMount{
 			corev1.VolumeMount{Name: "kafka-data", MountPath: "/bitnami/kafka"},
@@ -282,7 +419,9 @@ func KafkaDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.
 					Labels: deploymentLabels,
 					Name:   "kafka",
 				},
-				Spec: corev1.PodSpec{},
+				Spec: corev1.PodSpec{
+					Hostname: "kafka",
+				},
 			},
 		},
 	}
@@ -315,13 +454,15 @@ func KafkaDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.
 				},
 			},
 		}
+		addKafkaStores(cr, deployment, client, "/opt/bitnami/kafka/config/certs")
+
 		return nil
 	}
 
 	return deployment, f, nil
 }
 
-func ZookeeperDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
+func ZookeeperDeployment(cr *miqv1alpha1.ManageIQ, client client.Client, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
 	deploymentLabels := map[string]string{
 		"name": "zookeeper",
 		"app":  cr.Spec.AppName,
@@ -335,12 +476,71 @@ func ZookeeperDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*app
 			corev1.ContainerPort{
 				ContainerPort: 2181,
 			},
+			// corev1.ContainerPort{
+			// 	ContainerPort: 2182,
+			// },
 		},
 		Env: []corev1.EnvVar{
 			corev1.EnvVar{
-				Name:  "ALLOW_ANONYMOUS_LOGIN",
+				Name:  "ZOO_SERVER_USERS",
+				Value: "user",
+			},
+			corev1.EnvVar{
+				Name:  "ZOO_SERVER_PASSWORDS",
+				Value: "password",
+			},
+			corev1.EnvVar{
+				Name:  "ZOO_ENABLE_AUTH",
 				Value: "yes",
 			},
+			corev1.EnvVar{
+				Name:  "ZOO_CLIENT_USER",
+				Value: "user",
+			},
+			corev1.EnvVar{
+				Name:  "ZOO_CLIENT_PASSWORD",
+				Value: "password",
+			},
+			// corev1.EnvVar{
+			// 	Name:  "ALLOW_ANONYMOUS_LOGIN",
+			// 	Value: "yes",
+			// },
+			// corev1.EnvVar{
+			// 	Name:  "ZOO_TLS_CLIENT_ENABLE",
+			// 	Value: "yes",
+			// },
+			// corev1.EnvVar{
+			// 	Name:  "ZOO_TLS_CLIENT_AUTH",
+			// 	Value: "none",
+			// },
+			// corev1.EnvVar{
+			// 	Name:  "ZOO_TLS_CLIENT_KEYSTORE_FILE",
+			// 	Value: "/bitnami/zookeeper/certs/zookeeper.keystore.jks",
+			// },
+			// corev1.EnvVar{
+			// 	Name:  "ZOO_TLS_CLIENT_KEYSTORE_PASSWORD",
+			// 	Value: "nasar123",
+			// },
+			// corev1.EnvVar{
+			// 	Name:  "ZOO_TLS_CLIENT_TRUSTSTORE_FILE",
+			// 	Value: "/bitnami/zookeeper/certs/kafka.truststore.jks",
+			// },
+			// corev1.EnvVar{
+			// 	Name:  "ZOO_TLS_CLIENT_TRUSTSTORE_PASSWORD",
+			// 	Value: "nasar123",
+			// },
+			// corev1.EnvVar{
+			// 	Name:  "ZOO_TLS_PORT_NUMBER",
+			// 	Value: "2182",
+			// },
+			corev1.EnvVar{
+				Name:  "BITNAMI_DEBUG",
+				Value: "true",
+			},
+			// corev1.EnvVar{
+			// 	Name:  "ZOO_LOG_LEVEL",
+			// 	Value: "DEBUG",
+			// },
 		},
 		VolumeMounts: []corev1.VolumeMount{
 			corev1.VolumeMount{Name: "zookeeper-data", MountPath: "/bitnami/zookeeper"},
@@ -367,6 +567,9 @@ func ZookeeperDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*app
 					Name:   "zookeeper",
 				},
 				Spec: corev1.PodSpec{},
+				// Spec: corev1.PodSpec{
+				// 	Hostname: "zookeeper",
+				// },
 			},
 		},
 	}
@@ -398,6 +601,8 @@ func ZookeeperDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*app
 				},
 			},
 		}
+		// addZookeeperStores(cr, deployment, client, "/bitnami/zookeeper/certs")
+
 		return nil
 	}
 

@@ -403,7 +403,7 @@ func (r *ManageIQReconciler) generateKafkaResources(cr *miqv1alpha1.ManageIQ) er
 		logger.Info("Service has been reconciled", "component", "zookeeper", "result", result)
 	}
 
-	kafkaDeployment, mutateFunc, err := miqtool.KafkaDeployment(cr, r.Scheme)
+	kafkaDeployment, mutateFunc, err := miqtool.KafkaDeployment(cr, r.Client, r.Scheme)
 	if err != nil {
 		return err
 	}
@@ -414,7 +414,7 @@ func (r *ManageIQReconciler) generateKafkaResources(cr *miqv1alpha1.ManageIQ) er
 		logger.Info("Deployment has been reconciled", "component", "kafka", "result", result)
 	}
 
-	zookeeperDeployment, mutateFunc, err := miqtool.ZookeeperDeployment(cr, r.Scheme)
+	zookeeperDeployment, mutateFunc, err := miqtool.ZookeeperDeployment(cr, r.Client, r.Scheme)
 	if err != nil {
 		return err
 	}

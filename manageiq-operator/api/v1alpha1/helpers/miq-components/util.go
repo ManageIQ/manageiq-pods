@@ -116,6 +116,32 @@ func addInternalCertificate(cr *miqv1alpha1.ManageIQ, d *appsv1.Deployment, clie
 	}
 }
 
+func addKafkaStores(cr *miqv1alpha1.ManageIQ, d *appsv1.Deployment, client client.Client, mountPoint string) {
+	secret := InternalCertificatesSecret(cr, client)
+	if secret.Data["kafka_truststore"] != nil && secret.Data["kafka_keystore"] != nil && secret.Data["zookeeper_keystore"] != nil {
+		volumeName := "kafka-certificate"
+
+		volumeMount := corev1.VolumeMount{Name: volumeName, MountPath: mountPoint, ReadOnly: true}
+		d.Spec.Template.Spec.Containers[0].VolumeMounts = addOrUpdateVolumeMount(d.Spec.Template.Spec.Containers[0].VolumeMounts, volumeMount)
+
+		secretVolumeSource := corev1.SecretVolumeSource{SecretName: secret.Name, Items: []corev1.KeyToPath{corev1.KeyToPath{Key: "kafka_truststore", Path: "kafka.truststore.jks"}, corev1.KeyToPath{Key: "kafka_keystore", Path: "kafka.keystore.jks"}, corev1.KeyToPath{Key: "zookeeper_keystore", Path: "zookeeper.keystore.jks"}}}
+		d.Spec.Template.Spec.Volumes = addOrUpdateVolume(d.Spec.Template.Spec.Volumes, corev1.Volume{Name: volumeName, VolumeSource: corev1.VolumeSource{Secret: &secretVolumeSource}})
+	}
+}
+
+func addZookeeperStores(cr *miqv1alpha1.ManageIQ, d *appsv1.Deployment, client client.Client, mountPoint string) {
+	secret := InternalCertificatesSecret(cr, client)
+	if secret.Data["kafka_truststore"] != nil && secret.Data["zookeeper_keystore"] != nil {
+		volumeName := "zookeeper-certificate"
+
+		volumeMount := corev1.VolumeMount{Name: volumeName, MountPath: mountPoint, ReadOnly: true}
+		d.Spec.Template.Spec.Containers[0].VolumeMounts = addOrUpdateVolumeMount(d.Spec.Template.Spec.Containers[0].VolumeMounts, volumeMount)
+
+		secretVolumeSource := corev1.SecretVolumeSource{SecretName: secret.Name, Items: []corev1.KeyToPath{corev1.KeyToPath{Key: "kafka_truststore", Path: "kafka.truststore.jks"}, corev1.KeyToPath{Key: "zookeeper_keystore", Path: "zookeeper.keystore.jks"}}}
+		d.Spec.Template.Spec.Volumes = addOrUpdateVolume(d.Spec.Template.Spec.Volumes, corev1.Volume{Name: volumeName, VolumeSource: corev1.VolumeSource{Secret: &secretVolumeSource}})
+	}
+}
+
 func addOrUpdateEnvVar(environment []corev1.EnvVar, variable corev1.EnvVar) []corev1.EnvVar {
 	index := -1
 	for i, env := range environment {
