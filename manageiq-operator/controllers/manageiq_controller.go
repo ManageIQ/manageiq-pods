@@ -371,7 +371,7 @@ func (r *ManageIQReconciler) generateKafkaResources(cr *miqv1alpha1.ManageIQ) er
 
 	hostName := getSecretKeyValue(r.Client, cr.Namespace, cr.Spec.KafkaSecret, "hostname")
 	if hostName != "" {
-		logger.Info("External Kafka Messaging Service selected, skipping kafka and zookeeper service reconciliation", "hostname", hostName)
+		logger.Info("External Kafka Messaging Service selected, skipping kafka service reconciliation", "hostname", hostName)
 		return nil
 	}
 
@@ -382,25 +382,11 @@ func (r *ManageIQReconciler) generateKafkaResources(cr *miqv1alpha1.ManageIQ) er
 		logger.Info("PVC has been reconciled", "component", "kafka", "result", result)
 	}
 
-	zookeeperPVC, mutateFunc := miqtool.ZookeeperPVC(cr, r.Scheme)
-	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, zookeeperPVC, mutateFunc); err != nil {
-		return err
-	} else if result != controllerutil.OperationResultNone {
-		logger.Info("PVC has been reconciled", "component", "zookeeper", "result", result)
-	}
-
 	kafkaService, mutateFunc := miqtool.KafkaService(cr, r.Scheme)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, kafkaService, mutateFunc); err != nil {
 		return err
 	} else if result != controllerutil.OperationResultNone {
 		logger.Info("Service has been reconciled", "component", "kafka", "result", result)
-	}
-
-	zookeeperService, mutateFunc := miqtool.ZookeeperService(cr, r.Scheme)
-	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, zookeeperService, mutateFunc); err != nil {
-		return err
-	} else if result != controllerutil.OperationResultNone {
-		logger.Info("Service has been reconciled", "component", "zookeeper", "result", result)
 	}
 
 	kafkaDeployment, mutateFunc, err := miqtool.KafkaDeployment(cr, r.Scheme)
@@ -412,17 +398,6 @@ func (r *ManageIQReconciler) generateKafkaResources(cr *miqv1alpha1.ManageIQ) er
 		return err
 	} else if result != controllerutil.OperationResultNone {
 		logger.Info("Deployment has been reconciled", "component", "kafka", "result", result)
-	}
-
-	zookeeperDeployment, mutateFunc, err := miqtool.ZookeeperDeployment(cr, r.Scheme)
-	if err != nil {
-		return err
-	}
-
-	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, zookeeperDeployment, mutateFunc); err != nil {
-		return err
-	} else if result != controllerutil.OperationResultNone {
-		logger.Info("Deployment has been reconciled", "component", "zookeeper", "result", result)
 	}
 
 	return nil
@@ -519,13 +494,6 @@ func (r *ManageIQReconciler) generateNetworkPolicies(cr *miqv1alpha1.ManageIQ) e
 		return err
 	} else if result != controllerutil.OperationResultNone {
 		logger.Info("NetworkPolicy allow kafka has been reconciled", "component", "network_policy", "result", result)
-	}
-
-	networkPolicyAllowZookeeper, mutateFunc := miqtool.NetworkPolicyAllowZookeeper(cr, r.Scheme, &r.Client)
-	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, networkPolicyAllowZookeeper, mutateFunc); err != nil {
-		return err
-	} else if result != controllerutil.OperationResultNone {
-		logger.Info("NetworkPolicy allow zookeeper has been reconciled", "component", "network_policy", "result", result)
 	}
 
 	return nil

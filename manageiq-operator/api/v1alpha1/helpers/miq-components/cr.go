@@ -313,38 +313,6 @@ func serverGuid(cr *miqv1alpha1.ManageIQ, c *client.Client) string {
 	}
 }
 
-func zookeeperImage(cr *miqv1alpha1.ManageIQ) string {
-	if cr.Spec.ZookeeperImage == "" {
-		return zookeeperImageName(cr) + ":" + zookeeperImageTag(cr)
-	} else {
-		return cr.Spec.ZookeeperImage
-	}
-}
-
-func zookeeperImageName(cr *miqv1alpha1.ManageIQ) string {
-	if cr.Spec.ZookeeperImageName == "" {
-		return "docker.io/bitnami/zookeeper"
-	} else {
-		return cr.Spec.ZookeeperImageName
-	}
-}
-
-func zookeeperImageTag(cr *miqv1alpha1.ManageIQ) string {
-	if cr.Spec.ZookeeperImageTag == "" {
-		return "latest"
-	} else {
-		return cr.Spec.ZookeeperImageTag
-	}
-}
-
-func zookeeperVolumeCapacity(cr *miqv1alpha1.ManageIQ) string {
-	if cr.Spec.ZookeeperVolumeCapacity == "" {
-		return "1Gi"
-	} else {
-		return cr.Spec.ZookeeperVolumeCapacity
-	}
-}
-
 func ManageCR(cr *miqv1alpha1.ManageIQ, c *client.Client) (*miqv1alpha1.ManageIQ, controllerutil.MutateFn) {
 	f := func() error {
 		varDeployMessagingService := deployMessagingService(cr)
@@ -376,8 +344,6 @@ func ManageCR(cr *miqv1alpha1.ManageIQ, c *client.Client) (*miqv1alpha1.ManageIQ
 		cr.Spec.PostgresqlMaxConnections = postgresqlMaxConnections(cr)
 		cr.Spec.PostgresqlSharedBuffers = postgresqlSharedBuffers(cr)
 		cr.Spec.ServerGuid = serverGuid(cr, c)
-		cr.Spec.ZookeeperImage = zookeeperImage(cr)
-		cr.Spec.ZookeeperVolumeCapacity = zookeeperVolumeCapacity(cr)
 
 		addBackupLabel(backupLabelName(cr), &cr.ObjectMeta)
 

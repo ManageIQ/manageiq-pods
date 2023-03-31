@@ -298,30 +298,35 @@ spec:
                   By default this is determined by the orchestrator pod
                 type: string
               zookeeperCpuRequest:
-                description: 'Zookeeper deployment CPU request (default: no request)'
+                description: 'Deprecated: Zookeeper deployment CPU request (default:
+                  no request)'
                 type: string
               zookeeperCpulimit:
-                description: 'Zookeeper deployment CPU limit (default: no limit)'
+                description: 'Deprecated: Zookeeper deployment CPU limit (default:
+                  no limit)'
                 type: string
               zookeeperImage:
-                description: 'Image string used for the zookeeper deployment (default:
-                  <ZookeeperImageName>:<ZookeeperImageTag>)'
+                description: 'Deprecated: Image string used for the zookeeper deployment
+                  (default: <ZookeeperImageName>:<ZookeeperImageTag>)'
                 type: string
               zookeeperImageName:
-                description: 'Image used for the zookeeper deployment (default: docker.io/bitnami/zookeeper)'
+                description: 'Deprecated: Image used for the zookeeper deployment
+                  (default: docker.io/bitnami/zookeeper)'
                 type: string
               zookeeperImageTag:
-                description: 'Image tag used for the zookeeper deployment (default:
-                  latest)'
+                description: 'Deprecated: Image tag used for the zookeeper deployment
+                  (default: latest)'
                 type: string
               zookeeperMemoryLimit:
-                description: 'Zookeeper deployment memory limit (default: no limit)'
+                description: 'Deprecated: Zookeeper deployment memory limit (default:
+                  no limit)'
                 type: string
               zookeeperMemoryRequest:
-                description: 'Zookeeper deployment memory request (default: no limit)'
+                description: 'Deprecated: Zookeeper deployment memory request (default:
+                  no limit)'
                 type: string
               zookeeperVolumeCapacity:
-                description: 'Zookeeper volume size (default: 1Gi)'
+                description: 'Deprecated: Zookeeper volume size (default: 1Gi)'
                 type: string
             required:
             - applicationDomain

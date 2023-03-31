@@ -106,45 +106,6 @@ func KafkaPVC(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Persist
 	return pvc, f
 }
 
-func ZookeeperPVC(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.PersistentVolumeClaim, controllerutil.MutateFn) {
-	storageReq, _ := resource.ParseQuantity(cr.Spec.DatabaseVolumeCapacity)
-
-	resources := corev1.ResourceRequirements{
-		Requests: corev1.ResourceList{
-			"storage": storageReq,
-		},
-	}
-
-	accessModes := []corev1.PersistentVolumeAccessMode{
-		"ReadWriteOnce",
-	}
-
-	pvc := &corev1.PersistentVolumeClaim{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "zookeeper-data",
-			Namespace: cr.ObjectMeta.Namespace,
-		},
-	}
-
-	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, pvc, scheme); err != nil {
-			return err
-		}
-
-		addAppLabel(cr.Spec.AppName, &pvc.ObjectMeta)
-		addBackupLabel(cr.Spec.BackupLabelName, &pvc.ObjectMeta)
-		pvc.Spec.AccessModes = accessModes
-		pvc.Spec.Resources = resources
-
-		if cr.Spec.StorageClassName != "" {
-			pvc.Spec.StorageClassName = &cr.Spec.StorageClassName
-		}
-		return nil
-	}
-
-	return pvc, f
-}
-
 func KafkaService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Service, controllerutil.MutateFn) {
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
@@ -165,32 +126,6 @@ func KafkaService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Ser
 		service.Spec.Ports[0].Name = "kafka"
 		service.Spec.Ports[0].Port = 9092
 		service.Spec.Selector = map[string]string{"name": "kafka"}
-		return nil
-	}
-
-	return service, f
-}
-
-func ZookeeperService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Service, controllerutil.MutateFn) {
-	service := &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "zookeeper",
-			Namespace: cr.ObjectMeta.Namespace,
-		},
-	}
-
-	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, service, scheme); err != nil {
-			return err
-		}
-
-		addAppLabel(cr.Spec.AppName, &service.ObjectMeta)
-		if len(service.Spec.Ports) == 0 {
-			service.Spec.Ports = append(service.Spec.Ports, corev1.ServicePort{})
-		}
-		service.Spec.Ports[0].Name = "zookeeper"
-		service.Spec.Ports[0].Port = 2181
-		service.Spec.Selector = map[string]string{"name": "zookeeper"}
 		return nil
 	}
 
@@ -311,89 +246,6 @@ func KafkaDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.
 				VolumeSource: corev1.VolumeSource{
 					PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
 						ClaimName: "kafka-data",
-					},
-				},
-			},
-		}
-		return nil
-	}
-
-	return deployment, f, nil
-}
-
-func ZookeeperDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
-	deploymentLabels := map[string]string{
-		"name": "zookeeper",
-		"app":  cr.Spec.AppName,
-	}
-
-	container := corev1.Container{
-		Name:            "zookeeper",
-		Image:           cr.Spec.ZookeeperImage,
-		ImagePullPolicy: corev1.PullIfNotPresent,
-		Ports: []corev1.ContainerPort{
-			corev1.ContainerPort{
-				ContainerPort: 2181,
-			},
-		},
-		Env: []corev1.EnvVar{
-			corev1.EnvVar{
-				Name:  "ALLOW_ANONYMOUS_LOGIN",
-				Value: "yes",
-			},
-		},
-		VolumeMounts: []corev1.VolumeMount{
-			corev1.VolumeMount{Name: "zookeeper-data", MountPath: "/bitnami/zookeeper"},
-		},
-	}
-
-	err := addResourceReqs(cr.Spec.ZookeeperMemoryLimit, cr.Spec.ZookeeperMemoryRequest, cr.Spec.ZookeeperCpuLimit, cr.Spec.ZookeeperCpuRequest, &container)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	deployment := &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "zookeeper",
-			Namespace: cr.ObjectMeta.Namespace,
-		},
-		Spec: appsv1.DeploymentSpec{
-			Selector: &metav1.LabelSelector{
-				MatchLabels: deploymentLabels,
-			},
-			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: deploymentLabels,
-					Name:   "zookeeper",
-				},
-				Spec: corev1.PodSpec{},
-			},
-		},
-	}
-
-	f := func() error {
-		if err := controllerutil.SetControllerReference(cr, deployment, scheme); err != nil {
-			return err
-		}
-		addAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)
-		addBackupAnnotation("zookeeper-data", &deployment.Spec.Template.ObjectMeta)
-		addBackupLabel(cr.Spec.BackupLabelName, &deployment.ObjectMeta)
-		addBackupLabel(cr.Spec.BackupLabelName, &deployment.Spec.Template.ObjectMeta)
-		var repNum int32 = 1
-		deployment.Spec.Replicas = &repNum
-		deployment.Spec.Strategy = appsv1.DeploymentStrategy{
-			Type: "Recreate",
-		}
-		addAnnotations(cr.Spec.AppAnnotations, &deployment.Spec.Template.ObjectMeta)
-		deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
-		deployment.Spec.Template.Spec.Containers[0].SecurityContext = DefaultSecurityContext()
-		deployment.Spec.Template.Spec.ServiceAccountName = defaultServiceAccountName(cr.Spec.AppName)
-		deployment.Spec.Template.Spec.Volumes = []corev1.Volume{
-			corev1.Volume{
-				Name: "zookeeper-data",
-				VolumeSource: corev1.VolumeSource{
-					PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-						ClaimName: "zookeeper-data",
 					},
 				},
 			},

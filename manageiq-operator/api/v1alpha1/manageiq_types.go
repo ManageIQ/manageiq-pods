@@ -335,36 +335,36 @@ type ManageIQSpec struct {
 	// +optional
 	WebserverWorkerImage string `json:"webserverWorkerImage,omitempty"`
 
-	// Zookeeper deployment CPU limit (default: no limit)
+	// Deprecated: Zookeeper deployment CPU limit (default: no limit)
 	// +optional
 	ZookeeperCpuLimit string `json:"zookeeperCpulimit,omitempty"`
 
-	// Zookeeper deployment CPU request (default: no request)
+	// Deprecated: Zookeeper deployment CPU request (default: no request)
 	// +optional
 	ZookeeperCpuRequest string `json:"zookeeperCpuRequest,omitempty"`
 
-	// Image string used for the zookeeper deployment
+	// Deprecated: Image string used for the zookeeper deployment
 	// (default: <ZookeeperImageName>:<ZookeeperImageTag>)
 	// +optional
 	ZookeeperImage string `json:"zookeeperImage,omitempty"`
 
-	// Image used for the zookeeper deployment (default: docker.io/bitnami/zookeeper)
+	// Deprecated: Image used for the zookeeper deployment (default: docker.io/bitnami/zookeeper)
 	// +optional
 	ZookeeperImageName string `json:"zookeeperImageName,omitempty"`
 
-	// Image tag used for the zookeeper deployment (default: latest)
+	// Deprecated: Image tag used for the zookeeper deployment (default: latest)
 	// +optional
 	ZookeeperImageTag string `json:"zookeeperImageTag,omitempty"`
 
-	// Zookeeper deployment memory limit (default: no limit)
+	// Deprecated: Zookeeper deployment memory limit (default: no limit)
 	// +optional
 	ZookeeperMemoryLimit string `json:"zookeeperMemoryLimit,omitempty"`
 
-	// Zookeeper deployment memory request (default: no limit)
+	// Deprecated: Zookeeper deployment memory request (default: no limit)
 	// +optional
 	ZookeeperMemoryRequest string `json:"zookeeperMemoryRequest,omitempty"`
 
-	// Zookeeper volume size (default: 1Gi)
+	// Deprecated: Zookeeper volume size (default: 1Gi)
 	// +optional
 	ZookeeperVolumeCapacity string `json:"zookeeperVolumeCapacity,omitempty"`
 }
