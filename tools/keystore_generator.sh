@@ -2,9 +2,14 @@
 
 set -e
 
-CA_CERT_PATH=$CA_CERT_PATH
-CA_KEY_PATH=$CA_KEY_PATH
-KEYSTORE_PASS=$KEYSTORE_PASS
+echo "Enter CA cert path:"
+read CA_CERT_PATH
+
+echo "Enter CA key path:"
+read CA_KEY_PATH
+
+echo "Set Keystore password:"
+read KEYSTORE_PASS
 
 if [ ! -e "$CA_CERT_PATH" ] || [ ! -e "$CA_KEY_PATH" ]; then
   echo "CA does not exist, please provide the corrrect paths in CA_CERT_PATH and CA_KEY_PATH"

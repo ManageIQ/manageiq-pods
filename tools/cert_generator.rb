@@ -69,7 +69,6 @@ end
 
 c = CertGenerator.new
 c.generate_cert("httpd")
-c.generate_cert("kafka")
 c.generate_cert("memcached")
 c.generate_cert("postgresql")
 
