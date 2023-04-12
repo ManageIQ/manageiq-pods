@@ -38,15 +38,18 @@ RUN dnf config-manager --setopt=tsflags=nodocs --setopt=install_weak_deps=False 
       httpd \
       mod_ssl && \
     if [ ${ARCH} != "s390x" ] ; then \
+      dnf -y --setopt=protected_packages= remove redhat-release && \
       dnf -y remove *subscription-manager* && \
       dnf -y install \
-        http://mirror.centos.org/centos/8-stream/BaseOS/${ARCH}/os/Packages/centos-stream-repos-8-2.el8.noarch.rpm \
-        http://mirror.centos.org/centos/8-stream/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-8-2.el8.noarch.rpm && \
+        http://mirror.centos.org/centos/8-stream/BaseOS/${ARCH}/os/Packages/centos-stream-release-8.6-1.el8.noarch.rpm \
+        http://mirror.centos.org/centos/8-stream/BaseOS/${ARCH}/os/Packages/centos-stream-repos-8-6.el8.noarch.rpm \
+        http://mirror.centos.org/centos/8-stream/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-8-6.el8.noarch.rpm && \
       dnf config-manager --setopt=appstream*.exclude=*httpd*,mod_ssl --save \
     ; fi && \
     dnf -y install \
       https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm \
       https://rpm.manageiq.org/release/16-petrosian/el8/noarch/manageiq-release-16.0-1.el8.noarch.rpm && \
+    dnf -y update && \
     dnf -y module enable postgresql:13 ruby:3.0 && \
     if [[ "$RELEASE_BUILD" != "true" ]]; then dnf config-manager --enable manageiq-16-petrosian-nightly; fi && \
     dnf config-manager --setopt=ubi-8-*.exclude=dracut*,net-snmp*,perl-*,redhat-release* --save && \
