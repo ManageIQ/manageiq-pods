@@ -34,9 +34,6 @@ COPY container-assets/create_local_yum_repo.sh /
 COPY container-assets/clean_dnf_rpm /usr/local/bin/
 
 RUN dnf config-manager --setopt=tsflags=nodocs --setopt=install_weak_deps=False --save && \
-    dnf -y --disableplugin=subscription-manager install \
-      httpd \
-      mod_ssl && \
     if [ ${ARCH} != "s390x" ] ; then \
       dnf -y --setopt=protected_packages= remove redhat-release && \
       dnf -y remove *subscription-manager* && \
@@ -47,6 +44,8 @@ RUN dnf config-manager --setopt=tsflags=nodocs --setopt=install_weak_deps=False 
       dnf config-manager --setopt=appstream*.exclude=*httpd*,mod_ssl --save \
     ; fi && \
     dnf -y install \
+      httpd \
+      mod_ssl \
       https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm \
       https://rpm.manageiq.org/release/17-quinteros/el8/noarch/manageiq-release-17.0-1.el8.noarch.rpm && \
     dnf -y update && \
