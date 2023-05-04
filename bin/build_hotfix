@@ -1,0 +1,69 @@
+#!/bin/bash
+
+TAG=latest
+
+ARCH=`uname -m`
+
+while getopts "t:c:d:r:hblnops" opt; do
+  case $opt in
+    b) REBUILD_RPM="true" ;;
+    c) CONTAINER_PREFIX=$OPTARG ;;
+    d) BASE_DIR=$OPTARG ;;
+    l) LOCAL_RPM="true" ;;
+    n) NO_CACHE="true" ;;
+    o) NO_OPERATOR="true" ;;
+    p) PUSH="true" ;;
+    r) REPO=$OPTARG ;;
+    s) RELEASE_BUILD="true" ;;
+    t) TAG=$OPTARG ;;
+    h) echo "Usage: $0 [-hblnops] [-c CONTAINER_PREFIX] [-d BASE_DIR] [-r IMAGE_REPOSITORY] [-t IMAGE_TAG]"; exit 1
+  esac
+done
+
+BASE_DIR=${BASE_DIR:-$PWD}
+CONTAINER_PREFIX=${CONTAINER_PREFIX:-manageiq}
+IMAGE_DIR="$BASE_DIR/images"
+OPERATOR_DIR="$BASE_DIR/manageiq-operator"
+REPO=${REPO:-docker.io/manageiq}
+
+CONTAINER_COMMAND="$(which podman &>/dev/null && echo "podman" || echo "docker")"
+
+set -e
+
+pushd $IMAGE_DIR
+  cmd="$CONTAINER_COMMAND build"
+
+  hotfix_images="manageiq-base manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker"
+  for image in $hotfix_images; do
+    cmd="$CONTAINER_COMMAND build"
+
+    if [ "$CONTAINER_COMMAND" == "podman" ]; then
+      cmd+=" --format docker"
+    fi
+
+    cmd+=" --tag $REPO/$image:$TAG \
+           --build-arg CONTAINER_PREFIX=$CONTAINER_PREFIX \
+           --build-arg FROM_REPO=$REPO \
+           --build-arg FROM_TAG=$TAG \
+           --pull \
+           manageiq-hotfix"
+
+    echo "Building hotfix for $image: $cmd"
+    $cmd
+  done
+popd
+
+if [ -n "$PUSH" ]; then
+  push_images="manageiq-base manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker"
+
+  for image in $push_images; do
+    cmd="$CONTAINER_COMMAND push $REPO/$image:$TAG"
+
+    if [ "$CONTAINER_COMMAND" == "podman" ]; then
+      cmd+=" --format docker"
+    fi
+
+    echo "Pushing: $cmd"
+    $cmd
+  done
+fi

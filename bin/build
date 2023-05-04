@@ -4,13 +4,10 @@ TAG=latest
 
 ARCH=`uname -m`
 
-RPM_BUILD_OPTIONS=${RPM_BUILD_OPTIONS:-""}
-RPM_BUILD_IMAGE=${RPM_BUILD_IMAGE:-"manageiq/rpm_build:$TAG"}
-RPM_PREFIX=${RPM_PREFIX:-"manageiq"}
-
-while getopts "t:d:r:hblnops" opt; do
+while getopts "t:c:d:r:hblnops" opt; do
   case $opt in
     b) REBUILD_RPM="true" ;;
+    c) CONTAINER_PREFIX=$OPTARG ;;
     d) BASE_DIR=$OPTARG ;;
     l) LOCAL_RPM="true" ;;
     n) NO_CACHE="true" ;;
@@ -19,7 +16,7 @@ while getopts "t:d:r:hblnops" opt; do
     r) REPO=$OPTARG ;;
     s) RELEASE_BUILD="true" ;;
     t) TAG=$OPTARG ;;
-    h) echo "Usage: $0 [-hblnops] [-d BASE_DIR] [-r IMAGE_REPOSITORY] [-t IMAGE_TAG]"; exit 1
+    h) echo "Usage: $0 [-hblnops] [-c CONTAINER_PREFIX] [-d BASE_DIR] [-r IMAGE_REPOSITORY] [-t IMAGE_TAG]"; exit 1
   esac
 done
 
@@ -28,10 +25,11 @@ if [ -n "$LOCAL_RPM" ] && [ -n "$REBUILD_RPM" ]; then
   exit 1
 fi
 
-REPO=${REPO:-docker.io/manageiq}
 BASE_DIR=${BASE_DIR:-$PWD}
+CONTAINER_PREFIX=${CONTAINER_PREFIX:-manageiq}
 IMAGE_DIR="$BASE_DIR/images"
 OPERATOR_DIR="$BASE_DIR/manageiq-operator"
+REPO=${REPO:-docker.io/manageiq}
 
 CONTAINER_COMMAND="$(which podman &>/dev/null && echo "podman" || echo "docker")"
 
