@@ -206,6 +206,63 @@ func ZookeeperService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1
 	return service, f
 }
 
+func updateKafkaEnv(cr *miqv1alpha1.ManageIQ, client client.Client, c *corev1.Container) {
+	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "KAFKA_ENABLE_KRAFT", Value: "yes"})
+	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "KAFKA_CFG_PROCESS_ROLES", Value: "broker,controller"})
+	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "KAFKA_CFG_CONTROLLER_LISTENER_NAMES", Value: "CONTROLLER"})
+	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "KAFKA_CFG_LISTENERS", Value: "INTERNAL://:9092,CONTROLLER://:9093"})
+	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "KAFKA_CFG_INTER_BROKER_LISTENER_NAME", Value: "INTERNAL"})
+	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "KAFKA_CFG_ADVERTISED_LISTENERS", Value: "INTERNAL://kafka:9092"})
+	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "KAFKA_CFG_CONTROLLER_QUORUM_VOTERS", Value: "1@kafka:9093"})
+	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "KAFKA_CFG_BROKER_ID", Value: "1"})
+
+	certSecret := InternalCertificatesSecret(cr, client)
+	if certSecret.Data["kafka_truststore"] != nil && certSecret.Data["kafka_keystore"] != nil && certSecret.Data["kafka_keystore_pass"] != nil {
+		c.Env = addOrUpdateEnvVar(c.Env,
+			corev1.EnvVar{
+				Name: "KAFKA_INTER_BROKER_USER",
+				ValueFrom: &corev1.EnvVarSource{
+					SecretKeyRef: &corev1.SecretKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{Name: kafkaSecretName(cr)},
+						Key:                  "username",
+					},
+				},
+			},
+		)
+		c.Env = addOrUpdateEnvVar(c.Env,
+			corev1.EnvVar{
+				Name: "KAFKA_INTER_BROKER_PASSWORD",
+				ValueFrom: &corev1.EnvVarSource{
+					SecretKeyRef: &corev1.SecretKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{Name: kafkaSecretName(cr)},
+						Key:                  "password",
+					},
+				},
+			},
+		)
+		c.Env = addOrUpdateEnvVar(c.Env,
+			corev1.EnvVar{
+				Name: "KAFKA_CERTIFICATE_PASSWORD",
+				ValueFrom: &corev1.EnvVarSource{
+					SecretKeyRef: &corev1.SecretKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{Name: certSecret.Name},
+						Key:                  "kafka_keystore_pass",
+					},
+				},
+			},
+		)
+		c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP", Value: "INTERNAL:SASL_SSL,CONTROLLER:SASL_SSL"})
+		c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "KAFKA_CFG_LISTENER_NAME_INTERNAL_SSL_CLIENT_AUTH", Value: "required"})
+		c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "KAFKA_CFG_LISTENER_NAME_CONTROLLER_SSL_CLIENT_AUTH", Value: "required"})
+		c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "KAFKA_CFG_SASL_MECHANISM_INTER_BROKER_PROTOCOL", Value: "PLAIN"})
+		c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "KAFKA_CFG_SASL_MECHANISM_CONTROLLER_PROTOCOL", Value: "PLAIN"})
+		c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "KAFKA_CFG_SASL_ENABLED_MECHANISMS", Value: "PLAIN"})
+	} else {
+		c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP", Value: "INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT"})
+		c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "ALLOW_PLAINTEXT_LISTENER", Value: "yes"})
+	}
+}
+
 func KafkaDeployment(cr *miqv1alpha1.ManageIQ, client client.Client, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
 	deploymentLabels := map[string]string{
 		"name": "kafka",
@@ -238,112 +295,10 @@ func KafkaDeployment(cr *miqv1alpha1.ManageIQ, client client.Client, scheme *run
 				},
 			},
 		},
-		Env: []corev1.EnvVar{
-			corev1.EnvVar{
-				Name:  "KAFKA_ENABLE_KRAFT",
-				Value: "yes",
-			},
-			corev1.EnvVar{
-				Name:  "KAFKA_CFG_PROCESS_ROLES",
-				Value: "broker,controller",
-			},
-			corev1.EnvVar{
-				Name:  "KAFKA_CFG_CONTROLLER_LISTENER_NAMES",
-				Value: "CONTROLLER",
-			},
-			corev1.EnvVar{
-				Name:  "KAFKA_CFG_LISTENERS",
-				Value: "INTERNAL://:9092,CONTROLLER://:9093",
-			},
-			corev1.EnvVar{
-				Name:  "KAFKA_CFG_INTER_BROKER_LISTENER_NAME",
-				Value: "INTERNAL",
-			},
-			corev1.EnvVar{
-				Name:  "KAFKA_CFG_ADVERTISED_LISTENERS",
-				Value: "INTERNAL://kafka:9092",
-			},
-			corev1.EnvVar{
-				Name:  "KAFKA_CFG_CONTROLLER_QUORUM_VOTERS",
-				Value: "1@kafka:9093",
-			},
-			corev1.EnvVar{
-				Name:  "KAFKA_CFG_BROKER_ID",
-				Value: "1",
-			},
-			corev1.EnvVar{
-				Name:  "KAFKA_CFG_OFFSETS_TOPIC_NUM_PARTITIONS",
-				Value: "25",
-			},
-		},
+		Env: []corev1.EnvVar{},
 		VolumeMounts: []corev1.VolumeMount{
 			corev1.VolumeMount{Name: "kafka-data", MountPath: "/bitnami/kafka"},
 		},
-	}
-
-	if certSecret := InternalCertificatesSecret(cr, client); certSecret.Data["kafka_truststore"] != nil && certSecret.Data["kafka_keystore"] != nil && certSecret.Data["kafka_keystore_pass"] != nil {
-		container.Env = append(container.Env,
-			corev1.EnvVar{
-				Name: "KAFKA_INTER_BROKER_USER",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{Name: kafkaSecretName(cr)},
-						Key:                  "username",
-					},
-				},
-			},
-			corev1.EnvVar{
-				Name: "KAFKA_INTER_BROKER_PASSWORD",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{Name: kafkaSecretName(cr)},
-						Key:                  "password",
-					},
-				},
-			},
-			corev1.EnvVar{
-				Name: "KAFKA_CERTIFICATE_PASSWORD",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{Name: certSecret.Name},
-						Key:                  "kafka_keystore_pass",
-					},
-				},
-			},
-			corev1.EnvVar{
-				Name:  "KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP",
-				Value: "INTERNAL:SASL_SSL,CONTROLLER:SASL_SSL",
-			},
-			corev1.EnvVar{
-				Name:  "KAFKA_CFG_LISTENER_NAME_INTERNAL_SSL_CLIENT_AUTH",
-				Value: "required",
-			},
-			corev1.EnvVar{
-				Name:  "KAFKA_CFG_LISTENER_NAME_CONTROLLER_SSL_CLIENT_AUTH",
-				Value: "required",
-			},
-			corev1.EnvVar{
-				Name:  "KAFKA_CFG_SASL_MECHANISM_INTER_BROKER_PROTOCOL",
-				Value: "PLAIN",
-			},
-			corev1.EnvVar{
-				Name:  "KAFKA_CFG_SASL_MECHANISM_CONTROLLER_PROTOCOL",
-				Value: "PLAIN",
-			},
-			corev1.EnvVar{
-				Name:  "KAFKA_CFG_SASL_ENABLED_MECHANISMS",
-				Value: "PLAIN",
-			})
-	} else {
-		container.Env = append(container.Env,
-			corev1.EnvVar{
-				Name:  "KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP",
-				Value: "INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT",
-			},
-			corev1.EnvVar{
-				Name:  "ALLOW_PLAINTEXT_LISTENER",
-				Value: "yes",
-			})
 	}
 
 	err := addResourceReqs(cr.Spec.KafkaMemoryLimit, cr.Spec.KafkaMemoryRequest, cr.Spec.KafkaCpuLimit, cr.Spec.KafkaCpuRequest, &container)
@@ -400,6 +355,7 @@ func KafkaDeployment(cr *miqv1alpha1.ManageIQ, client client.Client, scheme *run
 				},
 			},
 		}
+		updateKafkaEnv(cr, client, &deployment.Spec.Template.Spec.Containers[0])
 		addKafkaStores(cr, deployment, client, "/opt/bitnami/kafka/config/certs")
 
 		return nil
