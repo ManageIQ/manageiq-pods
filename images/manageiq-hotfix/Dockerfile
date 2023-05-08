@@ -1,8 +1,6 @@
-ARG CONTAINER_PREFIX=manageiq
-ARG FROM_REPO=manageiq
-ARG FROM_TAG=latest
+ARG FROM_IMAGE=docker.io/manageiq/manageiq-base:latest
 
-FROM ${FROM_REPO}/${CONTAINER_PREFIX}-base:${FROM_TAG}
+FROM ${FROM_IMAGE}
 
 COPY rpms/* /tmp/rpms/
 
