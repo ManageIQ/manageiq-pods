@@ -3,7 +3,8 @@
 # Cleanup dnf
 dnf clean all
 rm -rf /var/cache/dnf
-rm -rf /var/lib/dnf/history*
+# Intentionally keeping the sqlite database to preserve metadata about where packages were sourced from.
+rm -rf /var/lib/dnf/history.sqlite-*
 rm -rf /var/log/dnf*.log
 rm -rf /var/log/hawkey.log
 
