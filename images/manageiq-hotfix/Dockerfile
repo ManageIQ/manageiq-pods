@@ -4,7 +4,8 @@ FROM ${FROM_IMAGE}
 
 COPY rpms/* /tmp/rpms/
 
-RUN /create_local_yum_repo.sh && \
+RUN rm -rf /tmp/rpms/repodata && \
+    /create_local_yum_repo.sh && \
     dnf -y --repo=local-rpm update && \
     chgrp -R 0 $APP_ROOT && \
     chmod -R g=u $APP_ROOT && \
