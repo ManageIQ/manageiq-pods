@@ -1,6 +1,7 @@
 #!/bin/bash
 
 yum -y install createrepo_c
+rm -rf /tmp/rpms/repodata
 createrepo /tmp/rpms
 yum -y remove createrepo_c
 
