@@ -35,7 +35,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	manageiqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
-	"github.com/ManageIQ/manageiq-pods/manageiq-operator/controllers"
+	"github.com/ManageIQ/manageiq-pods/manageiq-operator/internal/controller"
 	//+kubebuilder:scaffold:imports
 )
 
