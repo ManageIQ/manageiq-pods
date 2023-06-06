@@ -104,12 +104,12 @@ type ManageIQSpec struct {
 	// +optional
 	HttpdImage string `json:"httpdImage,omitempty"`
 
-	// Image namespace used for the httpd deployment (default: manageiq)
+	// Deprecated: Image namespace used for the httpd deployment (default: manageiq)
 	// Note: the exact image will be determined by the authentication method selected
 	// +optional
 	HttpdImageNamespace string `json:"httpdImageNamespace,omitempty"`
 
-	// Image tag used for the httpd deployment (default: latest)
+	// Deprecated: Image tag used for the httpd deployment (default: latest)
 	// +optional
 	HttpdImageTag string `json:"httpdImageTag,omitempty"`
 
@@ -147,11 +147,11 @@ type ManageIQSpec struct {
 	// +optional
 	KafkaImage string `json:"kafkaImage,omitempty"`
 
-	// Image used for the kafka deployment (default: docker.io/bitnami/kafka)
+	// Deprecated: Image used for the kafka deployment (default: docker.io/bitnami/kafka)
 	// +optional
 	KafkaImageName string `json:"kafkaImageName,omitempty"`
 
-	// Image tag used for the kafka deployment (default: latest)
+	// Deprecated: Image tag used for the kafka deployment (default: latest)
 	// +optional
 	KafkaImageTag string `json:"kafkaImageTag,omitempty"`
 
@@ -184,11 +184,11 @@ type ManageIQSpec struct {
 	// +optional
 	MemcachedImage string `json:"memcachedImage,omitempty"`
 
-	// Image used for the memcached deployment (default: manageiq/memcached)
+	// Deprecated: Image used for the memcached deployment (default: manageiq/memcached)
 	// +optional
 	MemcachedImageName string `json:"memcachedImageName,omitempty"`
 
-	// Image tag used for the memcached deployment (default: 1.6)
+	// Deprecated: Image tag used for the memcached deployment (default: 1.6)
 	// +optional
 	MemcachedImageTag string `json:"memcachedImageTag,omitempty"`
 
@@ -252,15 +252,15 @@ type ManageIQSpec struct {
 	// +optional
 	OrchestratorImage string `json:"orchestratorImage,omitempty"`
 
-	// Image name used for the orchestrator deployment (default: manageiq-orchestrator)
+	// Deprecated: Image name used for the orchestrator deployment (default: manageiq-orchestrator)
 	// +optional
 	OrchestratorImageName string `json:"orchestratorImageName,omitempty"`
 
-	// Image namespace used for the orchestrator and worker deployments (default: manageiq)
+	// Deprecated: Image namespace used for the orchestrator and worker deployments (default: manageiq)
 	// +optional
 	OrchestratorImageNamespace string `json:"orchestratorImageNamespace,omitempty"`
 
-	// Image tag used for the orchestrator and worker deployments (default: latest)
+	// Deprecated: Image tag used for the orchestrator and worker deployments (default: latest)
 	// +optional
 	OrchestratorImageTag string `json:"orchestratorImageTag,omitempty"`
 
@@ -289,11 +289,11 @@ type ManageIQSpec struct {
 	// +optional
 	PostgresqlImage string `json:"postgresqlImage,omitempty"`
 
-	// Image used for the postgresql deployment (Default: docker.io/manageiq/postgresql)
+	// Deprecated: Image used for the postgresql deployment (Default: docker.io/manageiq/postgresql)
 	// +optional
 	PostgresqlImageName string `json:"postgresqlImageName,omitempty"`
 
-	// Image tag used for the postgresql deployment (Default: 13)
+	// Deprecated: Image tag used for the postgresql deployment (Default: 13)
 	// +optional
 	PostgresqlImageTag string `json:"postgresqlImageTag,omitempty"`
 
@@ -348,11 +348,11 @@ type ManageIQSpec struct {
 	// +optional
 	ZookeeperImage string `json:"zookeeperImage,omitempty"`
 
-	// Image used for the zookeeper deployment (default: docker.io/bitnami/zookeeper)
+	// Deprecated: Image used for the zookeeper deployment (default: docker.io/bitnami/zookeeper)
 	// +optional
 	ZookeeperImageName string `json:"zookeeperImageName,omitempty"`
 
-	// Image tag used for the zookeeper deployment (default: latest)
+	// Deprecated: Image tag used for the zookeeper deployment (default: latest)
 	// +optional
 	ZookeeperImageTag string `json:"zookeeperImageTag,omitempty"`
 
