@@ -38,8 +38,10 @@ hot_standby = on
 # ERROR REPORTING AND LOGGING
 #------------------------------------------------------------------------------
 
-log_filename = 'postgresql.log'
-log_rotation_age = 0
+log_destination = 'stderr'
+# This is used when logging to stderr:
+logging_collector = off
+
 log_min_duration_statement = 5000
 log_connections = on
 log_disconnections = on
