@@ -105,12 +105,13 @@ spec:
                   <HttpdImageNamespace>/httpd[-init]:<HttpdImageTag>)'
                 type: string
               httpdImageNamespace:
-                description: 'Image namespace used for the httpd deployment (default:
-                  manageiq) Note: the exact image will be determined by the authentication
-                  method selected'
+                description: 'Deprecated: Image namespace used for the httpd deployment
+                  (default: manageiq) Note: the exact image will be determined by
+                  the authentication method selected'
                 type: string
               httpdImageTag:
-                description: 'Image tag used for the httpd deployment (default: latest)'
+                description: 'Deprecated: Image tag used for the httpd deployment
+                  (default: latest)'
                 type: string
               httpdMemoryLimit:
                 description: 'Httpd deployment memory limit (default: no limit)'
@@ -141,10 +142,12 @@ spec:
                   <KafkaImageName>:<KafkaImageTag>)'
                 type: string
               kafkaImageName:
-                description: 'Image used for the kafka deployment (default: docker.io/bitnami/kafka)'
+                description: 'Deprecated: Image used for the kafka deployment (default:
+                  docker.io/bitnami/kafka)'
                 type: string
               kafkaImageTag:
-                description: 'Image tag used for the kafka deployment (default: latest)'
+                description: 'Deprecated: Image tag used for the kafka deployment
+                  (default: latest)'
                 type: string
               kafkaMemoryLimit:
                 description: 'Kafka deployment memory limit (default: no limit)'
@@ -170,11 +173,12 @@ spec:
                   <MemcachedImageName>:<MemcachedImageTag>)'
                 type: string
               memcachedImageName:
-                description: 'Image used for the memcached deployment (default: manageiq/memcached)'
+                description: 'Deprecated: Image used for the memcached deployment
+                  (default: manageiq/memcached)'
                 type: string
               memcachedImageTag:
-                description: 'Image tag used for the memcached deployment (default:
-                  1.6)'
+                description: 'Deprecated: Image tag used for the memcached deployment
+                  (default: 1.6)'
                 type: string
               memcachedMaxConnection:
                 description: 'Memcached max simultaneous connections (default: 1024)'
@@ -227,16 +231,16 @@ spec:
                   <OrchestratorImageNamespace>/<OrchestratorImageName>:<OrchestratorImageTag>)'
                 type: string
               orchestratorImageName:
-                description: 'Image name used for the orchestrator deployment (default:
-                  manageiq-orchestrator)'
+                description: 'Deprecated: Image name used for the orchestrator deployment
+                  (default: manageiq-orchestrator)'
                 type: string
               orchestratorImageNamespace:
-                description: 'Image namespace used for the orchestrator and worker
-                  deployments (default: manageiq)'
+                description: 'Deprecated: Image namespace used for the orchestrator
+                  and worker deployments (default: manageiq)'
                 type: string
               orchestratorImageTag:
-                description: 'Image tag used for the orchestrator and worker deployments
-                  (default: latest)'
+                description: 'Deprecated: Image tag used for the orchestrator and
+                  worker deployments (default: latest)'
                 type: string
               orchestratorInitialDelay:
                 description: 'Number of seconds to wait before starting the orchestrator
@@ -260,11 +264,12 @@ spec:
                   <PostgresqlImageName>:<PostgresqlImageTag>)'
                 type: string
               postgresqlImageName:
-                description: 'Image used for the postgresql deployment (Default: docker.io/manageiq/postgresql)'
+                description: 'Deprecated: Image used for the postgresql deployment
+                  (Default: docker.io/manageiq/postgresql)'
                 type: string
               postgresqlImageTag:
-                description: 'Image tag used for the postgresql deployment (Default:
-                  13)'
+                description: 'Deprecated: Image tag used for the postgresql deployment
+                  (Default: 13)'
                 type: string
               postgresqlMaxConnections:
                 description: 'PostgreSQL maximum connection setting (default: 1000)'
@@ -308,11 +313,12 @@ spec:
                   <ZookeeperImageName>:<ZookeeperImageTag>)'
                 type: string
               zookeeperImageName:
-                description: 'Image used for the zookeeper deployment (default: docker.io/bitnami/zookeeper)'
+                description: 'Deprecated: Image used for the zookeeper deployment
+                  (default: docker.io/bitnami/zookeeper)'
                 type: string
               zookeeperImageTag:
-                description: 'Image tag used for the zookeeper deployment (default:
-                  latest)'
+                description: 'Deprecated: Image tag used for the zookeeper deployment
+                  (default: latest)'
                 type: string
               zookeeperMemoryLimit:
                 description: 'Zookeeper deployment memory limit (default: no limit)'
