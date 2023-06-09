@@ -19,8 +19,9 @@ package v1alpha1
 import (
 	"errors"
 	"fmt"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strings"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -369,10 +370,34 @@ type ManageIQSpec struct {
 	ZookeeperVolumeCapacity string `json:"zookeeperVolumeCapacity,omitempty"`
 }
 
+// SecretSource is a reference to a secret containing a hidden value
+type SecretSource struct {
+	// The name of the secret containing the value
+	SecretName string `json:"secretName"`
+	// The key for the value in the secret
+	Key string `json:"key"`
+}
+
+type Endpoint struct {
+	Name     string       `json:"name,omitempty"`
+	Type     string       `json:"type,omitempty"`
+	Scope    string       `json:"scope,omitempty"`
+	URI      string       `json:"uri,omitempty"`
+	CASecret SecretSource `json:"caSecret,omitempty"`
+}
+
+type Version struct {
+	Name    string `json:"name,omitempty"`
+	Version string `json:"version,omitempty"`
+}
+
 // ManageIQStatus defines the observed state of ManageIQ
 type ManageIQStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	Versions  []Version  `json:"versions,omitempty"`
+	Endpoints []Endpoint `json:"endpoints,omitempty"`
+
+	// +operator-sdk:csv:customresourcedefinitions:type=status
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
 //+kubebuilder:object:root=true
