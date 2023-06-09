@@ -19,7 +19,6 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"os"
 
@@ -29,13 +28,13 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
+	"github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
 	cr_migration "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/helpers/cr_migration"
 	miqtool "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/helpers/miq-components"
@@ -47,8 +46,6 @@ import (
 type ManageIQReconciler struct {
 	Client client.Client
 	Scheme *runtime.Scheme
-
-	Recorder record.EventRecorder
 }
 
 //+kubebuilder:rbac:namespace=changeme,groups="",resources=configmaps;events;persistentvolumeclaims;pods;pods/finalizers;secrets;serviceaccounts;services;services/finalizers,verbs=get;list;watch;create;update;patch;delete
@@ -244,26 +241,22 @@ func (r *ManageIQReconciler) updateManageIQStatus(cr *miqv1alpha1.ManageIQ) {
 				if object.Spec.TLS != nil ||
 					object.Spec.Rules != nil {
 					endpointInfo := &miqv1alpha1.Endpoint{}
-					keyFound := false
-					if len(strings.TrimSpace(object.Spec.TLS[0].SecretName)) != 0 {
+					if len(object.Spec.TLS[0].SecretName) != 0 {
 						if objectSecret := FindSecret(cr, r.Client, object.Spec.TLS[0].SecretName); object != nil {
 							endpointInfo.Name = ingressName
 							endpointInfo.Type = "UI"
 							endpointInfo.Scope = "External"
 							for k := range objectSecret.Data {
 								if k == "cs.crt" {
-									keyFound = true
+									endpointInfo.CASecret.Key = "cs.crt"
 									break
 								}
 							}
-							if keyFound {
-								endpointInfo.CASecret.Key = "cs.crt"
-							}
 						}
-						if len(strings.TrimSpace(object.Spec.TLS[0].SecretName)) != 0 {
+						if len(object.Spec.TLS[0].SecretName) != 0 {
 							endpointInfo.CASecret.SecretName = object.Spec.TLS[0].SecretName
 						}
-						if len(strings.TrimSpace(object.Spec.Rules[0].Host)) != 0 {
+						if len(object.Spec.Rules[0].Host) != 0 {
 							endpointInfo.URI = object.Spec.Rules[0].Host
 						}
 						r.reportEndpointInfo(namespacedName, *endpointInfo)
@@ -290,26 +283,14 @@ func (r *ManageIQReconciler) updateOperatorVersions(namespacedName types.Namespa
 		logger.Error(err, "Error getting cluster cr")
 		return err
 	}
+	miqInstance.Status.Versions = []v1alpha1.Version{
+		{
+			Name: "operator", Version: operatorVersion,
+		},
+		{
+			Name: "operand", Version: operandVersion,
+		}}
 
-	if len(miqInstance.Status.Versions) > 0 {
-		for index, value := range miqInstance.Status.Versions {
-			if value.Name == "operator" {
-				miqInstance.Status.Versions[index].Version = operatorVersion
-			}
-			if value.Name == "operand" {
-				miqInstance.Status.Versions[index].Version = operandVersion
-			}
-		}
-	} else {
-		miqInstance.Status.Versions = append(miqInstance.Status.Versions, miqv1alpha1.Version{
-			Name:    "operator",
-			Version: operatorVersion,
-		})
-		miqInstance.Status.Versions = append(miqInstance.Status.Versions, miqv1alpha1.Version{
-			Name:    "operand",
-			Version: operandVersion,
-		})
-	}
 	if err := r.Client.Status().Update(context.TODO(), miqInstance); err != nil {
 		logger.Error(err, "Error updating status")
 		return err

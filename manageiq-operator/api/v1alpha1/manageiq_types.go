@@ -373,9 +373,9 @@ type ManageIQSpec struct {
 // SecretSource is a reference to a secret containing a hidden value
 type SecretSource struct {
 	// The name of the secret containing the value
-	SecretName string `json:"secretName"`
+	SecretName string `json:"secretName,omitempty"`
 	// The key for the value in the secret
-	Key string `json:"key"`
+	Key string `json:"key,omitempty"`
 }
 
 type Endpoint struct {

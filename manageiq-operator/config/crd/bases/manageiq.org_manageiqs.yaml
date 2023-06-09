@@ -416,9 +416,6 @@ spec:
                         secretName:
                           description: The name of the secret containing the value
                           type: string
-                      required:
-                      - key
-                      - secretName
                       type: object
                     name:
                       type: string
