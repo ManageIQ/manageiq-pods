@@ -445,6 +445,18 @@ func (m *ManageIQ) Validate() error {
 		}
 	}
 
+	if spec.PriorityLow != nil && spec.PriorityMedium != nil && spec.PriorityLow > spec.PriorityMedium{
+		errs = append(errs, "PriorityMedium is less than PriorityLow")
+	}
+
+	if spec.PriorityLow != nil && spec.PriorityHigh != nil && spec.PriorityLow > spec.PriorityHigh{
+		errs = append(errs, "PriorityHigh is less than PriorityLow")
+	}
+
+	if spec.PriorityMedium != nil && spec.PriorityHigh != nil && spec.PriorityMedium > spec.PriorityHigh{
+		errs = append(errs, "PriorityHigh is less than PriorityMedium")
+	}
+
 	if len(errs) > 0 {
 		err := fmt.Sprintf("validation failed for ManageIQ object: %s", strings.Join(errs, ", "))
 		return errors.New(err)
