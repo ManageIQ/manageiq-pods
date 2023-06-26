@@ -283,6 +283,21 @@ spec:
               postgresqlSharedBuffers:
                 description: 'PostgreSQL shared buffers setting (default: 1GB)'
                 type: string
+              priorityHigh:
+                description: 'Priority Class High value (default: 200)'
+                format: int32
+                maximum: 1000000000
+                type: integer
+              priorityLow:
+                description: 'Priority Class Low value (default: 0)'
+                format: int32
+                maximum: 999999800
+                type: integer
+              priorityMedium:
+                description: 'Priority Class Medium value (default: 100)'
+                format: int32
+                maximum: 999999900
+                type: integer
               serverGuid:
                 description: 'Server GUID (default: auto-generated)'
                 type: string

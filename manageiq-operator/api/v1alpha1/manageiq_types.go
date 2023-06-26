@@ -313,6 +313,21 @@ type ManageIQSpec struct {
 	// +optional
 	PostgresqlSharedBuffers string `json:"postgresqlSharedBuffers,omitempty"`
 
+	// Priority Class High value (default: 200)
+	// +optional
+	// +kubebuilder:validation:Maximum=1000000000
+	PriorityHigh int32 `json:"priorityHigh,omitempty"`
+
+	// Priority Class Low value (default: 0)
+	// +optional
+	// +kubebuilder:validation:Maximum=999999800
+	PriorityLow int32 `json:"priorityLow,omitempty"`
+
+	// Priority Class Medium value (default: 100)
+	// +optional
+	// +kubebuilder:validation:Maximum=999999900
+	PriorityMedium int32 `json:"priorityMedium,omitempty"`
+
 	// Server GUID (default: auto-generated)
 	// +optional
 	ServerGuid string `json:"serverGuid,omitempty"`
