@@ -298,10 +298,6 @@ func postgresqlSharedBuffers(cr *miqv1alpha1.ManageIQ) string {
 	}
 }
 
-func priorityClusterDefault(c client.Client) int32 {
-	return 0
-}
-
 func priorityHigh(cr *miqv1alpha1.ManageIQ) int32 {
 	if cr.Spec.PriorityHigh == nil {
 		return priorityMedium(cr) + 100
@@ -310,9 +306,9 @@ func priorityHigh(cr *miqv1alpha1.ManageIQ) int32 {
 	}
 }
 
-func priorityLow(cr *miqv1alpha1.ManageIQ, c client.Client) int32 {
+func priorityLow(cr *miqv1alpha1.ManageIQ, c *client.Client) int32 {
 	if cr.Spec.PriorityLow == nil {
-		return priorityClusterDefault(c)
+		return podPriorityClusterDefault(c)
 	} else {
 		return cr.Spec.PriorityLow
 	}
