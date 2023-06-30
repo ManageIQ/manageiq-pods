@@ -59,6 +59,19 @@ autovacuum_analyze_threshold = 500
 autovacuum_vacuum_scale_factor = 0.05
 
 #------------------------------------------------------------------------------
+# RESOURCE USAGE (except WAL)
+#------------------------------------------------------------------------------
+
+dynamic_shared_memory_type = sysv
+                                        # the default is the first option
+                                        # supported by the operating system:
+                                        #   posix
+                                        #   sysv
+                                        #   windows
+                                        #   mmap
+                                        # (change requires restart)
+
+#------------------------------------------------------------------------------
 # LOCK MANAGEMENT
 #------------------------------------------------------------------------------
 
