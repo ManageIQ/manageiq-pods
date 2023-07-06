@@ -19,7 +19,6 @@ package controllers
 import (
 	"context"
 	"fmt"
-
 	"os"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -34,7 +33,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	"github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
 	cr_migration "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/helpers/cr_migration"
 	miqtool "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/helpers/miq-components"
@@ -295,7 +293,7 @@ func FindDeploymentStatusCondition(conditions []appsv1.DeploymentCondition, cond
 func (r *ManageIQReconciler) reportOperatorVersions(miqInstance *miqv1alpha1.ManageIQ) error {
 	operatorVersion := miqInstance.Spec.AppAnnotations["productVersion"]
 	operandVersion := miqInstance.APIVersion
-	miqInstance.Status.Versions = []v1alpha1.Version{
+	miqInstance.Status.Versions = []miqv1alpha1.Version{
 		{
 			Name: "operator", Version: operatorVersion,
 		},
@@ -315,7 +313,7 @@ func (r *ManageIQReconciler) reportStatusCondition(miqInstance *miqv1alpha1.Mana
 	})
 }
 
-func (r *ManageIQReconciler) reportEndpointInfo(miqInstance *miqv1alpha1.ManageIQ, endPointDetails v1alpha1.Endpoint) {
+func (r *ManageIQReconciler) reportEndpointInfo(miqInstance *miqv1alpha1.ManageIQ, endPointDetails miqv1alpha1.Endpoint) {
 	endpoints := miqInstance.Status.Endpoints
 	endpointFound := false
 	for i := range endpoints {
