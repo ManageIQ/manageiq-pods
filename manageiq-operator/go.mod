@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.27.8
-	github.com/openshift/api v3.9.0+incompatible
+	github.com/openshift/api v0.0.0-20230705144233-e28cd4dd28a8
 	k8s.io/api v0.27.3
 	k8s.io/apimachinery v0.27.3
 	k8s.io/client-go v0.27.3
