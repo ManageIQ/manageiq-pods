@@ -175,14 +175,18 @@ func (r *ManageIQReconciler) updateManageIQStatus(cr *miqv1alpha1.ManageIQ) erro
 	for _, deploymentName := range deployments {
 		if object := FindDeployment(cr, r.Client, deploymentName); object != nil {
 			deploymentStatusConditions := object.Status.Conditions
-
+			// deployment status can have multiple condition types like ReplicaFailure, Progressing, Available but
+			// in our IMInstall CR we just want to show the latest deployment condition type
 			if typeReplicaFailure := FindDeploymentStatusCondition(deploymentStatusConditions, appsv1.DeploymentReplicaFailure); typeReplicaFailure != nil {
+				// reporting deployment condition check 'ReplicaFailure'
 				conditionMessage := fmt.Sprintf("[%s] %s", typeReplicaFailure.Type, typeReplicaFailure.Message)
 				r.reportStatusCondition(miqInstance, conditionMessage, typeReplicaFailure.Reason, metav1.ConditionStatus(typeReplicaFailure.Status), deploymentName)
 			} else if typeProgressingCondition := FindDeploymentStatusCondition(deploymentStatusConditions, appsv1.DeploymentProgressing); typeProgressingCondition != nil {
+				// reporting deployment condition check 'Progressing'
 				conditionMessage := fmt.Sprintf("[%s] %s", typeProgressingCondition.Type, typeProgressingCondition.Message)
 				r.reportStatusCondition(miqInstance, conditionMessage, typeProgressingCondition.Reason, metav1.ConditionStatus(typeProgressingCondition.Status), deploymentName)
 			} else if typeAvailableCondition := FindDeploymentStatusCondition(deploymentStatusConditions, appsv1.DeploymentAvailable); typeAvailableCondition != nil {
+				// reporting deployment condition check 'Available'
 				conditionMessage := fmt.Sprintf("[%s] %s", typeAvailableCondition.Type, typeAvailableCondition.Message)
 				r.reportStatusCondition(miqInstance, conditionMessage, typeAvailableCondition.Reason, metav1.ConditionStatus(typeAvailableCondition.Status), deploymentName)
 			}
@@ -302,8 +306,7 @@ func (r *ManageIQReconciler) reportOperatorVersions(miqInstance *miqv1alpha1.Man
 	return nil
 }
 
-func (r *ManageIQReconciler) reportStatusCondition(miqInstance *miqv1alpha1.ManageIQ, statusMessage string,
-	reason string, conditionStatus metav1.ConditionStatus, statusType string) {
+func (r *ManageIQReconciler) reportStatusCondition(miqInstance *miqv1alpha1.ManageIQ, statusMessage string, reason string, conditionStatus metav1.ConditionStatus, statusType string) {
 	apimeta.SetStatusCondition(&miqInstance.Status.Conditions, metav1.Condition{
 		Type:    statusType,
 		Status:  conditionStatus,
