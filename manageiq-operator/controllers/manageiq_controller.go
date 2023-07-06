@@ -18,6 +18,8 @@ package controllers
 
 import (
 	"context"
+	"fmt"
+	"os"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -25,7 +27,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -35,6 +36,8 @@ import (
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
 	cr_migration "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/helpers/cr_migration"
 	miqtool "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/helpers/miq-components"
+	apimeta "k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // ManageIQReconciler reconciles a ManageIQ object
@@ -73,7 +76,6 @@ type ManageIQReconciler struct {
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.0/pkg/reconcile
 func (r *ManageIQReconciler) Reconcile(ctx context.Context, request ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
-
 	reqLogger := logger.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling ManageIQ")
 
@@ -147,8 +149,85 @@ func (r *ManageIQReconciler) Reconcile(ctx context.Context, request ctrl.Request
 	if e := r.manageApplicationResources(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
+	if err := r.updateManageIQStatus(miqInstance); err != nil {
+		reqLogger.Error(err, "Failed setting ManageIQ status")
+		return reconcile.Result{}, err
+	}
 
 	return reconcile.Result{}, nil
+}
+
+func (r *ManageIQReconciler) updateManageIQStatus(cr *miqv1alpha1.ManageIQ) error {
+	miqInstance := &miqv1alpha1.ManageIQ{}
+	err := r.Client.Get(context.TODO(), types.NamespacedName{Name: cr.Name, Namespace: cr.Namespace}, miqInstance)
+	if err != nil {
+		logger.Error(err, "Error getting cluster cr")
+		return err
+	}
+
+	// update status versions
+	r.reportOperatorVersions(miqInstance)
+
+	// update status condition
+	deployments := []string{"httpd", "memcached", "orchestrator", "postgresql"}
+	for _, deploymentName := range deployments {
+		if object := FindDeployment(cr, r.Client, deploymentName); object != nil {
+			deploymentStatusConditions := object.Status.Conditions
+			// deployment status can have multiple condition types like ReplicaFailure, Progressing, Available but
+			// in our IMInstall CR we just want to show the latest deployment condition type
+			if typeReplicaFailure := FindDeploymentStatusCondition(deploymentStatusConditions, appsv1.DeploymentReplicaFailure); typeReplicaFailure != nil {
+				// reporting deployment condition check 'ReplicaFailure'
+				conditionMessage := fmt.Sprintf("[%s] %s", typeReplicaFailure.Type, typeReplicaFailure.Message)
+				r.reportStatusCondition(miqInstance, conditionMessage, typeReplicaFailure.Reason, metav1.ConditionStatus(typeReplicaFailure.Status), deploymentName)
+			} else if typeProgressingCondition := FindDeploymentStatusCondition(deploymentStatusConditions, appsv1.DeploymentProgressing); typeProgressingCondition != nil {
+				// reporting deployment condition check 'Progressing'
+				conditionMessage := fmt.Sprintf("[%s] %s", typeProgressingCondition.Type, typeProgressingCondition.Message)
+				r.reportStatusCondition(miqInstance, conditionMessage, typeProgressingCondition.Reason, metav1.ConditionStatus(typeProgressingCondition.Status), deploymentName)
+			} else if typeAvailableCondition := FindDeploymentStatusCondition(deploymentStatusConditions, appsv1.DeploymentAvailable); typeAvailableCondition != nil {
+				// reporting deployment condition check 'Available'
+				conditionMessage := fmt.Sprintf("[%s] %s", typeAvailableCondition.Type, typeAvailableCondition.Message)
+				r.reportStatusCondition(miqInstance, conditionMessage, typeAvailableCondition.Reason, metav1.ConditionStatus(typeAvailableCondition.Status), deploymentName)
+			}
+		}
+	}
+
+	// update status endpoint info
+	ingresses := []string{"httpd"}
+	for _, ingressName := range ingresses {
+		if object := FindIngress(cr, r.Client, ingressName); object != nil {
+			if ownerReferences := object.OwnerReferences; len(ownerReferences) != 0 {
+				if object.Spec.TLS != nil ||
+					object.Spec.Rules != nil {
+					endpointInfo := &miqv1alpha1.Endpoint{}
+					if len(object.Spec.TLS[0].SecretName) != 0 {
+						if objectSecret := FindSecret(cr, r.Client, object.Spec.TLS[0].SecretName); object != nil {
+							endpointInfo.Name = ingressName
+							endpointInfo.Type = "UI"
+							endpointInfo.Scope = "External"
+							for k := range objectSecret.Data {
+								if k == "ca.crt" {
+									endpointInfo.CASecret.Key = "ca.crt"
+									break
+								}
+							}
+						}
+						if len(object.Spec.TLS[0].SecretName) != 0 {
+							endpointInfo.CASecret.SecretName = object.Spec.TLS[0].SecretName
+						}
+						if len(object.Spec.Rules[0].Host) != 0 {
+							endpointInfo.URI = object.Spec.Rules[0].Host
+						}
+						r.reportEndpointInfo(miqInstance, *endpointInfo)
+					}
+				}
+			}
+		}
+	}
+	if err := r.Client.Status().Update(context.TODO(), miqInstance); err != nil {
+		logger.Error(err, "Error updating status")
+		return err
+	}
+	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
@@ -165,6 +244,90 @@ func (r *ManageIQReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 var logger = log.Log.WithName("controller_manageiq")
+
+func FindDeployment(cr *miqv1alpha1.ManageIQ, client client.Client, name string) *appsv1.Deployment {
+	namespacedName := types.NamespacedName{Namespace: cr.Namespace, Name: name}
+	object := &appsv1.Deployment{}
+	if err := client.Get(context.TODO(), namespacedName, object); err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+	}
+
+	return object
+}
+
+func FindIngress(cr *miqv1alpha1.ManageIQ, client client.Client, name string) *networkingv1.Ingress {
+	namespacedName := types.NamespacedName{Namespace: cr.Namespace, Name: name}
+	object := &networkingv1.Ingress{}
+	if err := client.Get(context.TODO(), namespacedName, object); err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+	}
+
+	return object
+}
+
+func FindSecret(cr *miqv1alpha1.ManageIQ, client client.Client, name string) *corev1.Secret {
+	namespacedName := types.NamespacedName{Namespace: cr.Namespace, Name: name}
+	object := &corev1.Secret{}
+	if err := client.Get(context.TODO(), namespacedName, object); err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+	}
+
+	return object
+}
+
+func FindDeploymentStatusCondition(conditions []appsv1.DeploymentCondition, conditionType appsv1.DeploymentConditionType) *appsv1.DeploymentCondition {
+	for i := range conditions {
+		if conditions[i].Type == conditionType {
+			return &conditions[i]
+		}
+	}
+	return nil
+}
+
+func (r *ManageIQReconciler) reportOperatorVersions(miqInstance *miqv1alpha1.ManageIQ) error {
+	operatorVersion := miqInstance.Spec.AppAnnotations["productVersion"]
+	operandVersion := miqInstance.APIVersion
+	miqInstance.Status.Versions = []miqv1alpha1.Version{
+		{
+			Name: "operator", Version: operatorVersion,
+		},
+		{
+			Name: "operand", Version: operandVersion,
+		},
+	}
+	return nil
+}
+
+func (r *ManageIQReconciler) reportStatusCondition(miqInstance *miqv1alpha1.ManageIQ, statusMessage string, reason string, conditionStatus metav1.ConditionStatus, statusType string) {
+	apimeta.SetStatusCondition(&miqInstance.Status.Conditions, metav1.Condition{
+		Type:    statusType,
+		Status:  conditionStatus,
+		Reason:  reason,
+		Message: statusMessage,
+	})
+}
+
+func (r *ManageIQReconciler) reportEndpointInfo(miqInstance *miqv1alpha1.ManageIQ, endPointDetails miqv1alpha1.Endpoint) {
+	endpoints := miqInstance.Status.Endpoints
+	endpointFound := false
+	for i := range endpoints {
+		if endpoints[i].Type == endPointDetails.Type && endpoints[i].Name == endPointDetails.Name {
+			endpoints[i] = endPointDetails
+			endpointFound = true
+			break
+		}
+	}
+
+	if !endpointFound {
+		miqInstance.Status.Endpoints = append(miqInstance.Status.Endpoints, endPointDetails)
+	}
+}
 
 func (r *ManageIQReconciler) generateDefaultServiceAccount(cr *miqv1alpha1.ManageIQ) error {
 	serviceAccount, mutateFunc := miqtool.DefaultServiceAccount(cr, r.Scheme)
