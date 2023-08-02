@@ -314,6 +314,21 @@ type ManageIQSpec struct {
 	// +optional
 	PostgresqlSharedBuffers string `json:"postgresqlSharedBuffers,omitempty"`
 
+	// Priority Class High value (default: 200)
+	// +optional
+	// +kubebuilder:validation:Maximum=1000000000
+	PriorityHigh int32 `json:"priorityHigh,omitempty"`
+
+	// Priority Class Low value (default: 0)
+	// +optional
+	// +kubebuilder:validation:Maximum=999999800
+	PriorityLow int32 `json:"priorityLow,omitempty"`
+
+	// Priority Class Medium value (default: 100)
+	// +optional
+	// +kubebuilder:validation:Maximum=999999900
+	PriorityMedium int32 `json:"priorityMedium,omitempty"`
+
 	// Server GUID (default: auto-generated)
 	// +optional
 	ServerGuid string `json:"serverGuid,omitempty"`
@@ -453,6 +468,18 @@ func (m *ManageIQ) Validate() error {
 		if spec.OIDCCACertSecret != "" {
 			errs = append(errs, fmt.Sprintf("OIDCCACertSecret is not allowed for authentication type %s", spec.HttpdAuthenticationType))
 		}
+	}
+
+	if spec.PriorityLow != nil && spec.PriorityMedium != nil && spec.PriorityLow > spec.PriorityMedium{
+		errs = append(errs, "PriorityMedium is less than PriorityLow")
+	}
+
+	if spec.PriorityLow != nil && spec.PriorityHigh != nil && spec.PriorityLow > spec.PriorityHigh{
+		errs = append(errs, "PriorityHigh is less than PriorityLow")
+	}
+
+	if spec.PriorityMedium != nil && spec.PriorityHigh != nil && spec.PriorityMedium > spec.PriorityHigh{
+		errs = append(errs, "PriorityHigh is less than PriorityMedium")
 	}
 
 	if len(errs) > 0 {

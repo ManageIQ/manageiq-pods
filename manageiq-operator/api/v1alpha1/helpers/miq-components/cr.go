@@ -298,6 +298,30 @@ func postgresqlSharedBuffers(cr *miqv1alpha1.ManageIQ) string {
 	}
 }
 
+func priorityHigh(cr *miqv1alpha1.ManageIQ) int32 {
+	if cr.Spec.PriorityHigh == nil {
+		return priorityMedium(cr) + 100
+	} else {
+		return cr.Spec.PriorityHigh
+	}
+}
+
+func priorityLow(cr *miqv1alpha1.ManageIQ, c *client.Client) int32 {
+	if cr.Spec.PriorityLow == nil {
+		return podPriorityClusterDefault(c)
+	} else {
+		return cr.Spec.PriorityLow
+	}
+}
+
+func priorityMedium(cr *miqv1alpha1.ManageIQ) int32 {
+	if cr.Spec.PriorityMedium == nil {
+		return priorityLow(cr) + 100
+	} else {
+		return cr.Spec.PriorityMedium
+	}
+}
+
 func serverGuid(cr *miqv1alpha1.ManageIQ, c *client.Client) string {
 	if cr.Spec.ServerGuid == "" {
 		if pod := orchestratorPod(*c); pod != nil {
@@ -375,6 +399,9 @@ func ManageCR(cr *miqv1alpha1.ManageIQ, c *client.Client) (*miqv1alpha1.ManageIQ
 		cr.Spec.PostgresqlImage = postgresqlImage(cr)
 		cr.Spec.PostgresqlMaxConnections = postgresqlMaxConnections(cr)
 		cr.Spec.PostgresqlSharedBuffers = postgresqlSharedBuffers(cr)
+		cr.Spec.PriorityLow = priorityLow(cr, *c)
+		cr.Spec.PriorityMedium = priorityMedium(cr)
+		cr.Spec.PriorityHigh = priorityHigh(cr)
 		cr.Spec.ServerGuid = serverGuid(cr, c)
 		cr.Spec.ZookeeperImage = zookeeperImage(cr)
 		cr.Spec.ZookeeperVolumeCapacity = zookeeperVolumeCapacity(cr)

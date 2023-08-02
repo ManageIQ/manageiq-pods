@@ -190,3 +190,17 @@ func DefaultSecurityContext() *corev1.SecurityContext {
 
 	return sc
 }
+
+func podPriorityClusterDefault(c client.Client) int32 {
+	varTrue := true
+	priorityClassList := &schedulingv1.PriorityClassList{}
+	c.List(context.TODO(), priorityClassList)
+
+	for _, priorityClass := range priorityClassList.Items {
+		if priorityClass.ObjectMeta.Namespace == "" && priorityClass.GlobalDefault == varTrue {
+			return priorityClass.Value
+		}
+	}
+
+	return 0
+}
