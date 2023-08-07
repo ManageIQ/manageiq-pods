@@ -51,7 +51,7 @@ RUN dnf config-manager --setopt=tsflags=nodocs --setopt=install_weak_deps=False 
     dnf -y update && \
     dnf -y module enable postgresql:13 ruby:3.0 && \
     if [[ "$RELEASE_BUILD" != "true" ]]; then dnf config-manager --enable manageiq-17-quinteros-nightly; fi && \
-    dnf config-manager --setopt=ubi-8-*.exclude=dracut*,net-snmp*,perl-*,redhat-release* --save && \
+    dnf config-manager --setopt=ubi-8-*.exclude=dracut*,net-snmp*,redhat-release* --save && \
     if [[ "$LOCAL_RPM" = "true" ]]; then /create_local_yum_repo.sh; fi && \
     dnf -y install \
       ${RPM_PREFIX}-pods \
