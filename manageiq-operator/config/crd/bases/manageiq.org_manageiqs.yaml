@@ -240,7 +240,7 @@ spec:
                 type: string
               orchestratorImageTag:
                 description: 'Deprecated: Image tag used for the orchestrator and
-                  worker deployments (default: latest)'
+                  worker deployments (default: latest-quinteros)'
                 type: string
               orchestratorInitialDelay:
                 description: 'Number of seconds to wait before starting the orchestrator
