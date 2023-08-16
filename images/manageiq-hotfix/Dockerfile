@@ -1,4 +1,6 @@
-ARG FROM_IMAGE=docker.io/manageiq/manageiq-base:latest
+ARG FROM_REPO=docker.io/manageiq
+ARG FROM_TAG=latest-quinteros
+ARG FROM_IMAGE=${FROM_REPO}/manageiq-base:${FROM_TAG}
 
 FROM ${FROM_IMAGE}
 

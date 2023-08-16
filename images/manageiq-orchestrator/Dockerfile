@@ -1,4 +1,4 @@
-ARG FROM_REPO=manageiq
+ARG FROM_REPO=docker.io/manageiq
 ARG FROM_TAG=latest-quinteros
 
 FROM ${FROM_REPO}/manageiq-base:${FROM_TAG}
