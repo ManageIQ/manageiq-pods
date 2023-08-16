@@ -48,7 +48,7 @@ namespace :release do
     # Modify deploy CRD
     deploy_crd = root.join("manageiq-operator", "config", "crd", "bases", "manageiq.org_manageiqs.yaml")
     content = deploy_crd.read
-    deploy_crd.write(content.sub(/(tag used for the orchestrator and worker deployments\n\s+\(default: )[^\)]+(\))/, "\\1latest-#{branch}\\2"))
+    deploy_crd.write(content.sub(/(worker deployments\s+\(default: )latest[^\)]*(\))/, "\\1latest-#{branch}\\2"))
 
     # Modify bin/build
     build_script = root.join("bin", "build")
@@ -56,6 +56,13 @@ namespace :release do
     content.sub!(/^(TAG=).+$/, "\\1latest-#{branch}")
     content.sub!(/(BUILD_REF:-)\w+(\})/, "\\1#{branch}\\2")
     build_script.write(content)
+
+    # Modify bin/build_hotfix
+    hotfix_script = root.join("bin", "build_hotfix")
+    content = hotfix_script.read
+    content.sub!(/^(TAG=).+$/, "\\1latest-#{branch}")
+    content.sub!(/(BUILD_REF:-)\w+(\})/, "\\1#{branch}\\2")
+    hotfix_script.write(content)
 
     # Modify bin/remove_images
     remove_script = root.join("bin", "remove_images")
@@ -72,15 +79,20 @@ namespace :release do
     base_dockerfile.write(content)
 
     # Modify Dockerfiles
-    dockerfiles = %w[manageiq-base-worker manageiq-webserver-worker manageiq-ui-worker manageiq-orchestrator].map do |worker|
+    dockerfiles = %w[manageiq-base-worker manageiq-webserver-worker manageiq-ui-worker manageiq-orchestrator manageiq-hotfix].map do |worker|
       root.join("images", worker, "Dockerfile").tap do |dockerfile|
         content = dockerfile.read
         dockerfile.write(content.sub(/^(ARG FROM_TAG=).+$/, "\\1latest-#{branch}"))
       end
     end
 
+    # Modify Workflows
+    build_workflow = root.join(".github", "workflows", "build_pods.yaml")
+    content = build_workflow.read
+    build_workflow.write(content.sub(/^(\s+run: bin\/build.*)latest(.+)$/, "\\1latest-#{branch}\\2"))
+
     # Commit
-    files_to_update = [readme, operator_readme, cr, types, deploy_operator, deploy_crd, build_script, remove_script, base_dockerfile, *dockerfiles]
+    files_to_update = [readme, operator_readme, cr, types, deploy_operator, deploy_crd, build_script, hotfix_script, remove_script, build_workflow, base_dockerfile, *dockerfiles]
     exit $?.exitstatus unless system("git add #{files_to_update.join(" ")}")
     exit $?.exitstatus unless system("git commit -m 'Changes for new branch #{branch}'")
 
