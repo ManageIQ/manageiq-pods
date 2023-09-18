@@ -15,7 +15,7 @@ jobs:
         - '2.7'
         - '3.0'
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Before install
       run: bin/before_install
     - name: Set up Ruby
