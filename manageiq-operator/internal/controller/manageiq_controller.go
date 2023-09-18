@@ -673,18 +673,20 @@ func (r *ManageIQReconciler) generateNetworkPolicies(cr *miqv1alpha1.ManageIQ) e
 		logger.Info("NetworkPolicy allow postgres has been reconciled", "component", "network_policy", "result", result)
 	}
 
-	networkPolicyAllowKafka, mutateFunc := miqtool.NetworkPolicyAllowKafka(cr, r.Scheme, &r.Client)
-	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, networkPolicyAllowKafka, mutateFunc); err != nil {
-		return err
-	} else if result != controllerutil.OperationResultNone {
-		logger.Info("NetworkPolicy allow kafka has been reconciled", "component", "network_policy", "result", result)
-	}
+	if *cr.Spec.DeployMessagingService == true {
+		networkPolicyAllowKafka, mutateFunc := miqtool.NetworkPolicyAllowKafka(cr, r.Scheme, &r.Client)
+		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, networkPolicyAllowKafka, mutateFunc); err != nil {
+			return err
+		} else if result != controllerutil.OperationResultNone {
+			logger.Info("NetworkPolicy allow kafka has been reconciled", "component", "network_policy", "result", result)
+		}
 
-	networkPolicyAllowZookeeper, mutateFunc := miqtool.NetworkPolicyAllowZookeeper(cr, r.Scheme, &r.Client)
-	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, networkPolicyAllowZookeeper, mutateFunc); err != nil {
-		return err
-	} else if result != controllerutil.OperationResultNone {
-		logger.Info("NetworkPolicy allow zookeeper has been reconciled", "component", "network_policy", "result", result)
+		networkPolicyAllowZookeeper, mutateFunc := miqtool.NetworkPolicyAllowZookeeper(cr, r.Scheme, &r.Client)
+		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, networkPolicyAllowZookeeper, mutateFunc); err != nil {
+			return err
+		} else if result != controllerutil.OperationResultNone {
+			logger.Info("NetworkPolicy allow zookeeper has been reconciled", "component", "network_policy", "result", result)
+		}
 	}
 
 	return nil
