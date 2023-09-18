@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
+	miqutils "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/helpers/miq-components/utils"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -45,7 +46,7 @@ func DefaultServiceAccount(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*c
 			addSAPullSecret(sa, cr.Spec.ImagePullSecret)
 		}
 
-		addBackupLabel(cr.Spec.BackupLabelName, &sa.ObjectMeta)
+		miqutils.AddBackupLabel(cr.Spec.BackupLabelName, &sa.ObjectMeta)
 
 		return nil
 	}

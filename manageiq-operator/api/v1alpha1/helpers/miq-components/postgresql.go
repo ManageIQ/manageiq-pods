@@ -4,6 +4,7 @@ import (
 	"context"
 
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
+	miqutils "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/helpers/miq-components/utils"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	resource "k8s.io/apimachinery/pkg/api/resource"
@@ -28,10 +29,10 @@ func ManagePostgresqlSecret(cr *miqv1alpha1.ManageIQ, client client.Client, sche
 			return err
 		}
 
-		addAppLabel(cr.Spec.AppName, &secret.ObjectMeta)
-		addBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
+		miqutils.AddAppLabel(cr.Spec.AppName, &secret.ObjectMeta)
+		miqutils.AddBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
 
-		if certSecret := InternalCertificatesSecret(cr, client); certSecret.Data["postgresql_crt"] != nil && certSecret.Data["postgresql_key"] != nil && string(secret.Data["hostname"]) == "postgresql" {
+		if certSecret := miqutils.InternalCertificatesSecret(cr, client); certSecret.Data["postgresql_crt"] != nil && certSecret.Data["postgresql_key"] != nil && string(secret.Data["hostname"]) == "postgresql" {
 			d := map[string]string{
 				"rootcertificate": string(certSecret.Data["root_crt"]),
 				"sslmode":         "verify-full",
@@ -87,14 +88,14 @@ func PostgresqlConfigMap(cr *miqv1alpha1.ManageIQ, client client.Client, scheme 
 		if err := controllerutil.SetControllerReference(cr, configMap, scheme); err != nil {
 			return err
 		}
-		addAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
+		miqutils.AddAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
 
 		if configMap.Data == nil {
 			configMap.Data = map[string]string{}
 		}
 		configMap.Data["01_miq_overrides.conf"] = postgresOverrideConfig
 
-		if secret := InternalCertificatesSecret(cr, client); secret.Data["postgresql_crt"] != nil && secret.Data["postgresql_key"] != nil {
+		if secret := miqutils.InternalCertificatesSecret(cr, client); secret.Data["postgresql_crt"] != nil && secret.Data["postgresql_key"] != nil {
 			configMap.Data["02_ssl.conf"] = postgresqlSslConf()
 		} else {
 			delete(configMap.Data, "02_ssl.conf")
@@ -131,8 +132,8 @@ func PostgresqlPVC(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Pe
 			return err
 		}
 
-		addAppLabel(cr.Spec.AppName, &pvc.ObjectMeta)
-		addBackupLabel(cr.Spec.BackupLabelName, &pvc.ObjectMeta)
+		miqutils.AddAppLabel(cr.Spec.AppName, &pvc.ObjectMeta)
+		miqutils.AddBackupLabel(cr.Spec.BackupLabelName, &pvc.ObjectMeta)
 		pvc.Spec.AccessModes = accessModes
 		pvc.Spec.Resources = resources
 
@@ -158,7 +159,7 @@ func PostgresqlService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev
 			return err
 		}
 
-		addAppLabel(cr.Spec.AppName, &service.ObjectMeta)
+		miqutils.AddAppLabel(cr.Spec.AppName, &service.ObjectMeta)
 		if len(service.Spec.Ports) == 0 {
 			service.Spec.Ports = append(service.Spec.Ports, corev1.ServicePort{})
 		}
@@ -212,7 +213,7 @@ func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, client client.Client, scheme
 		},
 	}
 
-	err := addResourceReqs(cr.Spec.PostgresqlMemoryLimit, cr.Spec.PostgresqlMemoryRequest, cr.Spec.PostgresqlCpuLimit, cr.Spec.PostgresqlCpuRequest, &container)
+	err := miqutils.AddResourceReqs(cr.Spec.PostgresqlMemoryLimit, cr.Spec.PostgresqlMemoryRequest, cr.Spec.PostgresqlCpuLimit, cr.Spec.PostgresqlCpuRequest, &container)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -240,18 +241,18 @@ func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, client client.Client, scheme
 		if err := controllerutil.SetControllerReference(cr, deployment, scheme); err != nil {
 			return err
 		}
-		addAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)
-		addBackupLabel(cr.Spec.BackupLabelName, &deployment.ObjectMeta)
-		addBackupLabel(cr.Spec.BackupLabelName, &deployment.Spec.Template.ObjectMeta)
-		addBackupAnnotation("miq-pgdb-volume", &deployment.Spec.Template.ObjectMeta)
+		miqutils.AddAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)
+		miqutils.AddBackupLabel(cr.Spec.BackupLabelName, &deployment.ObjectMeta)
+		miqutils.AddBackupLabel(cr.Spec.BackupLabelName, &deployment.Spec.Template.ObjectMeta)
+		miqutils.AddBackupAnnotation("miq-pgdb-volume", &deployment.Spec.Template.ObjectMeta)
 		var repNum int32 = 1
 		deployment.Spec.Replicas = &repNum
 		deployment.Spec.Strategy = appsv1.DeploymentStrategy{
 			Type: "Recreate",
 		}
-		addAnnotations(cr.Spec.AppAnnotations, &deployment.Spec.Template.ObjectMeta)
+		miqutils.AddAnnotations(cr.Spec.AppAnnotations, &deployment.Spec.Template.ObjectMeta)
 		deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
-		deployment.Spec.Template.Spec.Containers[0].SecurityContext = DefaultSecurityContext()
+		deployment.Spec.Template.Spec.Containers[0].SecurityContext = miqutils.DefaultSecurityContext()
 		deployment.Spec.Template.Spec.ServiceAccountName = defaultServiceAccountName(cr.Spec.AppName)
 		deployment.Spec.Template.Spec.Volumes = []corev1.Volume{
 			corev1.Volume{
@@ -273,7 +274,7 @@ func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, client client.Client, scheme
 		}
 
 		volumeMount := corev1.VolumeMount{Name: "env-file", MountPath: "/run/secrets/postgresql", ReadOnly: true}
-		deployment.Spec.Template.Spec.Containers[0].VolumeMounts = addOrUpdateVolumeMount(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, volumeMount)
+		deployment.Spec.Template.Spec.Containers[0].VolumeMounts = miqutils.AddOrUpdateVolumeMount(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, volumeMount)
 		secret := corev1.SecretVolumeSource{
 			SecretName: cr.Spec.DatabaseSecret,
 			Items: []corev1.KeyToPath{
@@ -282,9 +283,9 @@ func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, client client.Client, scheme
 				corev1.KeyToPath{Key: "username", Path: "POSTGRESQL_USER"},
 			},
 		}
-		deployment.Spec.Template.Spec.Volumes = addOrUpdateVolume(deployment.Spec.Template.Spec.Volumes, corev1.Volume{Name: "env-file", VolumeSource: corev1.VolumeSource{Secret: &secret}})
+		deployment.Spec.Template.Spec.Volumes = miqutils.AddOrUpdateVolume(deployment.Spec.Template.Spec.Volumes, corev1.Volume{Name: "env-file", VolumeSource: corev1.VolumeSource{Secret: &secret}})
 
-		addInternalCertificate(cr, deployment, client, "postgresql", "/opt/app-root/src/certificates")
+		miqutils.AddInternalCertificate(cr, deployment, client, "postgresql", "/opt/app-root/src/certificates")
 
 		return nil
 	}

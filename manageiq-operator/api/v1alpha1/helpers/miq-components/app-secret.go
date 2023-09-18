@@ -4,6 +4,7 @@ import (
 	"context"
 
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
+	miqutils "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/helpers/miq-components/utils"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -27,8 +28,8 @@ func ManageAppSecret(cr *miqv1alpha1.ManageIQ, client client.Client, scheme *run
 			return err
 		}
 
-		addAppLabel(cr.Spec.AppName, &secret.ObjectMeta)
-		addBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
+		miqutils.AddAppLabel(cr.Spec.AppName, &secret.ObjectMeta)
+		miqutils.AddBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
 
 		return nil
 	}

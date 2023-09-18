@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
+	miqutils "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/helpers/miq-components/utils"
 	tlstools "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/helpers/tlstools"
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -77,7 +78,7 @@ func Route(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, client client.Clien
 		route.Spec.TLS.Certificate = string(public.Data["tls.crt"])
 		route.Spec.TLS.Key = string(public.Data["tls.key"])
 
-		internalCerts := InternalCertificatesSecret(cr, client)
+		internalCerts := miqutils.InternalCertificatesSecret(cr, client)
 		route.Spec.TLS.DestinationCACertificate = string(internalCerts.Data["root_crt"])
 
 		return nil
@@ -140,7 +141,7 @@ func Ingress(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*networkingv1.In
 				},
 			},
 		}
-		addAppLabel(cr.Spec.AppName, &ingress.ObjectMeta)
+		miqutils.AddAppLabel(cr.Spec.AppName, &ingress.ObjectMeta)
 		return nil
 	}
 
@@ -168,26 +169,26 @@ func HttpdConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, client cli
 		if err := controllerutil.SetControllerReference(cr, configMap, scheme); err != nil {
 			return err
 		}
-		addAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
+		miqutils.AddAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
 
 		uiHttpProtocol, uiWebSocketProtocol := "http", "ws"
-		if certSecret := InternalCertificatesSecret(cr, client); certSecret.Data["ui_crt"] != nil && certSecret.Data["ui_key"] != nil {
+		if certSecret := miqutils.InternalCertificatesSecret(cr, client); certSecret.Data["ui_crt"] != nil && certSecret.Data["ui_key"] != nil {
 			uiHttpProtocol, uiWebSocketProtocol = "https", "wss"
 		}
 
 		apiHttpProtocol := "http"
-		if certSecret := InternalCertificatesSecret(cr, client); certSecret.Data["api_crt"] != nil && certSecret.Data["api_key"] != nil {
+		if certSecret := miqutils.InternalCertificatesSecret(cr, client); certSecret.Data["api_crt"] != nil && certSecret.Data["api_key"] != nil {
 			apiHttpProtocol = "https"
 		}
 
 		configMap.Data["application.conf"] = httpdApplicationConf(cr.Spec.ApplicationDomain, uiHttpProtocol, uiWebSocketProtocol, apiHttpProtocol)
 		configMap.Data["authentication.conf"] = httpdAuthenticationConf(&cr.Spec)
 
-		if certSecret := InternalCertificatesSecret(cr, client); certSecret.Data["httpd_crt"] != nil && certSecret.Data["httpd_key"] != nil {
+		if certSecret := miqutils.InternalCertificatesSecret(cr, client); certSecret.Data["httpd_crt"] != nil && certSecret.Data["httpd_key"] != nil {
 			configMap.Data["ssl_config"] = httpdSslConfig()
 		}
 
-		if certSecret := InternalCertificatesSecret(cr, client); certSecret.Data["ui_crt"] != nil && certSecret.Data["ui_key"] != nil {
+		if certSecret := miqutils.InternalCertificatesSecret(cr, client); certSecret.Data["ui_crt"] != nil && certSecret.Data["ui_key"] != nil {
 			configMap.Data["ssl_proxy_config"] = httpdSslProxyConfig()
 		}
 
@@ -210,8 +211,8 @@ func HttpdAuthConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*core
 		if err := controllerutil.SetControllerReference(cr, configMap, scheme); err != nil {
 			return err
 		}
-		addAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
-		addBackupLabel(cr.Spec.BackupLabelName, &configMap.ObjectMeta)
+		miqutils.AddAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
+		miqutils.AddBackupLabel(cr.Spec.BackupLabelName, &configMap.ObjectMeta)
 
 		configMap.Data["auth-configuration.conf"] = httpdAuthConfigurationConf()
 
@@ -232,7 +233,7 @@ func HttpdAuthConfig(client client.Client, cr *miqv1alpha1.ManageIQ, scheme *run
 	}
 
 	f := func() error {
-		addBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
+		miqutils.AddBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
 		return nil
 	}
 
@@ -269,8 +270,8 @@ func addOIDCEnv(secretName string, podSpec *corev1.PodSpec) {
 		},
 	}
 
-	podSpec.Containers[0].Env = addOrUpdateEnvVar(podSpec.Containers[0].Env, clientId)
-	podSpec.Containers[0].Env = addOrUpdateEnvVar(podSpec.Containers[0].Env, clientSecret)
+	podSpec.Containers[0].Env = miqutils.AddOrUpdateEnvVar(podSpec.Containers[0].Env, clientId)
+	podSpec.Containers[0].Env = miqutils.AddOrUpdateEnvVar(podSpec.Containers[0].Env, clientSecret)
 }
 
 func getHttpdAuthConfigVersion(client client.Client, namespace string, spec *miqv1alpha1.ManageIQSpec) string {
@@ -287,26 +288,26 @@ func getHttpdAuthConfigVersion(client client.Client, namespace string, spec *miq
 
 func addAuthConfigVolume(podSpec *corev1.PodSpec) {
 	volumeMount := corev1.VolumeMount{Name: "httpd-auth-config", MountPath: "/etc/httpd/auth-conf.d"}
-	podSpec.Containers[0].VolumeMounts = addOrUpdateVolumeMount(podSpec.Containers[0].VolumeMounts, volumeMount)
+	podSpec.Containers[0].VolumeMounts = miqutils.AddOrUpdateVolumeMount(podSpec.Containers[0].VolumeMounts, volumeMount)
 
 	configMapVolumeSource := corev1.ConfigMapVolumeSource{LocalObjectReference: corev1.LocalObjectReference{Name: "httpd-auth-configs"}}
-	podSpec.Volumes = addOrUpdateVolume(podSpec.Volumes, corev1.Volume{Name: "httpd-auth-config", VolumeSource: corev1.VolumeSource{ConfigMap: &configMapVolumeSource}})
+	podSpec.Volumes = miqutils.AddOrUpdateVolume(podSpec.Volumes, corev1.Volume{Name: "httpd-auth-config", VolumeSource: corev1.VolumeSource{ConfigMap: &configMapVolumeSource}})
 }
 
 func addUserAuthVolume(secretName string, podSpec *corev1.PodSpec) {
 	volumeMount := corev1.VolumeMount{Name: "user-auth-config", MountPath: "/etc/httpd/user-conf.d"}
-	podSpec.Containers[0].VolumeMounts = addOrUpdateVolumeMount(podSpec.Containers[0].VolumeMounts, volumeMount)
+	podSpec.Containers[0].VolumeMounts = miqutils.AddOrUpdateVolumeMount(podSpec.Containers[0].VolumeMounts, volumeMount)
 
 	secretVolumeSource := corev1.SecretVolumeSource{SecretName: secretName}
-	podSpec.Volumes = addOrUpdateVolume(podSpec.Volumes, corev1.Volume{Name: "user-auth-config", VolumeSource: corev1.VolumeSource{Secret: &secretVolumeSource}})
+	podSpec.Volumes = miqutils.AddOrUpdateVolume(podSpec.Volumes, corev1.Volume{Name: "user-auth-config", VolumeSource: corev1.VolumeSource{Secret: &secretVolumeSource}})
 }
 
 func addOIDCCACertVolume(secretName string, podSpec *corev1.PodSpec) {
 	volumeMount := corev1.VolumeMount{Name: "oidc-ca-cert", MountPath: "/etc/pki/ca-trust/source/anchors"}
-	podSpec.Containers[0].VolumeMounts = addOrUpdateVolumeMount(podSpec.Containers[0].VolumeMounts, volumeMount)
+	podSpec.Containers[0].VolumeMounts = miqutils.AddOrUpdateVolumeMount(podSpec.Containers[0].VolumeMounts, volumeMount)
 
 	secretVolumeSource := corev1.SecretVolumeSource{SecretName: secretName}
-	podSpec.Volumes = addOrUpdateVolume(podSpec.Volumes, corev1.Volume{Name: "oidc-ca-cert", VolumeSource: corev1.VolumeSource{Secret: &secretVolumeSource}})
+	podSpec.Volumes = miqutils.AddOrUpdateVolume(podSpec.Volumes, corev1.Volume{Name: "oidc-ca-cert", VolumeSource: corev1.VolumeSource{Secret: &secretVolumeSource}})
 }
 
 func configureHttpdAuth(spec *miqv1alpha1.ManageIQSpec, podSpec *corev1.PodSpec) {
@@ -388,7 +389,7 @@ func initializeHttpdContainer(spec *miqv1alpha1.ManageIQSpec, privileged bool, c
 
 	assignHttpdPorts(privileged, c)
 
-	err := addResourceReqs(spec.HttpdMemoryLimit, spec.HttpdMemoryRequest, spec.HttpdCpuLimit, spec.HttpdCpuRequest, c)
+	err := miqutils.AddResourceReqs(spec.HttpdMemoryLimit, spec.HttpdMemoryRequest, spec.HttpdCpuLimit, spec.HttpdCpuRequest, c)
 	if err != nil {
 		return err
 	}
@@ -432,18 +433,18 @@ func HttpdDeployment(client client.Client, cr *miqv1alpha1.ManageIQ, scheme *run
 		if err := controllerutil.SetControllerReference(cr, deployment, scheme); err != nil {
 			return err
 		}
-		addAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)
+		miqutils.AddAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)
 		var repNum int32 = 1
 		deployment.Spec.Replicas = &repNum
 		deployment.Spec.Strategy = appsv1.DeploymentStrategy{
 			Type: "Recreate",
 		}
-		addAnnotations(cr.Spec.AppAnnotations, &deployment.Spec.Template.ObjectMeta)
+		miqutils.AddAnnotations(cr.Spec.AppAnnotations, &deployment.Spec.Template.ObjectMeta)
 		deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
-		deployment.Spec.Template.Spec.Containers[0].SecurityContext = DefaultSecurityContext()
+		deployment.Spec.Template.Spec.Containers[0].SecurityContext = miqutils.DefaultSecurityContext()
 
 		configMapVolumeSource := corev1.ConfigMapVolumeSource{LocalObjectReference: corev1.LocalObjectReference{Name: "httpd-configs"}}
-		deployment.Spec.Template.Spec.Volumes = addOrUpdateVolume(deployment.Spec.Template.Spec.Volumes, corev1.Volume{Name: "httpd-config", VolumeSource: corev1.VolumeSource{ConfigMap: &configMapVolumeSource}})
+		deployment.Spec.Template.Spec.Volumes = miqutils.AddOrUpdateVolume(deployment.Spec.Template.Spec.Volumes, corev1.Volume{Name: "httpd-config", VolumeSource: corev1.VolumeSource{ConfigMap: &configMapVolumeSource}})
 
 		// Only assign the service account if we need additional privileges
 		if privileged {
@@ -456,18 +457,18 @@ func HttpdDeployment(client client.Client, cr *miqv1alpha1.ManageIQ, scheme *run
 
 		// This is not used by the pod, it is defined to trigger a redeployment if the secret was updated
 		httpdAuthConfigVersion := getHttpdAuthConfigVersion(client, cr.Namespace, &cr.Spec)
-		deployment.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(deployment.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "MANAGED_HTTPD_CFG_VERSION", Value: httpdAuthConfigVersion})
+		deployment.Spec.Template.Spec.Containers[0].Env = miqutils.AddOrUpdateEnvVar(deployment.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "MANAGED_HTTPD_CFG_VERSION", Value: httpdAuthConfigVersion})
 
-		addInternalCertificate(cr, deployment, client, "httpd", "/root")
+		miqutils.AddInternalCertificate(cr, deployment, client, "httpd", "/root")
 
-		secret := InternalCertificatesSecret(cr, client)
+		secret := miqutils.InternalCertificatesSecret(cr, client)
 		if secret.Data["root_crt"] != nil {
 			volumeName := "internal-root-certificate"
 			volumeMount := corev1.VolumeMount{Name: volumeName, MountPath: "/etc/pki/ca-trust/source/anchors", ReadOnly: true}
-			deployment.Spec.Template.Spec.Containers[0].VolumeMounts = addOrUpdateVolumeMount(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, volumeMount)
+			deployment.Spec.Template.Spec.Containers[0].VolumeMounts = miqutils.AddOrUpdateVolumeMount(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, volumeMount)
 
 			secretVolumeSource := corev1.SecretVolumeSource{SecretName: secret.Name, Items: []corev1.KeyToPath{corev1.KeyToPath{Key: "root_crt", Path: "root.crt"}}}
-			deployment.Spec.Template.Spec.Volumes = addOrUpdateVolume(deployment.Spec.Template.Spec.Volumes, corev1.Volume{Name: volumeName, VolumeSource: corev1.VolumeSource{Secret: &secretVolumeSource}})
+			deployment.Spec.Template.Spec.Volumes = miqutils.AddOrUpdateVolume(deployment.Spec.Template.Spec.Volumes, corev1.Volume{Name: volumeName, VolumeSource: corev1.VolumeSource{Secret: &secretVolumeSource}})
 		}
 
 		return nil
@@ -488,7 +489,7 @@ func UIService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Servic
 		if err := controllerutil.SetControllerReference(cr, service, scheme); err != nil {
 			return err
 		}
-		addAppLabel(cr.Spec.AppName, &service.ObjectMeta)
+		miqutils.AddAppLabel(cr.Spec.AppName, &service.ObjectMeta)
 		if len(service.Spec.Ports) == 0 {
 			service.Spec.Ports = append(service.Spec.Ports, corev1.ServicePort{})
 		}
@@ -513,7 +514,7 @@ func WebService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Servi
 		if err := controllerutil.SetControllerReference(cr, service, scheme); err != nil {
 			return err
 		}
-		addAppLabel(cr.Spec.AppName, &service.ObjectMeta)
+		miqutils.AddAppLabel(cr.Spec.AppName, &service.ObjectMeta)
 		if len(service.Spec.Ports) == 0 {
 			service.Spec.Ports = append(service.Spec.Ports, corev1.ServicePort{})
 		}
@@ -538,7 +539,7 @@ func RemoteConsoleService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*co
 		if err := controllerutil.SetControllerReference(cr, service, scheme); err != nil {
 			return err
 		}
-		addAppLabel(cr.Spec.AppName, &service.ObjectMeta)
+		miqutils.AddAppLabel(cr.Spec.AppName, &service.ObjectMeta)
 		if len(service.Spec.Ports) == 0 {
 			service.Spec.Ports = append(service.Spec.Ports, corev1.ServicePort{})
 		}
@@ -563,7 +564,7 @@ func HttpdService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Ser
 		if err := controllerutil.SetControllerReference(cr, service, scheme); err != nil {
 			return err
 		}
-		addAppLabel(cr.Spec.AppName, &service.ObjectMeta)
+		miqutils.AddAppLabel(cr.Spec.AppName, &service.ObjectMeta)
 		if len(service.Spec.Ports) == 0 {
 			service.Spec.Ports = append(service.Spec.Ports, corev1.ServicePort{})
 		}
@@ -588,7 +589,7 @@ func HttpdDbusAPIService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*cor
 		if err := controllerutil.SetControllerReference(cr, service, scheme); err != nil {
 			return err
 		}
-		addAppLabel(cr.Spec.AppName, &service.ObjectMeta)
+		miqutils.AddAppLabel(cr.Spec.AppName, &service.ObjectMeta)
 		if len(service.Spec.Ports) == 0 {
 			service.Spec.Ports = append(service.Spec.Ports, corev1.ServicePort{})
 		}
@@ -615,8 +616,8 @@ func ManageTlsSecret(cr *miqv1alpha1.ManageIQ, client client.Client, scheme *run
 			return err
 		}
 
-		addAppLabel(cr.Spec.AppName, &secret.ObjectMeta)
-		addBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
+		miqutils.AddAppLabel(cr.Spec.AppName, &secret.ObjectMeta)
+		miqutils.AddBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
 
 		return nil
 	}
