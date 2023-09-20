@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi:8.8-1032
+FROM registry.access.redhat.com/ubi8/ubi
 MAINTAINER ManageIQ https://manageiq.org
 
 ARG ARCH=x86_64
