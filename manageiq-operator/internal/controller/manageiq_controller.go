@@ -149,11 +149,13 @@ func (r *ManageIQReconciler) Reconcile(ctx context.Context, request ctrl.Request
 	if e := r.manageApplicationResources(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
+	logger.Info("Reconciling the CR status...")
 	if err := r.updateManageIQStatus(miqInstance); err != nil {
 		reqLogger.Error(err, "Failed setting ManageIQ status")
 		return reconcile.Result{}, err
 	}
 
+	logger.Info("Reconcile complete.")
 	return reconcile.Result{}, nil
 }
 
@@ -830,6 +832,27 @@ func (r *ManageIQReconciler) manageApplicationResources(cr *miqv1alpha1.ManageIQ
 		return err
 	} else if result != controllerutil.OperationResultNone {
 		logger.Info("ConfigMap has been reconciled", "component", "application remote console", "result", result)
+	}
+
+	role, mutateFunc := miqtool.AutomationRole(cr, r.Scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, role, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("Role has been reconciled", "component", "automation", "result", result)
+	}
+
+	roleBinding, mutateFunc := miqtool.AutomationRoleBinding(cr, r.Scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, roleBinding, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("RoleBinding has been reconciled", "component", "automation", "result", result)
+	}
+
+	serviceAccount, mutateFunc := miqtool.AutomationServiceAccount(cr, r.Scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, serviceAccount, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("ServiceAccount has been reconciled", "component", "automation", "result", result)
 	}
 
 	return nil
