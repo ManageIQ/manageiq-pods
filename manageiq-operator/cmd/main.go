@@ -30,9 +30,11 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
+	ctrlcache "sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	ctrlmetrics "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
 	manageiqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
 	"github.com/ManageIQ/manageiq-pods/manageiq-operator/internal/controller"
@@ -91,14 +93,19 @@ func main() {
 		os.Exit(1)
 	}
 
+	namespaces := map[string]ctrlcache.Config{watchNamespace: ctrlcache.Config{}}
+
 	options := ctrl.Options{
+		Cache: ctrlcache.Options{
+			DefaultNamespaces: namespaces,
+		},
+		Metrics: ctrlmetrics.Options{
+			BindAddress: metricsAddr,
+		},
 		Scheme:                 scheme,
-		MetricsBindAddress:     metricsAddr,
-		Port:                   9443,
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "3be25ecb.manageiq.org",
-		Namespace:              watchNamespace, // namespaced-scope when the value is not an empty string
 	}
 
 	// If we don't have a namespace file, we're not running in a cluster.  Use the watch namespace for leader election
