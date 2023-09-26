@@ -47,23 +47,17 @@ type ManageIQReconciler struct {
 }
 
 //+kubebuilder:rbac:namespace=changeme,groups="",resources=configmaps;events;persistentvolumeclaims;pods;pods/finalizers;secrets;serviceaccounts;services;services/finalizers,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:namespace=changeme,groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:namespace=changeme,groups=apps,resources=deployments;deployments/scale;replicasets,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:namespace=changeme,groups=apps,resources=deployments/finalizers,resourceNames=manageiq-operator,verbs=update
-//+kubebuilder:rbac:namespace=changeme,groups=apps,resources=deployments/scale,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:namespace=changeme,groups=apps,resources=replicasets,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:namespace=changeme,groups=coordination.k8s.io,resources=leases,verbs=get;list;create;update;delete
-//+kubebuilder:rbac:namespace=changeme,groups=extensions,resources=deployments,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:namespace=changeme,groups=extensions,resources=deployments/scale,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:namespace=changeme,groups=extensions,resources=networkpolicies,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:namespace=changeme,groups=extensions,resources=deployments;deployments/scale;networkpolicies,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:namespace=changeme,groups=manageiq.org,resources=manageiqs,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:namespace=changeme,groups=manageiq.org,resources=manageiqs/finalizers,verbs=update
 //+kubebuilder:rbac:namespace=changeme,groups=manageiq.org,resources=manageiqs/status,verbs=get;update;patch
 //+kubebuilder:rbac:namespace=changeme,groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;create
-//+kubebuilder:rbac:namespace=changeme,groups=networking.k8s.io,resources=ingresses,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:namespace=changeme,groups=networking.k8s.io,resources=networkpolicies,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:namespace=changeme,groups=rbac.authorization.k8s.io,resources=rolebindings,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:namespace=changeme,groups=rbac.authorization.k8s.io,resources=roles,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:namespace=changeme,groups=route.openshift.io,resources=*,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:namespace=changeme,groups=networking.k8s.io,resources=ingresses;networkpolicies,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:namespace=changeme,groups=rbac.authorization.k8s.io,resources=rolebindings;roles,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:namespace=changeme,groups=route.openshift.io,resources=route,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.

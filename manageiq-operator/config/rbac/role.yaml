@@ -28,6 +28,8 @@ rules:
   - apps
   resources:
   - deployments
+  - deployments/scale
+  - replicasets
   verbs:
   - create
   - delete
@@ -45,30 +47,6 @@ rules:
   verbs:
   - update
 - apiGroups:
-  - apps
-  resources:
-  - deployments/scale
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - apps
-  resources:
-  - replicasets
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
   - coordination.k8s.io
   resources:
   - leases
@@ -82,29 +60,7 @@ rules:
   - extensions
   resources:
   - deployments
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - extensions
-  resources:
   - deployments/scale
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - extensions
-  resources:
   - networkpolicies
   verbs:
   - create
@@ -151,17 +107,6 @@ rules:
   - networking.k8s.io
   resources:
   - ingresses
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - networking.k8s.io
-  resources:
   - networkpolicies
   verbs:
   - create
@@ -175,17 +120,6 @@ rules:
   - rbac.authorization.k8s.io
   resources:
   - rolebindings
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - rbac.authorization.k8s.io
-  resources:
   - roles
   verbs:
   - create
@@ -198,7 +132,7 @@ rules:
 - apiGroups:
   - route.openshift.io
   resources:
-  - '*'
+  - route
   verbs:
   - create
   - delete
