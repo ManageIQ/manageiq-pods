@@ -132,7 +132,8 @@ rules:
 - apiGroups:
   - route.openshift.io
   resources:
-  - route
+  - routes
+  - routes/custom-host
   verbs:
   - create
   - delete
