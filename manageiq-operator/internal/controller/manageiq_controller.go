@@ -47,6 +47,7 @@ type ManageIQReconciler struct {
 }
 
 //+kubebuilder:rbac:namespace=changeme,groups="",resources=configmaps;events;persistentvolumeclaims;pods;pods/finalizers;secrets;serviceaccounts;services;services/finalizers,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:namespace=changeme,groups="",resources=pods/logs,verbs=get
 //+kubebuilder:rbac:namespace=changeme,groups=apps,resources=deployments;deployments/scale;replicasets,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:namespace=changeme,groups=apps,resources=deployments/finalizers,resourceNames=manageiq-operator,verbs=update
 //+kubebuilder:rbac:namespace=changeme,groups=coordination.k8s.io,resources=leases,verbs=get;list;create;update;delete
