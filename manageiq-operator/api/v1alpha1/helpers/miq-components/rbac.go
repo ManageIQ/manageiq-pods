@@ -75,7 +75,7 @@ func AutomationRole(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*rbacv1.R
 			},
 			rbacv1.PolicyRule{
 				APIGroups: []string{""},
-				Resources: []string{"pods/logs"},
+				Resources: []string{"pods/log"},
 				Verbs:     []string{"get"},
 			},
 		}
