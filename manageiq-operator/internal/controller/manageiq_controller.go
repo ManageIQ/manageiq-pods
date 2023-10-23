@@ -36,6 +36,8 @@ import (
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
 	cr_migration "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/helpers/cr_migration"
 	miqtool "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/helpers/miq-components"
+	miqkafka "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/helpers/miq-components/kafka"
+	miqutilsv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/miqutils"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -52,11 +54,13 @@ type ManageIQReconciler struct {
 //+kubebuilder:rbac:namespace=changeme,groups=apps,resources=deployments/finalizers,resourceNames=manageiq-operator,verbs=update
 //+kubebuilder:rbac:namespace=changeme,groups=coordination.k8s.io,resources=leases,verbs=get;list;create;update;delete
 //+kubebuilder:rbac:namespace=changeme,groups=extensions,resources=deployments;deployments/scale;networkpolicies,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:namespace=changeme,groups=kafka.strimzi.io,resources=kafkas;kafkausers;kafkatopics,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:namespace=changeme,groups=manageiq.org,resources=manageiqs,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:namespace=changeme,groups=manageiq.org,resources=manageiqs/finalizers,verbs=update
 //+kubebuilder:rbac:namespace=changeme,groups=manageiq.org,resources=manageiqs/status,verbs=get;update;patch
 //+kubebuilder:rbac:namespace=changeme,groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;create
 //+kubebuilder:rbac:namespace=changeme,groups=networking.k8s.io,resources=ingresses;networkpolicies,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:namespace=changeme,groups=operators.coreos.com,resources=operatorgroups;subscriptions,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:namespace=changeme,groups=rbac.authorization.k8s.io,resources=rolebindings;roles,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:namespace=changeme,groups=route.openshift.io,resources=routes;routes/custom-host,verbs=get;list;watch;create;update;patch;delete
 
@@ -522,67 +526,60 @@ func (r *ManageIQReconciler) generatePostgresqlResources(cr *miqv1alpha1.ManageI
 }
 
 func (r *ManageIQReconciler) generateKafkaResources(cr *miqv1alpha1.ManageIQ) error {
-	secret, mutateFunc := miqtool.ManageKafkaSecret(cr, r.Client, r.Scheme)
-	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, secret, mutateFunc); err != nil {
+	if miqutilsv1alpha1.FindCatalogSourceByName(r.Client, "openshift-marketplace", "community-operators") != nil {
+		kafkaOperatorGroup, mutateFunc := miqkafka.KafkaOperatorGroup(cr, r.Scheme)
+		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, kafkaOperatorGroup, mutateFunc); err != nil {
+			return err
+		} else if result != controllerutil.OperationResultNone {
+			logger.Info("Kafka Operator group has been reconciled", "result", result)
+		}
+
+		kafkaSubscription, mutateFunc := miqkafka.KafkaInstall(cr, r.Scheme)
+		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, kafkaSubscription, mutateFunc); err != nil {
+			return err
+		} else if result != controllerutil.OperationResultNone {
+			logger.Info("Kafka Subscription has been reconciled", "result", result)
+		}
+	}
+
+	kafkaClusterCR, mutateFunc := miqkafka.KafkaCluster(cr, r.Client, r.Scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, kafkaClusterCR, mutateFunc); err != nil {
 		return err
 	} else if result != controllerutil.OperationResultNone {
-		logger.Info("Secret has been reconciled", "component", "kafka", "result", result)
+		logger.Info("Kafka Cluster has been reconciled", "result", result)
 	}
 
-	hostName := getSecretKeyValue(r.Client, cr.Namespace, cr.Spec.KafkaSecret, "hostname")
-	if hostName != "" {
-		logger.Info("External Kafka Messaging Service selected, skipping kafka and zookeeper service reconciliation", "hostname", hostName)
-		return nil
+	if certSecret := miqtool.InternalCertificatesSecret(cr, r.Client); certSecret.Data["root_crt"] != nil && certSecret.Data["root_key"] != nil {
+		kafkaCACert, mutateFunc := miqkafka.KafkaCASecret(cr, r.Client, r.Scheme, "cert")
+		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, kafkaCACert, mutateFunc); err != nil {
+			return err
+		} else if result != controllerutil.OperationResultNone {
+			logger.Info("Kafka CA Certificate has been reconciled", "result", result)
+		}
+
+		kafkaCAKey, mutateFunc := miqkafka.KafkaCASecret(cr, r.Client, r.Scheme, "key")
+		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, kafkaCAKey, mutateFunc); err != nil {
+			return err
+		} else if result != controllerutil.OperationResultNone {
+			logger.Info("Kafka CA Key has been reconciled", "result", result)
+		}
 	}
 
-	kafkaPVC, mutateFunc := miqtool.KafkaPVC(cr, r.Scheme)
-	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, kafkaPVC, mutateFunc); err != nil {
+	kafkaUserCR, mutateFunc := miqkafka.KafkaUser(cr, r.Scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, kafkaUserCR, mutateFunc); err != nil {
 		return err
 	} else if result != controllerutil.OperationResultNone {
-		logger.Info("PVC has been reconciled", "component", "kafka", "result", result)
+		logger.Info("Kafka User has been reconciled", "result", result)
 	}
 
-	zookeeperPVC, mutateFunc := miqtool.ZookeeperPVC(cr, r.Scheme)
-	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, zookeeperPVC, mutateFunc); err != nil {
-		return err
-	} else if result != controllerutil.OperationResultNone {
-		logger.Info("PVC has been reconciled", "component", "zookeeper", "result", result)
-	}
-
-	kafkaService, mutateFunc := miqtool.KafkaService(cr, r.Scheme)
-	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, kafkaService, mutateFunc); err != nil {
-		return err
-	} else if result != controllerutil.OperationResultNone {
-		logger.Info("Service has been reconciled", "component", "kafka", "result", result)
-	}
-
-	zookeeperService, mutateFunc := miqtool.ZookeeperService(cr, r.Scheme)
-	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, zookeeperService, mutateFunc); err != nil {
-		return err
-	} else if result != controllerutil.OperationResultNone {
-		logger.Info("Service has been reconciled", "component", "zookeeper", "result", result)
-	}
-
-	kafkaDeployment, mutateFunc, err := miqtool.KafkaDeployment(cr, r.Client, r.Scheme)
-	if err != nil {
-		return err
-	}
-
-	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, kafkaDeployment, mutateFunc); err != nil {
-		return err
-	} else if result != controllerutil.OperationResultNone {
-		logger.Info("Deployment has been reconciled", "component", "kafka", "result", result)
-	}
-
-	zookeeperDeployment, mutateFunc, err := miqtool.ZookeeperDeployment(cr, r.Client, r.Scheme)
-	if err != nil {
-		return err
-	}
-
-	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, zookeeperDeployment, mutateFunc); err != nil {
-		return err
-	} else if result != controllerutil.OperationResultNone {
-		logger.Info("Deployment has been reconciled", "component", "zookeeper", "result", result)
+	topics := []string{"manageiq.liveness-check", "manageiq.ems", "manageiq.ems-events", "manageiq.ems-inventory", "manageiq.metrics"}
+	for i := 0; i < len(topics); i++ {
+		kafkaTopicCR, mutateFunc := miqkafka.KafkaTopic(cr, r.Scheme, topics[i])
+		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, kafkaTopicCR, mutateFunc); err != nil {
+			return err
+		} else if result != controllerutil.OperationResultNone {
+			logger.Info(fmt.Sprintf("Kafka topic %s has been reconciled", topics[i]))
+		}
 	}
 
 	return nil

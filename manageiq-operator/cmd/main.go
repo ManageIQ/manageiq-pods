@@ -38,6 +38,8 @@ import (
 
 	manageiqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
 	"github.com/ManageIQ/manageiq-pods/manageiq-operator/internal/controller"
+	olmv1 "github.com/operator-framework/api/pkg/operators/v1"
+	olmv1alpha1 "github.com/operator-framework/api/pkg/operators/v1alpha1"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -52,6 +54,9 @@ func init() {
 
 	utilruntime.Must(manageiqv1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
+
+	utilruntime.Must(olmv1alpha1.SchemeBuilder.AddToScheme(scheme))
+	utilruntime.Must(olmv1.SchemeBuilder.AddToScheme(scheme))
 
 	utilruntime.Must(routev1.AddToScheme(scheme))
 }
