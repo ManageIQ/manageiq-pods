@@ -10,23 +10,24 @@ import (
 func OperatorNodeAffinityArchValues(deployment *appsv1.Deployment, client client.Client) []string {
 	podName := os.Getenv("POD_NAME")
 	pod := FindPodByName(client, deployment.ObjectMeta.Namespace, podName)
+	values := []string{"amd64"}
 
 	if pod.Spec.Affinity == nil {
 		// In case we don't find the operator pod (local testing) or it doesn't have affinities
-		return []string{}
+		return values
 	}
+
 	nodeSelectorTerms := pod.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms
 
 	for _, selector := range nodeSelectorTerms {
 		for _, matchExpression := range selector.MatchExpressions {
 			if matchExpression.Key == "kubernetes.io/arch" {
-				return matchExpression.Values
+				values = matchExpression.Values
 			}
 		}
 	}
 
-	// We should never get here, but the compiler requires it
-	return []string{}
+	return values
 }
 
 func SetDeploymentNodeAffinity(deployment *appsv1.Deployment, client client.Client) {
