@@ -4,6 +4,7 @@ import (
 	"context"
 
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
+	miqutils "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/helpers/miq-components/utils"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -17,10 +18,10 @@ func ManageOperator(cr *miqv1alpha1.ManageIQ, client client.Client) (*appsv1.Dep
 	deployment := operatorDeployment(cr, client)
 
 	f := func() error {
-		addAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)
-		addAppLabel(cr.Spec.AppName, &deployment.Spec.Template.ObjectMeta)
-		addBackupLabel(cr.Spec.BackupLabelName, &deployment.ObjectMeta)
-		deployment.Spec.Template.Spec.Containers[0].SecurityContext = DefaultSecurityContext()
+		miqutils.AddAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)
+		miqutils.AddAppLabel(cr.Spec.AppName, &deployment.Spec.Template.ObjectMeta)
+		miqutils.AddBackupLabel(cr.Spec.BackupLabelName, &deployment.ObjectMeta)
+		deployment.Spec.Template.Spec.Containers[0].SecurityContext = miqutils.DefaultSecurityContext()
 
 		return nil
 	}
@@ -34,7 +35,7 @@ func ImagePullSecret(cr *miqv1alpha1.ManageIQ, client client.Client) (*corev1.Se
 	client.Get(context.TODO(), secretKey, secret)
 
 	f := func() error {
-		addBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
+		miqutils.AddBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
 
 		return nil
 	}
@@ -48,7 +49,7 @@ func OidcClientSecret(cr *miqv1alpha1.ManageIQ, client client.Client) (*corev1.S
 	client.Get(context.TODO(), secretKey, secret)
 
 	f := func() error {
-		addBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
+		miqutils.AddBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
 
 		return nil
 	}
@@ -62,7 +63,7 @@ func OidcCaCertSecret(cr *miqv1alpha1.ManageIQ, client client.Client) (*corev1.S
 	client.Get(context.TODO(), secretKey, secret)
 
 	f := func() error {
-		addBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
+		miqutils.AddBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
 
 		return nil
 	}
@@ -74,7 +75,7 @@ func ManageOperatorServiceAccount(cr *miqv1alpha1.ManageIQ, client client.Client
 	serviceAccount := operatorServiceAccount(cr, client)
 
 	f := func() error {
-		addBackupLabel(cr.Spec.BackupLabelName, &serviceAccount.ObjectMeta)
+		miqutils.AddBackupLabel(cr.Spec.BackupLabelName, &serviceAccount.ObjectMeta)
 
 		return nil
 	}
@@ -86,7 +87,7 @@ func ManageOperatorRole(cr *miqv1alpha1.ManageIQ, client client.Client) (*rbacv1
 	operatorRole := operatorRole(cr, client)
 
 	f := func() error {
-		addBackupLabel(cr.Spec.BackupLabelName, &operatorRole.ObjectMeta)
+		miqutils.AddBackupLabel(cr.Spec.BackupLabelName, &operatorRole.ObjectMeta)
 
 		return nil
 	}
@@ -98,7 +99,7 @@ func ManageOperatorRoleBinding(cr *miqv1alpha1.ManageIQ, client client.Client) (
 	operatorRoleBinding := operatorRoleBinding(cr, client)
 
 	f := func() error {
-		addBackupLabel(cr.Spec.BackupLabelName, &operatorRoleBinding.ObjectMeta)
+		miqutils.AddBackupLabel(cr.Spec.BackupLabelName, &operatorRoleBinding.ObjectMeta)
 
 		return nil
 	}

@@ -1,4 +1,4 @@
-package miqtools
+package miqutils
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func addResourceReqs(memLimit, memReq, cpuLimit, cpuReq string, c *corev1.Container) error {
+func AddResourceReqs(memLimit, memReq, cpuLimit, cpuReq string, c *corev1.Container) error {
 	if memLimit == "" && memReq == "" && cpuLimit == "" && cpuReq == "" {
 		return nil
 	}
@@ -61,28 +61,28 @@ func addResourceReqs(memLimit, memReq, cpuLimit, cpuReq string, c *corev1.Contai
 	return nil
 }
 
-func addAppLabel(appName string, meta *metav1.ObjectMeta) {
+func AddAppLabel(appName string, meta *metav1.ObjectMeta) {
 	if meta.Labels == nil {
 		meta.Labels = make(map[string]string)
 	}
 	meta.Labels["app"] = appName
 }
 
-func addBackupLabel(backupLabel string, meta *metav1.ObjectMeta) {
+func AddBackupLabel(backupLabel string, meta *metav1.ObjectMeta) {
 	if meta.Labels == nil {
 		meta.Labels = make(map[string]string)
 	}
 	meta.Labels[backupLabel] = "t"
 }
 
-func addBackupAnnotation(volumesToBackup string, meta *metav1.ObjectMeta) {
+func AddBackupAnnotation(volumesToBackup string, meta *metav1.ObjectMeta) {
 	if meta.Annotations == nil {
 		meta.Annotations = make(map[string]string)
 	}
 	meta.Annotations["backup.velero.io/backup-volumes"] = volumesToBackup
 }
 
-func addAnnotations(annotations map[string]string, meta *metav1.ObjectMeta) {
+func AddAnnotations(annotations map[string]string, meta *metav1.ObjectMeta) {
 	if len(annotations) > 0 {
 		if meta.Annotations == nil {
 			meta.Annotations = make(map[string]string)
@@ -103,20 +103,20 @@ func InternalCertificatesSecret(cr *miqv1alpha1.ManageIQ, client client.Client) 
 	return secret
 }
 
-func addInternalCertificate(cr *miqv1alpha1.ManageIQ, d *appsv1.Deployment, client client.Client, name string, mountPoint string) {
+func AddInternalCertificate(cr *miqv1alpha1.ManageIQ, d *appsv1.Deployment, client client.Client, name string, mountPoint string) {
 	secret := InternalCertificatesSecret(cr, client)
 	if secret.Data[fmt.Sprintf("%s_crt", name)] != nil && secret.Data[fmt.Sprintf("%s_key", name)] != nil {
 		volumeName := fmt.Sprintf("%s-certificate", name)
 
 		volumeMount := corev1.VolumeMount{Name: volumeName, MountPath: mountPoint, ReadOnly: true}
-		d.Spec.Template.Spec.Containers[0].VolumeMounts = addOrUpdateVolumeMount(d.Spec.Template.Spec.Containers[0].VolumeMounts, volumeMount)
+		d.Spec.Template.Spec.Containers[0].VolumeMounts = AddOrUpdateVolumeMount(d.Spec.Template.Spec.Containers[0].VolumeMounts, volumeMount)
 
 		secretVolumeSource := corev1.SecretVolumeSource{SecretName: secret.Name, Items: []corev1.KeyToPath{corev1.KeyToPath{Key: fmt.Sprintf("%s_crt", name), Path: "server.crt"}, corev1.KeyToPath{Key: fmt.Sprintf("%s_key", name), Path: "server.key"}}}
-		d.Spec.Template.Spec.Volumes = addOrUpdateVolume(d.Spec.Template.Spec.Volumes, corev1.Volume{Name: volumeName, VolumeSource: corev1.VolumeSource{Secret: &secretVolumeSource}})
+		d.Spec.Template.Spec.Volumes = AddOrUpdateVolume(d.Spec.Template.Spec.Volumes, corev1.Volume{Name: volumeName, VolumeSource: corev1.VolumeSource{Secret: &secretVolumeSource}})
 	}
 }
 
-func addOrUpdateEnvVar(environment []corev1.EnvVar, variable corev1.EnvVar) []corev1.EnvVar {
+func AddOrUpdateEnvVar(environment []corev1.EnvVar, variable corev1.EnvVar) []corev1.EnvVar {
 	index := -1
 	for i, env := range environment {
 		if env.Name == variable.Name {
@@ -133,7 +133,7 @@ func addOrUpdateEnvVar(environment []corev1.EnvVar, variable corev1.EnvVar) []co
 	return environment
 }
 
-func addOrUpdateVolumeMount(volumeMounts []corev1.VolumeMount, volumeMount corev1.VolumeMount) []corev1.VolumeMount {
+func AddOrUpdateVolumeMount(volumeMounts []corev1.VolumeMount, volumeMount corev1.VolumeMount) []corev1.VolumeMount {
 	if volumeMounts == nil {
 		volumeMounts = []corev1.VolumeMount{}
 	}
@@ -154,7 +154,7 @@ func addOrUpdateVolumeMount(volumeMounts []corev1.VolumeMount, volumeMount corev
 	return volumeMounts
 }
 
-func addOrUpdateVolume(volumes []corev1.Volume, volume corev1.Volume) []corev1.Volume {
+func AddOrUpdateVolume(volumes []corev1.Volume, volume corev1.Volume) []corev1.Volume {
 	if volumes == nil {
 		volumes = []corev1.Volume{}
 	}

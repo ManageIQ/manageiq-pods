@@ -36,6 +36,7 @@ import (
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
 	cr_migration "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/helpers/cr_migration"
 	miqtool "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/helpers/miq-components"
+	miqutils "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/helpers/miq-components/utils"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -417,7 +418,7 @@ func (r *ManageIQReconciler) generateHttpdResources(cr *miqv1alpha1.ManageIQ) er
 		return err
 	}
 
-	if internalCerts := miqtool.InternalCertificatesSecret(cr, r.Client); internalCerts.Data["httpd_crt"] != nil {
+	if internalCerts := miqutils.InternalCertificatesSecret(cr, r.Client); internalCerts.Data["httpd_crt"] != nil {
 		httpdRoute, mutateFunc := miqtool.Route(cr, r.Scheme, r.Client)
 		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, httpdRoute, mutateFunc); err != nil {
 			return err

@@ -2,6 +2,7 @@ package miqtools
 
 import (
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
+	miqutils "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/helpers/miq-components/utils"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -22,12 +23,12 @@ func ApplicationUiHttpdConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Schem
 		if err := controllerutil.SetControllerReference(cr, configMap, scheme); err != nil {
 			return err
 		}
-		addAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
-		addBackupLabel(cr.Spec.BackupLabelName, &configMap.ObjectMeta)
+		miqutils.AddAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
+		miqutils.AddBackupLabel(cr.Spec.BackupLabelName, &configMap.ObjectMeta)
 
 		protocol := "http"
 
-		if certSecret := InternalCertificatesSecret(cr, client); certSecret.Data["ui_crt"] != nil && certSecret.Data["ui_key"] != nil {
+		if certSecret := miqutils.InternalCertificatesSecret(cr, client); certSecret.Data["ui_crt"] != nil && certSecret.Data["ui_key"] != nil {
 			protocol = "https"
 			configMap.Data["ssl_config"] = appHttpdSslConfig()
 		}
@@ -53,12 +54,12 @@ func ApplicationApiHttpdConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Sche
 		if err := controllerutil.SetControllerReference(cr, configMap, scheme); err != nil {
 			return err
 		}
-		addAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
-		addBackupLabel(cr.Spec.BackupLabelName, &configMap.ObjectMeta)
+		miqutils.AddAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
+		miqutils.AddBackupLabel(cr.Spec.BackupLabelName, &configMap.ObjectMeta)
 
 		protocol := "http"
 
-		if certSecret := InternalCertificatesSecret(cr, client); certSecret.Data["api_crt"] != nil && certSecret.Data["api_key"] != nil {
+		if certSecret := miqutils.InternalCertificatesSecret(cr, client); certSecret.Data["api_crt"] != nil && certSecret.Data["api_key"] != nil {
 			protocol = "https"
 			configMap.Data["ssl_config"] = appHttpdSslConfig()
 		}
@@ -84,12 +85,12 @@ func ApplicationRemoteConsoleHttpdConfigMap(cr *miqv1alpha1.ManageIQ, scheme *ru
 		if err := controllerutil.SetControllerReference(cr, configMap, scheme); err != nil {
 			return err
 		}
-		addAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
-		addBackupLabel(cr.Spec.BackupLabelName, &configMap.ObjectMeta)
+		miqutils.AddAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
+		miqutils.AddBackupLabel(cr.Spec.BackupLabelName, &configMap.ObjectMeta)
 
 		protocol := "ws"
 
-		if certSecret := InternalCertificatesSecret(cr, client); certSecret.Data["remote_console_crt"] != nil && certSecret.Data["remote_console_key"] != nil {
+		if certSecret := miqutils.InternalCertificatesSecret(cr, client); certSecret.Data["remote_console_crt"] != nil && certSecret.Data["remote_console_key"] != nil {
 			protocol = "wss"
 			configMap.Data["ssl_config"] = appHttpdSslConfig()
 		}

@@ -3,6 +3,7 @@ package miqtools
 import (
 	"context"
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
+	miqutils "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/helpers/miq-components/utils"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -379,7 +380,7 @@ func ManageCR(cr *miqv1alpha1.ManageIQ, c *client.Client) (*miqv1alpha1.ManageIQ
 		cr.Spec.ZookeeperImage = zookeeperImage(cr)
 		cr.Spec.ZookeeperVolumeCapacity = zookeeperVolumeCapacity(cr)
 
-		addBackupLabel(backupLabelName(cr), &cr.ObjectMeta)
+		miqutils.AddBackupLabel(backupLabelName(cr), &cr.ObjectMeta)
 
 		return nil
 	}

@@ -2,6 +2,7 @@ package miqtools
 
 import (
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
+	miqutils "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/helpers/miq-components/utils"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -52,7 +53,7 @@ func NewMemcachedDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 		},
 	}
 
-	err := addResourceReqs(cr.Spec.MemcachedMemoryLimit, cr.Spec.MemcachedMemoryRequest, cr.Spec.MemcachedCpuLimit, cr.Spec.MemcachedCpuRequest, &container)
+	err := miqutils.AddResourceReqs(cr.Spec.MemcachedMemoryLimit, cr.Spec.MemcachedMemoryRequest, cr.Spec.MemcachedCpuLimit, cr.Spec.MemcachedCpuRequest, &container)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -86,21 +87,21 @@ func NewMemcachedDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 		if err := controllerutil.SetControllerReference(cr, deployment, scheme); err != nil {
 			return err
 		}
-		addAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)
+		miqutils.AddAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)
 		var repNum int32 = 1
 		deployment.Spec.Replicas = &repNum
 		deployment.Spec.Strategy = appsv1.DeploymentStrategy{
 			Type: "Recreate",
 		}
-		addAnnotations(cr.Spec.AppAnnotations, &deployment.Spec.Template.ObjectMeta)
+		miqutils.AddAnnotations(cr.Spec.AppAnnotations, &deployment.Spec.Template.ObjectMeta)
 		deployment.Spec.Template.Spec.Containers = []corev1.Container{container}
-		deployment.Spec.Template.Spec.Containers[0].SecurityContext = DefaultSecurityContext()
+		deployment.Spec.Template.Spec.Containers[0].SecurityContext = miqutils.DefaultSecurityContext()
 		deployment.Spec.Template.Spec.ServiceAccountName = defaultServiceAccountName(cr.Spec.AppName)
 
-		addInternalCertificate(cr, deployment, client, "memcached", "/root")
+		miqutils.AddInternalCertificate(cr, deployment, client, "memcached", "/root")
 
-		if secret := InternalCertificatesSecret(cr, client); secret.Data["memcached_crt"] != nil && secret.Data["memcached_key"] != nil {
-			deployment.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(deployment.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "MEMCACHED_EXTRA_PARAMETERS", Value: "-Z -o ssl_chain_cert=/root/server.crt -o ssl_key=/root/server.key -p 11211"})
+		if secret := miqutils.InternalCertificatesSecret(cr, client); secret.Data["memcached_crt"] != nil && secret.Data["memcached_key"] != nil {
+			deployment.Spec.Template.Spec.Containers[0].Env = miqutils.AddOrUpdateEnvVar(deployment.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "MEMCACHED_EXTRA_PARAMETERS", Value: "-Z -o ssl_chain_cert=/root/server.crt -o ssl_key=/root/server.key -p 11211"})
 		}
 
 		return nil
@@ -121,7 +122,7 @@ func NewMemcachedService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*cor
 		if err := controllerutil.SetControllerReference(cr, service, scheme); err != nil {
 			return err
 		}
-		addAppLabel(cr.Spec.AppName, &service.ObjectMeta)
+		miqutils.AddAppLabel(cr.Spec.AppName, &service.ObjectMeta)
 		if len(service.Spec.Ports) == 0 {
 			service.Spec.Ports = append(service.Spec.Ports, corev1.ServicePort{})
 		}
