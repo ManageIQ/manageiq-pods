@@ -4,6 +4,7 @@ import (
 	"context"
 
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
+	miqutilsv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/miqutils"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -321,6 +322,8 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 			corev1.KeyToPath{Key: "username", Path: "POSTGRESQL_USER"},
 		}}
 		deployment.Spec.Template.Spec.Volumes = addOrUpdateVolume(deployment.Spec.Template.Spec.Volumes, corev1.Volume{Name: "database-secret", VolumeSource: corev1.VolumeSource{Secret: &databaseSecretVolumeSource}})
+
+		miqutilsv1alpha1.SetDeploymentNodeAffinity(deployment, client)
 
 		return nil
 	}

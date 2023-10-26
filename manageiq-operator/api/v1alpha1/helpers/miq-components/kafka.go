@@ -4,6 +4,7 @@ import (
 	"context"
 
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
+	miqutilsv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/miqutils"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	resource "k8s.io/apimachinery/pkg/api/resource"
@@ -197,7 +198,7 @@ func ZookeeperService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1
 	return service, f
 }
 
-func KafkaDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
+func KafkaDeployment(cr *miqv1alpha1.ManageIQ, client client.Client, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
 	deploymentLabels := map[string]string{
 		"name": "kafka",
 		"app":  cr.Spec.AppName,
@@ -315,13 +316,15 @@ func KafkaDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.
 				},
 			},
 		}
+		miqutilsv1alpha1.SetDeploymentNodeAffinity(deployment, client)
+
 		return nil
 	}
 
 	return deployment, f, nil
 }
 
-func ZookeeperDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
+func ZookeeperDeployment(cr *miqv1alpha1.ManageIQ, client client.Client, scheme *runtime.Scheme) (*appsv1.Deployment, controllerutil.MutateFn, error) {
 	deploymentLabels := map[string]string{
 		"name": "zookeeper",
 		"app":  cr.Spec.AppName,
@@ -398,6 +401,8 @@ func ZookeeperDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*app
 				},
 			},
 		}
+		miqutilsv1alpha1.SetDeploymentNodeAffinity(deployment, client)
+
 		return nil
 	}
 
