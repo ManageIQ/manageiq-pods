@@ -4,6 +4,7 @@ import (
 	"context"
 
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
+	miqutilsv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/miqutils"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -14,7 +15,10 @@ import (
 )
 
 func ManageOperator(cr *miqv1alpha1.ManageIQ, client client.Client) (*appsv1.Deployment, controllerutil.MutateFn) {
-	deployment := operatorDeployment(cr, client)
+	podName := os.Getenv("POD_NAME")
+	pod := miqutilsv1alpha1.FindPodByName(client, cr.Namespace, podName)
+	replicaSet := miqutilsv1alpha1.FindReplicaSetByName(client, cr.Namespace, pod.ObjectMeta.OwnerReferences[0].Name)
+	deployment := miqutilsv1alpha1.FindDeploymentByName(client, cr.Namespace, replicaSet.ObjectMeta.OwnerReferences[0].Name)
 
 	f := func() error {
 		addAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)
@@ -106,38 +110,10 @@ func ManageOperatorRoleBinding(cr *miqv1alpha1.ManageIQ, client client.Client) (
 	return operatorRoleBinding, f
 }
 
-func operatorPod(cr *miqv1alpha1.ManageIQ, client client.Client) *corev1.Pod {
-	operatorPodName := os.Getenv("POD_NAME")
-	podKey := types.NamespacedName{Namespace: cr.Namespace, Name: operatorPodName}
-	pod := &corev1.Pod{}
-	client.Get(context.TODO(), podKey, pod)
-
-	return pod
-}
-
-func operatorReplicaSet(cr *miqv1alpha1.ManageIQ, client client.Client) *appsv1.ReplicaSet {
-	pod := operatorPod(cr, client)
-	operatorReplicaSetName := pod.ObjectMeta.OwnerReferences[0].Name
-	replicaSetKey := types.NamespacedName{Namespace: cr.Namespace, Name: operatorReplicaSetName}
-	replicaSet := &appsv1.ReplicaSet{}
-	client.Get(context.TODO(), replicaSetKey, replicaSet)
-
-	return replicaSet
-}
-
-func operatorDeployment(cr *miqv1alpha1.ManageIQ, client client.Client) *appsv1.Deployment {
-	replicaSet := operatorReplicaSet(cr, client)
-	operatorDeploymentName := replicaSet.ObjectMeta.OwnerReferences[0].Name
-	deploymentKey := types.NamespacedName{Namespace: cr.Namespace, Name: operatorDeploymentName}
-	deployment := &appsv1.Deployment{}
-	client.Get(context.TODO(), deploymentKey, deployment)
-
-	return deployment
-}
-
 func operatorServiceAccount(cr *miqv1alpha1.ManageIQ, client client.Client) *corev1.ServiceAccount {
-	deployment := operatorDeployment(cr, client)
-	operatorServiceAccountName := deployment.Spec.Template.Spec.ServiceAccountName
+	podName := os.Getenv("POD_NAME")
+	pod := miqutilsv1alpha1.FindPodByName(client, cr.Namespace, podName)
+	operatorServiceAccountName := pod.Spec.ServiceAccountName
 	serviceAccountKey := types.NamespacedName{Namespace: cr.Namespace, Name: operatorServiceAccountName}
 	serviceAccount := &corev1.ServiceAccount{}
 	client.Get(context.TODO(), serviceAccountKey, serviceAccount)

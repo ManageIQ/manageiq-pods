@@ -2,6 +2,7 @@ package miqtools
 
 import (
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
+	miqutilsv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/miqutils"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -102,6 +103,8 @@ func NewMemcachedDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 		if secret := InternalCertificatesSecret(cr, client); secret.Data["memcached_crt"] != nil && secret.Data["memcached_key"] != nil {
 			deployment.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(deployment.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "MEMCACHED_EXTRA_PARAMETERS", Value: "-Z -o ssl_chain_cert=/root/server.crt -o ssl_key=/root/server.key -p 11211"})
 		}
+
+		miqutilsv1alpha1.SetDeploymentNodeAffinity(deployment, client)
 
 		return nil
 	}
