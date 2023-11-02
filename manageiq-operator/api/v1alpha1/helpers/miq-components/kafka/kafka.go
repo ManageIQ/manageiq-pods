@@ -354,7 +354,7 @@ func KafkaCluster(cr *miqv1alpha1.ManageIQ, client client.Client, scheme *runtim
 		zookeeperStorage["class"] = cr.Spec.StorageClassName
 	}
 
-	kafkaCRSpec = miqutilsv1alpha1.SetKafkaNodeAffinity(kafkaCRSpec, []string{"amd64"})
+	kafkaCRSpec = miqutilsv1alpha1.SetKafkaNodeAffinity(kafkaCRSpec, []string{"amd64", "arm64", "ppc64le", "s390x"})
 
 	mutateFunc := func() error {
 		if err := controllerutil.SetControllerReference(cr, kafkaClusterCR, scheme); err != nil {
