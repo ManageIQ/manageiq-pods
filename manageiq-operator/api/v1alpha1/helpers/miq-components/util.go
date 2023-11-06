@@ -140,7 +140,7 @@ func addOrUpdateVolumeMount(volumeMounts []corev1.VolumeMount, volumeMount corev
 
 	index := -1
 	for i, v := range volumeMounts {
-		if v.Name == volumeMount.Name {
+		if v.Name == volumeMount.Name || v.MountPath == volumeMount.MountPath {
 			index = i
 		}
 	}
