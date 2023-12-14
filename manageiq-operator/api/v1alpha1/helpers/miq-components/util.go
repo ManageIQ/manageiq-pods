@@ -75,6 +75,17 @@ func addBackupLabel(backupLabel string, meta *metav1.ObjectMeta) {
 	meta.Labels[backupLabel] = "t"
 }
 
+func AddLabels(labels map[string]string, meta *metav1.ObjectMeta) {
+	if len(labels) > 0 {
+		if meta.Labels == nil {
+			meta.Labels = make(map[string]string)
+		}
+		for key, value := range labels {
+			meta.Labels[key] = value
+		}
+	}
+}
+
 func addBackupAnnotation(volumesToBackup string, meta *metav1.ObjectMeta) {
 	if meta.Annotations == nil {
 		meta.Annotations = make(map[string]string)
