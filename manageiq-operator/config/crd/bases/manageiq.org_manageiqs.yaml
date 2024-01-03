@@ -68,8 +68,8 @@ spec:
                 description: 'Database volume size (default: 15Gi)'
                 type: string
               deployMessagingService:
-                description: 'Flag to indicate if Kafka and Zookeeper should be deployed
-                  (default: false)'
+                description: 'Deprecated: Flag to indicate if Kafka and Zookeeper
+                  should be deployed (default: true)'
                 type: boolean
               enableApplicationLocalLogin:
                 description: 'Flag to allow logging into the application without SSO

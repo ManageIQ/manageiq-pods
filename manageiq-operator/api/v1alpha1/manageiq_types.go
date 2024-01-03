@@ -64,7 +64,7 @@ type ManageIQSpec struct {
 	// +optional
 	DatabaseVolumeCapacity string `json:"databaseVolumeCapacity,omitempty"`
 
-	// Flag to indicate if Kafka and Zookeeper should be deployed (default: false)
+	// Deprecated: Flag to indicate if Kafka and Zookeeper should be deployed (default: true)
 	// +optional
 	DeployMessagingService *bool `json:"deployMessagingService,omitempty"`
 
