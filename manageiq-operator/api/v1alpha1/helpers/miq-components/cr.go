@@ -51,7 +51,7 @@ func databaseVolumeCapacity(cr *miqv1alpha1.ManageIQ) string {
 
 func deployMessagingService(cr *miqv1alpha1.ManageIQ) bool {
 	if cr.Spec.DeployMessagingService == nil {
-		return false
+		return true
 	} else {
 		return *cr.Spec.DeployMessagingService
 	}
