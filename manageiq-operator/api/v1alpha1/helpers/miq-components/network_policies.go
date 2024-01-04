@@ -227,7 +227,7 @@ func NetworkPolicyAllowKafka(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, c
 		addAppLabel(cr.Spec.AppName, &networkPolicy.ObjectMeta)
 		setIngressPolicyType(networkPolicy)
 
-		networkPolicy.Spec.PodSelector.MatchLabels = map[string]string{"name": "kafka"}
+		networkPolicy.Spec.PodSelector.MatchLabels = map[string]string{"strimzi.io/pod-name": "manageiq-kafka-0"}
 
 		pod := orchestratorPod(*c)
 		if pod == nil {

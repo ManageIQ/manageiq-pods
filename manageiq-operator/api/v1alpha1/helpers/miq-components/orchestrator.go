@@ -111,46 +111,40 @@ func orchestratorObjectName(cr *miqv1alpha1.ManageIQ) string {
 	return cr.Spec.AppName + "-orchestrator"
 }
 
-func addMessagingEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
+func addMessagingEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container, client client.Client) {
 	if !*cr.Spec.DeployMessagingService {
 		return
 	}
 
 	messagingEnv := []corev1.EnvVar{
 		corev1.EnvVar{
-			Name: "MESSAGING_HOSTNAME",
-			ValueFrom: &corev1.EnvVarSource{
-				SecretKeyRef: &corev1.SecretKeySelector{
-					LocalObjectReference: corev1.LocalObjectReference{Name: kafkaSecretName(cr)},
-					Key:                  "hostname",
-				},
-			},
+			Name:  "MESSAGING_HOSTNAME",
+			Value: cr.Spec.AppName + "-kafka-bootstrap",
 		},
 		corev1.EnvVar{
 			Name: "MESSAGING_PASSWORD",
 			ValueFrom: &corev1.EnvVarSource{
 				SecretKeyRef: &corev1.SecretKeySelector{
-					LocalObjectReference: corev1.LocalObjectReference{Name: kafkaSecretName(cr)},
+					LocalObjectReference: corev1.LocalObjectReference{Name: cr.Spec.AppName + "-user"},
 					Key:                  "password",
 				},
 			},
 		},
 		corev1.EnvVar{
 			Name:  "MESSAGING_PORT",
-			Value: "9092",
+			Value: "9093",
 		},
 		corev1.EnvVar{
 			Name:  "MESSAGING_TYPE",
 			Value: "kafka",
 		},
 		corev1.EnvVar{
-			Name: "MESSAGING_USERNAME",
-			ValueFrom: &corev1.EnvVarSource{
-				SecretKeyRef: &corev1.SecretKeySelector{
-					LocalObjectReference: corev1.LocalObjectReference{Name: kafkaSecretName(cr)},
-					Key:                  "username",
-				},
-			},
+			Name:  "MESSAGING_USERNAME",
+			Value: cr.Spec.AppName + "-user",
+		},
+		corev1.EnvVar{
+			Name:  "MESSAGING_SASL_MECHANISM",
+			Value: "SCRAM-SHA-512",
 		},
 	}
 
@@ -245,7 +239,7 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 		},
 	}
 
-	addMessagingEnv(cr, &container)
+	addMessagingEnv(cr, &container, client)
 	err = addResourceReqs(cr.Spec.OrchestratorMemoryLimit, cr.Spec.OrchestratorMemoryRequest, cr.Spec.OrchestratorCpuLimit, cr.Spec.OrchestratorCpuRequest, &container)
 	if err != nil {
 		return nil, nil, err
@@ -305,6 +299,15 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 			deployment.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(deployment.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "UI_SSL_SECRET_NAME", Value: cr.Spec.InternalCertificatesSecret})
 		}
 
+		messagingCAPath := ""
+		if certSecret := InternalCertificatesSecret(cr, client); certSecret.Data["root_crt"] != nil && certSecret.Data["root_key"] != nil {
+			messagingCAPath = "/etc/pki/ca-trust/source/anchors/root.crt"
+		} else {
+			messagingCAPath = "/etc/pki/ca-trust/source/anchors/ca.crt"
+		}
+
+		deployment.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(deployment.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "MESSAGING_SSL_CA", Value: messagingCAPath})
+
 		volumeMount := corev1.VolumeMount{Name: "encryption-key", MountPath: "/run/secrets/manageiq/application", ReadOnly: true}
 		deployment.Spec.Template.Spec.Containers[0].VolumeMounts = addOrUpdateVolumeMount(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, volumeMount)
 
@@ -359,5 +362,10 @@ func addInternalRootCertificate(cr *miqv1alpha1.ManageIQ, d *appsv1.Deployment, 
 			d.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(d.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "MEMCACHED_ENABLE_SSL", Value: "true"})
 			d.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(d.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "MEMCACHED_SSL_CA", Value: "/etc/pki/ca-trust/source/anchors/root.crt"})
 		}
+	} else {
+		volumeMount := corev1.VolumeMount{Name: "messaging-certificate", MountPath: "/etc/pki/ca-trust/source/anchors", ReadOnly: true}
+		d.Spec.Template.Spec.Containers[0].VolumeMounts = addOrUpdateVolumeMount(d.Spec.Template.Spec.Containers[0].VolumeMounts, volumeMount)
+		secretVolumeSource := corev1.SecretVolumeSource{SecretName: "manageiq-cluster-ca-cert", Items: []corev1.KeyToPath{corev1.KeyToPath{Key: "ca.crt", Path: "ca.crt"}}}
+		d.Spec.Template.Spec.Volumes = addOrUpdateVolume(d.Spec.Template.Spec.Volumes, corev1.Volume{Name: "messaging-certificate", VolumeSource: corev1.VolumeSource{Secret: &secretVolumeSource}})
 	}
 }

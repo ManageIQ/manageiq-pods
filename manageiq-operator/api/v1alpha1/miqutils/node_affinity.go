@@ -59,3 +59,32 @@ func SetDeploymentNodeAffinity(deployment *appsv1.Deployment, client client.Clie
 		},
 	}
 }
+
+func SetKafkaNodeAffinity(kafkaCRSpec map[string]interface{}, archs []string) map[string]interface{} {
+	nodeAffinity := map[string]interface{}{
+		"nodeAffinity": map[string]interface{}{
+			"requiredDuringSchedulingIgnoredDuringExecution": map[string]interface{}{
+				"nodeSelectorTerms": []map[string]interface{}{
+					map[string]interface{}{
+						"matchExpressions": []map[string]interface{}{
+							map[string]interface{}{
+								"key":      "kubernetes.io/arch",
+								"operator": "In",
+								"values":   archs,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	kafkaPod := kafkaCRSpec["kafka"].(map[string]interface{})["template"].(map[string]interface{})["pod"].(map[string]interface{})
+	kafkaPod["affinity"] = nodeAffinity
+	zookeeperPod := kafkaCRSpec["zookeeper"].(map[string]interface{})["template"].(map[string]interface{})["pod"].(map[string]interface{})
+	zookeeperPod["affinity"] = nodeAffinity
+	operatorEntityPod := kafkaCRSpec["entityOperator"].(map[string]interface{})["template"].(map[string]interface{})["pod"].(map[string]interface{})
+	operatorEntityPod["affinity"] = nodeAffinity
+
+	return kafkaCRSpec
+}
