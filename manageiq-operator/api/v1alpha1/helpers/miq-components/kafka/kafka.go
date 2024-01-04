@@ -513,7 +513,7 @@ func KafkaInstall(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*olmv1alpha
 			CatalogSource:          "community-operators",
 			CatalogSourceNamespace: "openshift-marketplace",
 			Package:                "strimzi-kafka-operator",
-			Channel:                "strimzi-0.35.x",
+			Channel:                "strimzi-0.37.x",
 		}
 
 		return nil
