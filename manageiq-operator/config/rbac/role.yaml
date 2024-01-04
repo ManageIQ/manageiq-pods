@@ -77,6 +77,20 @@ rules:
   - update
   - watch
 - apiGroups:
+  - kafka.strimzi.io
+  resources:
+  - kafkas
+  - kafkatopics
+  - kafkausers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
   - manageiq.org
   resources:
   - manageiqs
@@ -114,6 +128,19 @@ rules:
   resources:
   - ingresses
   - networkpolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - operators.coreos.com
+  resources:
+  - operatorgroups
+  - subscriptions
   verbs:
   - create
   - delete
