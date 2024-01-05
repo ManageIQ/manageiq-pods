@@ -116,7 +116,10 @@ EOS
 
 check_svc_status ${MEMCACHED_SERVICE_HOST} ${MEMCACHED_SERVICE_PORT}
 check_svc_status ${database_hostname} ${database_port}
-check_svc_status ${MESSAGING_HOSTNAME} ${MESSAGING_PORT}
+
+if [ -n "$MESSAGING_HOSTNAME" ] && [ -n "$MESSAGING_PORT" ]; then
+  check_svc_status ${MESSAGING_HOSTNAME} ${MESSAGING_PORT}
+fi
 
 check_deployment_status || exit 1
 
