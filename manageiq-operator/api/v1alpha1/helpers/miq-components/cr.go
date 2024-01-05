@@ -50,7 +50,11 @@ func databaseVolumeCapacity(cr *miqv1alpha1.ManageIQ) string {
 }
 
 func deployMessagingService(cr *miqv1alpha1.ManageIQ) bool {
-	return true
+	if cr.Spec.DeployMessagingService == nil {
+		return true
+	} else {
+		return *cr.Spec.DeployMessagingService
+	}
 }
 
 func enableApplicationLocalLogin(cr *miqv1alpha1.ManageIQ) bool {
