@@ -110,7 +110,7 @@ func PostgresqlConfigMap(cr *miqv1alpha1.ManageIQ, client client.Client, scheme 
 func PostgresqlPVC(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.PersistentVolumeClaim, controllerutil.MutateFn) {
 	storageReq, _ := resource.ParseQuantity(cr.Spec.DatabaseVolumeCapacity)
 
-	resources := corev1.ResourceRequirements{
+	resources := corev1.VolumeResourceRequirements{
 		Requests: corev1.ResourceList{
 			"storage": storageReq,
 		},
