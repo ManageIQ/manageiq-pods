@@ -353,8 +353,14 @@ func addInternalRootCertificate(cr *miqv1alpha1.ManageIQ, d *appsv1.Deployment, 
 		volumeMount := corev1.VolumeMount{Name: "internal-root-certificate", MountPath: "/etc/pki/ca-trust/source/anchors", ReadOnly: true}
 		d.Spec.Template.Spec.Containers[0].VolumeMounts = addOrUpdateVolumeMount(d.Spec.Template.Spec.Containers[0].VolumeMounts, volumeMount)
 
-		secretVolumeSource := corev1.SecretVolumeSource{SecretName: secret.Name, Items: []corev1.KeyToPath{corev1.KeyToPath{Key: "root_crt", Path: "root.crt"}}}
-		d.Spec.Template.Spec.Volumes = addOrUpdateVolume(d.Spec.Template.Spec.Volumes, corev1.Volume{Name: "internal-root-certificate", VolumeSource: corev1.VolumeSource{Secret: &secretVolumeSource}})
+		volumeProjection := &corev1.VolumeProjection{
+			Secret: &corev1.SecretProjection{
+				LocalObjectReference: corev1.LocalObjectReference{Name: cr.Spec.InternalCertificatesSecret},
+				Items:                []corev1.KeyToPath{corev1.KeyToPath{Key: "root_crt", Path: "root.crt"}},
+			},
+		}
+		projectedSecretVolumeSource := addOrUpdateProjectedSecretVolumeSource("internal-root-certificate", d.Spec.Template.Spec.Volumes, volumeProjection)
+		d.Spec.Template.Spec.Volumes = addOrUpdateVolume(d.Spec.Template.Spec.Volumes, corev1.Volume{Name: "internal-root-certificate", VolumeSource: corev1.VolumeSource{Projected: &projectedSecretVolumeSource}})
 
 		d.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(d.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "SSL_SECRET_NAME", Value: cr.Spec.InternalCertificatesSecret})
 
