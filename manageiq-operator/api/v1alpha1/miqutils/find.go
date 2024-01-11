@@ -64,3 +64,27 @@ func FindCatalogSourceByName(client client.Client, namespace string, name string
 
 	return catalogSource
 }
+
+func FindVolume(volumeName string, volumes []corev1.Volume) corev1.Volume {
+	volume := corev1.Volume{}
+	for i := 0; i < len(volumes); i++ {
+		if volumes[i].Name == volumeName {
+			volume = volumes[i]
+		}
+	}
+
+	return volume
+}
+
+func FindVolumeProjection(volumeProjectionName string, volumeProjections []corev1.VolumeProjection) corev1.VolumeProjection {
+	volumeProjection := corev1.VolumeProjection{}
+	for i := 0; i < len(volumeProjections); i++ {
+		if volumeProjections[i].Secret != nil && volumeProjections[i].Secret.LocalObjectReference.Name == volumeProjectionName {
+			volumeProjection = volumeProjections[i]
+		} else if volumeProjections[i].ConfigMap != nil && volumeProjections[i].ConfigMap.LocalObjectReference.Name == volumeProjectionName {
+			volumeProjection = volumeProjections[i]
+		}
+	}
+
+	return volumeProjection
+}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
+	miqutilsv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/miqutils"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -142,6 +143,22 @@ func addOrUpdateEnvVar(environment []corev1.EnvVar, variable corev1.EnvVar) []co
 	}
 
 	return environment
+}
+
+func addOrUpdateProjectedSecretVolumeSource(volumeName string, volumes []corev1.Volume, volumeProjection *corev1.VolumeProjection) corev1.ProjectedVolumeSource {
+	projectedVolumeSource := corev1.ProjectedVolumeSource{}
+
+	if volume := miqutilsv1alpha1.FindVolume(volumeName, volumes); volume.VolumeSource.Projected != nil {
+		if foundVolumeProjection := miqutilsv1alpha1.FindVolumeProjection((*volumeProjection).Secret.LocalObjectReference.Name, volume.VolumeSource.Projected.Sources); foundVolumeProjection.Secret != nil {
+			projectedVolumeSource.Sources = volume.VolumeSource.Projected.Sources
+		} else {
+			projectedVolumeSource.Sources = append(volume.VolumeSource.Projected.Sources, *volumeProjection)
+		}
+	} else {
+		projectedVolumeSource.Sources = []corev1.VolumeProjection{*volumeProjection}
+	}
+
+	return projectedVolumeSource
 }
 
 func addOrUpdateVolumeMount(volumeMounts []corev1.VolumeMount, volumeMount corev1.VolumeMount) []corev1.VolumeMount {
