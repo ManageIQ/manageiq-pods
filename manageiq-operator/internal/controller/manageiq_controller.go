@@ -582,6 +582,13 @@ func (r *ManageIQReconciler) generateKafkaResources(cr *miqv1alpha1.ManageIQ) er
 		}
 	}
 
+	secret, mutateFunc := miqkafka.MessagingEnvSecret(cr, r.Client, r.Scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, secret, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("Secret has been reconciled", "component", "kafka", "result", result)
+	}
+
 	return nil
 }
 

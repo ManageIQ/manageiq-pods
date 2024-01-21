@@ -111,50 +111,6 @@ func orchestratorObjectName(cr *miqv1alpha1.ManageIQ) string {
 	return cr.Spec.AppName + "-orchestrator"
 }
 
-func addMessagingEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container, client client.Client) {
-	if !*cr.Spec.DeployMessagingService {
-		return
-	}
-
-	messagingEnv := []corev1.EnvVar{
-		corev1.EnvVar{
-			Name:  "MESSAGING_HOSTNAME",
-			Value: cr.Spec.AppName + "-kafka-bootstrap",
-		},
-		corev1.EnvVar{
-			Name: "MESSAGING_PASSWORD",
-			ValueFrom: &corev1.EnvVarSource{
-				SecretKeyRef: &corev1.SecretKeySelector{
-					LocalObjectReference: corev1.LocalObjectReference{Name: cr.Spec.AppName + "-user"},
-					Key:                  "password",
-				},
-			},
-		},
-		corev1.EnvVar{
-			Name:  "MESSAGING_PORT",
-			Value: "9093",
-		},
-		corev1.EnvVar{
-			Name:  "MESSAGING_TYPE",
-			Value: "kafka",
-		},
-		corev1.EnvVar{
-			Name:  "MESSAGING_USERNAME",
-			Value: cr.Spec.AppName + "-user",
-		},
-		corev1.EnvVar{
-			Name:  "MESSAGING_SASL_MECHANISM",
-			Value: "SCRAM-SHA-512",
-		},
-	}
-
-	for _, env := range messagingEnv {
-		c.Env = append(c.Env, env)
-	}
-
-	return
-}
-
 func addPostgresConfig(cr *miqv1alpha1.ManageIQ, d *appsv1.Deployment, client client.Client) {
 	d.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(d.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "DATABASE_REGION", Value: cr.Spec.DatabaseRegion})
 }
@@ -239,7 +195,6 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 		},
 	}
 
-	addMessagingEnv(cr, &container, client)
 	err = addResourceReqs(cr.Spec.OrchestratorMemoryLimit, cr.Spec.OrchestratorMemoryRequest, cr.Spec.OrchestratorCpuLimit, cr.Spec.OrchestratorCpuRequest, &container)
 	if err != nil {
 		return nil, nil, err
@@ -299,15 +254,6 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 			deployment.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(deployment.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "UI_SSL_SECRET_NAME", Value: cr.Spec.InternalCertificatesSecret})
 		}
 
-		messagingCAPath := ""
-		if certSecret := InternalCertificatesSecret(cr, client); certSecret.Data["root_crt"] != nil && certSecret.Data["root_key"] != nil {
-			messagingCAPath = "/etc/pki/ca-trust/source/anchors/root.crt"
-		} else {
-			messagingCAPath = "/etc/pki/ca-trust/source/anchors/ca.crt"
-		}
-
-		deployment.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(deployment.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "MESSAGING_SSL_CA", Value: messagingCAPath})
-
 		volumeMount := corev1.VolumeMount{Name: "encryption-key", MountPath: "/run/secrets/manageiq/application", ReadOnly: true}
 		deployment.Spec.Template.Spec.Containers[0].VolumeMounts = addOrUpdateVolumeMount(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, volumeMount)
 
@@ -325,6 +271,32 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 			corev1.KeyToPath{Key: "username", Path: "POSTGRESQL_USER"},
 		}}
 		deployment.Spec.Template.Spec.Volumes = addOrUpdateVolume(deployment.Spec.Template.Spec.Volumes, corev1.Volume{Name: "database-secret", VolumeSource: corev1.VolumeSource{Secret: &databaseSecretVolumeSource}})
+
+		messagingVolumeMount := corev1.VolumeMount{Name: "messaging-env-secret", MountPath: "/run/secrets/messaging", ReadOnly: true}
+		deployment.Spec.Template.Spec.Containers[0].VolumeMounts = addOrUpdateVolumeMount(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, messagingVolumeMount)
+
+		messagingSecretProjection := &corev1.VolumeProjection{
+			Secret: &corev1.SecretProjection{
+				LocalObjectReference: corev1.LocalObjectReference{Name: "messaging-env-secret"},
+				Items: []corev1.KeyToPath{
+					corev1.KeyToPath{Key: "hostname", Path: "MESSAGING_HOSTNAME"},
+					corev1.KeyToPath{Key: "port", Path: "MESSAGING_PORT"},
+					corev1.KeyToPath{Key: "sasl_mechanism", Path: "MESSAGING_SASL_MECHANISM"},
+					corev1.KeyToPath{Key: "username", Path: "MESSAGING_USERNAME"},
+				},
+			},
+		}
+		messagingSecretVolumeSource := addOrUpdateProjectedSecretVolumeSource("messaging-env-secret", deployment.Spec.Template.Spec.Volumes, messagingSecretProjection)
+		deployment.Spec.Template.Spec.Volumes = addOrUpdateVolume(deployment.Spec.Template.Spec.Volumes, corev1.Volume{Name: "messaging-env-secret", VolumeSource: corev1.VolumeSource{Projected: &messagingSecretVolumeSource}})
+
+		kafkaUserSecretProjection := &corev1.VolumeProjection{
+			Secret: &corev1.SecretProjection{
+				LocalObjectReference: corev1.LocalObjectReference{Name: cr.Spec.AppName + "-kafka-admin"},
+				Items:                []corev1.KeyToPath{corev1.KeyToPath{Key: "password", Path: "MESSAGING_PASSWORD"}},
+			},
+		}
+		kafkaUserSecretVolumeSource := addOrUpdateProjectedSecretVolumeSource("messaging-env-secret", deployment.Spec.Template.Spec.Volumes, kafkaUserSecretProjection)
+		deployment.Spec.Template.Spec.Volumes = addOrUpdateVolume(deployment.Spec.Template.Spec.Volumes, corev1.Volume{Name: "messaging-env-secret", VolumeSource: corev1.VolumeSource{Projected: &kafkaUserSecretVolumeSource}})
 
 		miqutilsv1alpha1.SetDeploymentNodeAffinity(deployment, client)
 
