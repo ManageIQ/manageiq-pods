@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.31.1
-	github.com/openshift/api v0.0.0-20240118221011-59fa376de7cb
+	github.com/openshift/api v0.0.0-20240122205920-2054c69227a1
 	github.com/operator-framework/api v0.21.0
 	k8s.io/api v0.29.1
 	k8s.io/apimachinery v0.29.1
