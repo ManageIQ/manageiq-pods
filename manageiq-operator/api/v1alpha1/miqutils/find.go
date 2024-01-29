@@ -5,11 +5,13 @@ import (
 	olmv1alpha1 "github.com/operator-framework/api/pkg/operators/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"strings"
 )
 
 func FindPodByName(client client.Client, namespace string, name string) *corev1.Pod {
@@ -60,7 +62,11 @@ func FindKafka(client client.Client, scheme *runtime.Scheme, namespace string, n
 func FindCatalogSourceByName(client client.Client, namespace string, name string) *olmv1alpha1.CatalogSource {
 	catalogSourceKey := types.NamespacedName{Namespace: namespace, Name: name}
 	catalogSource := &olmv1alpha1.CatalogSource{}
-	client.Get(context.TODO(), catalogSourceKey, catalogSource)
+	if err := client.Get(context.TODO(), catalogSourceKey, catalogSource); err != nil {
+		if strings.Contains(err.Error(), "no matches for kind") || errors.IsNotFound(err) {
+			return nil
+		}
+	}
 
 	return catalogSource
 }
