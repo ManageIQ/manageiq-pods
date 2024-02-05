@@ -98,10 +98,10 @@ github.com/onsi/gomega v1.7.1/go.mod h1:XdKZgCCFLUoM/7CFJVPcG8C1xQ1AJ0vpAezJrB7J
 github.com/onsi/gomega v1.10.1/go.mod h1:iN09h71vgCQne3DLsj+A5owkum+a2tYe+TOCB1ybHNo=
 github.com/onsi/gomega v1.31.1 h1:KYppCUK+bUgAZwHOu7EXVBKyQA6ILvOESHkn/tgoqvo=
 github.com/onsi/gomega v1.31.1/go.mod h1:y40C95dwAD1Nz36SsEnxvfFe8FFfNxzI5eJ0EYGyAy0=
-github.com/openshift/api v0.0.0-20240125191952-1e2afa0f76cf h1:oAjm2e/Xjcdc0mpzAccQCQI39zuwx8VDLlJftqTRq0M=
-github.com/openshift/api v0.0.0-20240125191952-1e2afa0f76cf/go.mod h1:CxgbWAlvu2iQB0UmKTtRu1YfepRg1/vJ64n2DlIEVz4=
-github.com/operator-framework/api v0.21.0 h1:89LhqGTLskxpPR4siEaorkF9PY3KLI51S5mFxP6q1G8=
-github.com/operator-framework/api v0.21.0/go.mod h1:3tsDLxXChMY1KgxO5v1CZQogHNQCIMy14YXkXqA5lT4=
+github.com/openshift/api v0.0.0-20240202140003-8b34b9854c7f h1:yJ8mEpEW2aJo+97wguYL+ehCsJe/pbeKjFsbdMuuEJI=
+github.com/openshift/api v0.0.0-20240202140003-8b34b9854c7f/go.mod h1:CxgbWAlvu2iQB0UmKTtRu1YfepRg1/vJ64n2DlIEVz4=
+github.com/operator-framework/api v0.22.0 h1:UZSn+iaQih4rCReezOnWTTJkMyawwV5iLnIItaOzytY=
+github.com/operator-framework/api v0.22.0/go.mod h1:p/7YDbr+n4fmESfZ47yLAV1SvkfE6NU2aX8KhcfI0GA=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
