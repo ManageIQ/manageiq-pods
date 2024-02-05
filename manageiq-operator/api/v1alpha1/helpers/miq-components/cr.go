@@ -116,7 +116,7 @@ func httpdImageNamespace(cr *miqv1alpha1.ManageIQ) string {
 
 func httpdImageTag(cr *miqv1alpha1.ManageIQ) string {
 	if cr.Spec.HttpdImageTag == "" {
-		return "latest"
+		return "2-el9"
 	} else {
 		return cr.Spec.HttpdImageTag
 	}
@@ -188,7 +188,7 @@ func memcachedImageName(cr *miqv1alpha1.ManageIQ) string {
 
 func memcachedImageTag(cr *miqv1alpha1.ManageIQ) string {
 	if cr.Spec.MemcachedImageTag == "" {
-		return "1.6"
+		return "1-el9"
 	} else {
 		return cr.Spec.MemcachedImageTag
 	}
@@ -276,7 +276,7 @@ func postgresqlImageName(cr *miqv1alpha1.ManageIQ) string {
 
 func postgresqlImageTag(cr *miqv1alpha1.ManageIQ) string {
 	if cr.Spec.PostgresqlImageTag == "" {
-		return "13"
+		return "13-el9"
 	} else {
 		return cr.Spec.PostgresqlImageTag
 	}
