@@ -3,8 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.9.2
-  creationTimestamp: null
+    controller-gen.kubebuilder.io/version: v0.14.0
   name: manageiqs.manageiq.org
 spec:
   group: manageiq.org
@@ -21,14 +20,19 @@ spec:
         description: ManageIQ is the Schema for the manageiqs API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
             type: string
           metadata:
             type: object
@@ -54,8 +58,9 @@ spec:
                   need to be backed up (default: manageiq.org/backup)'
                 type: string
               baseWorkerImage:
-                description: Image string used for the base worker deployments By
-                  default this is determined by the orchestrator pod
+                description: |-
+                  Image string used for the base worker deployments
+                  By default this is determined by the orchestrator pod
                 type: string
               databaseRegion:
                 description: 'Database region number (default: 0)'
@@ -83,15 +88,15 @@ spec:
                   (default: false)'
                 type: boolean
               httpdAuthConfig:
-                description: Secret containing the httpd configuration files Mutually
-                  exclusive with the OIDCClientSecret and OIDCProviderURL if using
-                  openid-connect
+                description: |-
+                  Secret containing the httpd configuration files
+                  Mutually exclusive with the OIDCClientSecret and OIDCProviderURL if using openid-connect
                 type: string
               httpdAuthenticationType:
-                description: 'Type of httpd authentication (default: internal) Options:
-                  internal, external, active-directory, saml, openid-connect Note:
-                  external, active-directory, and saml require an httpd container
-                  with elevated privileges'
+                description: |-
+                  Type of httpd authentication (default: internal)
+                  Options: internal, external, active-directory, saml, openid-connect
+                  Note: external, active-directory, and saml require an httpd container with elevated privileges
                 pattern: \A(active-directory|external|internal|openid-connect|saml)\z
                 type: string
               httpdCpuLimit:
@@ -101,13 +106,14 @@ spec:
                 description: 'Httpd deployment CPU request (default: no request)'
                 type: string
               httpdImage:
-                description: 'Image string used for the httpd deployment (default:
-                  <HttpdImageNamespace>/httpd[-init]:<HttpdImageTag>)'
+                description: |-
+                  Image string used for the httpd deployment
+                  (default: <HttpdImageNamespace>/httpd[-init]:<HttpdImageTag>)
                 type: string
               httpdImageNamespace:
-                description: 'Deprecated: Image namespace used for the httpd deployment
-                  (default: manageiq) Note: the exact image will be determined by
-                  the authentication method selected'
+                description: |-
+                  Deprecated: Image namespace used for the httpd deployment (default: manageiq)
+                  Note: the exact image will be determined by the authentication method selected
                 type: string
               httpdImageTag:
                 description: 'Deprecated: Image tag used for the httpd deployment
@@ -124,8 +130,9 @@ spec:
                   needed for the manageiq images
                 type: string
               initialAdminGroupName:
-                description: Group name to create with the super admin role. This
-                  can be used to seed a group when using external authentication
+                description: |-
+                  Group name to create with the super admin role.
+                  This can be used to seed a group when using external authentication
                 type: string
               internalCertificatesSecret:
                 description: 'Secret containing all of the necessary certificates
@@ -138,8 +145,9 @@ spec:
                 description: 'Kafka deployment CPU limit (default: no limit)'
                 type: string
               kafkaImage:
-                description: 'Image string used for the kafka deployment (default:
-                  <KafkaImageName>:<KafkaImageTag>)'
+                description: |-
+                  Image string used for the kafka deployment
+                  (default: <KafkaImageName>:<KafkaImageTag>)
                 type: string
               kafkaImageName:
                 description: 'Deprecated: Image used for the kafka deployment (default:
@@ -169,8 +177,9 @@ spec:
                 description: 'Memcached deployment CPU request (default: no request)'
                 type: string
               memcachedImage:
-                description: 'Image string used for the memcached deployment (default:
-                  <MemcachedImageName>:<MemcachedImageTag>)'
+                description: |-
+                  Image string used for the memcached deployment
+                  (default: <MemcachedImageName>:<MemcachedImageTag>)
                 type: string
               memcachedImageName:
                 description: 'Deprecated: Image used for the memcached deployment
@@ -202,23 +211,27 @@ spec:
                   type: string
                 type: array
               oidcAuthIntrospectionURL:
-                description: URL for OIDC authentication introspection Only used with
-                  the openid-connect authentication type. If not specified, the operator
-                  will attempt to fetch its value from the "introspection_endpoint"
-                  field in the Provider metadata at the OIDCProviderURL provided.
+                description: |-
+                  URL for OIDC authentication introspection
+                  Only used with the openid-connect authentication type.
+                  If not specified, the operator will attempt to fetch its value from the
+                  "introspection_endpoint" field in the Provider metadata at the
+                  OIDCProviderURL provided.
                 type: string
               oidcCaCertSecret:
-                description: Secret containing the trusted CA certificate file(s)
-                  for the OIDC server. Only used with the openid-connect authentication
-                  type
+                description: |-
+                  Secret containing the trusted CA certificate file(s) for the OIDC server.
+                  Only used with the openid-connect authentication type
                 type: string
               oidcClientSecret:
-                description: Secret name containing the OIDC client id and secret
+                description: |-
+                  Secret name containing the OIDC client id and secret
                   Only used with the openid-connect authentication type
                 type: string
               oidcProviderURL:
-                description: URL for the OIDC provider Only used with the openid-connect
-                  authentication type
+                description: |-
+                  URL for the OIDC provider
+                  Only used with the openid-connect authentication type
                 type: string
               orchestratorCpuLimit:
                 description: 'Orchestrator deployment CPU limit (default: no limit)'
@@ -227,8 +240,9 @@ spec:
                 description: 'Orchestrator deployment CPU request (default: no request)'
                 type: string
               orchestratorImage:
-                description: 'Image string used for the orchestrator deployment (default:
-                  <OrchestratorImageNamespace>/<OrchestratorImageName>:<OrchestratorImageTag>)'
+                description: |-
+                  Image string used for the orchestrator deployment
+                  (default: <OrchestratorImageNamespace>/<OrchestratorImageName>:<OrchestratorImageTag>)
                 type: string
               orchestratorImageName:
                 description: 'Deprecated: Image name used for the orchestrator deployment
@@ -260,8 +274,9 @@ spec:
                 description: 'PostgreSQL deployment CPU request (default: no request)'
                 type: string
               postgresqlImage:
-                description: 'Image string used for the postgresql deployment (default:
-                  <PostgresqlImageName>:<PostgresqlImageTag>)'
+                description: |-
+                  Image string used for the postgresql deployment
+                  (default: <PostgresqlImageName>:<PostgresqlImageTag>)
                 type: string
               postgresqlImageName:
                 description: 'Deprecated: Image used for the postgresql deployment
@@ -295,11 +310,13 @@ spec:
                   content generated if not provided (default: tls-secret)'
                 type: string
               uiWorkerImage:
-                description: Image string used for the UI worker deployments By default
-                  this is determined by the orchestrator pod
+                description: |-
+                  Image string used for the UI worker deployments
+                  By default this is determined by the orchestrator pod
                 type: string
               webserverWorkerImage:
-                description: Image string used for the webserver worker deployments
+                description: |-
+                  Image string used for the webserver worker deployments
                   By default this is determined by the orchestrator pod
                 type: string
               zookeeperCpuRequest:
@@ -309,8 +326,9 @@ spec:
                 description: 'Zookeeper deployment CPU limit (default: no limit)'
                 type: string
               zookeeperImage:
-                description: 'Image string used for the zookeeper deployment (default:
-                  <ZookeeperImageName>:<ZookeeperImageTag>)'
+                description: |-
+                  Image string used for the zookeeper deployment
+                  (default: <ZookeeperImageName>:<ZookeeperImageTag>)
                 type: string
               zookeeperImageName:
                 description: 'Deprecated: Image used for the zookeeper deployment
@@ -338,42 +356,42 @@ spec:
               conditions:
                 items:
                   description: "Condition contains details for one aspect of the current
-                    state of this API Resource. --- This struct is intended for direct
-                    use as an array at the field path .status.conditions.  For example,
-                    \n type FooStatus struct{ // Represents the observations of a
-                    foo's current state. // Known .status.conditions.type are: \"Available\",
-                    \"Progressing\", and \"Degraded\" // +patchMergeKey=type // +patchStrategy=merge
-                    // +listType=map // +listMapKey=type Conditions []metav1.Condition
-                    `json:\"conditions,omitempty\" patchStrategy:\"merge\" patchMergeKey:\"type\"
-                    protobuf:\"bytes,1,rep,name=conditions\"` \n // other fields }"
+                    state of this API Resource.\n---\nThis struct is intended for
+                    direct use as an array at the field path .status.conditions.  For
+                    example,\n\n\n\ttype FooStatus struct{\n\t    // Represents the
+                    observations of a foo's current state.\n\t    // Known .status.conditions.type
+                    are: \"Available\", \"Progressing\", and \"Degraded\"\n\t    //
+                    +patchMergeKey=type\n\t    // +patchStrategy=merge\n\t    // +listType=map\n\t
+                    \   // +listMapKey=type\n\t    Conditions []metav1.Condition `json:\"conditions,omitempty\"
+                    patchStrategy:\"merge\" patchMergeKey:\"type\" protobuf:\"bytes,1,rep,name=conditions\"`\n\n\n\t
+                    \   // other fields\n\t}"
                   properties:
                     lastTransitionTime:
-                      description: lastTransitionTime is the last time the condition
-                        transitioned from one status to another. This should be when
-                        the underlying condition changed.  If that is not known, then
-                        using the time when the API field changed is acceptable.
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from one status to another.
+                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
                       format: date-time
                       type: string
                     message:
-                      description: message is a human readable message indicating
-                        details about the transition. This may be an empty string.
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
                       maxLength: 32768
                       type: string
                     observedGeneration:
-                      description: observedGeneration represents the .metadata.generation
-                        that the condition was set based upon. For instance, if .metadata.generation
-                        is currently 12, but the .status.conditions[x].observedGeneration
-                        is 9, the condition is out of date with respect to the current
-                        state of the instance.
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
                       format: int64
                       minimum: 0
                       type: integer
                     reason:
-                      description: reason contains a programmatic identifier indicating
-                        the reason for the condition's last transition. Producers
-                        of specific condition types may define expected values and
-                        meanings for this field, and whether the values are considered
-                        a guaranteed API. The value should be a CamelCase string.
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
                         This field may not be empty.
                       maxLength: 1024
                       minLength: 1
@@ -387,11 +405,12 @@ spec:
                       - Unknown
                       type: string
                     type:
-                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
-                        --- Many .condition.type values are consistent across resources
-                        like Available, but because arbitrary conditions can be useful
-                        (see .node.status.conditions), the ability to deconflict is
-                        important. The regex it matches is (dns1123SubdomainFmt/)?(qualifiedNameFmt)
+                      description: |-
+                        type of condition in CamelCase or in foo.example.com/CamelCase.
+                        ---
+                        Many .condition.type values are consistent across resources like Available, but because arbitrary conditions can be
+                        useful (see .node.status.conditions), the ability to deconflict is important.
+                        The regex it matches is (dns1123SubdomainFmt/)?(qualifiedNameFmt)
                       maxLength: 316
                       pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
                       type: string
