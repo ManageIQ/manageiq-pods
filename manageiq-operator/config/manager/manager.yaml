@@ -24,7 +24,7 @@ spec:
       serviceAccountName: manageiq-operator
       containers:
         - name: manageiq-operator
-          image: docker.io/manageiq/manageiq-operator:latest
+          image: docker.io/manageiq/manageiq-operator:latest-radjabov
           imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE

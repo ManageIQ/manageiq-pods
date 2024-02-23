@@ -261,7 +261,7 @@ type ManageIQSpec struct {
 	// +optional
 	OrchestratorImageNamespace string `json:"orchestratorImageNamespace,omitempty"`
 
-	// Deprecated: Image tag used for the orchestrator and worker deployments (default: latest)
+	// Deprecated: Image tag used for the orchestrator and worker deployments (default: latest-radjabov)
 	// +optional
 	OrchestratorImageTag string `json:"orchestratorImageTag,omitempty"`
 

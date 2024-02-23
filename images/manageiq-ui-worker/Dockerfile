@@ -1,5 +1,5 @@
 ARG FROM_REPO=docker.io/manageiq
-ARG FROM_TAG=latest
+ARG FROM_TAG=latest-radjabov
 
 FROM ${FROM_REPO}/manageiq-webserver-worker:${FROM_TAG}
 MAINTAINER ManageIQ https://manageiq.org

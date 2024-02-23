@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TAG=latest
+TAG=latest-radjabov
 
 ARCH=`uname -m`
 
