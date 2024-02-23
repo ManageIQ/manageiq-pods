@@ -53,6 +53,8 @@ RUN ARCH=$(uname -m) && \
       ${RPM_PREFIX}-pods \
       python3-devel && \
     clean_dnf_rpm && \
+    chown manageiq:root /home/manageiq && \
+    chmod -R g=u /home/manageiq && \
     chgrp -R 0 $APP_ROOT && \
     chmod -R g=u $APP_ROOT
 
