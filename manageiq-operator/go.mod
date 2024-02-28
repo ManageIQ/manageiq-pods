@@ -5,7 +5,7 @@ go 1.22
 require (
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.31.1
-	github.com/openshift/api v0.0.0-20240215110531-750a3e21ebaf
+	github.com/openshift/api v0.0.0-20240228145634-217662e7e95f
 	github.com/operator-framework/api v0.22.0
 	k8s.io/api v0.29.2
 	k8s.io/apimachinery v0.29.2
