@@ -3,6 +3,9 @@
   "extends": [
     "config:base"
   ],
+  "ignoreDeps": [
+    "github.com/openshift/api"
+  ],
   "postUpdateOptions": [
     "gomodTidy"
   ]
