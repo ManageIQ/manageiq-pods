@@ -331,6 +331,11 @@ type ManageIQSpec struct {
 	// +optional
 	UIWorkerImage string `json:"uiWorkerImage,omitempty"`
 
+	// Image string used for the Opentofu runner worker deployments
+	// By default this is determined by the orchestrator pod
+	// +optional
+	OpentofuRunnerImage string `json:"opentofuRunnerImage,omitempty"`
+
 	// Image string used for the webserver worker deployments
 	// By default this is determined by the orchestrator pod
 	// +optional

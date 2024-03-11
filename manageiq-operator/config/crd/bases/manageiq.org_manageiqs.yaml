@@ -314,6 +314,11 @@ spec:
                   Image string used for the UI worker deployments
                   By default this is determined by the orchestrator pod
                 type: string
+              opentofuRunnerImage:
+                description: |-
+                  Image string used for the Opentofu runner deployments
+                  By default this is determined by the orchestrator pod
+                type: string
               webserverWorkerImage:
                 description: |-
                   Image string used for the webserver worker deployments
