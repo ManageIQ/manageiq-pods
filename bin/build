@@ -52,45 +52,37 @@ if [ -n "$REBUILD_RPM" ]; then
 fi
 
 pushd $IMAGE_DIR
-  cmd="$CONTAINER_COMMAND build"
-
-  # --format docker is needed for podman to ensure the builds are built with docker v2 manifests
-  if [ "$CONTAINER_COMMAND" == "podman" ]; then
-    cmd+=" --format docker"
-  fi
-
-  cmd+=" --tag $REPO/manageiq-base:$TAG \
-         --pull \
-         --build-arg RPM_PREFIX=$RPM_PREFIX"
-
-  if [ -n "$NO_CACHE" ]; then
-    cmd+=" --no-cache"
-  fi
-
-  if [ -n "$LOCAL_RPM" ] || [ -n "$REBUILD_RPM" ]; then
-    cmd+=" --build-arg LOCAL_RPM=true"
-  fi
-
-  if [ -n "$RELEASE_BUILD" ]; then
-    cmd+=" --build-arg RELEASE_BUILD=true"
-  fi
-
-  echo "Building manageiq-base: $cmd"
-  $cmd manageiq-base
-
-  build_images="manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker"
+  build_images="manageiq-base manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker"
   for image in $build_images; do
-    cmd="$CONTAINER_COMMAND build"
+    cmd="$CONTAINER_COMMAND build --tag $REPO/$image:$TAG"
 
+    if [ -n "$VERBOSE" ]; then
+      cmd+=" --progress plain"
+    fi
+
+    # --format docker is needed for podman to ensure the builds are built with docker v2 manifests
     if [ "$CONTAINER_COMMAND" == "podman" ]; then
       cmd+=" --format docker"
     fi
 
-    cmd+=" --tag $REPO/$image:$TAG \
-           --build-arg FROM_REPO=$REPO \
-           --build-arg FROM_TAG=$TAG \
-           --build-arg RPM_PREFIX=$RPM_PREFIX \
-           $image"
+    if [ -n "$NO_CACHE" ]; then
+      cmd+=" --no-cache"
+    fi
+
+    if [ "$image" == "manageiq-base" ]; then
+      cmd+=" --pull \
+            --build-arg RPM_PREFIX=$RPM_PREFIX"
+
+      if [ -n "$RELEASE_BUILD" ]; then
+        cmd+=" --build-arg RELEASE_BUILD=true"
+      fi
+    else
+      cmd+=" --build-arg FROM_REPO=$REPO \
+            --build-arg FROM_TAG=$TAG \
+            --build-arg RPM_PREFIX=$RPM_PREFIX"
+    fi
+
+    cmd+=" $image"
 
     echo "Building $image: $cmd"
     $cmd
