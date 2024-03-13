@@ -233,6 +233,11 @@ spec:
                   URL for the OIDC provider
                   Only used with the openid-connect authentication type
                 type: string
+              opentofuRunnerImage:
+                description: |-
+                  Image string used for the Opentofu runner worker deployments
+                  By default this is determined by the orchestrator pod
+                type: string
               orchestratorCpuLimit:
                 description: 'Orchestrator deployment CPU limit (default: no limit)'
                 type: string
@@ -312,11 +317,6 @@ spec:
               uiWorkerImage:
                 description: |-
                   Image string used for the UI worker deployments
-                  By default this is determined by the orchestrator pod
-                type: string
-              opentofuRunnerImage:
-                description: |-
-                  Image string used for the Opentofu runner deployments
                   By default this is determined by the orchestrator pod
                 type: string
               webserverWorkerImage:
