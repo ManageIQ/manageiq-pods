@@ -6,26 +6,20 @@ RPM_BUILD_OPTIONS=${RPM_BUILD_OPTIONS:-""}
 RPM_BUILD_IMAGE=${RPM_BUILD_IMAGE:-"manageiq/rpm_build:$TAG"}
 RPM_PREFIX=${RPM_PREFIX:-"manageiq"}
 
-while getopts "t:c:d:r:hblnops" opt; do
+while getopts "t:c:d:r:hbnops" opt; do
   case $opt in
     b) REBUILD_RPM="true" ;;
     c) CONTAINER_PREFIX=$OPTARG ;;
     d) BASE_DIR=$OPTARG ;;
-    l) LOCAL_RPM="true" ;;
     n) NO_CACHE="true" ;;
     o) NO_OPERATOR="true" ;;
     p) PUSH="true" ;;
     r) REPO=$OPTARG ;;
     s) RELEASE_BUILD="true" ;;
     t) TAG=$OPTARG ;;
-    h) echo "Usage: $0 [-hblnops] [-c CONTAINER_PREFIX] [-d BASE_DIR] [-r IMAGE_REPOSITORY] [-t IMAGE_TAG]"; exit 1
+    h) echo "Usage: $0 [-hbnops] [-c CONTAINER_PREFIX] [-d BASE_DIR] [-r IMAGE_REPOSITORY] [-t IMAGE_TAG]"; exit 1
   esac
 done
-
-if [ -n "$LOCAL_RPM" ] && [ -n "$REBUILD_RPM" ]; then
-  echo "Local rpm (-l) and rebuild rpm (-b) options can't be used together"
-  exit 1
-fi
 
 BASE_DIR=${BASE_DIR:-$PWD}
 CONTAINER_PREFIX=${CONTAINER_PREFIX:-manageiq}
@@ -38,7 +32,7 @@ CONTAINER_COMMAND="$(which podman &>/dev/null && echo "podman" || echo "docker")
 set -e
 
 if [ -n "$REBUILD_RPM" ]; then
-  rpm_dir=$IMAGE_DIR/manageiq-base/rpms
+  rpm_dir=$IMAGE_DIR/manageiq-rpms/rpms
   rm -rf $rpm_dir/*
   options="-v $PWD/$rpm_dir:/root/BUILD/rpms"
   if [ -n "$RPM_BUILD_OPTIONS" ]; then
@@ -52,45 +46,31 @@ if [ -n "$REBUILD_RPM" ]; then
 fi
 
 pushd $IMAGE_DIR
-  cmd="$CONTAINER_COMMAND build"
+  # Pull the base image first
+  $CONTAINER_COMMAND pull registry.access.redhat.com/ubi9/ubi
 
-  # --format docker is needed for podman to ensure the builds are built with docker v2 manifests
-  if [ "$CONTAINER_COMMAND" == "podman" ]; then
-    cmd+=" --format docker"
-  fi
-
-  cmd+=" --tag $REPO/manageiq-base:$TAG \
-         --pull \
-         --build-arg RPM_PREFIX=$RPM_PREFIX"
-
-  if [ -n "$NO_CACHE" ]; then
-    cmd+=" --no-cache"
-  fi
-
-  if [ -n "$LOCAL_RPM" ] || [ -n "$REBUILD_RPM" ]; then
-    cmd+=" --build-arg LOCAL_RPM=true"
-  fi
-
-  if [ -n "$RELEASE_BUILD" ]; then
-    cmd+=" --build-arg RELEASE_BUILD=true"
-  fi
-
-  echo "Building manageiq-base: $cmd"
-  $cmd manageiq-base
-
-  build_images="manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker"
+  build_images="manageiq-rpms manageiq-base manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker"
   for image in $build_images; do
-    cmd="$CONTAINER_COMMAND build"
+    cmd="$CONTAINER_COMMAND build --build-arg FROM_REPO=$REPO --build-arg FROM_TAG=$TAG --build-arg RPM_PREFIX=$RPM_PREFIX --tag $REPO/$image:$TAG"
 
+    if [ -n "$VERBOSE" ]; then
+      cmd+=" --progress plain"
+    fi
+
+    # --format docker is needed for podman to ensure the builds are built with docker v2 manifests
     if [ "$CONTAINER_COMMAND" == "podman" ]; then
       cmd+=" --format docker"
     fi
 
-    cmd+=" --tag $REPO/$image:$TAG \
-           --build-arg FROM_REPO=$REPO \
-           --build-arg FROM_TAG=$TAG \
-           --build-arg RPM_PREFIX=$RPM_PREFIX \
-           $image"
+    if [ -n "$NO_CACHE" ]; then
+      cmd+=" --no-cache"
+    fi
+
+    if [ -n "$RELEASE_BUILD" -a "$image" == "manageiq-base" ]; then
+      cmd+=" --build-arg RELEASE_BUILD=true"
+    fi
+
+    cmd+=" $image"
 
     echo "Building $image: $cmd"
     $cmd
@@ -114,11 +94,12 @@ if [ -n "$PUSH" ]; then
   for image in $push_images; do
     cmd="$CONTAINER_COMMAND push $REPO/$image:$TAG"
 
+    # --format docker is needed for podman to ensure the builds are built with docker v2 manifests
     if [ "$CONTAINER_COMMAND" == "podman" ]; then
       cmd+=" --format docker"
     fi
 
-    echo "Pushing: $cmd"
+    echo "Pushing $image: $cmd"
     $cmd
   done
 fi

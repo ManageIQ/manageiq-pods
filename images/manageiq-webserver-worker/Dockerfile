@@ -1,17 +1,22 @@
 ARG FROM_REPO=docker.io/manageiq
 ARG FROM_TAG=latest-radjabov
 
-FROM ${FROM_REPO}/manageiq-base-worker:${FROM_TAG}
-MAINTAINER ManageIQ https://manageiq.org
+# alias stage for rpms
+FROM ${FROM_REPO}/manageiq-rpms:${FROM_TAG} as rpms
 
+###############################################################################
+
+FROM ${FROM_REPO}/manageiq-base-worker:${FROM_TAG}
 ARG RPM_PREFIX=manageiq
 
+MAINTAINER ManageIQ https://manageiq.org
 LABEL name="manageiq-webserver-worker" \
       summary="ManageIQ web server worker image"
 
 COPY container-assets/service-worker-entrypoint /usr/local/bin
 
-RUN dnf -y install \
+RUN --mount=type=bind,from=rpms,source=/tmp/rpms,target=/tmp/rpms \
+    dnf -y install \
       ${RPM_PREFIX}-ui && \
     clean_dnf_rpm && \
     # Remove httpd default settings
