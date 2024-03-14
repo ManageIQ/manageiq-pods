@@ -1,11 +1,6 @@
 #!/bin/bash
 
-yum -y install createrepo_c
-rm -rf /tmp/rpms/repodata
-createrepo /tmp/rpms
-yum -y remove createrepo_c
-
-ls -al /tmp/rpms
+set -e
 
 cat > /etc/yum.repos.d/local_rpm.repo << EOF
 [local-rpm]

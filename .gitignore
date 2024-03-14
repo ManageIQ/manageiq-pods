@@ -1,7 +1,7 @@
 Gemfile.lock
 build.log
 images/manageiq-base-worker/container-assets/VMware-*
-images/manageiq-base/rpms
+images/manageiq-rpms/rpms
 manageiq-operator/build/_output/*
 manageiq-operator/vendor/*
 tools/certs/*.crt

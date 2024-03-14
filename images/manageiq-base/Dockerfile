@@ -1,7 +1,14 @@
-FROM registry.access.redhat.com/ubi9/ubi
-MAINTAINER ManageIQ https://manageiq.org
+ARG FROM_REPO=docker.io/manageiq
+ARG FROM_TAG=latest
 
-ARG LOCAL_RPM
+# alias stage for rpms
+FROM ${FROM_REPO}/manageiq-rpms:${FROM_TAG} as rpms
+
+################################################################################
+
+FROM registry.access.redhat.com/ubi9/ubi
+ARG FROM_REPO
+ARG FROM_TAG
 ARG RELEASE_BUILD
 ARG RPM_PREFIX=manageiq
 
@@ -9,6 +16,7 @@ ENV TERM=xterm \
     CONTAINER=true \
     APP_ROOT=/var/www/miq/vmdb
 
+MAINTAINER ManageIQ https://manageiq.org
 LABEL name="manageiq-base" \
       vendor="ManageIQ" \
       url="https://manageiq.org/" \
@@ -29,11 +37,11 @@ RUN ARCH=$(uname -m) && \
     curl -L -o /usr/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.2/dumb-init_1.2.2_${ARCH} && \
     chmod +x /usr/bin/dumb-init
 
-COPY rpms/* /tmp/rpms/
-COPY container-assets/create_local_yum_repo.sh /
+COPY container-assets/prepare_local_yum_repo.sh /usr/local/bin
 COPY container-assets/clean_dnf_rpm /usr/local/bin/
 
-RUN ARCH=$(uname -m) && \
+RUN --mount=type=bind,from=rpms,source=/tmp/rpms,target=/tmp/rpms \
+    ARCH=$(uname -m) && \
     dnf config-manager --setopt=tsflags=nodocs --setopt=install_weak_deps=False --save && \
     dnf -y --setopt=protected_packages= remove redhat-release && \
     dnf -y remove *subscription-manager* && \
@@ -46,7 +54,7 @@ RUN ARCH=$(uname -m) && \
       https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm \
       https://rpm.manageiq.org/release/19-spassky/el9/noarch/manageiq-release-19.0-1.el9.noarch.rpm && \
     if [[ "$RELEASE_BUILD" != "true" ]]; then dnf config-manager --enable manageiq-19-spassky-nightly; fi && \
-    if [[ "$LOCAL_RPM" = "true" ]]; then /create_local_yum_repo.sh; fi && \
+    if [[ -n "$(ls /tmp/rpms)" ]]; then /usr/local/bin/prepare_local_yum_repo.sh; fi && \
     dnf -y module enable ruby:3.1 && \
     dnf -y install \
       httpd \
