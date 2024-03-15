@@ -9,7 +9,6 @@ FROM ${FROM_REPO}/manageiq-rpms:${FROM_TAG} as rpms
 FROM ${FROM_REPO}/manageiq-base-worker:${FROM_TAG}
 ARG RPM_PREFIX=manageiq
 
-MAINTAINER ManageIQ https://manageiq.org
 LABEL name="manageiq-webserver-worker" \
       summary="ManageIQ web server worker image"
 
