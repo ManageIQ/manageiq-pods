@@ -71,7 +71,8 @@ RUN --mount=type=bind,from=rpms,source=/tmp/rpms,target=/tmp/rpms \
 ADD container-assets/container_env ${APP_ROOT}/
 
 # Build the RPM manifest
-RUN source /etc/default/evm && \
+RUN --mount=type=bind,from=rpms,source=/tmp/rpms,target=/tmp/rpms \
+    source /etc/default/evm && \
     /usr/bin/generate_rpm_manifest.sh && \
     clean_dnf_rpm
 
