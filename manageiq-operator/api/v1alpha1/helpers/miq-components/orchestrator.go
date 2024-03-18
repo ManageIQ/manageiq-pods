@@ -172,7 +172,7 @@ func updateOrchestratorEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
 	c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "WORKER_SERVICE_ACCOUNT", Value: defaultServiceAccountName(cr.Spec.AppName)})
 
 	// If any of the images were not provided, add the orchestrator namespace and tag
-	if cr.Spec.BaseWorkerImage == "" || cr.Spec.WebserverWorkerImage == "" || cr.Spec.UIWorkerImage == "" {
+	if cr.Spec.BaseWorkerImage == "" || cr.Spec.WebserverWorkerImage == "" || cr.Spec.UIWorkerImage == "" || cr.Spec.OpentofuRunnerImage == "" {
 		string1 := strings.Split(cr.Spec.OrchestratorImage, ":")
 		string2 := strings.Split(string1[0], "/")
 		c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "CONTAINER_IMAGE_NAMESPACE", Value: string2[0]})
@@ -187,6 +187,9 @@ func updateOrchestratorEnv(cr *miqv1alpha1.ManageIQ, c *corev1.Container) {
 	}
 	if cr.Spec.UIWorkerImage != "" {
 		c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "UI_WORKER_IMAGE", Value: cr.Spec.UIWorkerImage})
+	}
+	if cr.Spec.OpentofuRunnerImage != "" {
+		c.Env = addOrUpdateEnvVar(c.Env, corev1.EnvVar{Name: "OPENTOFU_RUNNER_IMAGE", Value: cr.Spec.OpentofuRunnerImage})
 	}
 }
 
