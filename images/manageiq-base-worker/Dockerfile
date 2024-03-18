@@ -10,7 +10,6 @@ RUN /vddk/extract-vmware-vddk
 ################################################################################
 
 FROM ${FROM_REPO}/manageiq-base:${FROM_TAG}
-MAINTAINER ManageIQ https://manageiq.org
 
 LABEL name="manageiq-base-worker" \
       summary="ManageIQ Worker Image"
