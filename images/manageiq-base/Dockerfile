@@ -16,11 +16,10 @@ ENV TERM=xterm \
     CONTAINER=true \
     APP_ROOT=/var/www/miq/vmdb
 
-MAINTAINER ManageIQ https://manageiq.org
 LABEL name="manageiq-base" \
+      summary="ManageIQ base application image" \
       vendor="ManageIQ" \
       url="https://manageiq.org/" \
-      summary="ManageIQ base application image" \
       description="ManageIQ is a management and automation platform for virtual, private, and hybrid cloud infrastructures." \
       io.k8s.display-name="ManageIQ" \
       io.k8s.description="ManageIQ is a management and automation platform for virtual, private, and hybrid cloud infrastructures." \
