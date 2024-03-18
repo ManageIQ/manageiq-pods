@@ -240,6 +240,11 @@ type ManageIQSpec struct {
 	// +optional
 	OIDCProviderURL string `json:"oidcProviderURL,omitempty"`
 
+	// Image string used for the Opentofu runner worker deployments
+	// By default this is determined by the orchestrator pod
+	// +optional
+	OpentofuRunnerImage string `json:"opentofuRunnerImage,omitempty"`
+
 	// Orchestrator deployment CPU limit (default: no limit)
 	// +optional
 	OrchestratorCpuLimit string `json:"orchestratorCpuLimit,omitempty"`
