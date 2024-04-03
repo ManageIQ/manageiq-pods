@@ -40,6 +40,7 @@ COPY container-assets/prepare_local_yum_repo.sh /usr/local/bin
 COPY container-assets/clean_dnf_rpm /usr/local/bin/
 
 RUN --mount=type=bind,from=rpms,source=/tmp/rpms,target=/tmp/rpms \
+    dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs update && \
     ARCH=$(uname -m) && \
     dnf config-manager --setopt=tsflags=nodocs --setopt=install_weak_deps=False --save && \
     dnf -y --setopt=protected_packages= remove redhat-release && \
