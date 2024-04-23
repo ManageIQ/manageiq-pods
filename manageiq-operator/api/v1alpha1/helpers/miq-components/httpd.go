@@ -150,7 +150,7 @@ func Ingress(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*networkingv1.In
 
 func HttpdConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, client client.Client) (*corev1.ConfigMap, controllerutil.MutateFn, error) {
 	if cr.Spec.HttpdAuthenticationType == "openid-connect" && cr.Spec.OIDCProviderURL != "" && cr.Spec.OIDCOAuthIntrospectionURL == "" {
-		introspectionURL, err := fetchIntrospectionUrl(cr.Spec.OIDCProviderURL)
+		introspectionURL, err := fetchIntrospectionUrl(cr.Spec.OIDCProviderURL, *cr.Spec.OIDCOAuthIntrospectionSSLVerify)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -659,9 +659,9 @@ func tlsSecretName(cr *miqv1alpha1.ManageIQ) string {
 	return secretName
 }
 
-func fetchIntrospectionUrl(providerUrl string) (string, error) {
+func fetchIntrospectionUrl(providerUrl string, sslVerify bool) (string, error) {
 	customTransport := http.DefaultTransport.(*http.Transport).Clone()
-	customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: !sslVerify}
 	client := &http.Client{Transport: customTransport}
 	errMsg := fmt.Sprintf("failed to get the OIDCOAuthIntrospectionURL from %s", providerUrl)
 
