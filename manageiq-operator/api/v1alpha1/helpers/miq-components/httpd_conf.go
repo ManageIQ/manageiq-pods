@@ -432,7 +432,7 @@ LimitRequestFieldSize 524288
   ProxyPreserveHost on
   <Location /assets/>
     Header unset ETag
-    Header set Content-Security-Policy            "default-src 'self'; child-src 'self'; connect-src 'self'; font-src 'self' fonts.gstatic.com; script-src 'self'; style-src 'self'; report-uri /dashboard/csp_report"
+    Header set Content-Security-Policy            "default-src 'self'; child-src 'self'; connect-src 'self' fonts.gstatic.com; font-src 'self' fonts.gstatic.com fonts.googleapis.com; img-src 'self' data:; object-src 'self'; script-src 'unsafe-eval' 'unsafe-inline' 'self'; style-src 'unsafe-inline' 'self' fonts.googleapis.com fonts.gstatic.com; report-uri /dashboard/csp_report"
     Header set X-Content-Type-Options             "nosniff"
     Header set X-Frame-Options                    "SAMEORIGIN"
     Header set X-Permitted-Cross-Domain-Policies  "none"
@@ -444,7 +444,7 @@ LimitRequestFieldSize 524288
   </Location>
   <Location /packs/>
     Header unset ETag
-    Header set Content-Security-Policy            "default-src 'self'; child-src 'self'; connect-src 'self'; font-src 'self' fonts.gstatic.com; script-src 'self'; style-src 'self'; report-uri /dashboard/csp_report"
+    Header set Content-Security-Policy            "default-src 'self'; child-src 'self'; connect-src 'self' fonts.gstatic.com; font-src 'self' fonts.gstatic.com fonts.googleapis.com; img-src 'self' data:; object-src 'self'; script-src 'unsafe-eval' 'unsafe-inline' 'self'; style-src 'unsafe-inline' 'self' fonts.googleapis.com fonts.gstatic.com; report-uri /dashboard/csp_report"
     Header set X-Content-Type-Options             "nosniff"
     Header set X-Frame-Options                    "SAMEORIGIN"
     Header set X-Permitted-Cross-Domain-Policies  "none"
