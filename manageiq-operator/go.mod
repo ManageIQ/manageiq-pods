@@ -8,7 +8,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.17.2
 	github.com/onsi/gomega v1.33.1
 	github.com/openshift/api v0.0.0-20240425081546-8203151f085f
-	github.com/operator-framework/api v0.23.0
+	github.com/operator-framework/api v0.24.0
 	k8s.io/api v0.30.0
 	k8s.io/apimachinery v0.30.0
 	k8s.io/client-go v0.30.0
