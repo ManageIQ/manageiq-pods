@@ -572,7 +572,7 @@ func (r *ManageIQReconciler) generateKafkaResources(cr *miqv1alpha1.ManageIQ) er
 		logger.Info("Kafka User has been reconciled", "result", result)
 	}
 
-	topics := []string{"manageiq.liveness-check", "manageiq.ems", "manageiq.ems-events", "manageiq.ems-inventory", "manageiq.metrics"}
+	topics := []string{"manageiq.ems", "manageiq.ems-events", "manageiq.ems-inventory", "manageiq.metrics"}
 	for i := 0; i < len(topics); i++ {
 		kafkaTopicCR, mutateFunc := miqkafka.KafkaTopic(cr, r.Scheme, topics[i])
 		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, kafkaTopicCR, mutateFunc); err != nil {
