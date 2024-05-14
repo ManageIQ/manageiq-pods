@@ -687,6 +687,13 @@ func (r *ManageIQReconciler) generateNetworkPolicies(cr *miqv1alpha1.ManageIQ) e
 		}
 	}
 
+	networkPolicyAllowTfRunner, mutateFunc := miqtool.NetworkPolicyAllowTfRunner(cr, r.Scheme, &r.Client)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, networkPolicyAllowTfRunner, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("NetworkPolicy allow opentofu-runner has been reconciled", "component", "network_policy", "result", result)
+	}
+
 	return nil
 }
 
