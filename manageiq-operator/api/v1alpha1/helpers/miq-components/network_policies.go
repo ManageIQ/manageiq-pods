@@ -294,7 +294,7 @@ func NetworkPolicyAllowTfRunner(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme
 		addAppLabel(cr.Spec.AppName, &networkPolicy.ObjectMeta)
 		setIngressPolicyType(networkPolicy)
 
-		networkPolicy.Spec.PodSelector.MatchLabels = map[string]string{"service": "opentofu"}
+		networkPolicy.Spec.PodSelector.MatchLabels = map[string]string{"service": "opentofu-runner"}
 
 		pod := orchestratorPod(*c)
 		if pod == nil {
