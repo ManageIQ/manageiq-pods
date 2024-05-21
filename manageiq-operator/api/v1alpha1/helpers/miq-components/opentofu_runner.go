@@ -27,7 +27,7 @@ func TfRunnerService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.
 		}
 		service.Spec.Ports[0].Name = "opentofu-runner"
 		service.Spec.Ports[0].Port = 6000
-		service.Spec.Selector = map[string]string{"name": "opentofu-runner"}
+		service.Spec.Selector = map[string]string{"service": "opentofu-runner"}
 		return nil
 	}
 
