@@ -511,6 +511,13 @@ func (r *ManageIQReconciler) generatePostgresqlResources(cr *miqv1alpha1.ManageI
 		logger.Info("Service has been reconciled", "component", "postgresql", "result", result)
 	}
 
+	tfRunnerService, mutateFunc := miqtool.TfRunnerService(cr, r.Scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, tfRunnerService, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("Service has been reconciled", "component", "opentofu-runner", "result", result)
+	}
+
 	deployment, mutateFunc, err := miqtool.PostgresqlDeployment(cr, r.Client, r.Scheme)
 	if err != nil {
 		return err
