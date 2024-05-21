@@ -201,7 +201,7 @@ func (r *ManageIQReconciler) updateManageIQStatus(cr *miqv1alpha1.ManageIQ) erro
 					object.Spec.Rules != nil {
 					endpointInfo := &miqv1alpha1.Endpoint{}
 					if len(object.Spec.TLS[0].SecretName) != 0 {
-						if objectSecret := FindSecret(cr, r.Client, object.Spec.TLS[0].SecretName); object != nil {
+						if objectSecret := FindSecret(cr, r.Client, object.Spec.TLS[0].SecretName); objectSecret != nil {
 							endpointInfo.Name = ingressName
 							endpointInfo.Type = "UI"
 							endpointInfo.Scope = "External"
