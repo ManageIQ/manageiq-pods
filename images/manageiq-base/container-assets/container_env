@@ -5,19 +5,24 @@
 [[ -s /etc/default/evm ]] && source /etc/default/evm
 
 [[ -f /run/secrets/postgresql/POSTGRESQL_DATABASE ]] && database_name_file=$(cat /run/secrets/postgresql/POSTGRESQL_DATABASE)
-[[ -f /run/secrets/postgresql/POSTGRESQL_HOSTNAME ]] && database_hostname_file=$(cat /run/secrets/postgresql/POSTGRESQL_HOSTNAME)
-[[ -f /run/secrets/postgresql/POSTGRESQL_PASSWORD ]] && database_password_file=$(cat /run/secrets/postgresql/POSTGRESQL_PASSWORD)
-[[ -f /run/secrets/postgresql/POSTGRESQL_PORT ]] && database_port_file=$(cat /run/secrets/postgresql/POSTGRESQL_PORT)
-[[ -f /run/secrets/postgresql/POSTGRESQL_USER ]] && database_username_file=$(cat /run/secrets/postgresql/POSTGRESQL_USER)
-database_hostname=${DATABASE_HOSTNAME:-$database_hostname_file}
-database_hostname=${database_hostname:-localhost}
 database_name=${DATABASE_NAME:-$database_name_file}
 database_name=${database_name:-db_unknown}
+
+[[ -f /run/secrets/postgresql/POSTGRESQL_HOSTNAME ]] && database_hostname_file=$(cat /run/secrets/postgresql/POSTGRESQL_HOSTNAME)
+database_hostname=${DATABASE_HOSTNAME:-$database_hostname_file}
+database_hostname=${database_hostname:-localhost}
+
+[[ -f /run/secrets/postgresql/POSTGRESQL_PASSWORD ]] && database_password_file=$(cat /run/secrets/postgresql/POSTGRESQL_PASSWORD)
 database_password=${DATABASE_PASSWORD:-$database_password_file}
+
+[[ -f /run/secrets/postgresql/POSTGRESQL_PORT ]] && database_port_file=$(cat /run/secrets/postgresql/POSTGRESQL_PORT)
 database_port=${DATABASE_PORT:-$database_port_file}
 database_port=${database_port:-5432}
-DATABASE_SSL_MODE=${DATABASE_SSL_MODE:-prefer}
+
+[[ -f /run/secrets/postgresql/POSTGRESQL_USER ]] && database_username_file=$(cat /run/secrets/postgresql/POSTGRESQL_USER)
 database_username=${DATABASE_USERNAME:-$database_username_file}
+
+database_ssl_mode=${DATABASE_SSL_MODE:-prefer}
 
 echo "== Writing database config =="
 cat > ${APP_ROOT}/config/database.yml << KEY
@@ -32,7 +37,7 @@ production:
   encoding: utf8
   pool: 5
   wait_timeout: 5
-  ssl_mode: ${DATABASE_SSL_MODE}
+  ssl_mode: ${database_ssl_mode}
 KEY
 
 [[ -f /.postgresql/root.crt ]] && echo "  sslrootcert=/.postgresql/root.crt" >> ${APP_ROOT}/config/database.yml

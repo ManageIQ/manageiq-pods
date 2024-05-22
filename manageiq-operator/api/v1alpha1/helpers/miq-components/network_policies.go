@@ -284,6 +284,44 @@ func NetworkPolicyAllowZookeeper(cr *miqv1alpha1.ManageIQ, scheme *runtime.Schem
 	return networkPolicy, f
 }
 
+func NetworkPolicyAllowTfRunner(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, c *client.Client) (*networkingv1.NetworkPolicy, controllerutil.MutateFn) {
+	networkPolicy := newNetworkPolicy(cr, "allow-tfrunner")
+
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, networkPolicy, scheme); err != nil {
+			return err
+		}
+		addAppLabel(cr.Spec.AppName, &networkPolicy.ObjectMeta)
+		setIngressPolicyType(networkPolicy)
+
+		networkPolicy.Spec.PodSelector.MatchLabels = map[string]string{"service": "opentofu-runner"}
+
+		pod := orchestratorPod(*c)
+		if pod == nil {
+			return nil
+		}
+
+		ensureIngressRule(networkPolicy)
+		setFirstIngressTCPPort(networkPolicy, 6000)
+		if len(networkPolicy.Spec.Ingress[0].From) != 2 {
+			networkPolicy.Spec.Ingress[0].From = []networkingv1.NetworkPolicyPeer{
+				networkingv1.NetworkPolicyPeer{},
+				networkingv1.NetworkPolicyPeer{},
+			}
+		}
+		orchestratedByLabelKey := cr.Spec.AppName + "-orchestrated-by"
+		orchestratedByLabelValue := pod.Name
+		networkPolicy.Spec.Ingress[0].From[0].PodSelector = &metav1.LabelSelector{}
+		networkPolicy.Spec.Ingress[0].From[0].PodSelector.MatchLabels = map[string]string{"name": "orchestrator"}
+		networkPolicy.Spec.Ingress[0].From[1].PodSelector = &metav1.LabelSelector{}
+		networkPolicy.Spec.Ingress[0].From[1].PodSelector.MatchLabels = map[string]string{orchestratedByLabelKey: orchestratedByLabelValue}
+
+		return nil
+	}
+
+	return networkPolicy, f
+}
+
 func newNetworkPolicy(cr *miqv1alpha1.ManageIQ, name string) *networkingv1.NetworkPolicy {
 	return &networkingv1.NetworkPolicy{
 		ObjectMeta: metav1.ObjectMeta{

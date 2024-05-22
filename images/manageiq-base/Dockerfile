@@ -52,8 +52,8 @@ RUN --mount=type=bind,from=rpms,source=/tmp/rpms,target=/tmp/rpms \
     dnf config-manager --enable crb && \
     dnf -y install \
       https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm \
-      https://rpm.manageiq.org/release/18-radjabov/el9/noarch/manageiq-release-18.0-1.el9.noarch.rpm && \
-    if [[ "$RELEASE_BUILD" != "true" ]]; then dnf config-manager --enable manageiq-18-radjabov-nightly; fi && \
+      https://rpm.manageiq.org/release/18-radjabov/el9/noarch/manageiq-release-19.0-1.el9.noarch.rpm && \
+    if [[ "$RELEASE_BUILD" != "true" ]]; then dnf config-manager --enable manageiq-19-radjabov-nightly; fi && \
     if [[ -n "$(ls /tmp/rpms)" ]]; then /usr/local/bin/prepare_local_yum_repo.sh; fi && \
     dnf -y module enable ruby:3.1 && \
     dnf -y install \

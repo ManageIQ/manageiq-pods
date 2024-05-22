@@ -85,14 +85,14 @@ Refer to https://github.com/ManageIQ/manageiq-rpm_build for rpm build details.
 
 ### Using locally built RPMs
 
-If you already have locally built RPMs and want to use them instead of using RPMs from manageiq yum repo, copy `<arch>` directory to images/manageiq-base/rpms:
+If you already have locally built RPMs and want to use them instead of using RPMs from manageiq yum repo, copy `<arch>` directory to images/manageiq-rpms/rpms:
 
-`images/manageiq-base/rpms/x86_64/manageiq-*.rpm`
+`images/manageiq-rpms/rpms/x86_64/manageiq-*.rpm`
 
 Then, run:
 
 ```bash
-bin/build -d . -r manageiq -l
+bin/build -d . -r manageiq
 ```
 
 ### Including the VMware VDDK in the image build
