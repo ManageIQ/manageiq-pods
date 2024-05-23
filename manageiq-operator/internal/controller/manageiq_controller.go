@@ -741,7 +741,7 @@ func (r *ManageIQReconciler) generateSecrets(cr *miqv1alpha1.ManageIQ) error {
 }
 
 func (r *ManageIQReconciler) migrateCR(cr *miqv1alpha1.ManageIQ) error {
-	manageiq, mutateFunc := cr_migration.Migrate(cr)
+	manageiq, mutateFunc := cr_migration.Migrate(cr, r.Client, r.Scheme)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, manageiq, mutateFunc); err != nil {
 		return err
 	} else if result != controllerutil.OperationResultNone {
