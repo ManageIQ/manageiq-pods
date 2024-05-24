@@ -2,6 +2,8 @@ package miqutils
 
 import (
 	"context"
+	"strings"
+
 	olmv1alpha1 "github.com/operator-framework/api/pkg/operators/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -11,7 +13,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"strings"
 )
 
 func FindPodByName(client client.Client, namespace string, name string) *corev1.Pod {
@@ -57,6 +58,19 @@ func FindKafka(client client.Client, scheme *runtime.Scheme, namespace string, n
 	client.Get(context.TODO(), kafkaKey, kafka)
 
 	return kafka
+}
+
+func FindKafkaTopic(client client.Client, scheme *runtime.Scheme, namespace string, name string, group string) *unstructured.Unstructured {
+	kafkaTopicKey := types.NamespacedName{Namespace: namespace, Name: name}
+	kafkaTopic := &unstructured.Unstructured{}
+	kafkaTopic.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   group,
+		Kind:    "KafkaTopic",
+		Version: "v1beta2",
+	})
+	client.Get(context.TODO(), kafkaTopicKey, kafkaTopic)
+
+	return kafkaTopic
 }
 
 func FindCatalogSourceByName(client client.Client, namespace string, name string) *olmv1alpha1.CatalogSource {

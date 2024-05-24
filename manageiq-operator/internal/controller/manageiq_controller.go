@@ -586,7 +586,7 @@ func (r *ManageIQReconciler) generateKafkaResources(cr *miqv1alpha1.ManageIQ) er
 		logger.Info("Kafka User has been reconciled", "result", result)
 	}
 
-	topics := []string{"manageiq.liveness-check", "manageiq.ems", "manageiq.ems-events", "manageiq.ems-inventory", "manageiq.metrics"}
+	topics := []string{"manageiq.ems", "manageiq.ems-events", "manageiq.ems-inventory", "manageiq.metrics"}
 	for i := 0; i < len(topics); i++ {
 		kafkaTopicCR, mutateFunc := miqkafka.KafkaTopic(cr, r.Scheme, topics[i])
 		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, kafkaTopicCR, mutateFunc); err != nil {
@@ -762,7 +762,7 @@ func (r *ManageIQReconciler) generateSecrets(cr *miqv1alpha1.ManageIQ) error {
 }
 
 func (r *ManageIQReconciler) migrateCR(cr *miqv1alpha1.ManageIQ) error {
-	manageiq, mutateFunc := cr_migration.Migrate(cr)
+	manageiq, mutateFunc := cr_migration.Migrate(cr, r.Client, r.Scheme)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, manageiq, mutateFunc); err != nil {
 		return err
 	} else if result != controllerutil.OperationResultNone {
