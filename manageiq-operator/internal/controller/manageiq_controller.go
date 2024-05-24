@@ -126,6 +126,10 @@ func (r *ManageIQReconciler) Reconcile(ctx context.Context, request ctrl.Request
 	if e := r.generatePostgresqlResources(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
+	logger.Info("Reconciling the Opentofu runner resources...")
+	if e := r.generateOpentofuRunnerResources(miqInstance); e != nil {
+		return reconcile.Result{}, e
+	}
 	logger.Info("Reconciling the HTTPD resources...")
 	if e := r.generateHttpdResources(miqInstance); e != nil {
 		return reconcile.Result{}, e
@@ -473,6 +477,16 @@ func (r *ManageIQReconciler) generateMemcachedResources(cr *miqv1alpha1.ManageIQ
 		logger.Info("Service has been reconciled", "component", "memcached", "result", result)
 	}
 
+	return nil
+}
+
+func (r *ManageIQReconciler) generateOpentofuRunnerResources(cr *miqv1alpha1.ManageIQ) error {
+	tfRunnerService, mutateFunc := miqtool.TfRunnerService(cr, r.Scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, tfRunnerService, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("Service has been reconciled", "component", "opentofu-runner", "result", result)
+	}
 	return nil
 }
 
