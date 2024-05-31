@@ -37,8 +37,11 @@ func ManageAppSecret(cr *miqv1alpha1.ManageIQ, client client.Client, scheme *run
 }
 
 func defaultAppSecret(cr *miqv1alpha1.ManageIQ) *corev1.Secret {
+	encryptionKey := generateEncryptionKey()
+	token, _ := generateJwtTokenToken(encryptionKey)
 	secretData := map[string]string{
-		"encryption-key": generateEncryptionKey(),
+		"encryption-key": encryptionKey,
+		"token":          token,
 	}
 
 	secret := &corev1.Secret{

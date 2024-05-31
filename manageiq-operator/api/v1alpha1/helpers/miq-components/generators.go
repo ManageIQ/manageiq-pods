@@ -5,6 +5,8 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"regexp"
+
+	"github.com/golang-jwt/jwt"
 )
 
 func randomBytes(n int) []byte {
@@ -30,4 +32,16 @@ func generatePassword() string {
 			return password
 		}
 	}
+}
+
+func generateJwtTokenToken(secretKey string) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"name":  "opentofu-runner",
+		"admin": true,
+	})
+	tokenString, err := token.SignedString([]byte(secretKey))
+	if err != nil {
+		return "error generating JWT token", err
+	}
+	return tokenString, nil
 }
