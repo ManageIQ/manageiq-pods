@@ -40,8 +40,8 @@ func defaultAppSecret(cr *miqv1alpha1.ManageIQ) *corev1.Secret {
 	encryptionKey := generateEncryptionKey()
 	token, _ := generateJwtTokenToken(encryptionKey)
 	secretData := map[string]string{
-		"encryption-key": encryptionKey,
-		"token":          token,
+		"encryption-key":         encryptionKey,
+		"terraform-runner-token": token,
 	}
 
 	secret := &corev1.Secret{
