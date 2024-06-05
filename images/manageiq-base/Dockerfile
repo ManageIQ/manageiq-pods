@@ -41,8 +41,8 @@ RUN curl -L https://releases.ansible.com/ansible-runner/ansible-runner.el8.repo 
 RUN dnf -y remove *subscription-manager* && \
     if [ ${ARCH} != "s390x" ] ; then \
       dnf -y install \
-        http://mirror.centos.org/centos/8-stream/BaseOS/${ARCH}/os/Packages/centos-stream-repos-8-2.el8.noarch.rpm \
-        http://mirror.centos.org/centos/8-stream/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-8-2.el8.noarch.rpm && \
+        https://rpm.manageiq.org/builds/centos/centos-stream-repos-8-6.1.el8.noarch.rpm \
+        https://rpm.manageiq.org/builds/centos/centos-gpg-keys-8-6.1.el8.noarch.rpm && \
       dnf config-manager --setopt=appstream*.exclude=*httpd* --save \
     ; fi && \
     dnf -y install \
