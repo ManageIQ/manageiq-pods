@@ -605,7 +605,7 @@ func HttpdDbusAPIService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*cor
 }
 
 func ManageTlsSecret(cr *miqv1alpha1.ManageIQ, client client.Client, scheme *runtime.Scheme) (*corev1.Secret, controllerutil.MutateFn, error) {
-	secretKey := types.NamespacedName{Namespace: cr.ObjectMeta.Namespace, Name: cr.Spec.DatabaseSecret}
+	secretKey := types.NamespacedName{Namespace: cr.ObjectMeta.Namespace, Name: tlsSecretName(cr)}
 	secret := &corev1.Secret{}
 	secretErr := client.Get(context.TODO(), secretKey, secret)
 	var err error
