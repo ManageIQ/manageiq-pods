@@ -138,30 +138,6 @@ func imagePullSecretName(cr *miqv1alpha1.ManageIQ, client client.Client) string 
 	return cr.Spec.ImagePullSecret
 }
 
-func kafkaImage(cr *miqv1alpha1.ManageIQ) string {
-	if cr.Spec.KafkaImage == "" {
-		return kafkaImageName(cr) + ":" + kafkaImageTag(cr)
-	} else {
-		return cr.Spec.KafkaImage
-	}
-}
-
-func kafkaImageName(cr *miqv1alpha1.ManageIQ) string {
-	if cr.Spec.KafkaImageName == "" {
-		return "docker.io/bitnami/kafka"
-	} else {
-		return cr.Spec.KafkaImageName
-	}
-}
-
-func kafkaImageTag(cr *miqv1alpha1.ManageIQ) string {
-	if cr.Spec.KafkaImageTag == "" {
-		return "latest"
-	} else {
-		return cr.Spec.KafkaImageTag
-	}
-}
-
 func kafkaVolumeCapacity(cr *miqv1alpha1.ManageIQ) string {
 	if cr.Spec.KafkaVolumeCapacity == "" {
 		return "2Gi"
@@ -321,30 +297,6 @@ func serverGuid(cr *miqv1alpha1.ManageIQ, c *client.Client) string {
 	}
 }
 
-func zookeeperImage(cr *miqv1alpha1.ManageIQ) string {
-	if cr.Spec.ZookeeperImage == "" {
-		return zookeeperImageName(cr) + ":" + zookeeperImageTag(cr)
-	} else {
-		return cr.Spec.ZookeeperImage
-	}
-}
-
-func zookeeperImageName(cr *miqv1alpha1.ManageIQ) string {
-	if cr.Spec.ZookeeperImageName == "" {
-		return "docker.io/bitnami/zookeeper"
-	} else {
-		return cr.Spec.ZookeeperImageName
-	}
-}
-
-func zookeeperImageTag(cr *miqv1alpha1.ManageIQ) string {
-	if cr.Spec.ZookeeperImageTag == "" {
-		return "latest"
-	} else {
-		return cr.Spec.ZookeeperImageTag
-	}
-}
-
 func zookeeperVolumeCapacity(cr *miqv1alpha1.ManageIQ) string {
 	if cr.Spec.ZookeeperVolumeCapacity == "" {
 		return "1Gi"
@@ -373,7 +325,6 @@ func ManageCR(cr *miqv1alpha1.ManageIQ, c *client.Client) (*miqv1alpha1.ManageIQ
 		cr.Spec.HttpdAuthenticationType = httpdAuthenticationType(cr)
 		cr.Spec.HttpdImage = httpdImage(cr)
 		cr.Spec.ImagePullSecret = imagePullSecretName(cr, *c)
-		cr.Spec.KafkaImage = kafkaImage(cr)
 		cr.Spec.KafkaVolumeCapacity = kafkaVolumeCapacity(cr)
 		cr.Spec.MemcachedImage = memcachedImage(cr)
 		cr.Spec.MemcachedMaxConnection = memcachedMaxConnection(cr)
@@ -386,7 +337,6 @@ func ManageCR(cr *miqv1alpha1.ManageIQ, c *client.Client) (*miqv1alpha1.ManageIQ
 		cr.Spec.PostgresqlMaxConnections = postgresqlMaxConnections(cr)
 		cr.Spec.PostgresqlSharedBuffers = postgresqlSharedBuffers(cr)
 		cr.Spec.ServerGuid = serverGuid(cr, c)
-		cr.Spec.ZookeeperImage = zookeeperImage(cr)
 		cr.Spec.ZookeeperVolumeCapacity = zookeeperVolumeCapacity(cr)
 
 		addBackupLabel(backupLabelName(cr), &cr.ObjectMeta)

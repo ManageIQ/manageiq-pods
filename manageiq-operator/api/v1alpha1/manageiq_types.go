@@ -143,7 +143,7 @@ type ManageIQSpec struct {
 	// +optional
 	KafkaCpuRequest string `json:"kafkaCpuRequest,omitempty"`
 
-	// Image string used for the kafka deployment
+	// Deprecated: Image string used for the kafka deployment
 	// (default: <KafkaImageName>:<KafkaImageTag>)
 	// +optional
 	KafkaImage string `json:"kafkaImage,omitempty"`
@@ -355,7 +355,7 @@ type ManageIQSpec struct {
 	// +optional
 	ZookeeperCpuRequest string `json:"zookeeperCpuRequest,omitempty"`
 
-	// Image string used for the zookeeper deployment
+	// Deprecated: Image string used for the zookeeper deployment
 	// (default: <ZookeeperImageName>:<ZookeeperImageTag>)
 	// +optional
 	ZookeeperImage string `json:"zookeeperImage,omitempty"`
