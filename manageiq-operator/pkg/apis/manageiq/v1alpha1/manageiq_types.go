@@ -211,6 +211,12 @@ type ManageIQSpec struct {
 	// +optional
 	OIDCOAuthIntrospectionURL string `json:"oidcAuthIntrospectionURL,omitempty"`
 
+	// Enable or disable SSL verification for OIDC authentication introspection
+	// Only used with the openid-connect authentication type.
+	// If not specified, defaults to true
+	// +optional
+	OIDCOAuthIntrospectionSSLVerify *bool `json:"oidcOAuthIntrospectionSSLVerify,omitempty"`
+
 	// URL for the OIDC provider
 	// Only used with the openid-connect authentication type
 	// +optional

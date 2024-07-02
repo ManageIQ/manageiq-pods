@@ -105,6 +105,11 @@ func (in *ManageIQSpec) DeepCopyInto(out *ManageIQSpec) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
+	if in.OIDCOAuthIntrospectionSSLVerify != nil {
+		in, out := &in.OIDCOAuthIntrospectionSSLVerify, &out.OIDCOAuthIntrospectionSSLVerify
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 
