@@ -6,7 +6,7 @@ toolchain go1.22.5
 
 require (
 	github.com/onsi/ginkgo/v2 v2.19.0
-	github.com/onsi/gomega v1.33.1
+	github.com/onsi/gomega v1.34.0
 	github.com/openshift/api v0.0.0-20240711230052-40c9497c12f4
 	github.com/operator-framework/api v0.26.0
 	k8s.io/api v0.30.2
