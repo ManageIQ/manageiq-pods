@@ -7,7 +7,7 @@ toolchain go1.22.5
 require (
 	github.com/onsi/ginkgo/v2 v2.19.1
 	github.com/onsi/gomega v1.34.1
-	github.com/openshift/api v0.0.0-20240724184751-84047ef4a2ce
+	github.com/openshift/api v0.0.0-20240802232323-7461358e2e5c
 	github.com/operator-framework/api v0.26.0
 	k8s.io/api v0.30.3
 	k8s.io/apimachinery v0.30.3
@@ -68,7 +68,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/apiextensions-apiserver v0.30.3 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
-	k8s.io/kube-openapi v0.0.0-20240726031636-6f6746feab9c // indirect
+	k8s.io/kube-openapi v0.0.0-20240730131305-7a9a4e85957e // indirect
 	k8s.io/utils v0.0.0-20240711033017-18e509b52bc8 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect
