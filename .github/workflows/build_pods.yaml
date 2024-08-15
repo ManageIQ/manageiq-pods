@@ -7,7 +7,7 @@ on:
 jobs:
   build_pods:
     if: github.repository_owner == 'ManageIQ'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Go

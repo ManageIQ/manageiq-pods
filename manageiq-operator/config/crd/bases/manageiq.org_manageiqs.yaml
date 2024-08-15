@@ -146,7 +146,7 @@ spec:
                 type: string
               kafkaImage:
                 description: |-
-                  Image string used for the kafka deployment
+                  Deprecated: Image string used for the kafka deployment
                   (default: <KafkaImageName>:<KafkaImageTag>)
                 type: string
               kafkaImageName:
@@ -338,7 +338,7 @@ spec:
                 type: string
               zookeeperImage:
                 description: |-
-                  Image string used for the zookeeper deployment
+                  Deprecated: Image string used for the zookeeper deployment
                   (default: <ZookeeperImageName>:<ZookeeperImageTag>)
                 type: string
               zookeeperImageName:

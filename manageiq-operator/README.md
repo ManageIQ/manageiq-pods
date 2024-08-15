@@ -40,7 +40,7 @@ There are three different ways the operator can be run.
   3 - Run your custom image from the registry:
 
     ```bash
-    $ oc create -f deploy/operator.yaml
+    $ oc create -f config/manager/manager.yaml
     ```
 
 + #### Option 3: Run locally (on your local laptop/computer, outside of the cluster)
