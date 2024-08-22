@@ -10,6 +10,8 @@ tcp_keepalives_count = 9
 tcp_keepalives_idle = 3
 tcp_keepalives_interval = 75
 
+password_encryption = scram-sha-256
+
 #------------------------------------------------------------------------------
 # RESOURCE USAGE (except WAL)
 #------------------------------------------------------------------------------
