@@ -198,7 +198,7 @@ LoadModule auth_mellon_module modules/mod_auth_mellon.so
   MellonEndpointPath         "/saml2"
 
   MellonUser                 username
-  MellonMergeEnvVars         On
+  MellonMergeEnvVars         On ";"
 
   MellonSetEnvNoPrefix       "REMOTE_USER"            username
   MellonSetEnvNoPrefix       "REMOTE_USER_EMAIL"      email
