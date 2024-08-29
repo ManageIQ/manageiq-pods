@@ -38,6 +38,7 @@ import (
 	miqtool "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/helpers/miq-components"
 	miqkafka "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/helpers/miq-components/kafka"
 	miqutilsv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/miqutils"
+	routev1 "github.com/openshift/api/route/v1"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -425,7 +426,8 @@ func (r *ManageIQReconciler) generateHttpdResources(cr *miqv1alpha1.ManageIQ) er
 		return err
 	}
 
-	if internalCerts := miqtool.InternalCertificatesSecret(cr, r.Client); internalCerts.Data["httpd_crt"] != nil {
+	// Prefer routes if available, otherwise use ingress
+	if err := r.Client.List(context.TODO(), &routev1.RouteList{}); err == nil {
 		httpdRoute, mutateFunc := miqtool.Route(cr, r.Scheme, r.Client)
 		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, httpdRoute, mutateFunc); err != nil {
 			return err
