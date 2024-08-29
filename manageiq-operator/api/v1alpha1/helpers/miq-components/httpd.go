@@ -74,12 +74,12 @@ func Route(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, client client.Clien
 
 		route.Spec.Host = cr.Spec.ApplicationDomain
 
-		var public = tlsSecret(cr, client)
-		route.Spec.TLS.Certificate = string(public.Data["tls.crt"])
-		route.Spec.TLS.Key = string(public.Data["tls.key"])
-
-		internalCerts := InternalCertificatesSecret(cr, client)
-		route.Spec.TLS.DestinationCACertificate = string(internalCerts.Data["root_crt"])
+		if internalCerts := InternalCertificatesSecret(cr, client); internalCerts.Data["httpd_crt"] != nil {
+			route.Spec.TLS.DestinationCACertificate = string(internalCerts.Data["root_crt"])
+			route.Spec.TLS.Termination = "reencrypt"
+		} else {
+			route.Spec.TLS.Termination = "edge"
+		}
 
 		return nil
 	}
