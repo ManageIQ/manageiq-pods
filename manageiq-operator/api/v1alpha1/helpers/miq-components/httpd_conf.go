@@ -130,7 +130,7 @@ func httpdExternalAuthConf(enableLocalLogin bool) string {
 		httpdAuthLoginFormConf(),
 		httpdAuthApplicationAPIConf("Basic", "\"External Authentication (httpd) for API\"", apiExtraConfig, enableLocalLogin),
 		httpdAuthLookupUserDetailsConf(),
-		httpdAuthRemoteUserConf(),
+		httpdAuthRemoteUserConf(":"),
 	)
 }
 
@@ -172,7 +172,7 @@ func httpdADAuthConf(enableLocalLogin bool) string {
 		httpdAuthLoginFormConf(),
 		httpdAuthApplicationAPIConf("Basic", "\"External Authentication (httpd) for API\"", apiExtraConfig, enableLocalLogin),
 		httpdAuthLookupUserDetailsConf(),
-		httpdAuthRemoteUserConf(),
+		httpdAuthRemoteUserConf(":"),
 	)
 }
 
@@ -216,7 +216,7 @@ LoadModule auth_mellon_module modules/mod_auth_mellon.so
 
 %s
 `
-	return fmt.Sprintf(s, httpdAuthRemoteUserConf())
+	return fmt.Sprintf(s, httpdAuthRemoteUserConf(";"))
 }
 
 func httpdOIDCAuthConf(spec *miqv1alpha1.ManageIQSpec) string {
@@ -281,14 +281,15 @@ RequestHeader unset X-REMOTE_USER
 RequestHeader unset X_REMOTE-USER
 RequestHeader unset X_REMOTE_USER
 
-RequestHeader set X_REMOTE_USER           %%{OIDC_CLAIM_PREFERRED_USERNAME}e env=OIDC_CLAIM_PREFERRED_USERNAME
-RequestHeader set X_EXTERNAL_AUTH_ERROR   %%{EXTERNAL_AUTH_ERROR}e           env=EXTERNAL_AUTH_ERROR
-RequestHeader set X_REMOTE_USER_EMAIL     %%{OIDC_CLAIM_EMAIL}e              env=OIDC_CLAIM_EMAIL
-RequestHeader set X_REMOTE_USER_FIRSTNAME %%{OIDC_CLAIM_GIVEN_NAME}e         env=OIDC_CLAIM_GIVEN_NAME
-RequestHeader set X_REMOTE_USER_LASTNAME  %%{OIDC_CLAIM_FAMILY_NAME}e        env=OIDC_CLAIM_FAMILY_NAME
-RequestHeader set X_REMOTE_USER_FULLNAME  %%{OIDC_CLAIM_NAME}e               env=OIDC_CLAIM_NAME
-RequestHeader set X_REMOTE_USER_GROUPS    %%{OIDC_CLAIM_GROUPS}e             env=OIDC_CLAIM_GROUPS
-RequestHeader set X_REMOTE_USER_DOMAIN    %%{OIDC_CLAIM_DOMAIN}e             env=OIDC_CLAIM_DOMAIN
+RequestHeader set X_REMOTE_USER                 %%{OIDC_CLAIM_PREFERRED_USERNAME}e env=OIDC_CLAIM_PREFERRED_USERNAME
+RequestHeader set X_EXTERNAL_AUTH_ERROR         %%{EXTERNAL_AUTH_ERROR}e           env=EXTERNAL_AUTH_ERROR
+RequestHeader set X_REMOTE_USER_EMAIL           %%{OIDC_CLAIM_EMAIL}e              env=OIDC_CLAIM_EMAIL
+RequestHeader set X_REMOTE_USER_FIRSTNAME       %%{OIDC_CLAIM_GIVEN_NAME}e         env=OIDC_CLAIM_GIVEN_NAME
+RequestHeader set X_REMOTE_USER_LASTNAME        %%{OIDC_CLAIM_FAMILY_NAME}e        env=OIDC_CLAIM_FAMILY_NAME
+RequestHeader set X_REMOTE_USER_FULLNAME        %%{OIDC_CLAIM_NAME}e               env=OIDC_CLAIM_NAME
+RequestHeader set X_REMOTE_USER_GROUPS          %%{OIDC_CLAIM_GROUPS}e             env=OIDC_CLAIM_GROUPS
+RequestHeader set X_REMOTE_USER_GROUP_DELIMITER ","
+RequestHeader set X_REMOTE_USER_DOMAIN          %%{OIDC_CLAIM_DOMAIN}e             env=OIDC_CLAIM_DOMAIN
 `
 	return fmt.Sprintf(
 		s,
@@ -366,22 +367,24 @@ func httpdAuthLookupUserDetailsConf() string {
 `
 }
 
-func httpdAuthRemoteUserConf() string {
-	return `
+func httpdAuthRemoteUserConf(delimiter string) string {
+	s := `
 RequestHeader unset X-REMOTE-USER
 RequestHeader unset X-REMOTE_USER
 RequestHeader unset X_REMOTE-USER
 RequestHeader unset X_REMOTE_USER
 
-RequestHeader set X_REMOTE_USER           %{REMOTE_USER}e           env=REMOTE_USER
-RequestHeader set X_EXTERNAL_AUTH_ERROR   %{EXTERNAL_AUTH_ERROR}e   env=EXTERNAL_AUTH_ERROR
-RequestHeader set X_REMOTE_USER_EMAIL     %{REMOTE_USER_EMAIL}e     env=REMOTE_USER_EMAIL
-RequestHeader set X_REMOTE_USER_FIRSTNAME %{REMOTE_USER_FIRSTNAME}e env=REMOTE_USER_FIRSTNAME
-RequestHeader set X_REMOTE_USER_LASTNAME  %{REMOTE_USER_LASTNAME}e  env=REMOTE_USER_LASTNAME
-RequestHeader set X_REMOTE_USER_FULLNAME  %{REMOTE_USER_FULLNAME}e  env=REMOTE_USER_FULLNAME
-RequestHeader set X_REMOTE_USER_GROUPS    %{REMOTE_USER_GROUPS}e    env=REMOTE_USER_GROUPS
-RequestHeader set X_REMOTE_USER_DOMAIN    %{REMOTE_USER_DOMAIN}e    env=REMOTE_USER_DOMAIN
+RequestHeader set X_REMOTE_USER                 %%{REMOTE_USER}e           env=REMOTE_USER
+RequestHeader set X_EXTERNAL_AUTH_ERROR         %%{EXTERNAL_AUTH_ERROR}e   env=EXTERNAL_AUTH_ERROR
+RequestHeader set X_REMOTE_USER_EMAIL           %%{REMOTE_USER_EMAIL}e     env=REMOTE_USER_EMAIL
+RequestHeader set X_REMOTE_USER_FIRSTNAME       %%{REMOTE_USER_FIRSTNAME}e env=REMOTE_USER_FIRSTNAME
+RequestHeader set X_REMOTE_USER_LASTNAME        %%{REMOTE_USER_LASTNAME}e  env=REMOTE_USER_LASTNAME
+RequestHeader set X_REMOTE_USER_FULLNAME        %%{REMOTE_USER_FULLNAME}e  env=REMOTE_USER_FULLNAME
+RequestHeader set X_REMOTE_USER_GROUPS          %%{REMOTE_USER_GROUPS}e    env=REMOTE_USER_GROUPS
+RequestHeader set X_REMOTE_USER_GROUP_DELIMITER "%s"
+RequestHeader set X_REMOTE_USER_DOMAIN          %%{REMOTE_USER_DOMAIN}e    env=REMOTE_USER_DOMAIN
 `
+	return fmt.Sprintf(s, delimiter)
 }
 
 func uiHttpdConfig(protocol string) string {
