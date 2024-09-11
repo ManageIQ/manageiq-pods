@@ -30,6 +30,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
@@ -246,6 +247,31 @@ func (r *ManageIQReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&corev1.Secret{}).
 		Owns(&corev1.Service{}).
 		Owns(&networkingv1.NetworkPolicy{}).
+		Watches(&corev1.Secret{}, handler.TypedEnqueueRequestsFromMapFunc(func(ctx context.Context, obj client.Object) []reconcile.Request {
+			manageiqs := &miqv1alpha1.ManageIQList{}
+			client := mgr.GetClient()
+
+			err := client.List(context.TODO(), manageiqs)
+			if err != nil {
+				return []reconcile.Request{}
+			}
+
+			var reconcileRequests []reconcile.Request
+
+			for _, miq := range manageiqs.Items {
+				if miq.Spec.InternalCertificatesSecret == obj.GetName() {
+					manageiqToReconcile := reconcile.Request{
+						NamespacedName: types.NamespacedName{
+							Name:      miq.Name,
+							Namespace: miq.Namespace,
+						},
+					}
+
+					reconcileRequests = append(reconcileRequests, manageiqToReconcile)
+				}
+			}
+			return reconcileRequests
+		})).
 		Complete(r)
 }
 
