@@ -63,17 +63,18 @@ func addResourceReqs(memLimit, memReq, cpuLimit, cpuReq string, c *corev1.Contai
 }
 
 func addAppLabel(appName string, meta *metav1.ObjectMeta) {
-	if meta.Labels == nil {
-		meta.Labels = make(map[string]string)
-	}
-	meta.Labels["app"] = appName
+	AddLabel("app", appName, meta)
 }
 
 func addBackupLabel(backupLabel string, meta *metav1.ObjectMeta) {
+	AddLabel(backupLabel, "t", meta)
+}
+
+func AddLabel(key string, value string, meta *metav1.ObjectMeta) {
 	if meta.Labels == nil {
 		meta.Labels = make(map[string]string)
 	}
-	meta.Labels[backupLabel] = "t"
+	meta.Labels[key] = value
 }
 
 func AddLabels(labels map[string]string, meta *metav1.ObjectMeta) {
