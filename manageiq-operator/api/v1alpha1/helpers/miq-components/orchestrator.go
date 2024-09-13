@@ -293,7 +293,7 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 
 		certSecret := InternalCertificatesSecret(cr, client)
 		if certSecret.Data["root_crt"] != nil {
-			AddLabel("ssl-certificate-resource-version", certSecret.ObjectMeta.ResourceVersion, deployment.Spec.Template.ObjectMeta)
+			AddLabel("ssl-certificate-resource-version", certSecret.ObjectMeta.ResourceVersion, &deployment.Spec.Template.ObjectMeta)
 		}
 		if certSecret.Data["api_crt"] != nil && certSecret.Data["api_key"] != nil {
 			deployment.Spec.Template.Spec.Containers[0].Env = addOrUpdateEnvVar(deployment.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "API_SSL_SECRET_NAME", Value: cr.Spec.InternalCertificatesSecret})
