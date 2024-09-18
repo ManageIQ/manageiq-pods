@@ -479,6 +479,11 @@ func (r *ManageIQReconciler) generateHttpdResources(cr *miqv1alpha1.ManageIQ) er
 		} else if result != controllerutil.OperationResultNone {
 			logger.Info("Route has been reconciled", "component", "httpd", "result", result)
 		}
+
+		ingress := &networkingv1.Ingress{}
+		if err := r.Client.Get(context.TODO(), types.NamespacedName{Namespace: cr.Namespace, Name: "httpd"}, ingress); err == nil {
+			r.Client.Delete(context.TODO(), ingress)
+		}
 	} else {
 		httpdIngress, mutateFunc := miqtool.Ingress(cr, r.Scheme)
 		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, httpdIngress, mutateFunc); err != nil {
