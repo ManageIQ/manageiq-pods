@@ -73,6 +73,10 @@ func Route(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, client client.Clien
 		}
 
 		route.Spec.Host = cr.Spec.ApplicationDomain
+		// This removes the certificate that we previously set on the route and prevents anyone from setting their own.
+		// Removing the certificate on our route will cause it to use the cluster default certificate.
+		route.Spec.TLS.Certificate = ""
+		route.Spec.TLS.Key = ""
 
 		if internalCerts := InternalCertificatesSecret(cr, client); internalCerts.Data["httpd_crt"] != nil {
 			route.Spec.TLS.DestinationCACertificate = string(internalCerts.Data["root_crt"])
