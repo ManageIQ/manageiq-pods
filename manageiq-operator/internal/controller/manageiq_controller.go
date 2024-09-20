@@ -29,6 +29,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -239,13 +240,14 @@ func (r *ManageIQReconciler) updateManageIQStatus(cr *miqv1alpha1.ManageIQ) erro
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *ManageIQReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).
+	controller := ctrl.NewControllerManagedBy(mgr).
 		For(&miqv1alpha1.ManageIQ{}).
 		Owns(&appsv1.Deployment{}).
 		Owns(&corev1.ConfigMap{}).
 		Owns(&corev1.PersistentVolumeClaim{}).
 		Owns(&corev1.Secret{}).
 		Owns(&corev1.Service{}).
+		Owns(&networkingv1.Ingress{}).
 		Owns(&networkingv1.NetworkPolicy{}).
 		Watches(&corev1.Secret{}, handler.TypedEnqueueRequestsFromMapFunc(func(ctx context.Context, obj client.Object) []reconcile.Request {
 			manageiqs := &miqv1alpha1.ManageIQList{}
@@ -271,8 +273,25 @@ func (r *ManageIQReconciler) SetupWithManager(mgr ctrl.Manager) error {
 				}
 			}
 			return reconcileRequests
-		})).
-		Complete(r)
+		}))
+
+	if cfg, err := config.GetConfig(); err == nil {
+		if client, err := client.New(cfg, client.Options{Scheme: r.Scheme}); err == nil {
+			// Watch Routes if we are running in OpenShift
+			if err := client.List(context.TODO(), &routev1.RouteList{}); err == nil {
+				logger.Info("Adding watch for Routes!")
+				controller = controller.Owns(&routev1.Route{})
+			} else {
+				logger.Info(fmt.Sprintf("Skipping watch for Routes! %s", err))
+			}
+		} else {
+			logger.Info(fmt.Sprintf("Failed to create a client! %s", err))
+		}
+	} else {
+		logger.Info(fmt.Sprintf("Failed to get client config! %s", err))
+	}
+
+	return controller.Complete(r)
 }
 
 var logger = log.Log.WithName("controller_manageiq")
@@ -459,6 +478,11 @@ func (r *ManageIQReconciler) generateHttpdResources(cr *miqv1alpha1.ManageIQ) er
 			return err
 		} else if result != controllerutil.OperationResultNone {
 			logger.Info("Route has been reconciled", "component", "httpd", "result", result)
+		}
+
+		ingress := &networkingv1.Ingress{}
+		if err := r.Client.Get(context.TODO(), types.NamespacedName{Namespace: cr.Namespace, Name: "httpd"}, ingress); err == nil {
+			r.Client.Delete(context.TODO(), ingress)
 		}
 	} else {
 		httpdIngress, mutateFunc := miqtool.Ingress(cr, r.Scheme)
