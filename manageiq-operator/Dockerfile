@@ -1,5 +1,10 @@
 # Build the manager binary
-FROM docker.io/library/golang:1.23 as builder
+FROM registry.access.redhat.com/ubi9/ubi-minimal as builder
+
+RUN microdnf -y install gzip tar && \
+    curl -f -L https://go.dev/dl/go1.23.1.linux-amd64.tar.gz | tar -C / -xzf -
+
+ENV PATH=/go/bin:/root/.local/bin:/root/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -14,9 +19,11 @@ COPY cmd/main.go cmd/main.go
 COPY api/ api/
 COPY internal/controller/ internal/controller/
 
-# Build
+# Build go executable
 RUN CGO_ENABLED=0 go build -a -o manager cmd/main.go
 
+
+# Build operator image
 FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
 
 LABEL name="ManageIQ Operator" \
