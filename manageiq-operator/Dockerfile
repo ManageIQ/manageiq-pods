@@ -4,12 +4,9 @@ FROM registry.access.redhat.com/ubi9/ubi-minimal as builder
 COPY go.mod /go.mod
 
 RUN microdnf -y install gzip jq tar && \
-    arch=$(uname -m) && \
-    if [ ${arch} == "x86_64" ] ; then \
-      arch="amd64" \
-    ; fi && \
+    arch=$(uname -m | sed 's/x86_64/amd64/') && \
     goversion=$(sed -nr 's/^go\s+(.*)/go\1/p' /go.mod) && \
-    file=$(curl -s 'https://go.dev/dl/?mode=json&include=all' | jq -r --arg GOVERSION "${goversion}" --arg ARCH "${arch}" 'map(select(.version | startswith($GOVERSION)))[0].files[] | select(.arch == $ARCH and .os == "linux").filename') && \
+    file=$(curl -s 'https://go.dev/dl/?mode=json&include=all' | jq -r --arg GOVERSION "${goversion}" --arg ARCH "${arch}" 'first(.[] | select(.version | startswith($GOVERSION))).files[] | select(.arch == $ARCH and .os == "linux").filename') && \
     curl -s -f -L https://go.dev/dl/${file} | tar -C / -xzf -
 
 ENV PATH=/go/bin:/root/.local/bin:/root/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
