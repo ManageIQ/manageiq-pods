@@ -1,8 +1,16 @@
 # Build the manager binary
 FROM registry.access.redhat.com/ubi9/ubi-minimal as builder
 
-RUN microdnf -y install gzip tar && \
-    curl -f -L https://go.dev/dl/go1.23.1.linux-amd64.tar.gz | tar -C / -xzf -
+COPY go.mod /go.mod
+
+RUN microdnf -y install gzip jq tar && \
+    arch=$(uname -m) && \
+    if [ ${arch} == "x86_64" ] ; then \
+      arch="amd64" \
+    ; fi && \
+    goversion=$(sed -nr 's/^go\s+(.*)/go\1/p' /go.mod) && \
+    file=$(curl -s 'https://go.dev/dl/?mode=json&include=all' | jq -r --arg GOVERSION "${goversion}" --arg ARCH "${arch}" 'map(select(.version | startswith($GOVERSION)))[0].files[] | select(.arch == $ARCH and .os == "linux").filename') && \
+    curl -s -f -L https://go.dev/dl/${file} | tar -C / -xzf -
 
 ENV PATH=/go/bin:/root/.local/bin:/root/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
