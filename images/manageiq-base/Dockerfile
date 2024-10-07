@@ -38,9 +38,9 @@ RUN dnf config-manager --setopt=tsflags=nodocs --setopt=install_weak_deps=False 
       dnf -y --setopt=protected_packages= remove redhat-release && \
       dnf -y remove *subscription-manager* && \
       dnf -y install \
-        http://mirror.centos.org/centos/8-stream/BaseOS/${ARCH}/os/Packages/centos-stream-release-8.6-1.el8.noarch.rpm \
-        http://mirror.centos.org/centos/8-stream/BaseOS/${ARCH}/os/Packages/centos-stream-repos-8-6.el8.noarch.rpm \
-        http://mirror.centos.org/centos/8-stream/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-8-6.el8.noarch.rpm && \
+        https://rpm.manageiq.org/builds/centos/centos-stream-repos-8-6.1.el8.noarch.rpm \
+        https://rpm.manageiq.org/builds/centos/centos-gpg-keys-8-6.1.el8.noarch.rpm && \
+      dnf -y --setopt=protected_packages= swap redhat-release centos-stream-release && \
       dnf config-manager --setopt=appstream*.exclude=*httpd*,mod_ssl --save \
     ; fi && \
     dnf -y install \
