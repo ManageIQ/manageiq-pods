@@ -57,7 +57,7 @@ RUN --mount=type=bind,from=rpms,source=/tmp/rpms,target=/tmp/rpms \
       https://rpm.manageiq.org/release/19-spassky/el9/noarch/manageiq-release-19.0-1.el9.noarch.rpm && \
     if [[ "$RELEASE_BUILD" != "true" ]]; then dnf config-manager --enable manageiq-19-spassky-nightly; fi && \
     if [[ -n "$(ls /tmp/rpms)" ]]; then /usr/local/bin/prepare_local_yum_repo.sh; fi && \
-    dnf -y module enable ruby:3.1 && \
+    dnf -y module enable ruby:3.3 && \
     dnf -y install \
       httpd \
       mod_ssl \
