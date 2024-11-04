@@ -33,7 +33,9 @@ RUN chmod -R g+w /etc/pki/ca-trust && \
 
 # Install dumb-init to be used as the entrypoint
 RUN ARCH=$(uname -m) && \
-    curl -L -o /usr/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_${ARCH} && \
+    URL=$(curl -s https://api.github.com/repos/Yelp/dumb-init/releases/latest | grep "browser_download_url.*_${ARCH}" | grep -o 'https://[^"]*') && \
+    echo $URL && \
+    curl -L -o /usr/bin/dumb-init $URL && \
     chmod +x /usr/bin/dumb-init
 
 COPY container-assets/prepare_local_yum_repo.sh /usr/local/bin
