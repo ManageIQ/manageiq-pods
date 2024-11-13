@@ -33,14 +33,18 @@ COPY rpms/* /tmp/rpms/
 COPY container-assets/create_local_yum_repo.sh /
 COPY container-assets/clean_dnf_rpm /usr/local/bin/
 
-RUN dnf config-manager --setopt=tsflags=nodocs --setopt=install_weak_deps=False --save && \
+RUN ARCH=$(uname -m) && \
+    dnf config-manager --setopt=tsflags=nodocs --setopt=install_weak_deps=False --save && \
+    dnf -y update && \
     if [ ${ARCH} != "s390x" ] ; then \
       dnf -y --setopt=protected_packages= remove redhat-release && \
       dnf -y remove *subscription-manager* && \
-      dnf -y install \
-        https://rpm.manageiq.org/builds/centos/centos-stream-repos-8-6.1.el8.noarch.rpm \
-        https://rpm.manageiq.org/builds/centos/centos-gpg-keys-8-6.1.el8.noarch.rpm && \
-      dnf -y --setopt=protected_packages= swap redhat-release centos-stream-release && \
+      dnf -y install --releasever 8 \
+        http://vault.centos.org/8-stream/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-8-6.el8.noarch.rpm \
+        http://vault.centos.org/8-stream/BaseOS/${ARCH}/os/Packages/centos-stream-release-8.6-1.el8.noarch.rpm \
+        http://vault.centos.org/8-stream/BaseOS/${ARCH}/os/Packages/centos-stream-repos-8-6.el8.noarch.rpm && \
+      sed -i 's/mirrorlist=/#mirrorlist=/g' /etc/yum.repos.d/CentOS-*.repo && \
+      sed -i 's/#baseurl=http:\/\/mirror/baseurl=http:\/\/vault/g' /etc/yum.repos.d/CentOS-*.repo && \
       dnf config-manager --setopt=appstream*.exclude=*httpd*,mod_ssl --save \
     ; fi && \
     dnf -y install \
@@ -51,7 +55,7 @@ RUN dnf config-manager --setopt=tsflags=nodocs --setopt=install_weak_deps=False 
     dnf -y update && \
     dnf -y module enable postgresql:13 ruby:3.0 && \
     if [[ "$RELEASE_BUILD" != "true" ]]; then dnf config-manager --enable manageiq-17-quinteros-nightly; fi && \
-    dnf config-manager --setopt=ubi-8-*.exclude=dracut*,net-snmp*,redhat-release* --save && \
+    dnf config-manager --setopt=ubi-8-*.exclude=dracut*,net-snmp*,redhat-release*,ruby* --save && \
     if [[ "$LOCAL_RPM" = "true" ]]; then /create_local_yum_repo.sh; fi && \
     dnf -y install \
       ${RPM_PREFIX}-pods \
