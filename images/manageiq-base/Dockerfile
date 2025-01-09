@@ -52,7 +52,7 @@ RUN dnf -y remove *subscription-manager* && \
     rm -f /etc/yum.repos.d/ovirt-4.4-dependencies.repo && \
     dnf -y module enable ruby:2.6 && \
     if [[ "$RELEASE_BUILD" != "true" ]]; then dnf config-manager --enable manageiq-13-morphy-nightly; fi && \
-    dnf config-manager --setopt=ubi-8-*.exclude=dracut*,net-snmp*,perl-*,redhat-release* --save && \
+    dnf config-manager --setopt=ubi-8-*.exclude=dracut*,net-snmp*,redhat-release* --save && \
     if [[ "$LOCAL_RPM" = "true" ]]; then /create_local_yum_repo.sh; fi && \
     dnf -y --setopt=tsflags=nodocs install \
       ${RPM_PREFIX}-pods          \
