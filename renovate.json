@@ -1,8 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:base"
-  ],
+  "inheritConfig": true,
+  "inheritConfigRepoName": "manageiq/renovate-config",
   "ignoreDeps": [
     "github.com/openshift/api"
   ],
