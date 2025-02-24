@@ -2,6 +2,7 @@ package miqtools
 
 import (
 	"context"
+	"maps"
 
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
 	miqutilsv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/miqutils"
@@ -177,6 +178,9 @@ func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, client client.Client, scheme
 		"name": "postgresql",
 		"app":  cr.Spec.AppName,
 	}
+	deploymentSelectorLabels := map[string]string{}
+	maps.Copy(deploymentLabels, deploymentSelectorLabels)
+
 	var initialDelaySecs int32 = 60
 
 	container := corev1.Container{
@@ -225,7 +229,7 @@ func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, client client.Client, scheme
 		},
 		Spec: appsv1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
-				MatchLabels: deploymentLabels,
+				MatchLabels: deploymentSelectorLabels,
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{

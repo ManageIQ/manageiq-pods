@@ -1,6 +1,8 @@
 package miqtools
 
 import (
+	"maps"
+
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
 	miqutilsv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1/miqutils"
 	appsv1 "k8s.io/api/apps/v1"
@@ -58,10 +60,12 @@ func NewMemcachedDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 		return nil, nil, err
 	}
 
-	podLabels := map[string]string{
+	deploymentLabels := map[string]string{
 		"name": "memcached",
 		"app":  cr.Spec.AppName,
 	}
+	deploymentSelectorLabels := map[string]string{}
+	maps.Copy(deploymentLabels, deploymentSelectorLabels)
 
 	// Values in this deployment are either immutable or used for lookup
 	deployment := &appsv1.Deployment{
@@ -71,12 +75,12 @@ func NewMemcachedDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 		},
 		Spec: appsv1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
-				MatchLabels: podLabels,
+				MatchLabels: deploymentSelectorLabels,
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:   "memcached",
-					Labels: podLabels,
+					Labels: deploymentLabels,
 				},
 				Spec: corev1.PodSpec{},
 			},
