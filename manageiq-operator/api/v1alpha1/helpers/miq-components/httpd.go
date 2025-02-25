@@ -416,7 +416,7 @@ func HttpdDeployment(client client.Client, cr *miqv1alpha1.ManageIQ, scheme *run
 		"name": "httpd",
 	}
 	deploymentSelectorLabels := map[string]string{}
-	maps.Copy(deploymentLabels, deploymentSelectorLabels)
+	maps.Copy(deploymentSelectorLabels, deploymentLabels)
 
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{

@@ -179,7 +179,7 @@ func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, client client.Client, scheme
 		"app":  cr.Spec.AppName,
 	}
 	deploymentSelectorLabels := map[string]string{}
-	maps.Copy(deploymentLabels, deploymentSelectorLabels)
+	maps.Copy(deploymentSelectorLabels, deploymentLabels)
 
 	var initialDelaySecs int32 = 60
 

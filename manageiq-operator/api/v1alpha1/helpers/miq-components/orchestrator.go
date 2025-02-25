@@ -211,7 +211,7 @@ func OrchestratorDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 		"app":  cr.Spec.AppName,
 	}
 	deploymentSelectorLabels := map[string]string{}
-	maps.Copy(deploymentLabels, deploymentSelectorLabels)
+	maps.Copy(deploymentSelectorLabels, deploymentLabels)
 
 	container := corev1.Container{
 		Name:            "orchestrator",
