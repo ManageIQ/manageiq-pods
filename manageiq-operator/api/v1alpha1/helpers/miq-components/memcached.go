@@ -65,7 +65,7 @@ func NewMemcachedDeployment(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, cl
 		"app":  cr.Spec.AppName,
 	}
 	deploymentSelectorLabels := map[string]string{}
-	maps.Copy(deploymentLabels, deploymentSelectorLabels)
+	maps.Copy(deploymentSelectorLabels, deploymentLabels)
 
 	// Values in this deployment are either immutable or used for lookup
 	deployment := &appsv1.Deployment{
