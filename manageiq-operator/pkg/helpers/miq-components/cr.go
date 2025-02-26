@@ -218,6 +218,14 @@ func memcachedSlabPageSize(cr *miqv1alpha1.ManageIQ) string {
 	}
 }
 
+func oidcOAuthIntrospectionSSLVerify(cr *miqv1alpha1.ManageIQ) bool {
+	if cr.Spec.OIDCOAuthIntrospectionSSLVerify == nil {
+		return true
+	} else {
+		return *cr.Spec.OIDCOAuthIntrospectionSSLVerify
+	}
+}
+
 func orchestratorImage(cr *miqv1alpha1.ManageIQ) string {
 	if cr.Spec.OrchestratorImage == "" {
 		return orchestratorImageNamespace(cr) + "/" + orchestratorImageName(cr) + ":" + orchestratorImageTag(cr)
@@ -351,6 +359,7 @@ func ManageCR(cr *miqv1alpha1.ManageIQ, c *client.Client) (*miqv1alpha1.ManageIQ
 		varEnableApplicationLocalLogin := enableApplicationLocalLogin(cr)
 		varEnableSSO := enableSSO(cr)
 		varEnforceWorkerResourceConstraints := enforceWorkerResourceConstraints(cr)
+		varOIDCOAuthIntrospectionSSLVerify := oidcOAuthIntrospectionSSLVerify(cr)
 
 		cr.Spec.AppName = appName(cr)
 		cr.Spec.BackupLabelName = backupLabelName(cr)
@@ -370,6 +379,7 @@ func ManageCR(cr *miqv1alpha1.ManageIQ, c *client.Client) (*miqv1alpha1.ManageIQ
 		cr.Spec.MemcachedMaxConnection = memcachedMaxConnection(cr)
 		cr.Spec.MemcachedMaxMemory = memcachedMaxMemory(cr)
 		cr.Spec.MemcachedSlabPageSize = memcachedSlabPageSize(cr)
+		cr.Spec.OIDCOAuthIntrospectionSSLVerify = &varOIDCOAuthIntrospectionSSLVerify
 		cr.Spec.OrchestratorImage = orchestratorImage(cr)
 		cr.Spec.OrchestratorInitialDelay = orchestratorInitialDelay(cr)
 		cr.Spec.PostgresqlImage = postgresqlImage(cr)
