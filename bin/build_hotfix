@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TAG=latest
+TAG=latest-spassky
 
 ARCH=`uname -m`
 

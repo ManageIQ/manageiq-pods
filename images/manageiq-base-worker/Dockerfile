@@ -1,5 +1,5 @@
 ARG FROM_REPO=docker.io/manageiq
-ARG FROM_TAG=latest
+ARG FROM_TAG=latest-spassky
 
 FROM ${FROM_REPO}/manageiq-base:${FROM_TAG} AS vddk
 

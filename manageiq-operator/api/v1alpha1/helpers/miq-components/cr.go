@@ -228,7 +228,7 @@ func orchestratorImageNamespace(cr *miqv1alpha1.ManageIQ) string {
 
 func orchestratorImageTag(cr *miqv1alpha1.ManageIQ) string {
 	if cr.Spec.OrchestratorImageTag == "" {
-		return "latest"
+		return "latest-spassky"
 	} else {
 		return cr.Spec.OrchestratorImageTag
 	}

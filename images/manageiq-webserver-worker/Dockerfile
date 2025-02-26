@@ -1,5 +1,5 @@
 ARG FROM_REPO=docker.io/manageiq
-ARG FROM_TAG=latest
+ARG FROM_TAG=latest-spassky
 
 # alias stage for rpms
 FROM ${FROM_REPO}/manageiq-rpms:${FROM_TAG} as rpms
