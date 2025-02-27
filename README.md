@@ -98,3 +98,7 @@ bin/build -d . -r manageiq
 ### Including the VMware VDDK in the image build
 
 Download the VMware VDDK library and move or copy it into the `images/manageiq-base-worker/container-assets/` directory before starting the image build.  If found, the image build will copy the files into the desired location and link the shared objects for you.
+
+# License
+
+This project is available as open source under the terms of the [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0).
