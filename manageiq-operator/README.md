@@ -54,3 +54,7 @@ There are three different ways the operator can be run.
 ## Customizing the installation
 
 See [official documentation](https://www.manageiq.org/docs/reference/latest/installing_on_kubernetes/index.html)
+
+# License
+
+This project is available as open source under the terms of the [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0).
