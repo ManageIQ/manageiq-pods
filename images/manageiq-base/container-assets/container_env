@@ -1,6 +1,12 @@
 #!/bin/bash
 
-[[ -n "$(ls -A /etc/pki/ca-trust/source/anchors)" ]] && update-ca-trust
+if [[ -n "$(ls -A /etc/pki/ca-trust/source/anchors)" ]]; then
+  # Extract to a tmpdir to avoid: p11-kit: couldn't make directory writable: /etc/pki/ca-trust/extracted/pem/directory-hash: Unknown error 1
+  mkdir /tmp/extracted
+  update-ca-trust extract -o /tmp/extracted/
+  rm -rf /etc/pki/ca-trust/extracted/*
+  mv /tmp/extracted/* /etc/pki/ca-trust/extracted/
+fi
 
 [[ -s /etc/default/evm ]] && source /etc/default/evm
 
