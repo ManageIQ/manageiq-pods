@@ -38,7 +38,7 @@ COPY container-assets/create_local_yum_repo.sh /
 
 RUN curl -L https://releases.ansible.com/ansible-runner/ansible-runner.el8.repo > /etc/yum.repos.d/ansible-runner.repo
 
-RUN dnf -y remove *subscription-manager* && \
+RUN sed -i 's/enabled=1/enabled=0/g' /etc/dnf/plugins/subscription-manager.conf && \
     if [ ${ARCH} != "s390x" ] ; then \
       dnf -y install \
         https://rpm.manageiq.org/builds/centos/centos-stream-repos-8-6.1.el8.noarch.rpm \
