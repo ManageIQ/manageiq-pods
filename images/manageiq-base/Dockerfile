@@ -42,11 +42,11 @@ COPY container-assets/prepare_local_yum_repo.sh /usr/local/bin
 COPY container-assets/clean_dnf_rpm /usr/local/bin/
 
 RUN --mount=type=bind,from=rpms,source=/tmp/rpms,target=/tmp/rpms \
-    dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs update && \
+    sed -i 's/enabled=1/enabled=0/g' /etc/dnf/plugins/subscription-manager.conf && \
+    dnf -y --setopt=tsflags=nodocs update && \
     ARCH=$(uname -m) && \
     dnf config-manager --setopt=tsflags=nodocs --setopt=install_weak_deps=False --save && \
     dnf -y --setopt=protected_packages= remove redhat-release && \
-    dnf -y remove *subscription-manager* && \
     dnf -y install \
       http://mirror.stream.centos.org/9-stream/BaseOS/${ARCH}/os/Packages/centos-stream-release-9.0-24.el9.noarch.rpm \
       http://mirror.stream.centos.org/9-stream/BaseOS/${ARCH}/os/Packages/centos-stream-repos-9.0-24.el9.noarch.rpm \

@@ -5,9 +5,9 @@ RUN  rm -f /tmp/rpms/.gitkeep
 
 RUN if [[ -n "$(ls /tmp/rpms)" ]]; then \
       ARCH=$(uname -m) && \
+      sed -i 's/enabled=1/enabled=0/g' /etc/dnf/plugins/subscription-manager.conf && \
       dnf config-manager --setopt=tsflags=nodocs --setopt=install_weak_deps=False --save && \
       dnf -y --setopt=protected_packages= remove redhat-release && \
-      dnf -y remove *subscription-manager* && \
       dnf -y install \
         http://mirror.stream.centos.org/9-stream/BaseOS/${ARCH}/os/Packages/centos-stream-release-9.0-24.el9.noarch.rpm \
         http://mirror.stream.centos.org/9-stream/BaseOS/${ARCH}/os/Packages/centos-stream-repos-9.0-24.el9.noarch.rpm \
