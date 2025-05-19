@@ -39,41 +39,41 @@ Options SymLinksIfOwnerMatch
   RequestHeader set Host %[1]s
   RequestHeader set X-Forwarded-Host %[1]s
 
+  # Send API requests to the API pods
+  ProxyPass /api %[2]s://web-service:3000/api
+  ProxyPassReverse /api %[2]s://web-service:3000/api
+
+  # Send Notifications requests to the UI pods
   RewriteCond %%{REQUEST_URI}     ^/ws/notifications [NC]
   RewriteCond %%{HTTP:UPGRADE}    ^websocket$ [NC]
   RewriteCond %%{HTTP:CONNECTION} ^Upgrade$   [NC]
-  RewriteRule .* %[2]s://ui:3000%%{REQUEST_URI}  [P,QSA,L]
-  ProxyPassReverse /ws/notifications %[2]s://ui:3000/ws/notifications
+  RewriteRule .* %[3]s://ui:3000%%{REQUEST_URI}  [P,QSA,L]
+  ProxyPassReverse /ws/notifications %[3]s://ui:3000/ws/notifications
 
-  RewriteCond %%{REQUEST_URI} !^/api
-
-  # For httpd, some ErrorDocuments must by served by the httpd pod
-  RewriteCond %%{REQUEST_URI} !^/proxy_pages
-
-  # For SAML /saml2 is only served by mod_auth_mellon in the httpd pod
-  RewriteCond %%{REQUEST_URI} !^/saml2
-
-  # For OpenID-Connect /openid-connect is only served by mod_auth_openidc
-  RewriteCond %%{REQUEST_URI} !^/openid-connect
-
-  RewriteRule ^/ %[3]s://ui:3000%%{REQUEST_URI} [P,QSA,L]
-  ProxyPassReverse / %[3]s://ui:3000/
-
-  ProxyPass /api %[4]s://web-service:3000/api
-  ProxyPassReverse /api %[4]s://web-service:3000/api
-
+  # Send Console sessions to the remote-console pods
   RewriteCond %%{REQUEST_URI}     ^/ws/console [NC]
   RewriteCond %%{HTTP:UPGRADE}    ^websocket$  [NC]
   RewriteCond %%{HTTP:CONNECTION} ^Upgrade$    [NC]
   RewriteRule .* ws://remote-console:3000%%{REQUEST_URI}  [P,QSA,L]
   ProxyPassReverse /ws/console ws://remote-console:3000/ws/console
 
+  # Send everything else that is not handled locally to the UI pods
+  RewriteCond %%{REQUEST_URI} !^/api
+  # For httpd, some ErrorDocuments must by served by the httpd pod
+  RewriteCond %%{REQUEST_URI} !^/proxy_pages
+  # For SAML /saml2 is only served by mod_auth_mellon in the httpd pod
+  RewriteCond %%{REQUEST_URI} !^/saml2
+  # For OpenID-Connect /openid-connect is only served by mod_auth_openidc
+  RewriteCond %%{REQUEST_URI} !^/openid-connect
+  RewriteRule ^/ %[4]s://ui:3000%%{REQUEST_URI} [P,QSA,L]
+  ProxyPassReverse / %[4]s://ui:3000/
+
   # Ensures httpd stdout/stderr are seen by 'docker logs'.
   ErrorLog  "/dev/stderr"
   CustomLog "/dev/stdout" common
 </VirtualHost>
 `
-	return fmt.Sprintf(s, applicationDomain, uiWebSocketProtocol, uiHttpProtocol, apiHttpProtocol)
+	return fmt.Sprintf(s, applicationDomain, apiHttpProtocol, uiWebSocketProtocol, uiHttpProtocol)
 }
 
 // authentication.conf
