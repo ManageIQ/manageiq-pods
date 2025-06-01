@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/onsi/ginkgo/v2 v2.23.4
 	github.com/onsi/gomega v1.37.0
-	github.com/openshift/api v0.0.0-20250522163634-998cd533c060
+	github.com/openshift/api v0.0.0-20250530162003-e041b5efb8e4
 	github.com/operator-framework/api v0.31.0
 	k8s.io/api v0.33.1
 	k8s.io/apimachinery v0.33.1
@@ -22,7 +22,7 @@ require (
 	github.com/evanphx/json-patch/v5 v5.9.11 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.8.0 // indirect
-	github.com/go-logr/logr v1.4.2 // indirect
+	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/zapr v1.3.0 // indirect
 	github.com/go-openapi/jsonpointer v0.21.1 // indirect
 	github.com/go-openapi/jsonreference v0.21.0 // indirect
