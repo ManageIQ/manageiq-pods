@@ -50,6 +50,9 @@ function check_deployment_status() {
         pushd ${APP_ROOT}
           bin/rake db:migrate
           [ "$?" -ne "0" ] && echo "ERROR: Failed to migrate database" && return 1
+
+          bin/rake evm:automate:reset
+          [ "$?" -ne "0" ] && echo "ERROR: Failed to reset automate database" && return 1
         popd
 
         return 0
