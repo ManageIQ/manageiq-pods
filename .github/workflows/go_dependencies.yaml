@@ -13,6 +13,8 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
+        cache-dependency-path: 'manageiq-operator/go.sum'
+        check-latest: true
         go-version-file: 'manageiq-operator/go.mod'
     - name: Update all dependencies
       run: |
