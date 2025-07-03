@@ -15,7 +15,7 @@ jobs:
       with:
         cache-dependency-path: 'manageiq-operator/go.sum'
         check-latest: true
-        go-version-file: 'manageiq-operator/go.mod'
+        go-version: 'stable'
     - name: Update all dependencies
       run: |
         go get -t -u ./...

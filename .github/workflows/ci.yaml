@@ -28,7 +28,7 @@ jobs:
       with:
         cache-dependency-path: 'manageiq-operator/go.sum'
         check-latest: true
-        go-version-file: manageiq-operator/go.mod
+        go-version: 'stable'
     - name: Run ruby tests
       run: bundle exec rake
     - name: Run golang tests
