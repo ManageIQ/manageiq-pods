@@ -13,7 +13,9 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version-file: 'manageiq-operator/go.mod'
+        cache-dependency-path: 'manageiq-operator/go.sum'
+        check-latest: true
+        go-version: 'stable'
     - name: Docker login
       run: echo ${{ secrets.DOCKER_REGISTRY_PASSWORD }} | docker login docker.io --password-stdin --username ${{ secrets.DOCKER_REGISTRY_USERNAME }}
     - name: Build pods containers
