@@ -1,8 +1,6 @@
 module github.com/ManageIQ/manageiq-pods/manageiq-operator
 
-go 1.24.4
-
-toolchain go1.24.6
+go 1.25.0
 
 require (
 	github.com/onsi/ginkgo/v2 v2.23.4
