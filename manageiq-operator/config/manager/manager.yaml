@@ -2,15 +2,24 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: manageiq-operator
+  namespace: system
+  labels:
+    control-plane: controller-manager
+    app.kubernetes.io/name: memcached-operator
+    app.kubernetes.io/managed-by: kustomize
 spec:
-  replicas: 1
   selector:
     matchLabels:
-      name: manageiq-operator
+      control-plane: controller-manager
+      app.kubernetes.io/name: manageiq-operator
+  replicas: 1
   template:
     metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
       labels:
-        name: manageiq-operator
+        control-plane: controller-manager
+        app.kubernetes.io/name: manageiq-operator
     spec:
       affinity:
         nodeAffinity:
@@ -21,24 +30,57 @@ spec:
                 operator: In
                 values:
                 - amd64
-      serviceAccountName: manageiq-operator
+              - key: kubernetes.io/os
+                operator: In
+                values:
+                - linux
+      securityContext:
+        # Projects are configured by default to adhere to the "restricted" Pod Security Standards.
+        # This ensures that deployments meet the highest security requirements for Kubernetes.
+        # For more details, see: https://kubernetes.io/docs/concepts/security/pod-security-standards/#restricted
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       containers:
-        - name: manageiq-operator
-          image: docker.io/manageiq/manageiq-operator:latest-spassky
-          imagePullPolicy: Always
-          env:
-            - name: WATCH_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
-            - name: POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-          resources:
-            requests:
-              memory: 60Mi
-              cpu: 10m
-            limits:
-              memory: 500Mi
-              cpu: 100m
+      - name: manageiq-operator
+        image: docker.io/manageiq/manageiq-operator:latest
+        imagePullPolicy: Always
+        env:
+        - name: WATCH_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        ports: []
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - "ALL"
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+
+        resources:
+          limits:
+            cpu: 100m
+            memory: 500Mi
+          requests:
+            cpu: 10m
+            memory: 64Mi
+        volumeMounts: []
+      volumes: []
+      serviceAccountName: manageiq-operator
+      terminationGracePeriodSeconds: 10
