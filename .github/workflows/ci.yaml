@@ -26,9 +26,9 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        cache-dependency-path: 'manageiq-operator/go.sum'
+        cache-dependency-path: manageiq-operator/go.sum
         check-latest: true
-        go-version: 'stable'
+        go-version: stable
     - name: Run ruby tests
       run: bundle exec rake
     - name: Run golang tests
