@@ -3,7 +3,7 @@ module github.com/ManageIQ/manageiq-pods/manageiq-operator
 go 1.25.0
 
 require (
-	github.com/onsi/ginkgo/v2 v2.24.0
+	github.com/onsi/ginkgo/v2 v2.25.0
 	github.com/onsi/gomega v1.38.0
 	github.com/openshift/api v0.0.0-20250812222054-88b2b21555f3
 	github.com/operator-framework/api v0.33.0
