@@ -5,14 +5,13 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   labels:
-    app.kubernetes.io/name: <operator-name>
-    app.kubernetes.io/managed-by: kustomize
+    name: manageiq-operator
   name: allow-metrics-traffic
   namespace: system
 spec:
   podSelector:
     matchLabels:
-      control-plane: controller-manager
+      name: manageiq-operator
   policyTypes:
     - Ingress
   ingress:

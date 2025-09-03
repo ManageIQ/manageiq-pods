@@ -4,22 +4,16 @@ metadata:
   name: manageiq-operator
   namespace: system
   labels:
-    control-plane: controller-manager
-    app.kubernetes.io/name: memcached-operator
-    app.kubernetes.io/managed-by: kustomize
+    name: memcached-operator
 spec:
   selector:
     matchLabels:
-      control-plane: controller-manager
-      app.kubernetes.io/name: manageiq-operator
+      name: manageiq-operator
   replicas: 1
   template:
     metadata:
-      annotations:
-        kubectl.kubernetes.io/default-container: manager
       labels:
-        control-plane: controller-manager
-        app.kubernetes.io/name: manageiq-operator
+        name: manageiq-operator
     spec:
       affinity:
         nodeAffinity:
