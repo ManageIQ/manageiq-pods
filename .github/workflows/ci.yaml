@@ -24,7 +24,7 @@ jobs:
         bundler-cache: true
       timeout-minutes: 30
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         cache-dependency-path: manageiq-operator/go.sum
         check-latest: true
