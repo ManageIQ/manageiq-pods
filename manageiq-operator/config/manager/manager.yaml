@@ -2,9 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: manageiq-operator
-  namespace: system
   labels:
-    name: memcached-operator
+    name: manageiq-operator
 spec:
   selector:
     matchLabels:
