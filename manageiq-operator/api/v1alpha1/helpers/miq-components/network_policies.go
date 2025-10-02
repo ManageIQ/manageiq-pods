@@ -1,7 +1,9 @@
 package miqtools
 
 import (
+	"context"
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
+	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,8 +31,14 @@ func NetworkPolicyDefaultDeny(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) 
 	return networkPolicy, f
 }
 
-func NetworkPolicyAllowInboundHttpd(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*networkingv1.NetworkPolicy, controllerutil.MutateFn) {
+func NetworkPolicyAllowInboundHttpd(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, client client.Client) (*networkingv1.NetworkPolicy, controllerutil.MutateFn) {
 	networkPolicy := newNetworkPolicy(cr, "allow-inbound-httpd")
+
+	// Check if we're running in OpenShift
+	openshift := false
+	if err := client.List(context.TODO(), &routev1.RouteList{}); err == nil {
+		openshift = true
+	}
 
 	f := func() error {
 		if err := controllerutil.SetControllerReference(cr, networkPolicy, scheme); err != nil {
@@ -48,8 +56,16 @@ func NetworkPolicyAllowInboundHttpd(cr *miqv1alpha1.ManageIQ, scheme *runtime.Sc
 				networkingv1.NetworkPolicyPeer{},
 			}
 		}
-		networkPolicy.Spec.Ingress[0].From[0].IPBlock = &networkingv1.IPBlock{}
-		networkPolicy.Spec.Ingress[0].From[0].IPBlock.CIDR = "0.0.0.0/0"
+		if openshift == true {
+			networkPolicy.Spec.Ingress[0].From[0].NamespaceSelector = &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"network.openshift.io/policy-group": "ingress",
+				},
+			}
+		} else {
+			networkPolicy.Spec.Ingress[0].From[0].IPBlock = &networkingv1.IPBlock{}
+			networkPolicy.Spec.Ingress[0].From[0].IPBlock.CIDR = "0.0.0.0/0"
+		}
 
 		return nil
 	}
