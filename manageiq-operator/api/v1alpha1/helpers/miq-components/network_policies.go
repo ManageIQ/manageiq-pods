@@ -29,6 +29,24 @@ func NetworkPolicyDefaultDeny(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) 
 	return networkPolicy, f
 }
 
+func NetworkPolicyStrimziDeny(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*networkingv1.NetworkPolicy, controllerutil.MutateFn) {
+	networkPolicy := newNetworkPolicy(cr, "strimzi-deny")
+
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, networkPolicy, scheme); err != nil {
+			return err
+		}
+		addAppLabel(cr.Spec.AppName, &networkPolicy.ObjectMeta)
+		setIngressPolicyType(networkPolicy)
+
+		networkPolicy.Spec.PodSelector.MatchLabels = map[string]string{"strimzi.io/name": cr.Spec.AppName + "-entity-operator"}
+
+		return nil
+	}
+
+	return networkPolicy, f
+}
+
 func NetworkPolicyAllowInboundHttpd(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*networkingv1.NetworkPolicy, controllerutil.MutateFn) {
 	networkPolicy := newNetworkPolicy(cr, "allow-inbound-httpd")
 
