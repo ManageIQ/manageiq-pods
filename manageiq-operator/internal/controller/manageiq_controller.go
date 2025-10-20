@@ -697,7 +697,7 @@ func (r *ManageIQReconciler) generateNetworkPolicies(cr *miqv1alpha1.ManageIQ) e
 		logger.Info("NetworkPolicy default-deny has been reconciled", "component", "network_policy", "result", result)
 	}
 
-	networkPolicyAllowInboundHttpd, mutateFunc := miqtool.NetworkPolicyAllowInboundHttpd(cr, r.Scheme)
+	networkPolicyAllowInboundHttpd, mutateFunc := miqtool.NetworkPolicyAllowInboundHttpd(cr, r.Scheme, r.Client)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, networkPolicyAllowInboundHttpd, mutateFunc); err != nil {
 		return err
 	} else if result != controllerutil.OperationResultNone {
