@@ -188,6 +188,7 @@ func HttpdConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, client cli
 
 		configMap.Data["application.conf"] = httpdApplicationConf(cr.Spec.ApplicationDomain, uiHttpProtocol, uiWebSocketProtocol, apiHttpProtocol)
 		configMap.Data["authentication.conf"] = httpdAuthenticationConf(&cr.Spec)
+		configMap.Data["health.conf"] = httpdHealthConf()
 
 		if certSecret := InternalCertificatesSecret(cr, client); certSecret.Data["httpd_crt"] != nil && certSecret.Data["httpd_key"] != nil {
 			configMap.Data["ssl_config"] = httpdSslConfig()
@@ -196,6 +197,29 @@ func HttpdConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, client cli
 		if certSecret := InternalCertificatesSecret(cr, client); certSecret.Data["ui_crt"] != nil && certSecret.Data["ui_key"] != nil {
 			configMap.Data["ssl_proxy_config"] = httpdSslProxyConfig()
 		}
+
+		return nil
+	}
+
+	return configMap, f, nil
+}
+
+func HttpdHealthConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, client client.Client) (*corev1.ConfigMap, controllerutil.MutateFn, error) {
+	configMap := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "httpd-health",
+			Namespace: cr.ObjectMeta.Namespace,
+		},
+		Data: make(map[string]string),
+	}
+
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, configMap, scheme); err != nil {
+			return err
+		}
+		addAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
+
+		configMap.Data["healthz"] = "ok"
 
 		return nil
 	}
@@ -357,21 +381,21 @@ func initializeHttpdContainer(spec *miqv1alpha1.ManageIQSpec, privileged bool, c
 	c.Name = "httpd"
 	c.Image = spec.HttpdImage
 	c.ImagePullPolicy = corev1.PullIfNotPresent
-	if privileged {
-		c.LivenessProbe = &corev1.Probe{
-			ProbeHandler: corev1.ProbeHandler{
-				Exec: &corev1.ExecAction{
-					Command: []string{"pidof", "httpd"},
-				},
+	c.LivenessProbe = &corev1.Probe{
+		ProbeHandler: corev1.ProbeHandler{
+			HTTPGet: &corev1.HTTPGetAction{
+				Path: "/healthz",
+				Port: intstr.FromInt(8081),
 			},
-			InitialDelaySeconds: 10,
-			TimeoutSeconds:      3,
-		}
+		},
+		InitialDelaySeconds: 10,
+		TimeoutSeconds:      3,
 	}
 	c.ReadinessProbe = &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
-			TCPSocket: &corev1.TCPSocketAction{
-				Port: intstr.FromInt(8080),
+			HTTPGet: &corev1.HTTPGetAction{
+				Path: "/healthz",
+				Port: intstr.FromInt(8081),
 			},
 		},
 		InitialDelaySeconds: 10,
@@ -379,6 +403,7 @@ func initializeHttpdContainer(spec *miqv1alpha1.ManageIQSpec, privileged bool, c
 	}
 	c.VolumeMounts = []corev1.VolumeMount{
 		corev1.VolumeMount{Name: "httpd-config", MountPath: "/etc/httpd/conf.d"},
+		corev1.VolumeMount{Name: "httpd-health", MountPath: "/var/www/html"},
 	}
 
 	// Add Lifecycle object for saving the environment if we're running with init
@@ -452,6 +477,9 @@ func HttpdDeployment(client client.Client, cr *miqv1alpha1.ManageIQ, scheme *run
 
 		configMapVolumeSource := corev1.ConfigMapVolumeSource{LocalObjectReference: corev1.LocalObjectReference{Name: "httpd-configs"}}
 		deployment.Spec.Template.Spec.Volumes = addOrUpdateVolume(deployment.Spec.Template.Spec.Volumes, corev1.Volume{Name: "httpd-config", VolumeSource: corev1.VolumeSource{ConfigMap: &configMapVolumeSource}})
+
+		healthConfigMapVolumeSource := corev1.ConfigMapVolumeSource{LocalObjectReference: corev1.LocalObjectReference{Name: "httpd-health"}}
+		deployment.Spec.Template.Spec.Volumes = addOrUpdateVolume(deployment.Spec.Template.Spec.Volumes, corev1.Volume{Name: "httpd-health", VolumeSource: corev1.VolumeSource{ConfigMap: &healthConfigMapVolumeSource}})
 
 		// Only assign the service account if we need additional privileges
 		if privileged {
