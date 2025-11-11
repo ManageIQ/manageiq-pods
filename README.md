@@ -1,6 +1,6 @@
 # Deploy ManageIQ on OpenShift
 
-[![CI](https://github.com/ManageIQ/manageiq-pods/actions/workflows/ci.yaml/badge.svg?branch=spassky)](https://github.com/ManageIQ/manageiq-pods/actions/workflows/ci.yaml)
+[![CI](https://github.com/ManageIQ/manageiq-pods/actions/workflows/ci.yaml/badge.svg?branch=master)](https://github.com/ManageIQ/manageiq-pods/actions/workflows/ci.yaml)
 [![Join the chat at https://gitter.im/ManageIQ/manageiq-pods](https://badges.gitter.im/ManageIQ/manageiq-pods.svg)](https://gitter.im/ManageIQ/manageiq-pods?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 **This guide will demo deploying ManageIQ in OpenShift as its example use-case but this method could actually be used in a different container cluster environment**

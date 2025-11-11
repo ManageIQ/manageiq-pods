@@ -92,6 +92,23 @@ func httpdAuthenticationConf(spec *miqv1alpha1.ManageIQSpec) string {
 	}
 }
 
+func httpdHealthConf() string {
+	s := `
+Listen 8081
+
+<VirtualHost *:8081>
+  ServerPath /health/
+  DocumentRoot /var/www/health/
+  <Directory /var/www/health>
+    AllowOverride None
+    Options FollowSymLinks
+    Require all granted
+  </Directory>
+</VirtualHost>
+`
+	return s
+}
+
 func httpdExternalAuthConf(enableLocalLogin bool) string {
 	s := `
 %s

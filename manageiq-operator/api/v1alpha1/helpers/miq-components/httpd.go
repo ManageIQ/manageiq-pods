@@ -188,6 +188,7 @@ func HttpdConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, client cli
 
 		configMap.Data["application.conf"] = httpdApplicationConf(cr.Spec.ApplicationDomain, uiHttpProtocol, uiWebSocketProtocol, apiHttpProtocol)
 		configMap.Data["authentication.conf"] = httpdAuthenticationConf(&cr.Spec)
+		configMap.Data["health.conf"] = httpdHealthConf()
 
 		if certSecret := InternalCertificatesSecret(cr, client); certSecret.Data["httpd_crt"] != nil && certSecret.Data["httpd_key"] != nil {
 			configMap.Data["ssl_config"] = httpdSslConfig()
@@ -357,21 +358,21 @@ func initializeHttpdContainer(spec *miqv1alpha1.ManageIQSpec, privileged bool, c
 	c.Name = "httpd"
 	c.Image = spec.HttpdImage
 	c.ImagePullPolicy = corev1.PullIfNotPresent
-	if privileged {
-		c.LivenessProbe = &corev1.Probe{
-			ProbeHandler: corev1.ProbeHandler{
-				Exec: &corev1.ExecAction{
-					Command: []string{"pidof", "httpd"},
-				},
+	c.LivenessProbe = &corev1.Probe{
+		ProbeHandler: corev1.ProbeHandler{
+			HTTPGet: &corev1.HTTPGetAction{
+				Path: "/health/healthz",
+				Port: intstr.FromInt(8081),
 			},
-			InitialDelaySeconds: 10,
-			TimeoutSeconds:      3,
-		}
+		},
+		InitialDelaySeconds: 10,
+		TimeoutSeconds:      3,
 	}
 	c.ReadinessProbe = &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
-			TCPSocket: &corev1.TCPSocketAction{
-				Port: intstr.FromInt(8080),
+			HTTPGet: &corev1.HTTPGetAction{
+				Path: "/health/healthz",
+				Port: intstr.FromInt(8081),
 			},
 		},
 		InitialDelaySeconds: 10,
