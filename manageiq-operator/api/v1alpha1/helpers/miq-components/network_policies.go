@@ -2,6 +2,7 @@ package miqtools
 
 import (
 	"context"
+
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
 	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -56,13 +57,15 @@ func NetworkPolicyAllowInboundHttpd(cr *miqv1alpha1.ManageIQ, scheme *runtime.Sc
 				networkingv1.NetworkPolicyPeer{},
 			}
 		}
-		if openshift == true {
+		if openshift {
+			networkPolicy.Spec.Ingress[0].From[0].IPBlock = nil
 			networkPolicy.Spec.Ingress[0].From[0].NamespaceSelector = &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"network.openshift.io/policy-group": "ingress",
 				},
 			}
 		} else {
+			networkPolicy.Spec.Ingress[0].From[0].NamespaceSelector = nil
 			networkPolicy.Spec.Ingress[0].From[0].IPBlock = &networkingv1.IPBlock{}
 			networkPolicy.Spec.Ingress[0].From[0].IPBlock.CIDR = "0.0.0.0/0"
 		}
