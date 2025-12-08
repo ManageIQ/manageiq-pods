@@ -4,6 +4,11 @@ on:
     types:
     - build
   workflow_dispatch:
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+permissions:
+  contents: read
 jobs:
   build_pods:
     if: github.repository_owner == 'ManageIQ'
@@ -13,9 +18,9 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v6
       with:
-        cache-dependency-path: 'manageiq-operator/go.sum'
+        cache-dependency-path: manageiq-operator/go.sum
         check-latest: true
-        go-version: 'stable'
+        go-version: stable
     - name: Docker login
       run: echo ${{ secrets.DOCKER_REGISTRY_PASSWORD }} | docker login docker.io --password-stdin --username ${{ secrets.DOCKER_REGISTRY_USERNAME }}
     - name: Build pods containers
@@ -28,7 +33,7 @@ jobs:
     - name: Notify manageiq on pods build
       uses: peter-evans/repository-dispatch@v4
       with:
-        token: ${{ secrets.BUILD_TOKEN }}
+        token: "${{ secrets.BUILD_TOKEN }}"
         repository: ManageIQ/manageiq
         event-type: build
         client-payload: |
