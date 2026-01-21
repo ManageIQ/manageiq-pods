@@ -57,4 +57,35 @@ cat > ${APP_ROOT}/certs/v2_key << KEY
 :key: ${encryption_key}
 KEY
 
+
+[[ -f /run/secrets/messaging/MESSAGING_HOSTNAME ]] && messaging_hostname_file=$(cat /run/secrets/messaging/MESSAGING_HOSTNAME)
+[[ -f /run/secrets/messaging/MESSAGING_USERNAME ]] && messaging_username_file=$(cat /run/secrets/messaging/MESSAGING_USERNAME)
+[[ -f /run/secrets/messaging/MESSAGING_PASSWORD ]] && messaging_password_file=$(cat /run/secrets/messaging/MESSAGING_PASSWORD)
+[[ -f /run/secrets/messaging/MESSAGING_PORT ]] && messaging_port_file=$(cat /run/secrets/messaging/MESSAGING_PORT)
+[[ -f /run/secrets/messaging/MESSAGING_SASL_MECHANISM ]] && messaging_sasl_mechanism_file=$(cat /run/secrets/messaging/MESSAGING_SASL_MECHANISM)
+[[ -f /etc/pki/ca-trust/source/anchors/root.crt ]] && messaging_ca_path=/etc/pki/ca-trust/source/anchors/root.crt
+messaging_hostname=${MESSAGING_HOSTNAME:-$messaging_hostname_file}
+messaging_hostname=${messaging_hostname:-localhost}
+messaging_username=${MESSAGING_USERNAME:-$messaging_username_file}
+messaging_password=${MESSAGING_PASSWORD:-$messaging_password_file}
+messaging_port=${MESSAGING_PORT:-$messaging_port_file}
+messaging_port=${messaging_port:-9093}
+messaging_sasl_mechanism=${MESSAGING_SASL_MECHANISM:-$messaging_sasl_mechanism_file}
+messaging_ca_path=${messaging_ca_path:-/etc/pki/ca-trust/source/anchors/ca.crt}
+
+echo "== Writing messaging config =="
+cat > ${APP_ROOT}/config/messaging.yml << KEY
+---
+production:
+  host: ${messaging_hostname}
+  port: ${messaging_port}
+  protocol: Kafka
+  encoding: json
+  username: ${messaging_username}
+  password: ${messaging_password}
+  sasl_mechanism: ${messaging_sasl_mechanism}
+  ssl: true
+  ca_file: ${messaging_ca_path}
+KEY
+
 echo "${GUID}" > ${APP_ROOT}/GUID
