@@ -7,9 +7,9 @@ require (
 	github.com/onsi/gomega v1.39.1
 	github.com/openshift/api v0.0.0-20260207134438-c1b6765f7b1a
 	github.com/operator-framework/api v0.39.0
-	k8s.io/api v0.35.0
-	k8s.io/apimachinery v0.35.0
-	k8s.io/client-go v0.35.0
+	k8s.io/api v0.35.1
+	k8s.io/apimachinery v0.35.1
+	k8s.io/client-go v0.35.1
 	sigs.k8s.io/controller-runtime v0.23.1
 )
 
