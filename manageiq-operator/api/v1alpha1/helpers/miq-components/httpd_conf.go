@@ -373,11 +373,12 @@ func httpdAuthApplicationAPIConf(authType, authName, extraConfig string, enableL
 func httpdAuthLookupUserDetailsConf() string {
 	return `
 <LocationMatch ^/dashboard/external_authenticate$|^/dashboard/kerberos_authenticate$|^/api>
-	LookupUserAttr mail        REMOTE_USER_EMAIL
-	LookupUserAttr givenname   REMOTE_USER_FIRSTNAME
-	LookupUserAttr sn          REMOTE_USER_LASTNAME
-	LookupUserAttr displayname REMOTE_USER_FULLNAME
-	LookupUserAttr domainname  REMOTE_USER_DOMAIN
+	LookupUserAttr mail             REMOTE_USER_EMAIL
+	LookupUserAttr givenname        REMOTE_USER_FIRSTNAME
+	LookupUserAttr sn               REMOTE_USER_LASTNAME
+	LookupUserAttr displayname      REMOTE_USER_FULLNAME
+	LookupUserAttr domainname       REMOTE_USER_DOMAIN
+	LookupUserAttr krbPrincipalName REMOTE_USER_PRINCIPAL
 
 	LookupUserGroups           REMOTE_USER_GROUPS ":"
 	LookupDbusTimeout          5000
@@ -401,6 +402,7 @@ RequestHeader set X_REMOTE_USER_FULLNAME        %%{REMOTE_USER_FULLNAME}e  env=R
 RequestHeader set X_REMOTE_USER_GROUPS          %%{REMOTE_USER_GROUPS}e    env=REMOTE_USER_GROUPS
 RequestHeader set X_REMOTE_USER_GROUP_DELIMITER "%s"
 RequestHeader set X_REMOTE_USER_DOMAIN          %%{REMOTE_USER_DOMAIN}e    env=REMOTE_USER_DOMAIN
+RequestHeader set X_REMOTE_USER_PRINCIPAL       %%{REMOTE_USER_PRINCIPAL}e env=REMOTE_USER_PRINCIPAL
 `
 	return fmt.Sprintf(s, delimiter)
 }
