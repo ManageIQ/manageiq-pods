@@ -2,6 +2,7 @@ package miqtools
 
 import (
 	"fmt"
+
 	miqv1alpha1 "github.com/ManageIQ/manageiq-pods/manageiq-operator/api/v1alpha1"
 )
 
@@ -275,10 +276,12 @@ OIDCCookieSameSite                 On
 
 %s
 
+# Minimal CSP for OIDC authentication redirects (no scripts, images, or external resources)
 <Location /oidc_login>
   AuthType                   openid-connect
   Require                    valid-user
   FileETag                   None
+  Header set Content-Security-Policy "default-src 'self'; report-uri /dashboard/csp_report"
   Header Set Cache-Control   "max-age=0, no-store, no-cache, must-revalidate"
   Header Set Pragma          "no-cache"
   Header Unset ETag
@@ -288,6 +291,7 @@ OIDCCookieSameSite                 On
   AuthType                   openid-connect
   Require                    valid-user
   FileETag                   None
+  Header set Content-Security-Policy "default-src 'self'; report-uri /dashboard/csp_report"
   Header Set Cache-Control   "max-age=0, no-store, no-cache, must-revalidate"
   Header Set Pragma          "no-cache"
   Header Set Set-Cookie      "miq_oidc_access_token=%%{OIDC_access_token}e; Max-Age=10; Path=/ui/service"
