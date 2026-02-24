@@ -38,6 +38,7 @@ Options SymLinksIfOwnerMatch
   ProxyPreserveHost on
   RequestHeader set Host %[1]s
   RequestHeader set X-Forwarded-Host %[1]s
+  Header always set Strict-Transport-Security "max-age=631138519"
 
   # Send API requests to the API pods
   ProxyPass /api %[2]s://web-service:3000/api
