@@ -281,6 +281,8 @@ OIDCCookieSameSite                 On
   AuthType                   openid-connect
   Require                    valid-user
   FileETag                   None
+  # Explicit HSTS for redundancy
+  Header always set Strict-Transport-Security "max-age=631138519"
   Header set Content-Security-Policy "default-src 'self'; report-uri /dashboard/csp_report"
   Header Set Cache-Control   "max-age=0, no-store, no-cache, must-revalidate"
   Header Set Pragma          "no-cache"
@@ -291,6 +293,8 @@ OIDCCookieSameSite                 On
   AuthType                   openid-connect
   Require                    valid-user
   FileETag                   None
+  # Explicit HSTS for redundancy
+  Header always set Strict-Transport-Security "max-age=631138519"
   Header set Content-Security-Policy "default-src 'self'; report-uri /dashboard/csp_report"
   Header Set Cache-Control   "max-age=0, no-store, no-cache, must-revalidate"
   Header Set Pragma          "no-cache"
@@ -460,6 +464,8 @@ LimitRequestFieldSize 524288
   ProxyPreserveHost on
   <Location /assets/>
     Header unset ETag
+    # Explicit HSTS needed: Location blocks using "Header set" don't inherit "Header always set" from VirtualHost
+    Header always set Strict-Transport-Security   "max-age=631138519"
     # Minimal CSP for static assets: only specifies directives that differ from default-src 'self'
     Header set Content-Security-Policy            "default-src 'self'; child-src 'self'; frame-src 'self'; worker-src 'self'; font-src 'self' fonts.gstatic.com fonts.googleapis.com; img-src 'self' data:; style-src 'self' fonts.googleapis.com fonts.gstatic.com; report-uri /dashboard/csp_report; report-to csp-endpoint"
     Header set Report-To                          "{\"group\":\"csp-endpoint\",\"max_age\":10886400,\"endpoints\":[{\"url\":\"/dashboard/csp_report\"}]}"
@@ -474,6 +480,8 @@ LimitRequestFieldSize 524288
   </Location>
   <Location /packs/>
     Header unset ETag
+    # Explicit HSTS needed: Location blocks using "Header set" don't inherit "Header always set" from VirtualHost
+    Header always set Strict-Transport-Security   "max-age=631138519"
     # Minimal CSP for static assets: only specifies directives that differ from default-src 'self'
     Header set Content-Security-Policy            "default-src 'self'; child-src 'self'; frame-src 'self'; worker-src 'self'; font-src 'self' fonts.gstatic.com fonts.googleapis.com; img-src 'self' data:; style-src 'self' fonts.googleapis.com fonts.gstatic.com; report-uri /dashboard/csp_report; report-to csp-endpoint"
     Header set Report-To                          "{\"group\":\"csp-endpoint\",\"max_age\":10886400,\"endpoints\":[{\"url\":\"/dashboard/csp_report\"}]}"
