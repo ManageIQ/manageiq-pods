@@ -460,7 +460,9 @@ LimitRequestFieldSize 524288
   ProxyPreserveHost on
   <Location /assets/>
     Header unset ETag
-    Header set Content-Security-Policy            "default-src 'self'; child-src 'self'; connect-src 'self'; font-src 'self' fonts.gstatic.com; script-src 'self'; style-src 'self'; report-uri /dashboard/csp_report"
+    # Minimal CSP for static assets: only specifies directives that differ from default-src 'self'
+    Header set Content-Security-Policy            "default-src 'self'; child-src 'self'; frame-src 'self'; worker-src 'self'; font-src 'self' fonts.gstatic.com fonts.googleapis.com; img-src 'self' data:; style-src 'self' fonts.googleapis.com fonts.gstatic.com; report-uri /dashboard/csp_report; report-to csp-endpoint"
+    Header set Report-To                          "{\"group\":\"csp-endpoint\",\"max_age\":10886400,\"endpoints\":[{\"url\":\"/dashboard/csp_report\"}]}"
     Header set X-Content-Type-Options             "nosniff"
     Header set X-Frame-Options                    "SAMEORIGIN"
     Header set X-Permitted-Cross-Domain-Policies  "none"
@@ -472,7 +474,9 @@ LimitRequestFieldSize 524288
   </Location>
   <Location /packs/>
     Header unset ETag
-    Header set Content-Security-Policy            "default-src 'self'; child-src 'self'; connect-src 'self'; font-src 'self' fonts.gstatic.com; script-src 'self'; style-src 'self'; report-uri /dashboard/csp_report"
+    # Minimal CSP for static assets: only specifies directives that differ from default-src 'self'
+    Header set Content-Security-Policy            "default-src 'self'; child-src 'self'; frame-src 'self'; worker-src 'self'; font-src 'self' fonts.gstatic.com fonts.googleapis.com; img-src 'self' data:; style-src 'self' fonts.googleapis.com fonts.gstatic.com; report-uri /dashboard/csp_report; report-to csp-endpoint"
+    Header set Report-To                          "{\"group\":\"csp-endpoint\",\"max_age\":10886400,\"endpoints\":[{\"url\":\"/dashboard/csp_report\"}]}"
     Header set X-Content-Type-Options             "nosniff"
     Header set X-Frame-Options                    "SAMEORIGIN"
     Header set X-Permitted-Cross-Domain-Policies  "none"
