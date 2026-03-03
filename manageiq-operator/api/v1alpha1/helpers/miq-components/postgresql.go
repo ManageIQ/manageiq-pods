@@ -90,6 +90,7 @@ func PostgresqlConfigMap(cr *miqv1alpha1.ManageIQ, client client.Client, scheme 
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
+		addBackupLabel(cr.Spec.BackupLabelName, &configMap.ObjectMeta)
 
 		if configMap.Data == nil {
 			configMap.Data = map[string]string{}
