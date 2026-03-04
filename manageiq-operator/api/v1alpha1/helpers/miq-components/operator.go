@@ -74,6 +74,18 @@ func OidcCaCertSecret(cr *miqv1alpha1.ManageIQ, client client.Client) (*corev1.S
 	return secret, f
 }
 
+func ManageInternalCertificatesSecret(cr *miqv1alpha1.ManageIQ, client client.Client) (*corev1.Secret, controllerutil.MutateFn) {
+	secret := InternalCertificatesSecret(cr, client)
+
+	f := func() error {
+		addBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
+
+		return nil
+	}
+
+	return secret, f
+}
+
 func ManageOperatorServiceAccount(cr *miqv1alpha1.ManageIQ, client client.Client) (*corev1.ServiceAccount, controllerutil.MutateFn) {
 	serviceAccount := operatorServiceAccount(cr, client)
 

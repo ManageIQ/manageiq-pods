@@ -812,6 +812,15 @@ func (r *ManageIQReconciler) generateSecrets(cr *miqv1alpha1.ManageIQ) error {
 		}
 	}
 
+	if cr.Spec.InternalCertificatesSecret != "" {
+		internalCertificatesSecret, mutateFunc := miqtool.ManageInternalCertificatesSecret(cr, r.Client)
+		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, internalCertificatesSecret, mutateFunc); err != nil {
+			return err
+		} else if result != controllerutil.OperationResultNone {
+			logger.Info("Internal Certificates Secret has been reconciled", "component", "operator", "result", result)
+		}
+	}
+
 	return nil
 }
 
