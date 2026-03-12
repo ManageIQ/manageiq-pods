@@ -6,7 +6,7 @@ FROM ${FROM_REPO}/manageiq-rpms:${FROM_TAG} as rpms
 
 ################################################################################
 
-FROM registry.access.redhat.com/ubi9/ubi
+FROM registry.access.redhat.com/ubi10/ubi
 ARG FROM_REPO
 ARG FROM_TAG
 ARG RELEASE_BUILD
@@ -31,35 +31,23 @@ RUN chmod +t /tmp
 RUN chmod -R g+w /etc/pki/ca-trust && \
     chmod -R g+w /usr/share/pki/ca-trust-legacy
 
-COPY container-assets/prepare_local_yum_repo.sh /usr/local/bin
-COPY container-assets/clean_dnf_rpm /usr/local/bin/
-
-RUN --mount=type=bind,from=rpms,source=/tmp/rpms,target=/tmp/rpms \
-    sed -i 's/enabled=1/enabled=0/g' /etc/dnf/plugins/subscription-manager.conf && \
+RUN --mount=type=bind,from=quay.io/manageiq/build_tools:v1,source=/tools,target=/usr/local/bin --mount=type=bind,from=rpms,source=/tmp/rpms,target=/tmp/rpms \
     dnf -y --setopt=tsflags=nodocs update && \
-    ARCH=$(uname -m) && \
+    miq_switch_to_centos_stream_10 && \
+    miq_enable_epel && \
     dnf config-manager --setopt=tsflags=nodocs --setopt=install_weak_deps=False --save && \
-    dnf -y --setopt=protected_packages= remove redhat-release && \
-    dnf -y install \
-      http://mirror.stream.centos.org/9-stream/BaseOS/${ARCH}/os/Packages/centos-stream-release-9.0-34.el9.noarch.rpm \
-      http://mirror.stream.centos.org/9-stream/BaseOS/${ARCH}/os/Packages/centos-stream-repos-9.0-34.el9.noarch.rpm \
-      http://mirror.stream.centos.org/9-stream/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-9.0-34.el9.noarch.rpm && \
-    dnf config-manager --enable crb && \
-    dnf -y --disablerepo=ubi-9-baseos-rpms swap openssl-fips-provider openssl-libs && \
-    dnf -y update && \
-    dnf -y install \
-      https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm \
-      https://rpm.manageiq.org/release/21-uhlmann/el9/noarch/manageiq-release-21.0-1.el9.noarch.rpm && \
+    dnf -y install https://rpm.manageiq.org/release/21-uhlmann/el10/noarch/manageiq-release-21.0-1.el10.noarch.rpm && \
     if [[ "$RELEASE_BUILD" != "true" ]]; then dnf config-manager --enable manageiq-21-uhlmann-nightly; fi && \
-    if [[ -n "$(ls /tmp/rpms)" ]]; then /usr/local/bin/prepare_local_yum_repo.sh; fi && \
-    dnf -y module enable ruby:3.3 && \
+    if [[ -n "$(ls /tmp/rpms)" ]]; then miq_prepare_local_yum_repo.sh; fi && \
+    # Currently the minimum version of qpid-proton in EPEL is 0.40.0, but we're still on 0.37, so pull it from the ManageIQ RPM repo instead https://github.com/ManageIQ/manageiq/blob/b5bf7bee569991d3f1a182a4792fae8cb6265863/Gemfile#L220
+    dnf config-manager --setopt=epel.exclude=*qpid-proton* --save && \
     dnf -y install \
       dumb-init \
       httpd \
       mod_ssl \
       ${RPM_PREFIX}-pods \
       python3-devel && \
-    clean_dnf_rpm && \
+    miq_clean_dnf_rpm && \
     chown manageiq:root /home/manageiq && \
     chmod -R g=u /home/manageiq && \
     chgrp -R 0 $APP_ROOT && \
@@ -69,9 +57,9 @@ RUN --mount=type=bind,from=rpms,source=/tmp/rpms,target=/tmp/rpms \
 ADD container-assets/container_env ${APP_ROOT}/
 
 # Build the RPM manifest
-RUN --mount=type=bind,from=rpms,source=/tmp/rpms,target=/tmp/rpms \
+RUN --mount=type=bind,from=quay.io/manageiq/build_tools:v1,source=/tools,target=/usr/local/bin --mount=type=bind,from=rpms,source=/tmp/rpms,target=/tmp/rpms \
     source /etc/default/evm && \
     /usr/bin/generate_rpm_manifest.sh && \
-    clean_dnf_rpm
+    miq_clean_dnf_rpm
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--single-child", "--"]

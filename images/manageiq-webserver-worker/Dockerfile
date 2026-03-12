@@ -14,10 +14,10 @@ LABEL name="manageiq-webserver-worker" \
 
 COPY container-assets/service-worker-entrypoint /usr/local/bin
 
-RUN --mount=type=bind,from=rpms,source=/tmp/rpms,target=/tmp/rpms \
+RUN --mount=type=bind,from=quay.io/manageiq/build_tools:v1,source=/tools,target=/usr/local/bin --mount=type=bind,from=rpms,source=/tmp/rpms,target=/tmp/rpms \
     dnf -y install \
       ${RPM_PREFIX}-ui && \
-    clean_dnf_rpm && \
+    miq_clean_dnf_rpm && \
     # Remove httpd default settings
     rm -f /etc/httpd/conf.d/* && \
     sed -i '/^Listen 80/d' /etc/httpd/conf/httpd.conf && \
@@ -28,10 +28,10 @@ RUN --mount=type=bind,from=rpms,source=/tmp/rpms,target=/tmp/rpms \
     chmod g+rwx /var/log/httpd
 
 # Build the RPM manifest
-RUN --mount=type=bind,from=rpms,source=/tmp/rpms,target=/tmp/rpms \
+RUN --mount=type=bind,from=quay.io/manageiq/build_tools:v1,source=/tools,target=/usr/local/bin --mount=type=bind,from=rpms,source=/tmp/rpms,target=/tmp/rpms \
     source /etc/default/evm && \
     /usr/bin/generate_rpm_manifest.sh && \
-    clean_dnf_rpm
+    miq_clean_dnf_rpm
 
 EXPOSE 3000
 EXPOSE 4000
