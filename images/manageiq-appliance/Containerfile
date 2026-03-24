@@ -1,0 +1,67 @@
+ARG FROM_REPO=docker.io/manageiq
+ARG FROM_TAG=latest
+FROM ${FROM_REPO}/manageiq-rpms:${FROM_TAG} as rpms
+
+FROM quay.io/centos-bootc/centos-bootc:stream10
+ARG FROM_REPO
+ARG FROM_TAG
+ARG RELEASE_BUILD
+ARG RPM_PREFIX=manageiq
+
+LABEL name="manageiq-appliance" \
+      summary="ManageIQ appliance bootc image" \
+      vendor="ManageIQ" \
+      url="https://manageiq.org/" \
+      description="ManageIQ is a management and automation platform for virtual, private, and hybrid cloud infrastructures."
+
+RUN mkdir -p /var/home
+
+RUN --mount=type=bind,from=quay.io/manageiq/build_tools:v1,source=/tools,target=/usr/local/bin --mount=type=bind,from=rpms,source=/tmp/rpms,target=/tmp/rpms \
+    dnf config-manager --setopt=tsflags=nodocs --setopt=install_weak_deps=False --save && \
+    dnf -y update && \
+    dnf -y install 'dnf-command(config-manager)' && \
+    miq_enable_epel && \
+    dnf -y install https://rpm.manageiq.org/release/21-uhlmann/el10/noarch/manageiq-release-21.0-1.el10.noarch.rpm && \
+    # Currently the minimum version of qpid-proton in EPEL is 0.40.0, but we're still on 0.37, so pull it from the ManageIQ RPM repo instead https://github.com/ManageIQ/manageiq/blob/b5bf7bee569991d3f1a182a4792fae8cb6265863/Gemfile#L220
+    dnf config-manager --setopt=epel.exclude=*qpid-proton* --save && \
+    if [[ "$RELEASE_BUILD" != "true" ]]; then dnf config-manager --enable manageiq-21-uhlmann-nightly; fi && \
+    if [[ -n "$(ls /tmp/rpms)" ]]; then miq_prepare_local_yum_repo; fi && \
+    dnf -y install \
+      firewalld \
+      fuse-libs \
+      python3-devel \
+      ${RPM_PREFIX}-appliance && \
+    miq_clean_dnf_rpm && \
+    dnf config-manager --set-disabled local-rpm
+
+RUN firewall-offline-cmd --new-zone=manageiq && \
+    firewall-offline-cmd --set-default-zone=manageiq && \
+    firewall-offline-cmd --zone=manageiq --add-service=http && \
+    firewall-offline-cmd --zone=manageiq --add-service=https && \
+    firewall-offline-cmd --zone=manageiq --add-service=ssh && \
+    firewall-offline-cmd --zone=manageiq --add-service=postgresql && \
+    firewall-offline-cmd --zone=manageiq --add-service=dhcpv6-client && \
+    firewall-offline-cmd --zone=manageiq --add-service=cockpit && \
+    systemctl disable ipmi && \
+    systemctl enable cloud-ds-check cockpit.socket evminit memcached miqtop miqvmstat && \
+    ln -sf /dev/null /etc/systemd/system/ctrl-alt-del.target && \
+    sed -i s/root//g /etc/cockpit/disallowed-users && \
+    source /etc/default/evm && \
+    $APPLIANCE_SOURCE_DIRECTORY/manageiq-setup.sh && \
+    echo "smartvm" | passwd -s root && \
+    passwd -e root && \
+    usermod -a -G wheel manageiq && \
+    mkdir -p -m 700 ~/.ssh && \
+    su manageiq -c "mkdir -m 700 ~/.ssh"
+
+
+# Each provider-specific image...
+# FROM docker.io/manageiq/manageiq-appliance-base:latest
+# RUN dnf -y install some-guest-tools && \
+#     anything_else
+
+
+# Example of user customization
+# FROM docker.io/manageiq/manageiq-appliance-vmware:latest
+# RUN dnf update && \
+#     install_my_other_software

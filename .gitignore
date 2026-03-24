@@ -6,4 +6,5 @@ manageiq-operator/build/_output/*
 manageiq-operator/vendor/*
 tools/certs/*.crt
 tools/certs/*.key
+*.qcow2
 *.swp

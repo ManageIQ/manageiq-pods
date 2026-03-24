@@ -1,0 +1,19 @@
+ARG FROM_REPO=docker.io/manageiq
+ARG FROM_TAG=latest
+FROM ${FROM_REPO}/manageiq-appliance:${FROM_TAG}
+
+RUN --mount=type=bind,from=quay.io/manageiq/build_tools:v1,source=/tools,target=/usr/local/bin \
+    dnf -y install WALinuxAgent && \
+    miq_clean_dnf_rpm
+
+RUN systemctl disable cloud-ds-check && \
+    sed -i 's/^\(ResourceDisk\.EnableSwap\)=[Nn]$/\1=y/g' /etc/waagent.conf && \
+    sed -i 's/^\(ResourceDisk\.SwapSizeMB\)=[0-9]*$/\1=10240/g' /etc/waagent.conf && \
+    sed -i 's/^#\(ClientAliveInterval\).*$/\1 180/g' /etc/ssh/sshd_config && \
+    sed -i 's/^#\(PermitRootLogin\).*$/\1 no/g' /etc/ssh/sshd_config && \
+    sed -i 's/^\(PasswordAuthentication\).*$/\1 no/g' /etc/ssh/sshd_config && \
+    sed -i 's/^\(X11Forwarding\).*$/\1 no/g' /etc/ssh/sshd_config && \
+    sed -i 's/Provisioning\.DeleteRootPassword=y/Provisioning\.DeleteRootPassword=n/' /etc/waagent.conf && \
+    systemctl enable waagent.service && \
+    waagent -force -deprovision && \
+    usermod -L root

@@ -85,6 +85,17 @@ if [ -z "$NO_OPERATOR" ]; then
   popd
 fi
 
+if APPLIANCES; then
+  $CONTAINER_COMMAND pull quay.io/centos-bootc/centos-bootc:stream10
+  cd images/manageiq-appliance
+  podman build . -t $REPO/manageiq-appliance:$TAG
+  for i in $(ls Containerfile.*); do
+    extension=${i##*.}
+    echo $extension
+    podman build . -t $REPO/manageiq-appliance:$TAG-$extension
+  done
+fi
+
 if [ -n "$PUSH" ]; then
   push_images="manageiq-base manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker"
   if [ -z "$NO_OPERATOR" ]; then

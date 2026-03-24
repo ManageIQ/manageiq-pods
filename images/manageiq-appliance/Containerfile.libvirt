@@ -1,0 +1,7 @@
+ARG FROM_REPO=docker.io/manageiq
+ARG FROM_TAG=latest
+FROM ${FROM_REPO}/manageiq-appliance:${FROM_TAG}
+
+RUN --mount=type=bind,from=quay.io/manageiq/build_tools:v1,source=/tools,target=/usr/local/bin \
+    dnf -y install cloud-init qemu-guest-agent && \
+    miq_clean_dnf_rpm
