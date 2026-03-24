@@ -1,0 +1,43 @@
+ARG FROM_REPO=icr.io/ibm-aiops-dev/bdunne
+ARG FROM_TAG=el10
+FROM ${FROM_REPO}/manageiq-rpms:${FROM_TAG} as rpms
+
+
+FROM quay.io/centos-bootc/centos-bootc:stream10
+
+COPY container-assets/prepare_local_yum_repo.sh /usr/local/bin
+
+RUN --mount=type=bind,from=rpms,source=/tmp/rpms,target=/tmp/rpms \
+    ARCH=$(uname -m) && \
+    dnf config-manager --enable crb && \
+    dnf -y install \
+      epel-release \
+      https://rpm.manageiq.org/release/21-uhlmann/el10/noarch/manageiq-release-21.0-1.el10.noarch.rpm && \
+    dnf -y update && \
+    dnf config-manager --setopt=epel.exclude=*qpid-proton* --save && \
+    if [[ -n "$(ls /tmp/rpms)" ]]; then /usr/local/bin/prepare_local_yum_repo.sh; fi && \
+    dnf -y install \
+      firewalld \
+      manageiq-appliance \
+      manageiq-appliance-tools
+
+RUN firewall-offline-cmd --new-zone=manageiq && \
+    firewall-offline-cmd --set-default-zone=manageiq && \
+    firewall-offline-cmd --zone=manageiq --add-service=http && \
+    firewall-offline-cmd --zone=manageiq --add-service=https && \
+    firewall-offline-cmd --zone=manageiq --add-service=ssh && \
+    firewall-offline-cmd --zone=manageiq --add-service=postgresql && \
+    firewall-offline-cmd --zone=manageiq --add-service=dhcpv6-client && \
+    firewall-offline-cmd --zone=manageiq --add-service=cockpit && \
+    systemctl enable cockpit.socket evminit memcached miqtop miqvmstat && \
+    ln -sf /dev/null /etc/systemd/system/ctrl-alt-del.target && \
+    sed -i s/root//g /etc/cockpit/disallowed-users
+
+    #This should be an appliance dependency it is used by the appliance console
+RUN dnf -y install parted 
+
+    #this should be required by the appliance rpm, it's needed for postgres
+RUN dnf -y install glibc-langpack-en
+
+COPY container-assets/message_configuration.rb /opt/manageiq/manageiq-gemset/gems/manageiq-appliance_console-11.1.0/lib/manageiq/appliance_console/message_configuration.rb
+COPY container-assets/kafka/*.sh /usr/local/bin/
