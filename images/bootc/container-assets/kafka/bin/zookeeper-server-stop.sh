@@ -13,33 +13,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+SIGNAL=${SIGNAL:-TERM}
 
-if [ $# -lt 1 ];
-then
-	echo "USAGE: $0 [-daemon] zookeeper.properties"
-	exit 1
+OSNAME=$(uname -s)
+if [[ "$OSNAME" == "OS/390" ]]; then
+    if [ -z $JOBNAME ]; then
+        JOBNAME="ZKEESTRT"
+    fi
+    PIDS=$(ps -A -o pid,jobname,comm | grep -i $JOBNAME | grep java | grep -v grep | awk '{print $1}')
+elif [[ "$OSNAME" == "OS400" ]]; then
+    PIDS=$(ps -Af | grep java | grep -i QuorumPeerMain | grep -v grep | awk '{print $2}')
+else
+    PIDS=$(ps ax | grep java | grep -i QuorumPeerMain | grep -v grep | awk '{print $1}')
 fi
 
-base_dir=/var/lib/kafka
-
-if [ "x$KAFKA_LOG4J_OPTS" = "x" ]; then
-    export KAFKA_LOG4J_OPTS="-Dlog4j.configuration=file:$base_dir/config/log4j.properties"
+if [ -z "$PIDS" ]; then
+  echo "No zookeeper server to stop"
+  exit 1
+else
+  kill -s $SIGNAL $PIDS
 fi
-
-if [ "x$KAFKA_HEAP_OPTS" = "x" ]; then
-    export KAFKA_HEAP_OPTS="-Xmx512M -Xms512M"
-fi
-
-EXTRA_ARGS=${EXTRA_ARGS-'-name zookeeper -loggc'}
-
-COMMAND=$1
-case $COMMAND in
-  -daemon)
-     EXTRA_ARGS="-daemon "$EXTRA_ARGS
-     shift
-     ;;
- *)
-     ;;
-esac
-
-exec $(dirname $0)/kafka-run-class.sh $EXTRA_ARGS org.apache.zookeeper.server.quorum.QuorumPeerMain "$@"

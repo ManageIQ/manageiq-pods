@@ -1,0 +1,19 @@
+FYRE_USER="imbot"
+FYRE_TOKEN="csk6onsp9hBBa6kMcSTMXLll18e8KM2NN18ST5JVn"
+FYRE_SITE="rtp" # Default site
+curl -k -X POST "https://$FYRE_USER:$FYRE_TOKEN@ocpapi.svl.ibm.com/v1/stencils/import_image?site=$FYRE_SITE" \
+  --data '{ \
+    "name": "manageiq-el10", \
+    "description": "ManageIQ EL10 Bootc", \
+    "cpu": "4", \
+    "memory": "8", \
+    "disks": [ "http://im-jenkins-rhel10-amd64.dev.fyre.ibm.com/miqel10.qc2" ], \
+    "os": "CentOS Stream 10", \
+    "public": true, \
+    "public_ip": true, \
+    "private_ip": true, \
+    "ssh_key": [ \
+      "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDlDivM+Ep4xKkcEnYg9rrErv5GB6+D9NOVRWEfdw6nySiDsVjpAGNf4PYZQn72zWVlsZXFldslqTTE+5NNeJ6peIwwlw49wVMXEqF95kCSZ3wSGZB7kaRp7QT2/mjGeF42UpQ4do3Y1cHvTywLiPvTr9RW7sjc5wLYER5xFR+7g9PyP5NpXOZUREdjdubk1gsn4tX1GS279eVmH4RNPQH2Z50zyjYt81uJS+IrKEBe5sjQzsFe5ltSBAvZrJiHUx791qR9Bdd9dImzbN+1WDMEV7PXOQDEIceQx0Swc7oVbwwKCGgeAO4it/nua+rKbI/dAwcLj+hgSdvPiTertWhACs3LzeuoEPk0WF+vURm1aLx3Ox2WgP1uuyH4pp8feZurNp4TlBjA75DsdqGhUBjCGI3XNjCh5Urr71nm1dckKbkX9XrxjEz3vQX2E8VaADKEAVYh9tqX9F9llEfxOZKCt7ULRxdvu+LZljtF7RGFm3npu/8EfJSI2Lhon6ogK+1uU3K6mykBSbs8RIMuDupvipTSuRWe/mrkwEUOiSiGB+qQdaK3igK8QAwA7FCHpE5+CEeU5K9UbbUIlI+YQvhoEcnd2jW69pRRp9n8747AFLKDWhB3O8MIu6sesVWgxd9kklHEfYHLVY7mw6GyDhWVUId+N2441YXU52tPs1zS0w== fyre_engine", \
+      "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+R80frAPBZ9tuQ5CKIzCKJ5wiRZFvboiCnLgzO+XLaYA8u7/ne2UwaeFPNz/4lDevWtBmYXqC/1UkVOw/i8WlH91Ux7DYjd89xl+znsj8cn3QE38jfgWqoxklLjRBno0Q8ll4MeLrn3qLcJPXh11Yty7HQ/p0XfMgo2j3e7o/Dq+hdJNp7T1olWHRknrkWko/TRZIeuxCxIRS5azBkl0WwgeyoSGMBFxNVta2yDfl0zmIg20of2A/TFnBAQ74C3BRPONkJFMz32hRjxDSj8mbQSqbU2TftyYSGRVqJwOAcKbD7Wyt/m1G24kLivxJgzCLIHAc1kvibjJJDAvH6xP1 fyre_security" \
+    ] \
+  }'
