@@ -78,7 +78,7 @@ func ManageInternalCertificatesSecret(cr *miqv1alpha1.ManageIQ, client client.Cl
 	secret := InternalCertificatesSecret(cr, client)
 
 	f := func() error {
-		addBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
+		addBackupLabelDB(cr.Spec.BackupLabelName, &secret.ObjectMeta)
 
 		return nil
 	}

@@ -70,6 +70,10 @@ func addBackupLabel(backupLabel string, meta *metav1.ObjectMeta) {
 	AddLabel(backupLabel, "t", meta)
 }
 
+func addBackupLabelDB(backupLabel string, meta *metav1.ObjectMeta) {
+	AddLabel(backupLabel, "db", meta)
+}
+
 func AddLabel(key string, value string, meta *metav1.ObjectMeta) {
 	if meta.Labels == nil {
 		meta.Labels = make(map[string]string)
