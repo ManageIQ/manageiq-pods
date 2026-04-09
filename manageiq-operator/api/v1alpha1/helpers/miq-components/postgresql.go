@@ -31,7 +31,7 @@ func ManagePostgresqlSecret(cr *miqv1alpha1.ManageIQ, client client.Client, sche
 		}
 
 		addAppLabel(cr.Spec.AppName, &secret.ObjectMeta)
-		addBackupLabel(cr.Spec.BackupLabelName, &secret.ObjectMeta)
+		addBackupLabelDB(cr.Spec.BackupLabelName, &secret.ObjectMeta)
 
 		if certSecret := InternalCertificatesSecret(cr, client); certSecret.Data["postgresql_crt"] != nil && certSecret.Data["postgresql_key"] != nil && string(secret.Data["hostname"]) == "postgresql" {
 			d := map[string]string{
@@ -90,7 +90,7 @@ func PostgresqlConfigMap(cr *miqv1alpha1.ManageIQ, client client.Client, scheme 
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &configMap.ObjectMeta)
-		addBackupLabel(cr.Spec.BackupLabelName, &configMap.ObjectMeta)
+		addBackupLabelDB(cr.Spec.BackupLabelName, &configMap.ObjectMeta)
 
 		if configMap.Data == nil {
 			configMap.Data = map[string]string{}
@@ -135,7 +135,7 @@ func PostgresqlPVC(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Pe
 		}
 
 		addAppLabel(cr.Spec.AppName, &pvc.ObjectMeta)
-		addBackupLabel(cr.Spec.BackupLabelName, &pvc.ObjectMeta)
+		addBackupLabelDB(cr.Spec.BackupLabelName, &pvc.ObjectMeta)
 		pvc.Spec.AccessModes = accessModes
 		pvc.Spec.Resources = resources
 
@@ -247,8 +247,8 @@ func PostgresqlDeployment(cr *miqv1alpha1.ManageIQ, client client.Client, scheme
 			return err
 		}
 		addAppLabel(cr.Spec.AppName, &deployment.ObjectMeta)
-		addBackupLabel(cr.Spec.BackupLabelName, &deployment.ObjectMeta)
-		addBackupLabel(cr.Spec.BackupLabelName, &deployment.Spec.Template.ObjectMeta)
+		addBackupLabelDB(cr.Spec.BackupLabelName, &deployment.ObjectMeta)
+		addBackupLabelDB(cr.Spec.BackupLabelName, &deployment.Spec.Template.ObjectMeta)
 		addBackupAnnotation("miq-pgdb-volume", &deployment.Spec.Template.ObjectMeta)
 		var repNum int32 = 1
 		deployment.Spec.Replicas = &repNum
