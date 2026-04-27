@@ -31,13 +31,6 @@ RUN chmod +t /tmp
 RUN chmod -R g+w /etc/pki/ca-trust && \
     chmod -R g+w /usr/share/pki/ca-trust-legacy
 
-# Install dumb-init to be used as the entrypoint
-RUN ARCH=$(uname -m) && \
-    URL=$(curl -s https://api.github.com/repos/Yelp/dumb-init/releases/latest | grep "browser_download_url.*_${ARCH}" | grep -o 'https://[^"]*') && \
-    echo $URL && \
-    curl -L -o /usr/bin/dumb-init $URL && \
-    chmod +x /usr/bin/dumb-init
-
 COPY container-assets/prepare_local_yum_repo.sh /usr/local/bin
 COPY container-assets/clean_dnf_rpm /usr/local/bin/
 
@@ -61,6 +54,7 @@ RUN --mount=type=bind,from=rpms,source=/tmp/rpms,target=/tmp/rpms \
     if [[ -n "$(ls /tmp/rpms)" ]]; then /usr/local/bin/prepare_local_yum_repo.sh; fi && \
     dnf -y module enable ruby:3.3 && \
     dnf -y install \
+      dumb-init \
       httpd \
       mod_ssl \
       ${RPM_PREFIX}-pods \
