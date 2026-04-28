@@ -47,7 +47,7 @@ fi
 
 pushd $IMAGE_DIR
   # Pull the base image first
-  $CONTAINER_COMMAND pull registry.access.redhat.com/ubi9/ubi
+#  $CONTAINER_COMMAND pull registry.access.redhat.com/ubi10/ubi
 
   build_images="manageiq-rpms manageiq-base manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker"
   for image in $build_images; do

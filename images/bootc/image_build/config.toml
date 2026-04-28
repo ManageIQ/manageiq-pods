@@ -1,0 +1,4 @@
+[[customizations.user]]
+name = "manageiq"
+password = "smartvm"
+groups = ["wheel"]

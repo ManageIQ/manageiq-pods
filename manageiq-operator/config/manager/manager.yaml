@@ -36,7 +36,7 @@ spec:
           type: RuntimeDefault
       containers:
       - name: manageiq-operator
-        image: docker.io/manageiq/manageiq-operator:latest
+        image: icr.io/ibm-aiops-dev/bdunne/manageiq-operator:el10
         imagePullPolicy: Always
         env:
         - name: WATCH_NAMESPACE
@@ -74,6 +74,8 @@ spec:
             cpu: 10m
             memory: 64Mi
         volumeMounts: []
+      imagePullSecrets:
+      - name: image-pull-secret
       volumes: []
       serviceAccountName: manageiq-operator
       terminationGracePeriodSeconds: 10

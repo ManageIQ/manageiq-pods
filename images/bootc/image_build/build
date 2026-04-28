@@ -1,0 +1,15 @@
+sudo podman pull quay.io/centos-bootc/bootc-image-builder:latest
+sudo podman pull icr.io/ibm-aiops-dev/bdunne/manageiq-bootc
+sudo podman run \
+    --rm \
+    -it \
+    --privileged \
+    --pull=newer \
+    --security-opt label=type:unconfined_t \
+    -v ./config.toml:/config.toml:ro \
+    -v ./output:/output \
+    -v /var/lib/containers/storage:/var/lib/containers/storage \
+    quay.io/centos-bootc/bootc-image-builder:latest \
+    --type qcow2 \
+    --use-librepo=True \
+    icr.io/ibm-aiops-dev/bdunne/manageiq-bootc
