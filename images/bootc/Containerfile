@@ -1,0 +1,53 @@
+ARG FROM_REPO=icr.io/ibm-aiops-dev/bdunne
+ARG FROM_TAG=el10
+FROM ${FROM_REPO}/manageiq-rpms:${FROM_TAG} as rpms
+
+
+FROM quay.io/centos-bootc/centos-bootc:stream10
+
+COPY container-assets/prepare_local_yum_repo.sh /usr/local/bin
+
+RUN --mount=type=bind,from=rpms,source=/tmp/rpms,target=/tmp/rpms \
+    ARCH=$(uname -m) && \
+    dnf config-manager --enable crb && \
+    dnf -y install \
+      epel-release \
+      https://rpm.manageiq.org/release/21-uhlmann/el10/noarch/manageiq-release-21.0-1.el10.noarch.rpm && \
+    dnf -y update && \
+    dnf config-manager --setopt=epel.exclude=*qpid-proton* --save && \
+    if [[ -n "$(ls /tmp/rpms)" ]]; then /usr/local/bin/prepare_local_yum_repo.sh; fi && \
+    dnf -y install \
+      firewalld \
+      manageiq-appliance \
+      manageiq-appliance-tools
+
+RUN firewall-offline-cmd --new-zone=manageiq && \
+    firewall-offline-cmd --set-default-zone=manageiq && \
+    firewall-offline-cmd --zone=manageiq --add-service=http && \
+    firewall-offline-cmd --zone=manageiq --add-service=https && \
+    firewall-offline-cmd --zone=manageiq --add-service=ssh && \
+    firewall-offline-cmd --zone=manageiq --add-service=postgresql && \
+    firewall-offline-cmd --zone=manageiq --add-service=dhcpv6-client && \
+    firewall-offline-cmd --zone=manageiq --add-service=cockpit && \
+    systemctl enable cockpit.socket evminit memcached miqtop miqvmstat && \
+    ln -sf /dev/null /etc/systemd/system/ctrl-alt-del.target && \
+    sed -i s/root//g /etc/cockpit/disallowed-users
+
+    #This should be an appliance dependency it is used by the appliance console
+RUN dnf -y install parted
+
+    #this should be required by the appliance rpm, it's needed for postgres
+RUN dnf -y install glibc-langpack-en
+
+COPY container-assets/message_configuration.rb /opt/manageiq/manageiq-gemset/gems/manageiq-appliance_console-11.1.0/lib/manageiq/appliance_console/message_configuration.rb
+COPY container-assets/kafka/*.sh /usr/local/bin/
+COPY container-assets/systemd_common.rb /var/www/miq/vmdb/app/models/miq_worker/systemd_common.rb
+
+# Configure jenkins user
+RUN ssh-keygen -A && \
+    mkdir -m 700 ~/.ssh && \
+    echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDLi6nZ+ijSs9NkBV0UkzoWyy50s1ZkJKl3u3ujT681d9gh43qeACLRawrqiIjZNWt2s8jM+ef833lV4ss7qoOyJL5QyqFKo0aS2ElPQIYRGtAc4y8feUOH/WexumpLe2f/Ddv0DFYjFlxtPXt42dN1Gq+MKKLyOOui8IvnbBMuNL1hvvW1IoHlAHZgzSElf96rdVw3uwqwQKCl7UKycP6eL1hwgcPL4U2kQS53OcBWuuM2E4dFqW1dz4G29dd2Fa7BEkWUtWt6hFNo/xx5+EvGNY76BxzmU3abuW6Q0XmBWx5Me7jvcABxY/MRvV3I8E+wiZkNRiijwwvibI6CCH8o5LbCwA6LHjxdwBAr+46wsSJomj/zPo0uWCbjQDlVUirSdSgjiZ4nRvPl+Ib9Ar33rhbHexzH2cDWCyUzcAofWpCZPg8T9+7J9Y9TGa2+9NACDlhxGcfPSeAdK81WDZPVyZFe8Jw4x9EbCvimZSkAxijP5tOOYyWrkAh9hl/nyxU= bdunne@li-f0bdb6cc-2eb4-11b2-a85c-8c60b94a3d2a.ibm.com' >> /root/.ssh/authorized_keys && \
+    echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDlDivM+Ep4xKkcEnYg9rrErv5GB6+D9NOVRWEfdw6nySiDsVjpAGNf4PYZQn72zWVlsZXFldslqTTE+5NNeJ6peIwwlw49wVMXEqF95kCSZ3wSGZB7kaRp7QT2/mjGeF42UpQ4do3Y1cHvTywLiPvTr9RW7sjc5wLYER5xFR+7g9PyP5NpXOZUREdjdubk1gsn4tX1GS279eVmH4RNPQH2Z50zyjYt81uJS+IrKEBe5sjQzsFe5ltSBAvZrJiHUx791qR9Bdd9dImzbN+1WDMEV7PXOQDEIceQx0Swc7oVbwwKCGgeAO4it/nua+rKbI/dAwcLj+hgSdvPiTertWhACs3LzeuoEPk0WF+vURm1aLx3Ox2WgP1uuyH4pp8feZurNp4TlBjA75DsdqGhUBjCGI3XNjCh5Urr71nm1dckKbkX9XrxjEz3vQX2E8VaADKEAVYh9tqX9F9llEfxOZKCt7ULRxdvu+LZljtF7RGFm3npu/8EfJSI2Lhon6ogK+1uU3K6mykBSbs8RIMuDupvipTSuRWe/mrkwEUOiSiGB+qQdaK3igK8QAwA7FCHpE5+CEeU5K9UbbUIlI+YQvhoEcnd2jW69pRRp9n8747AFLKDWhB3O8MIu6sesVWgxd9kklHEfYHLVY7mw6GyDhWVUId+N2441YXU52tPs1zS0w== fyre_engine' >> /root/.ssh/authorized_keys && \
+    echo 'ssh-rsaAAAAB3NzaC1yc2EAAAADAQABAAABAQC+R80frAPBZ9tuQ5CKIzCKJ5wiRZFvboiCnLgzO+XLaYA8u7/ne2UwaeFPNz/4lDevWtBmYXqC/1UkVOw/i8WlH91Ux7DYjd89xl+znsj8cn3QE38jfgWqoxklLjRBno0Q8ll4MeLrn3qLcJPXh11Yty7HQ/p0XfMgo2j3e7o/Dq+hdJNp7T1olWHRknrkWko/TRZIeuxCxIRS5azBkl0WwgeyoSGMBFxNVta2yDfl0zmIg20of2A/TFnBAQ74C3BRPONkJFMz32hRjxDSj8mbQSqbU2TftyYSGRVqJwOAcKbD7Wyt/m1G24kLivxJgzCLIHAc1kvibjJJDAvH6xP1 fyre_security' >> /root/.ssh/authorized_keys && \
+    su manageiq -c "mkdir -m 700 ~/.ssh" && \
+    su manageiq -c "echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDLi6nZ+ijSs9NkBV0UkzoWyy50s1ZkJKl3u3ujT681d9gh43qeACLRawrqiIjZNWt2s8jM+ef833lV4ss7qoOyJL5QyqFKo0aS2ElPQIYRGtAc4y8feUOH/WexumpLe2f/Ddv0DFYjFlxtPXt42dN1Gq+MKKLyOOui8IvnbBMuNL1hvvW1IoHlAHZgzSElf96rdVw3uwqwQKCl7UKycP6eL1hwgcPL4U2kQS53OcBWuuM2E4dFqW1dz4G29dd2Fa7BEkWUtWt6hFNo/xx5+EvGNY76BxzmU3abuW6Q0XmBWx5Me7jvcABxY/MRvV3I8E+wiZkNRiijwwvibI6CCH8o5LbCwA6LHjxdwBAr+46wsSJomj/zPo0uWCbjQDlVUirSdSgjiZ4nRvPl+Ib9Ar33rhbHexzH2cDWCyUzcAofWpCZPg8T9+7J9Y9TGa2+9NACDlhxGcfPSeAdK81WDZPVyZFe8Jw4x9EbCvimZSkAxijP5tOOYyWrkAh9hl/nyxU= bdunne@li-f0bdb6cc-2eb4-11b2-a85c-8c60b94a3d2a.ibm.com' >> ~/.ssh/authorized_keys"

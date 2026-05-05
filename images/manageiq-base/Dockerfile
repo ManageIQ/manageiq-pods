@@ -6,7 +6,7 @@ FROM ${FROM_REPO}/manageiq-rpms:${FROM_TAG} as rpms
 
 ################################################################################
 
-FROM registry.access.redhat.com/ubi9/ubi
+FROM registry.access.redhat.com/ubi10/ubi
 ARG FROM_REPO
 ARG FROM_TAG
 ARG RELEASE_BUILD
@@ -35,24 +35,25 @@ COPY container-assets/prepare_local_yum_repo.sh /usr/local/bin
 COPY container-assets/clean_dnf_rpm /usr/local/bin/
 
 RUN --mount=type=bind,from=rpms,source=/tmp/rpms,target=/tmp/rpms \
-    sed -i 's/enabled=1/enabled=0/g' /etc/dnf/plugins/subscription-manager.conf && \
-    dnf -y --setopt=tsflags=nodocs update && \
     ARCH=$(uname -m) && \
+    sed -i "s/enabled=1/enabled=0/g" /etc/dnf/plugins/subscription-manager.conf && \
     dnf config-manager --setopt=tsflags=nodocs --setopt=install_weak_deps=False --save && \
+    dnf -y --setopt=tsflags=nodocs update && \
     dnf -y --setopt=protected_packages= remove redhat-release && \
-    dnf -y install \
-      http://mirror.stream.centos.org/9-stream/BaseOS/${ARCH}/os/Packages/centos-stream-release-9.0-34.el9.noarch.rpm \
-      http://mirror.stream.centos.org/9-stream/BaseOS/${ARCH}/os/Packages/centos-stream-repos-9.0-34.el9.noarch.rpm \
-      http://mirror.stream.centos.org/9-stream/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-9.0-34.el9.noarch.rpm && \
+    dnf -y install --releasever 10 \
+      http://mirror.stream.centos.org/10-stream/BaseOS/${ARCH}/os/Packages/centos-stream-release-10.0-20.el10.noarch.rpm \
+      http://mirror.stream.centos.org/10-stream/BaseOS/${ARCH}/os/Packages/centos-stream-repos-10.0-20.el10.noarch.rpm \
+      http://mirror.stream.centos.org/10-stream/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-10.0-20.el10.noarch.rpm && \
+    dnf -y install 'dnf-command(config-manager)' && \
     dnf config-manager --enable crb && \
     dnf -y --disablerepo=ubi-9-baseos-rpms swap openssl-fips-provider openssl-libs && \
     dnf -y update && \
     dnf -y install \
-      https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm \
-      https://rpm.manageiq.org/release/21-uhlmann/el9/noarch/manageiq-release-21.0-1.el9.noarch.rpm && \
+      https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm \
+      https://rpm.manageiq.org/release/21-uhlmann/el10/noarch/manageiq-release-21.0-1.el10.noarch.rpm && \
+    dnf config-manager --setopt=epel.exclude=*qpid-proton* --save && \
     if [[ "$RELEASE_BUILD" != "true" ]]; then dnf config-manager --enable manageiq-21-uhlmann-nightly; fi && \
     if [[ -n "$(ls /tmp/rpms)" ]]; then /usr/local/bin/prepare_local_yum_repo.sh; fi && \
-    dnf -y module enable ruby:3.3 && \
     dnf -y install \
       dumb-init \
       httpd \
