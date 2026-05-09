@@ -1,0 +1,60 @@
+[[customizations.user]]
+name = "manageiq"
+password = "smartvm"
+groups = ["wheel"]
+
+[customizations.kernel]
+append = "crashkernel=auto rhgb quiet console=tty0 console=ttyS0,115200n8"
+
+[[customizations.disk.partitions]]
+type = "plain"
+label = "boot"
+mountpoint = "/boot"
+fs_type = "xfs"
+minsize = "1 GiB"
+
+[[customizations.disk.partitions]]
+type = "lvm"
+name = "vg_system"
+minsize = "20 GiB"
+
+[[customizations.disk.partitions.logical_volumes]]
+name = "lv_os"
+mountpoint = "/"
+fs_type = "xfs"
+minsize = "10 GiB"
+
+[[customizations.disk.partitions.logical_volumes]]
+name = "lv_var_lib"
+mountpoint = "/var/lib"
+fs_type = "xfs"
+minsize = "10 GiB"
+
+[[customizations.disk.partitions.logical_volumes]]
+name = "lv_var_log"
+mountpoint = "/var/log"
+fs_type = "xfs"
+minsize = "10 GiB"
+
+[[customizations.disk.partitions.logical_volumes]]
+name = "lv_var_log_audit"
+mountpoint = "/var/log/audit"
+fs_type = "xfs"
+minsize = "512 MiB"
+
+[[customizations.disk.partitions.logical_volumes]]
+name = "lv_var_www_miq_tmp"
+mountpoint = "/var/www/miq_tmp"
+fs_type = "xfs"
+minsize = "10 GiB"
+
+[[customizations.disk.partitions.logical_volumes]]
+name = "lv_home"
+mountpoint = "/var/home"
+fs_type = "xfs"
+minsize = "1 GiB"
+
+[[customizations.disk.partitions.logical_volumes]]
+name = "swaplv"
+fs_type = "swap"
+minsize = "4 GiB"
