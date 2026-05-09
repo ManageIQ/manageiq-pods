@@ -6,8 +6,9 @@ RPM_BUILD_OPTIONS=${RPM_BUILD_OPTIONS:-""}
 RPM_BUILD_IMAGE=${RPM_BUILD_IMAGE:-"manageiq/rpm_build:$TAG"}
 RPM_PREFIX=${RPM_PREFIX:-"manageiq"}
 
-while getopts "t:c:d:r:hbnops" opt; do
+while getopts "t:c:d:r:habnops" opt; do
   case $opt in
+    a) NO_APPLIANCES="true" ;;
     b) REBUILD_RPM="true" ;;
     c) CONTAINER_PREFIX=$OPTARG ;;
     d) BASE_DIR=$OPTARG ;;
@@ -17,7 +18,7 @@ while getopts "t:c:d:r:hbnops" opt; do
     r) REPO=$OPTARG ;;
     s) RELEASE_BUILD="true" ;;
     t) TAG=$OPTARG ;;
-    h) echo "Usage: $0 [-hbnops] [-c CONTAINER_PREFIX] [-d BASE_DIR] [-r IMAGE_REPOSITORY] [-t IMAGE_TAG]"; exit 1
+    h) echo "Usage: $0 [-habnops] [-c CONTAINER_PREFIX] [-d BASE_DIR] [-r IMAGE_REPOSITORY] [-t IMAGE_TAG]"; exit 1
   esac
 done
 
@@ -45,32 +46,28 @@ if [ -n "$REBUILD_RPM" ]; then
   $cmd
 fi
 
+CONTAINER_BUILD_COMMAND="$CONTAINER_COMMAND build --build-arg FROM_REPO=$REPO --build-arg FROM_TAG=$TAG --build-arg RPM_PREFIX=$RPM_PREFIX"
+if [ -n "$VERBOSE" ]; then
+  CONTAINER_BUILD_COMMAND+=" --progress plain"
+fi
+# --format docker is needed for podman to ensure the builds are built with docker v2 manifests
+if [ "$CONTAINER_COMMAND" == "podman" ]; then
+  CONTAINER_BUILD_COMMAND+=" --format docker"
+fi
+if [ -n "$NO_CACHE" ]; then
+  CONTAINER_BUILD_COMMAND+=" --no-cache"
+fi
+if [ -n "$RELEASE_BUILD" -a "$image" == "manageiq-base" ]; then
+  CONTAINER_BUILD_COMMAND+=" --build-arg RELEASE_BUILD=true"
+fi
+
 pushd $IMAGE_DIR
   # Pull the base image first
   $CONTAINER_COMMAND pull registry.access.redhat.com/ubi10/ubi
 
   build_images="manageiq-rpms manageiq-base manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker"
   for image in $build_images; do
-    cmd="$CONTAINER_COMMAND build --build-arg FROM_REPO=$REPO --build-arg FROM_TAG=$TAG --build-arg RPM_PREFIX=$RPM_PREFIX --tag $REPO/$image:$TAG"
-
-    if [ -n "$VERBOSE" ]; then
-      cmd+=" --progress plain"
-    fi
-
-    # --format docker is needed for podman to ensure the builds are built with docker v2 manifests
-    if [ "$CONTAINER_COMMAND" == "podman" ]; then
-      cmd+=" --format docker"
-    fi
-
-    if [ -n "$NO_CACHE" ]; then
-      cmd+=" --no-cache"
-    fi
-
-    if [ -n "$RELEASE_BUILD" -a "$image" == "manageiq-base" ]; then
-      cmd+=" --build-arg RELEASE_BUILD=true"
-    fi
-
-    cmd+=" $image"
+    cmd="$CONTAINER_BUILD_COMMAND --tag $REPO/$image:$TAG $image"
 
     echo "Building $image: $cmd"
     $cmd
@@ -85,15 +82,26 @@ if [ -z "$NO_OPERATOR" ]; then
   popd
 fi
 
-if APPLIANCES; then
+appliance_images_to_push=""
+if [ -z "$NO_APPLIANCES" ]; then
   $CONTAINER_COMMAND pull quay.io/centos-bootc/centos-bootc:stream10
-  cd images/manageiq-appliance
-  podman build . -t $REPO/manageiq-appliance:$TAG
-  for i in $(ls Containerfile.*); do
-    extension=${i##*.}
-    echo $extension
-    podman build . -t $REPO/manageiq-appliance:$TAG-$extension
+  pushd images/manageiq-appliance
+
+  target_tag="$REPO/manageiq-appliance:$TAG"
+  cmd="$CONTAINER_BUILD_COMMAND . --tag $target_tag"
+  echo "Building $image: $cmd"
+  $cmd
+
+  for containerfile in $(ls Containerfile.*); do
+    target=${containerfile##*.}
+
+    target_tag="$REPO/manageiq-appliance:$TAG-$target"
+    cmd="$CONTAINER_BUILD_COMMAND . -f $containerfile --tag $target_tag"
+    echo "Building $image: $cmd"
+    $cmd
+    appliance_images_to_push+="$target_tag "
   done
+  popd
 fi
 
 if [ -n "$PUSH" ]; then
@@ -113,4 +121,18 @@ if [ -n "$PUSH" ]; then
     echo "Pushing $image: $cmd"
     $cmd
   done
+
+  if [ -z "$NO_APPLIANCES" ]; then
+    for image in $appliance_images_to_push; do
+      cmd="$CONTAINER_COMMAND push $image"
+
+      # --format docker is needed for podman to ensure the builds are built with docker v2 manifests
+      if [ "$CONTAINER_COMMAND" == "podman" ]; then
+        cmd+=" --format docker"
+      fi
+
+      echo "Pushing $image: $cmd"
+      $cmd
+    done
+  fi
 fi
