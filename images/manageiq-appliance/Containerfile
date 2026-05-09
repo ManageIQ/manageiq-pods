@@ -32,7 +32,7 @@ RUN --mount=type=bind,from=quay.io/manageiq/build_tools:v1,source=/tools,target=
       python3-devel \
       ${RPM_PREFIX}-appliance && \
     miq_clean_dnf_rpm && \
-    dnf config-manager --set-disabled local-rpm
+    if [[ -f /etc/yum.repos.d/local_rpm.repo ]]; then dnf config-manager --set-disabled local-rpm; fi
 
 RUN firewall-offline-cmd --new-zone=manageiq && \
     firewall-offline-cmd --set-default-zone=manageiq && \
