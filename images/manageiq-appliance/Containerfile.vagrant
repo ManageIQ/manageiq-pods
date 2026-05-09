@@ -1,6 +1,6 @@
 ARG FROM_REPO=docker.io/manageiq
 ARG FROM_TAG=latest
-FROM ${FROM_REPO}/manageiq-appliance:${FROM_TAG}
+FROM ${FROM_REPO}/manageiq-appliance-base:${FROM_TAG}
 
 # Add a user "vagrant" with password "vagrant" and a well known public key.
 # Note this is how Vagrant works. You are assumed not to use a Vagrant box on

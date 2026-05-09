@@ -4,6 +4,7 @@ images/manageiq-base-worker/container-assets/VMware-*
 images/manageiq-rpms/rpms
 manageiq-operator/build/_output/*
 manageiq-operator/vendor/*
+output/*
 tools/certs/*.crt
 tools/certs/*.key
 *.qcow2
