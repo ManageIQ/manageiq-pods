@@ -1,0 +1,31 @@
+ARG FROM_REPO=docker.io/manageiq
+ARG FROM_TAG=latest
+FROM ${FROM_REPO}/manageiq-appliance-base:${FROM_TAG}
+
+COPY <<EOF /etc/yum.repos.d/google-cloud.repo
+[google-compute-engine]
+name=Google Compute Engine
+baseurl=https://packages.cloud.google.com/yum/repos/google-compute-engine-el10-x86_64-stable
+enabled=1
+gpgcheck=1
+repo_gpgcheck=0
+gpgkey=https://packages.cloud.google.com/yum/doc/rpm-package-key-v10.gpg
+EOF
+
+RUN --mount=type=bind,from=quay.io/manageiq/build_tools:v1,source=/tools,target=/usr/local/bin \
+    systemctl disable cloud-ds-check && \
+    dnf -y install \
+      google-compute-engine \
+      google-osconfig-agent && \
+    miq_clean_dnf_rpm
+
+RUN sed -i 's/^#\(ClientAliveInterval\).*$/\1 420/g' /etc/ssh/sshd_config && \
+    sed -i 's/^#\(PermitRootLogin\).*$/\1 no/g' /etc/ssh/sshd_config && \
+    sed -i 's/^\(PasswordAuthentication\).*$/\1 no/g' /etc/ssh/sshd_config && \
+    sed -i 's/^\(X11Forwarding\).*$/\1 no/g' /etc/ssh/sshd_config && \
+    usermod -L root && \
+    cat >> /etc/ssh/ssh_config << EOF
+Protocol 2
+StrictHostKeyChecking no
+ServerAliveInterval 420
+EOF

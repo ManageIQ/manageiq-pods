@@ -1,0 +1,29 @@
+ARG FROM_REPO=docker.io/manageiq
+ARG FROM_TAG=latest
+FROM ${FROM_REPO}/manageiq-appliance-base:${FROM_TAG}
+
+# Add a user "vagrant" with password "vagrant" and a well known public key.
+# Note this is how Vagrant works. You are assumed not to use a Vagrant box on
+# a publicly acessible network.
+COPY <<EOM /etc/sudoers.d/vagrant-nopasswd
+Defaults:vagrant !requiretty
+vagrant ALL=(ALL) NOPASSWD:ALL
+EOM
+
+COPY <<EOM ~vagrant/.bashrc
+umask 022
+alias appliance_console='sudo -i appliance_console'
+alias ap=appliance_console
+EOM
+
+RUN --mount=type=bind,from=quay.io/manageiq/build_tools:v1,source=/tools,target=/usr/local/bin \
+    dnf -y install cloud-init && \
+    miq_clean_dnf_rpm
+
+RUN useradd vagrant -p b1HEow3cJo7Nc && \
+    sed -i 's/.*UseDNS.*/UseDNS no/' /etc/ssh/sshd_config && \
+    chmod 400 /etc/sudoers.d/vagrant-nopasswd && \
+    mkdir -m 0700 -p ~vagrant/.ssh && \
+    echo "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA6NF8iallvQVp22WDkTkyrtvp9eWW6A8YVr+kz4TjGYe7gHzIw+niNltGEFHzD8+v1I2YJ6oXevct1YeS0o9HZyN1Q9qgCgzUFtdOKLv6IedplqoPkcmF0aYet2PkEDo3MlTBckFXPITAMzF8dJSIFo9D8HfdOV0IAdx4O7PtixWKn5y2hMNG0zQPyUecp4pzC6kivAIhyfHilFR61RGL+GPXQ2MWZWFYbAGjyiYJnAmCP3NOTd0jMZEnDkbUvxhMmBYSdETk1rRgm+R4LOzFUGaHqHDLKLX+FIPKcF96hrucXzcWyLbIbEgE98OHlnVYCzRdK8jlqm8tehUc9c9WhQ== vagrant insecure public key" > ~vagrant/.ssh/authorized_keys && \
+    chmod 600 ~vagrant/.ssh/authorized_keys && \
+    chown -R vagrant:vagrant ~vagrant/.ssh/

@@ -1,0 +1,19 @@
+ARG FROM_REPO=docker.io/manageiq
+ARG FROM_TAG=latest
+FROM ${FROM_REPO}/manageiq-appliance-base:${FROM_TAG}
+
+COPY <<20_miq_user.cfg <<20_miq_ephemeral_mount.cfg /etc/cloud/cloud.cfg.d/
+disable_root: true
+ssh_pwauth: false
+users:
+  - default
+20_miq_user.cfg
+mounts:
+ - [ ephemeral0 ]
+20_miq_ephemeral_mount.cfg
+
+RUN --mount=type=bind,from=quay.io/manageiq/build_tools:v1,source=/tools,target=/usr/local/bin \
+    dnf -y install cloud-init dracut-config-generic && \
+    miq_clean_dnf_rpm
+
+RUN usermod -L root

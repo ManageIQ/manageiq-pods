@@ -6,8 +6,9 @@ RPM_BUILD_OPTIONS=${RPM_BUILD_OPTIONS:-""}
 RPM_BUILD_IMAGE=${RPM_BUILD_IMAGE:-"manageiq/rpm_build:$TAG"}
 RPM_PREFIX=${RPM_PREFIX:-"manageiq"}
 
-while getopts "t:c:d:r:hbnops" opt; do
+while getopts "t:c:d:r:habnops" opt; do
   case $opt in
+    a) NO_APPLIANCES="true" ;;
     b) REBUILD_RPM="true" ;;
     c) CONTAINER_PREFIX=$OPTARG ;;
     d) BASE_DIR=$OPTARG ;;
@@ -17,7 +18,7 @@ while getopts "t:c:d:r:hbnops" opt; do
     r) REPO=$OPTARG ;;
     s) RELEASE_BUILD="true" ;;
     t) TAG=$OPTARG ;;
-    h) echo "Usage: $0 [-hbnops] [-c CONTAINER_PREFIX] [-d BASE_DIR] [-r IMAGE_REPOSITORY] [-t IMAGE_TAG]"; exit 1
+    h) echo "Usage: $0 [-habnops] [-c CONTAINER_PREFIX] [-d BASE_DIR] [-r IMAGE_REPOSITORY] [-t IMAGE_TAG]"; exit 1
   esac
 done
 
@@ -28,6 +29,11 @@ OPERATOR_DIR="$BASE_DIR/manageiq-operator"
 REPO=${REPO:-docker.io/manageiq}
 
 CONTAINER_COMMAND="$(which podman &>/dev/null && echo "podman" || echo "docker")"
+
+if [[ -z "$NO_APPLIANCES" && -n "$PUSH" && -z "$IBM_CLOUD_API_KEY" ]]; then
+  echo "ERROR: Missing IBM_CLOUD_API_KEY"
+  exit 1
+fi
 
 set -e
 
@@ -45,32 +51,28 @@ if [ -n "$REBUILD_RPM" ]; then
   $cmd
 fi
 
+CONTAINER_BUILD_COMMAND="$CONTAINER_COMMAND build --build-arg FROM_REPO=$REPO --build-arg FROM_TAG=$TAG --build-arg RPM_PREFIX=$RPM_PREFIX"
+if [ -n "$VERBOSE" ]; then
+  CONTAINER_BUILD_COMMAND+=" --progress plain"
+fi
+# --format docker is needed for podman to ensure the builds are built with docker v2 manifests
+if [ "$CONTAINER_COMMAND" == "podman" ]; then
+  CONTAINER_BUILD_COMMAND+=" --format docker"
+fi
+if [ -n "$NO_CACHE" ]; then
+  CONTAINER_BUILD_COMMAND+=" --no-cache"
+fi
+if [ -n "$RELEASE_BUILD" -a "$image" == "manageiq-base" ]; then
+  CONTAINER_BUILD_COMMAND+=" --build-arg RELEASE_BUILD=true"
+fi
+
 pushd $IMAGE_DIR
-  # Pull the base image first
+  echo "Pulling base UBI image"
   $CONTAINER_COMMAND pull registry.access.redhat.com/ubi10/ubi
 
   build_images="manageiq-rpms manageiq-base manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker"
   for image in $build_images; do
-    cmd="$CONTAINER_COMMAND build --build-arg FROM_REPO=$REPO --build-arg FROM_TAG=$TAG --build-arg RPM_PREFIX=$RPM_PREFIX --tag $REPO/$image:$TAG"
-
-    if [ -n "$VERBOSE" ]; then
-      cmd+=" --progress plain"
-    fi
-
-    # --format docker is needed for podman to ensure the builds are built with docker v2 manifests
-    if [ "$CONTAINER_COMMAND" == "podman" ]; then
-      cmd+=" --format docker"
-    fi
-
-    if [ -n "$NO_CACHE" ]; then
-      cmd+=" --no-cache"
-    fi
-
-    if [ -n "$RELEASE_BUILD" -a "$image" == "manageiq-base" ]; then
-      cmd+=" --build-arg RELEASE_BUILD=true"
-    fi
-
-    cmd+=" $image"
+    cmd="$CONTAINER_BUILD_COMMAND --tag $REPO/$image:$TAG $image"
 
     echo "Building $image: $cmd"
     $cmd
@@ -85,8 +87,30 @@ if [ -z "$NO_OPERATOR" ]; then
   popd
 fi
 
+appliance_images_to_push=""
+if [ -z "$NO_APPLIANCES" ]; then
+  echo "Pulling base appliance bootc image"
+  $CONTAINER_COMMAND pull quay.io/centos-bootc/centos-bootc:stream10
+  pushd images/manageiq-appliance
+
+  cmd="$CONTAINER_BUILD_COMMAND . --tag $REPO/manageiq-appliance-base:$TAG"
+  echo "Building $image: $cmd"
+  $cmd
+
+  for containerfile in $(ls Containerfile.*); do
+    target=${containerfile##*.}
+
+    cmd="$CONTAINER_BUILD_COMMAND . -f $containerfile --tag $REPO/manageiq-appliance-$target:$TAG"
+    echo "Building $image: $cmd"
+    $cmd
+    appliance_images_to_push+="manageiq-appliance-$target "
+  done
+  popd
+fi
+
 if [ -n "$PUSH" ]; then
   push_images="manageiq-base manageiq-base-worker manageiq-orchestrator manageiq-webserver-worker manageiq-ui-worker"
+  push_images+=" $appliance_images_to_push"
   if [ -z "$NO_OPERATOR" ]; then
     push_images="$push_images manageiq-operator"
   fi
@@ -101,5 +125,74 @@ if [ -n "$PUSH" ]; then
 
     echo "Pushing $image: $cmd"
     $cmd
+  done
+fi
+
+# Build the disk images
+if [ -z "$NO_APPLIANCES" ]; then
+  echo "Pulling bootc image builder image"
+  sudo podman pull quay.io/centos-bootc/bootc-image-builder:latest
+
+  for appliance_image in $appliance_images_to_push; do
+    echo "Building Appliance Disk for: $appliance_image"
+    target_platform="${appliance_image##*-}"
+    case "$target_platform" in
+      azure|ec2|hyperv|vagrant)
+        disk_type="vhd"
+        ;;
+      gce)
+        disk_type="gce"
+        ;;
+      vsphere)
+        disk_type="vmdk"
+        ;;
+      *)
+        # libvirt, openstack, ovirt
+        disk_type="qcow2"
+        ;;
+    esac
+
+    echo "Pulling appliance image: $REPO/$appliance_image:$TAG"
+    sudo podman pull "$REPO/$appliance_image:$TAG"
+
+    echo "Building appliance disk image"
+    sudo podman run \
+        --rm \
+        -it \
+        --privileged \
+        --security-opt label=type:unconfined_t \
+        -v ./images/manageiq-appliance/config.toml.$target_platform:/config.toml:ro \
+        -v ./output:/output \
+        -v /var/lib/containers/storage:/var/lib/containers/storage \
+        quay.io/centos-bootc/bootc-image-builder:latest \
+        --type $disk_type \
+        --use-librepo=True \
+        --chown $(id -u):$(id -g) \
+        "$REPO/$appliance_image:$TAG"
+
+    if [ -n "$PUSH" ]; then
+      if [ "$disk_type" == "vhd" ]; then
+        pushd output/vpc/
+          echo "Zipping VHD..."
+          zip -m -j disk.zip disk.vhd
+        popd
+      fi
+
+      disk_image=$(find ./output/ -type f ! -name "*.json" ! -name ".gitkeep")
+      destination_name="$RPM_PREFIX-$target_platform-$TAG.$disk_type"
+
+      # Obtain bearer token
+      echo "Obtaining bearer token..."
+      response=$(curl --fail -s -X "POST" "https://iam.cloud.ibm.com/oidc/token" -H 'Accept: application/json' -H 'Content-Type: application/x-www-form-urlencoded' --data-urlencode "apikey=$IBM_CLOUD_API_KEY" --data-urlencode "response_type=cloud_iam" --data-urlencode "grant_type=urn:ibm:params:oauth:grant-type:apikey")
+      access_token=$(echo $response | jq -r ".access_token")
+
+      # Upload
+      echo
+      echo "Uploading..."
+      bucket="releases-manageiq-org"
+      curl -X "PUT" -H "Authorization: Bearer $access_token" -H "Content-Type: application/octet-stream" -H "x-amz-acl: public-read" -T "$disk_image" "https://s3.us-east.cloud-object-storage.appdomain.cloud/releases-manageiq-org/$destination_name"
+
+      rm -rf output/*
+    fi
   done
 fi
