@@ -91,7 +91,7 @@ appliance_images_to_push=""
 if [ -z "$NO_APPLIANCES" ]; then
   echo "Pulling base appliance bootc image"
   $CONTAINER_COMMAND pull quay.io/centos-bootc/centos-bootc:stream10
-  pushd images/manageiq-appliance
+  pushd "$IMAGE_DIR/manageiq-appliance"
 
   cmd="$CONTAINER_BUILD_COMMAND . --tag $REPO/manageiq-appliance-base:$TAG"
   echo "Building $image: $cmd"
@@ -172,7 +172,7 @@ if [ -z "$NO_APPLIANCES" ]; then
 
     if [ -n "$PUSH" ]; then
       if [ "$disk_type" == "vhd" ]; then
-        pushd output/vpc/
+        pushd "$BASE_DIR/output/vpc/"
           echo "Zipping VHD..."
           zip -m -j disk.zip disk.vhd
         popd
