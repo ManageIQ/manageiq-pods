@@ -1,6 +1,7 @@
 ARG FROM_REPO=docker.io/manageiq
+ARG FROM_IMAGE=manageiq-appliance-base
 ARG FROM_TAG=latest
-FROM ${FROM_REPO}/manageiq-appliance-base:${FROM_TAG}
+FROM ${FROM_REPO}/${FROM_IMAGE}:${FROM_TAG}
 
 COPY <<EOF /etc/yum.repos.d/google-cloud.repo
 [google-compute-engine]

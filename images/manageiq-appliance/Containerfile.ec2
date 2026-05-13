@@ -1,6 +1,7 @@
 ARG FROM_REPO=docker.io/manageiq
+ARG FROM_IMAGE=manageiq-appliance-base
 ARG FROM_TAG=latest
-FROM ${FROM_REPO}/manageiq-appliance-base:${FROM_TAG}
+FROM ${FROM_REPO}/${FROM_IMAGE}:${FROM_TAG}
 
 COPY <<20_miq_user.cfg <<20_miq_ephemeral_mount.cfg /etc/cloud/cloud.cfg.d/
 disable_root: true
