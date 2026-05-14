@@ -36,8 +36,8 @@ RUN --mount=type=bind,from=quay.io/manageiq/build_tools:v1,source=/tools,target=
     miq_switch_to_centos_stream_10 && \
     miq_enable_epel && \
     dnf config-manager --setopt=tsflags=nodocs --setopt=install_weak_deps=False --save && \
-    dnf -y install https://rpm.manageiq.org/release/21-uhlmann/el10/noarch/manageiq-release-21.0-1.el10.noarch.rpm && \
-    if [[ "$RELEASE_BUILD" != "true" ]]; then dnf config-manager --enable manageiq-21-uhlmann-nightly; fi && \
+    dnf -y install https://rpm.manageiq.org/release/20-tal/el10/noarch/manageiq-release-20.0-1.el10.noarch.rpm && \
+    if [[ "$RELEASE_BUILD" != "true" ]]; then dnf config-manager --enable manageiq-20-tal-nightly; fi && \
     if [[ -n "$(ls /tmp/rpms)" ]]; then miq_prepare_local_yum_repo; fi && \
     # Currently the minimum version of qpid-proton in EPEL is 0.40.0, but we're still on 0.37, so pull it from the ManageIQ RPM repo instead https://github.com/ManageIQ/manageiq/blob/b5bf7bee569991d3f1a182a4792fae8cb6265863/Gemfile#L220
     dnf config-manager --setopt=epel.exclude=*qpid-proton* --save && \
