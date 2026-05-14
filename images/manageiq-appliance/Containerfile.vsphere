@@ -1,6 +1,7 @@
 ARG FROM_REPO=docker.io/manageiq
+ARG FROM_IMAGE=manageiq-appliance-base
 ARG FROM_TAG=latest
-FROM ${FROM_REPO}/manageiq-appliance-base:${FROM_TAG}
+FROM ${FROM_REPO}/${FROM_IMAGE}:${FROM_TAG}
 
 RUN --mount=type=bind,from=quay.io/manageiq/build_tools:v1,source=/tools,target=/usr/local/bin \
     dnf -y install cloud-init open-vm-tools && \
