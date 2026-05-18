@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	github.com/onsi/ginkgo/v2 v2.28.3
 	github.com/onsi/gomega v1.40.0
-	github.com/openshift/api v0.0.0-20260511191110-9b69e5fa27e9
+	github.com/openshift/api v0.0.0-20260513233232-73d7ca93df6d
 	github.com/operator-framework/api v0.42.0
 	k8s.io/api v0.36.1
 	k8s.io/apimachinery v0.36.1
@@ -91,7 +91,7 @@ require (
 	gomodules.xyz/jsonpatch/v2 v2.5.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260511170946-3700d4141b60 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260511170946-3700d4141b60 // indirect
-	google.golang.org/grpc v1.81.0 // indirect
+	google.golang.org/grpc v1.81.1 // indirect
 	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.13.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
