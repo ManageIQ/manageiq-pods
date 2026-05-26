@@ -46,7 +46,7 @@ func DefaultServiceAccount(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*c
 			addSAPullSecret(sa, cr.Spec.ImagePullSecret)
 		}
 
-		addBackupLabel(cr.Spec.BackupLabelName, &sa.ObjectMeta)
+		addBackupLabelDB(cr.Spec.BackupLabelName, &sa.ObjectMeta)
 
 		return nil
 	}
