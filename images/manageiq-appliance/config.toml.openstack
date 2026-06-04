@@ -22,13 +22,7 @@ minsize = "20 GiB"
 name = "lv_os"
 mountpoint = "/"
 fs_type = "xfs"
-minsize = "10 GiB"
-
-[[customizations.disk.partitions.logical_volumes]]
-name = "lv_var_lib"
-mountpoint = "/var/lib"
-fs_type = "xfs"
-minsize = "10 GiB"
+minsize = "20 GiB"
 
 [[customizations.disk.partitions.logical_volumes]]
 name = "lv_var_log"
@@ -47,12 +41,6 @@ name = "lv_var_www_miq_tmp"
 mountpoint = "/var/www/miq_tmp"
 fs_type = "xfs"
 minsize = "10 GiB"
-
-[[customizations.disk.partitions.logical_volumes]]
-name = "lv_home"
-mountpoint = "/var/home"
-fs_type = "xfs"
-minsize = "1 GiB"
 
 [[customizations.disk.partitions.logical_volumes]]
 name = "swaplv"
