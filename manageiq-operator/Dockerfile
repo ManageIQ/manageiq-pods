@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM registry.access.redhat.com/ubi10/ubi-minimal:10.2 as builder
+FROM registry.access.redhat.com/ubi10/ubi-minimal:10.2-1780550715 as builder
 
 COPY go.mod /go.mod
 
@@ -29,7 +29,7 @@ RUN CGO_ENABLED=0 go build -a -o manager cmd/main.go
 
 
 # Build operator image
-FROM registry.access.redhat.com/ubi10/ubi-minimal:10.2
+FROM registry.access.redhat.com/ubi10/ubi-minimal:10.2-1780550715
 
 LABEL name="ManageIQ Operator" \
       summary="ManageIQ Operator manages the ManageIQ application on a Kubernetes cluster" \
