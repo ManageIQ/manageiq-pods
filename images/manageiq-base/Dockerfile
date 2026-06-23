@@ -51,7 +51,8 @@ RUN --mount=type=bind,from=quay.io/manageiq/build_tools:v1,source=/tools,target=
     chown manageiq:root /home/manageiq && \
     chmod -R g=u /home/manageiq && \
     chgrp -R 0 $APP_ROOT && \
-    chmod -R g=u $APP_ROOT
+    chmod -R g=u $APP_ROOT && \
+    usermod -aG root manageiq
 
 # Add in the container_env file now that the APP_ROOT is created from the RPM
 ADD container-assets/container_env ${APP_ROOT}/
@@ -61,5 +62,7 @@ RUN --mount=type=bind,from=quay.io/manageiq/build_tools:v1,source=/tools,target=
     source /etc/default/evm && \
     /usr/bin/generate_rpm_manifest.sh && \
     miq_clean_dnf_rpm
+
+USER 903
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--single-child", "--"]
