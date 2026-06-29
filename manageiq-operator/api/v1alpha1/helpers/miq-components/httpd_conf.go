@@ -268,6 +268,7 @@ OIDCCryptoPassphrase         sp-secret
 OIDCOAuthRemoteUserClaim     username
 OIDCCacheShmEntrySizeMax     65536
 OIDCCacheShmMax              500
+OIDCPassClaimsAs             both none
 
 OIDCOAuthClientID                  ${HTTPD_AUTH_OIDC_CLIENT_ID}
 OIDCOAuthClientSecret              ${HTTPD_AUTH_OIDC_CLIENT_SECRET}
