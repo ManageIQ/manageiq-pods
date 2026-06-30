@@ -14,6 +14,8 @@ LABEL name="manageiq-webserver-worker" \
 
 COPY container-assets/service-worker-entrypoint /usr/local/bin
 
+USER 0
+
 RUN --mount=type=bind,from=quay.io/manageiq/build_tools:v1,source=/tools,target=/usr/local/bin --mount=type=bind,from=rpms,source=/tmp/rpms,target=/tmp/rpms \
     dnf -y install \
       ${RPM_PREFIX}-ui && \
@@ -35,5 +37,7 @@ RUN --mount=type=bind,from=quay.io/manageiq/build_tools:v1,source=/tools,target=
 
 EXPOSE 3000
 EXPOSE 4000
+
+USER 903
 
 CMD ["service-worker-entrypoint"]
