@@ -475,8 +475,6 @@ LimitRequestFieldSize 524288
   ProxyPreserveHost on
   <Location /assets/>
     Header unset ETag
-    # Explicit HSTS needed: Location blocks using "Header set" don't inherit "Header always set" from VirtualHost
-    Header always set Strict-Transport-Security   "max-age=631138519"
     # CSP for static assets: strict policy since these are pre-compiled external files
     # No unsafe-inline needed - all scripts/styles are external resources
     Header always setifempty Content-Security-Policy "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; worker-src 'self'; font-src 'self' fonts.gstatic.com fonts.googleapis.com; img-src 'self' data:; style-src 'self' fonts.googleapis.com fonts.gstatic.com; report-uri /dashboard/csp_report; report-to csp-endpoint"
@@ -492,8 +490,6 @@ LimitRequestFieldSize 524288
   </Location>
   <Location /packs/>
     Header unset ETag
-    # Explicit HSTS needed: Location blocks using "Header set" don't inherit "Header always set" from VirtualHost
-    Header always set Strict-Transport-Security   "max-age=631138519"
     # CSP for static assets: strict policy since these are pre-compiled external files
     # No unsafe-inline needed - all scripts/styles are external resources
     Header always setifempty Content-Security-Policy "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; worker-src 'self'; font-src 'self' fonts.gstatic.com fonts.googleapis.com; img-src 'self' data:; style-src 'self' fonts.googleapis.com fonts.gstatic.com; report-uri /dashboard/csp_report; report-to csp-endpoint"
