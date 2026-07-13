@@ -42,6 +42,7 @@ Options SymLinksIfOwnerMatch
   Header always set Strict-Transport-Security "max-age=631138519"
   Header always set X-Content-Type-Options "nosniff"
   Header always set Referrer-Policy "no-referrer-when-downgrade"
+  Header always set X-Frame-Options "SAMEORIGIN"
 
   # Send API requests to the API pods
   ProxyPass /api %[2]s://web-service:3000/api
@@ -454,6 +455,7 @@ LimitRequestFieldSize 524288
   ServerName %s://ui
   DocumentRoot /var/www/miq/vmdb/public
   Header always set Referrer-Policy "no-referrer-when-downgrade"
+  Header always set X-Frame-Options "SAMEORIGIN"
 
   RewriteCond %%{REQUEST_URI}     ^/ws/notifications [NC]
   RewriteCond %%{HTTP:UPGRADE}    ^websocket$ [NC]
