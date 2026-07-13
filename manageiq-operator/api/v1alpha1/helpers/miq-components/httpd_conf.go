@@ -43,6 +43,7 @@ Options SymLinksIfOwnerMatch
   Header always set X-Content-Type-Options "nosniff"
   Header always set Referrer-Policy "no-referrer-when-downgrade"
   Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Reporting-Endpoints "csp-endpoint=\"https://%%{HTTP_HOST}e/dashboard/csp_report\""
 
   # Send API requests to the API pods
   ProxyPass /api %[2]s://web-service:3000/api
@@ -456,6 +457,7 @@ LimitRequestFieldSize 524288
   DocumentRoot /var/www/miq/vmdb/public
   Header always set Referrer-Policy "no-referrer-when-downgrade"
   Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Reporting-Endpoints "csp-endpoint=\"https://%%{HTTP_HOST}e/dashboard/csp_report\""
 
   RewriteCond %%{REQUEST_URI}     ^/ws/notifications [NC]
   RewriteCond %%{HTTP:UPGRADE}    ^websocket$ [NC]
