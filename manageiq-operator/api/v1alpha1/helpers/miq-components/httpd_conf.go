@@ -286,8 +286,6 @@ OIDCCookieSameSite                 On
   AuthType                   openid-connect
   Require                    valid-user
   FileETag                   None
-  # Explicit HSTS for redundancy
-  Header always set Strict-Transport-Security "max-age=631138519"
   Header always setifempty Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; report-uri /dashboard/csp_report; report-to csp-endpoint"
   Header set Report-To       "{\"group\":\"csp-endpoint\",\"max_age\":10886400,\"endpoints\":[{\"url\":\"/dashboard/csp_report\"}]}"
   Header Set Cache-Control   "max-age=0, no-store, no-cache, must-revalidate"
@@ -299,8 +297,6 @@ OIDCCookieSameSite                 On
   AuthType                   openid-connect
   Require                    valid-user
   FileETag                   None
-  # Explicit HSTS for redundancy
-  Header always set Strict-Transport-Security "max-age=631138519"
   Header always setifempty Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; report-uri /dashboard/csp_report; report-to csp-endpoint"
   Header set Report-To       "{\"group\":\"csp-endpoint\",\"max_age\":10886400,\"endpoints\":[{\"url\":\"/dashboard/csp_report\"}]}"
   Header Set Cache-Control   "max-age=0, no-store, no-cache, must-revalidate"
