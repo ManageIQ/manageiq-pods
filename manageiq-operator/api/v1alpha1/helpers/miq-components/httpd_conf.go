@@ -48,7 +48,7 @@ Options SymLinksIfOwnerMatch
   Header always unset X-Frame-Options
   Header always set X-Frame-Options "SAMEORIGIN"
   Header always unset Reporting-Endpoints
-  Header always set Reporting-Endpoints "csp-endpoint=\"https://%%{HTTP_HOST}i/dashboard/csp_report\""
+  Header always set Reporting-Endpoints "csp-endpoint=\"https://%[1]s/dashboard/csp_report\""
 
   # Send API requests to the API pods
   ProxyPass /api %[2]s://web-service:3000/api
@@ -424,7 +424,7 @@ RequestHeader set X_REMOTE_USER_PRINCIPAL       %%{REMOTE_USER_PRINCIPAL}e env=R
 	return fmt.Sprintf(s, delimiter)
 }
 
-func uiHttpdConfig(protocol string) string {
+func uiHttpdConfig(protocol string, applicationDomain string) string {
 	s := `
 ## ManageIQ HTTP Virtual Host Context
 
@@ -463,7 +463,7 @@ LimitRequestFieldSize 524288
   Header always unset X-Frame-Options
   Header always set X-Frame-Options "SAMEORIGIN"
   Header always unset Reporting-Endpoints
-  Header always set Reporting-Endpoints "csp-endpoint=\"https://%%{HTTP_HOST}i/dashboard/csp_report\""
+  Header always set Reporting-Endpoints "csp-endpoint=\"https://%[2]s/dashboard/csp_report\""
 
   RewriteCond %%{REQUEST_URI}     ^/ws/notifications [NC]
   RewriteCond %%{HTTP:UPGRADE}    ^websocket$ [NC]
@@ -510,7 +510,7 @@ LimitRequestFieldSize 524288
   </Location>
 </VirtualHost>
 `
-	return fmt.Sprintf(s, protocol)
+	return fmt.Sprintf(s, protocol, applicationDomain)
 }
 
 func apiHttpdConfig(protocol string) string {
