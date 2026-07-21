@@ -39,11 +39,16 @@ Options SymLinksIfOwnerMatch
   ProxyPreserveHost on
   RequestHeader set Host %[1]s
   RequestHeader set X-Forwarded-Host %[1]s
+  Header always unset Strict-Transport-Security
   Header always set Strict-Transport-Security "max-age=631138519"
+  Header always unset X-Content-Type-Options
   Header always set X-Content-Type-Options "nosniff"
+  Header always unset Referrer-Policy
   Header always set Referrer-Policy "no-referrer-when-downgrade"
+  Header always unset X-Frame-Options
   Header always set X-Frame-Options "SAMEORIGIN"
-  Header always set Reporting-Endpoints "csp-endpoint=\"https://%%{HTTP_HOST}e/dashboard/csp_report\""
+  Header always unset Reporting-Endpoints
+  Header always set Reporting-Endpoints "csp-endpoint=\"https://%%{HTTP_HOST}i/dashboard/csp_report\""
 
   # Send API requests to the API pods
   ProxyPass /api %[2]s://web-service:3000/api
@@ -455,10 +460,14 @@ LimitRequestFieldSize 524288
 
   ServerName %s://ui
   DocumentRoot /var/www/miq/vmdb/public
+  Header always unset Strict-Transport-Security
   Header always set Strict-Transport-Security "max-age=631138519"
+  Header always unset Referrer-Policy
   Header always set Referrer-Policy "no-referrer-when-downgrade"
+  Header always unset X-Frame-Options
   Header always set X-Frame-Options "SAMEORIGIN"
-  Header always set Reporting-Endpoints "csp-endpoint=\"https://%%{HTTP_HOST}e/dashboard/csp_report\""
+  Header always unset Reporting-Endpoints
+  Header always set Reporting-Endpoints "csp-endpoint=\"https://%%{HTTP_HOST}i/dashboard/csp_report\""
 
   RewriteCond %%{REQUEST_URI}     ^/ws/notifications [NC]
   RewriteCond %%{HTTP:UPGRADE}    ^websocket$ [NC]
@@ -479,10 +488,8 @@ LimitRequestFieldSize 524288
     # No unsafe-inline needed - all scripts/styles are external resources
     Header always setifempty Content-Security-Policy "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; worker-src 'self'; font-src 'self' fonts.gstatic.com fonts.googleapis.com; img-src 'self' data:; style-src 'self' fonts.googleapis.com fonts.gstatic.com; report-uri /dashboard/csp_report; report-to csp-endpoint"
     Header set Report-To                          "{\"group\":\"csp-endpoint\",\"max_age\":10886400,\"endpoints\":[{\"url\":\"/dashboard/csp_report\"}]}"
-    Header set X-Content-Type-Options             "nosniff"
-    Header set X-Frame-Options                    "SAMEORIGIN"
-    Header set X-Permitted-Cross-Domain-Policies  "none"
-    Header set X-XSS-Protection                   "1; mode=block"
+    Header always set X-Permitted-Cross-Domain-Policies  "none"
+    Header always set X-XSS-Protection                   "1; mode=block"
     FileETag None
     ExpiresActive On
     ExpiresDefault "access plus 1 year"
@@ -494,10 +501,8 @@ LimitRequestFieldSize 524288
     # No unsafe-inline needed - all scripts/styles are external resources
     Header always setifempty Content-Security-Policy "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; worker-src 'self'; font-src 'self' fonts.gstatic.com fonts.googleapis.com; img-src 'self' data:; style-src 'self' fonts.googleapis.com fonts.gstatic.com; report-uri /dashboard/csp_report; report-to csp-endpoint"
     Header set Report-To                          "{\"group\":\"csp-endpoint\",\"max_age\":10886400,\"endpoints\":[{\"url\":\"/dashboard/csp_report\"}]}"
-    Header set X-Content-Type-Options             "nosniff"
-    Header set X-Frame-Options                    "SAMEORIGIN"
-    Header set X-Permitted-Cross-Domain-Policies  "none"
-    Header set X-XSS-Protection                   "1; mode=block"
+    Header always set X-Permitted-Cross-Domain-Policies  "none"
+    Header always set X-XSS-Protection                   "1; mode=block"
     FileETag None
     ExpiresActive On
     ExpiresDefault "access plus 1 year"
