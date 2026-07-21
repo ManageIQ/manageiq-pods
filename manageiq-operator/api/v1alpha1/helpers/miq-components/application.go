@@ -32,7 +32,7 @@ func ApplicationUiHttpdConfigMap(cr *miqv1alpha1.ManageIQ, scheme *runtime.Schem
 			configMap.Data["ssl_config"] = appHttpdSslConfig()
 		}
 
-		configMap.Data["manageiq-http.conf"] = uiHttpdConfig(protocol)
+		configMap.Data["manageiq-http.conf"] = uiHttpdConfig(protocol, cr.Spec.ApplicationDomain)
 
 		return nil
 	}
