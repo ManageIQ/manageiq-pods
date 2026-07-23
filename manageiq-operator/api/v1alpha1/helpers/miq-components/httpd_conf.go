@@ -39,6 +39,7 @@ Options SymLinksIfOwnerMatch
   ProxyPreserveHost on
   RequestHeader set Host %[1]s
   RequestHeader set X-Forwarded-Host %[1]s
+  RequestHeader set X-Forwarded-Proto 'https'
   Header always unset Strict-Transport-Security
   Header always set Strict-Transport-Security "max-age=631138519"
   Header always unset X-Content-Type-Options
@@ -605,7 +606,7 @@ func httpdSslConfig() string {
 SSLEngine on
 SSLCertificateFile "/root/server.crt"
 SSLCertificateKeyFile "/root/server.key"
-RequestHeader set X_FORWARDED_PROTO 'https'
+RequestHeader set X-Forwarded-Proto 'https'
 `
 }
 
@@ -614,7 +615,7 @@ func appHttpdSslConfig() string {
 SSLEngine on
 SSLCertificateFile "/etc/pki/tls/certs/server.crt"
 SSLCertificateKeyFile "/etc/pki/tls/private/server.key"
-RequestHeader set X_FORWARDED_PROTO 'https'
+RequestHeader set X-Forwarded-Proto 'https'
 `
 }
 
