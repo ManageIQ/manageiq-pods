@@ -39,6 +39,7 @@ Options SymLinksIfOwnerMatch
   ProxyPreserveHost on
   RequestHeader set Host %[1]s
   RequestHeader set X-Forwarded-Host %[1]s
+  RequestHeader set X_FORWARDED_PROTO 'https'
   Header always unset Strict-Transport-Security
   Header always set Strict-Transport-Security "max-age=631138519"
   Header always unset X-Content-Type-Options

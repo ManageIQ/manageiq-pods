@@ -115,6 +115,11 @@ func Ingress(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*networkingv1.In
 		if err := controllerutil.SetControllerReference(cr, ingress, scheme); err != nil {
 			return err
 		}
+		if ingress.Annotations == nil {
+			ingress.Annotations = map[string]string{}
+		}
+		ingress.Annotations["nginx.ingress.kubernetes.io/ssl-redirect"] = "true"
+		ingress.Annotations["nginx.ingress.kubernetes.io/use-forwarded-headers"] = "true"
 		if len(ingress.Spec.TLS) == 0 {
 			ingress.Spec.TLS = append(ingress.Spec.TLS, networkingv1.IngressTLS{})
 		}
