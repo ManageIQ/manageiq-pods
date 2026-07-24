@@ -143,11 +143,9 @@ func (r *ManageIQReconciler) Reconcile(ctx context.Context, request ctrl.Request
 	if e := r.generateMemcachedResources(miqInstance); e != nil {
 		return reconcile.Result{}, e
 	}
-	if *miqInstance.Spec.DeployMessagingService {
-		logger.Info("Reconciling the Kafka resources...")
-		if e := r.generateKafkaResources(miqInstance); e != nil {
-			return reconcile.Result{}, e
-		}
+	logger.Info("Reconciling the Kafka resources...")
+	if e := r.generateKafkaResources(miqInstance); e != nil {
+		return reconcile.Result{}, e
 	}
 	logger.Info("Reconciling the Orchestrator resources...")
 	if e := r.generateOrchestratorResources(miqInstance); e != nil {
@@ -594,6 +592,19 @@ func (r *ManageIQReconciler) generatePostgresqlResources(cr *miqv1alpha1.ManageI
 }
 
 func (r *ManageIQReconciler) generateKafkaResources(cr *miqv1alpha1.ManageIQ) error {
+	secret, mutateFunc := miqkafka.MessagingEnvSecret(cr, r.Client, r.Scheme)
+	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, secret, mutateFunc); err != nil {
+		return err
+	} else if result != controllerutil.OperationResultNone {
+		logger.Info("Secret has been reconciled", "component", "kafka", "result", result)
+	}
+
+	hostName := string(secret.Data["hostname"])
+	if hostName != "manageiq-kafka-bootstrap" {
+		logger.Info("External Kafka selected, skipping Kafka service reconciliation", "hostname", hostName)
+		return nil
+	}
+
 	if miqutilsv1alpha1.FindCatalogSourceByName(r.Client, "openshift-marketplace", "community-operators") != nil {
 		kafkaOperatorGroup, mutateFunc := miqkafka.KafkaOperatorGroup(cr, r.Scheme)
 		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, kafkaOperatorGroup, mutateFunc); err != nil {
@@ -739,7 +750,7 @@ func (r *ManageIQReconciler) generateNetworkPolicies(cr *miqv1alpha1.ManageIQ) e
 		logger.Info("NetworkPolicy allow postgres has been reconciled", "component", "network_policy", "result", result)
 	}
 
-	if *cr.Spec.DeployMessagingService == true {
+	if cr.Spec.AppName == "manageiq" {
 		networkPolicyAllowKafka, mutateFunc := miqtool.NetworkPolicyAllowKafka(cr, r.Scheme, &r.Client)
 		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, networkPolicyAllowKafka, mutateFunc); err != nil {
 			return err
