@@ -54,6 +54,7 @@ RUN firewall-offline-cmd --new-zone=manageiq && \
     mkdir -p -m 700 ~/.ssh && \
     su manageiq -c "mkdir -m 700 ~/.ssh"
 
+RUN ostree prune --repo=/sysroot/ostree/repo --refs-only
 
 # Each provider-specific image...
 # FROM docker.io/manageiq/manageiq-appliance-base:latest
