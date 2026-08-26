@@ -39,8 +39,17 @@ Options SymLinksIfOwnerMatch
   ProxyPreserveHost on
   RequestHeader set Host %[1]s
   RequestHeader set X-Forwarded-Host %[1]s
+  RequestHeader set X-Forwarded-Proto 'https'
+  Header always unset Strict-Transport-Security
   Header always set Strict-Transport-Security "max-age=631138519"
+  Header always unset X-Content-Type-Options
   Header always set X-Content-Type-Options "nosniff"
+  Header always unset Referrer-Policy
+  Header always set Referrer-Policy "no-referrer-when-downgrade"
+  Header always unset X-Frame-Options
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always unset Reporting-Endpoints
+  Header always set Reporting-Endpoints "csp-endpoint=\"https://%[1]s/dashboard/csp_report\""
 
   # Send API requests to the API pods
   ProxyPass /api %[2]s://web-service:3000/api
@@ -283,8 +292,6 @@ OIDCCookieSameSite                 On
   AuthType                   openid-connect
   Require                    valid-user
   FileETag                   None
-  # Explicit HSTS for redundancy
-  Header always set Strict-Transport-Security "max-age=631138519"
   Header always setifempty Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; report-uri /dashboard/csp_report; report-to csp-endpoint"
   Header set Report-To       "{\"group\":\"csp-endpoint\",\"max_age\":10886400,\"endpoints\":[{\"url\":\"/dashboard/csp_report\"}]}"
   Header Set Cache-Control   "max-age=0, no-store, no-cache, must-revalidate"
@@ -296,8 +303,6 @@ OIDCCookieSameSite                 On
   AuthType                   openid-connect
   Require                    valid-user
   FileETag                   None
-  # Explicit HSTS for redundancy
-  Header always set Strict-Transport-Security "max-age=631138519"
   Header always setifempty Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; report-uri /dashboard/csp_report; report-to csp-endpoint"
   Header set Report-To       "{\"group\":\"csp-endpoint\",\"max_age\":10886400,\"endpoints\":[{\"url\":\"/dashboard/csp_report\"}]}"
   Header Set Cache-Control   "max-age=0, no-store, no-cache, must-revalidate"
@@ -420,7 +425,7 @@ RequestHeader set X_REMOTE_USER_PRINCIPAL       %%{REMOTE_USER_PRINCIPAL}e env=R
 	return fmt.Sprintf(s, delimiter)
 }
 
-func uiHttpdConfig(protocol string) string {
+func uiHttpdConfig(protocol string, applicationDomain string) string {
 	s := `
 ## ManageIQ HTTP Virtual Host Context
 
@@ -452,6 +457,14 @@ LimitRequestFieldSize 524288
 
   ServerName %s://ui
   DocumentRoot /var/www/miq/vmdb/public
+  Header always unset Strict-Transport-Security
+  Header always set Strict-Transport-Security "max-age=631138519"
+  Header always unset Referrer-Policy
+  Header always set Referrer-Policy "no-referrer-when-downgrade"
+  Header always unset X-Frame-Options
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always unset Reporting-Endpoints
+  Header always set Reporting-Endpoints "csp-endpoint=\"https://%[2]s/dashboard/csp_report\""
 
   RewriteCond %%{REQUEST_URI}     ^/ws/notifications [NC]
   RewriteCond %%{HTTP:UPGRADE}    ^websocket$ [NC]
@@ -468,16 +481,12 @@ LimitRequestFieldSize 524288
   ProxyPreserveHost on
   <Location /assets/>
     Header unset ETag
-    # Explicit HSTS needed: Location blocks using "Header set" don't inherit "Header always set" from VirtualHost
-    Header always set Strict-Transport-Security   "max-age=631138519"
     # CSP for static assets: strict policy since these are pre-compiled external files
     # No unsafe-inline needed - all scripts/styles are external resources
-    Header always setifempty Content-Security-Policy "default-src 'self'; base-uri 'self'; child-src 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; worker-src 'self'; font-src 'self' fonts.gstatic.com fonts.googleapis.com; img-src 'self' data:; style-src 'self' fonts.googleapis.com fonts.gstatic.com; report-uri /dashboard/csp_report; report-to csp-endpoint"
+    Header always setifempty Content-Security-Policy "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; worker-src 'self'; font-src 'self' fonts.gstatic.com fonts.googleapis.com; img-src 'self' data:; style-src 'self' fonts.googleapis.com fonts.gstatic.com; report-uri /dashboard/csp_report; report-to csp-endpoint"
     Header set Report-To                          "{\"group\":\"csp-endpoint\",\"max_age\":10886400,\"endpoints\":[{\"url\":\"/dashboard/csp_report\"}]}"
-    Header set X-Content-Type-Options             "nosniff"
-    Header set X-Frame-Options                    "SAMEORIGIN"
-    Header set X-Permitted-Cross-Domain-Policies  "none"
-    Header set X-XSS-Protection                   "1; mode=block"
+    Header always set X-Permitted-Cross-Domain-Policies  "none"
+    Header always set X-XSS-Protection                   "1; mode=block"
     FileETag None
     ExpiresActive On
     ExpiresDefault "access plus 1 year"
@@ -485,16 +494,12 @@ LimitRequestFieldSize 524288
   </Location>
   <Location /packs/>
     Header unset ETag
-    # Explicit HSTS needed: Location blocks using "Header set" don't inherit "Header always set" from VirtualHost
-    Header always set Strict-Transport-Security   "max-age=631138519"
     # CSP for static assets: strict policy since these are pre-compiled external files
     # No unsafe-inline needed - all scripts/styles are external resources
-    Header always setifempty Content-Security-Policy "default-src 'self'; base-uri 'self'; child-src 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; worker-src 'self'; font-src 'self' fonts.gstatic.com fonts.googleapis.com; img-src 'self' data:; style-src 'self' fonts.googleapis.com fonts.gstatic.com; report-uri /dashboard/csp_report; report-to csp-endpoint"
+    Header always setifempty Content-Security-Policy "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; worker-src 'self'; font-src 'self' fonts.gstatic.com fonts.googleapis.com; img-src 'self' data:; style-src 'self' fonts.googleapis.com fonts.gstatic.com; report-uri /dashboard/csp_report; report-to csp-endpoint"
     Header set Report-To                          "{\"group\":\"csp-endpoint\",\"max_age\":10886400,\"endpoints\":[{\"url\":\"/dashboard/csp_report\"}]}"
-    Header set X-Content-Type-Options             "nosniff"
-    Header set X-Frame-Options                    "SAMEORIGIN"
-    Header set X-Permitted-Cross-Domain-Policies  "none"
-    Header set X-XSS-Protection                   "1; mode=block"
+    Header always set X-Permitted-Cross-Domain-Policies  "none"
+    Header always set X-XSS-Protection                   "1; mode=block"
     FileETag None
     ExpiresActive On
     ExpiresDefault "access plus 1 year"
@@ -506,7 +511,7 @@ LimitRequestFieldSize 524288
   </Location>
 </VirtualHost>
 `
-	return fmt.Sprintf(s, protocol)
+	return fmt.Sprintf(s, protocol, applicationDomain)
 }
 
 func apiHttpdConfig(protocol string) string {
@@ -601,7 +606,7 @@ func httpdSslConfig() string {
 SSLEngine on
 SSLCertificateFile "/root/server.crt"
 SSLCertificateKeyFile "/root/server.key"
-RequestHeader set X_FORWARDED_PROTO 'https'
+RequestHeader set X-Forwarded-Proto 'https'
 `
 }
 
@@ -610,7 +615,7 @@ func appHttpdSslConfig() string {
 SSLEngine on
 SSLCertificateFile "/etc/pki/tls/certs/server.crt"
 SSLCertificateKeyFile "/etc/pki/tls/private/server.key"
-RequestHeader set X_FORWARDED_PROTO 'https'
+RequestHeader set X-Forwarded-Proto 'https'
 `
 }
 

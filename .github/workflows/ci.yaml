@@ -21,7 +21,7 @@ jobs:
         ruby-version:
         - '3.3'
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Before install
       run: bin/before_install
     - name: Set up Ruby
@@ -31,7 +31,7 @@ jobs:
         bundler-cache: true
       timeout-minutes: 30
     - name: Set up Go
-      uses: actions/setup-go@v6
+      uses: actions/setup-go@v7
       with:
         cache-dependency-path: manageiq-operator/go.sum
         check-latest: true
