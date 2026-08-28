@@ -173,6 +173,37 @@ func renewKafkaCASecret(cr *miqv1alpha1.ManageIQ, client client.Client, scheme *
 	return nil
 }
 
+func MessagingEnvSecret(cr *miqv1alpha1.ManageIQ, client client.Client, scheme *runtime.Scheme) (*corev1.Secret, controllerutil.MutateFn) {
+	secretData := make(map[string]string)
+
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "messaging-env-secret",
+			Namespace: cr.Namespace,
+		},
+		StringData: secretData,
+	}
+
+	f := func() error {
+		if err := controllerutil.SetControllerReference(cr, secret, scheme); err != nil {
+			return err
+		}
+
+		miqtool.AddLabels(map[string]string{"app": cr.Spec.AppName}, &secret.ObjectMeta)
+
+		secretData["hostname"] = cr.Spec.AppName + "-kafka-bootstrap"
+		secretData["username"] = cr.Spec.AppName + "-kafka-admin"
+		secretData["port"] = "9093"
+		secretData["sasl_mechanism"] = "SCRAM-SHA-512"
+
+		secret.StringData = secretData
+
+		return nil
+	}
+
+	return secret, f
+}
+
 func KafkaClusterSpec() map[string]interface{} {
 	return map[string]interface{}{
 		"kafka": map[string]interface{}{
@@ -440,7 +471,7 @@ func KafkaUser(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*unstructured.
 		Kind:    "KafkaUser",
 		Version: "v1beta2",
 	})
-	kafkaUserCR.SetName(cr.Spec.AppName + "-user")
+	kafkaUserCR.SetName(cr.Spec.AppName + "-kafka-admin")
 	kafkaUserCR.SetNamespace(cr.Namespace)
 	kafkaUserCR.SetLabels(map[string]string{"strimzi.io/cluster": cr.Spec.AppName})
 
