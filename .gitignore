@@ -7,3 +7,7 @@ manageiq-operator/vendor/*
 tools/certs/*.crt
 tools/certs/*.key
 *.swp
+
+# Gas Town agent config (local only)
+.code-review-graphignore
+.waza.yaml
