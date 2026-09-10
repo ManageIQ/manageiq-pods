@@ -7,6 +7,7 @@ RUN microdnf -y install gzip jq tar && \
     arch=$(uname -m | sed 's/x86_64/amd64/') && \
     goversion=$(sed -nr 's/^go\s+([0-9]+\.[0-9]+)(\.[0-9]+)?/go\1/p' /go.mod) && \
     file=$(curl -s 'https://go.dev/dl/?mode=json&include=all' | jq -r --arg GOVERSION "${goversion}" --arg ARCH "${arch}" 'first(.[] | select(.version | startswith($GOVERSION))).files[] | select(.arch == $ARCH and .os == "linux").filename') && \
+    echo "Downloading: $file" && \
     curl -s -f -L https://go.dev/dl/${file} | tar -C / -xzf -
 
 ENV PATH=/go/bin:/root/.local/bin:/root/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
