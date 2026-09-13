@@ -5,7 +5,7 @@ go 1.27.0
 require (
 	github.com/onsi/ginkgo/v2 v2.32.2
 	github.com/onsi/gomega v1.43.0
-	github.com/openshift/api v0.0.0-20260901194050-81278704edb0
+	github.com/openshift/api v0.0.0-20260911190130-c1fd4253d254
 	github.com/operator-framework/api v0.45.0
 	k8s.io/api v0.37.0
 	k8s.io/apimachinery v0.37.0
@@ -89,8 +89,8 @@ require (
 	golang.org/x/time v0.16.0 // indirect
 	golang.org/x/tools v0.50.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.5.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20260908043556-f8649ddbbfe6 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260908043556-f8649ddbbfe6 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20260911204522-f61a6ca850bd // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260911204522-f61a6ca850bd // indirect
 	google.golang.org/grpc v1.83.2 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.13.0 // indirect
@@ -99,11 +99,11 @@ require (
 	k8s.io/apiserver v0.37.0 // indirect
 	k8s.io/component-base v0.37.0 // indirect
 	k8s.io/klog/v2 v2.140.0 // indirect
-	k8s.io/kube-openapi v0.0.0-20260821135717-be32def86098 // indirect
+	k8s.io/kube-openapi v0.0.0-20260911184034-7970a1e230da // indirect
 	k8s.io/streaming v0.37.0 // indirect
 	k8s.io/utils v0.0.0-20260707023825-cf1189d6abe3 // indirect
 	sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.36.0 // indirect
-	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect
+	sigs.k8s.io/json v0.0.0-20260909141634-11ed52e25bc5 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect
 	sigs.k8s.io/structured-merge-diff/v6 v6.4.2 // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
