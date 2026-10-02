@@ -44,18 +44,14 @@ func TestGeneratePassword(t *testing.T) {
 }
 
 func TestGenerateEncryptionKey(t *testing.T) {
-	t.Run("produces a 43 character string", func(t *testing.T) {
-		// RawURLEncoding(32 bytes) = 43 chars (no padding)
+	t.Run("is valid standard base64 encoding 32 bytes of data", func(t *testing.T) {
 		key := generateEncryptionKey()
-		if len(key) != 43 {
-			t.Errorf("expected length 43, got %d (%q)", len(key), key)
+		decoded, err := base64.StdEncoding.DecodeString(key)
+		if err != nil {
+			t.Errorf("expected valid standard base64, got %q: %v", key, err)
 		}
-	})
-
-	t.Run("is valid raw URL-safe base64", func(t *testing.T) {
-		key := generateEncryptionKey()
-		if _, err := base64.RawURLEncoding.DecodeString(key); err != nil {
-			t.Errorf("expected valid raw URL base64, got %q: %v", key, err)
+		if len(decoded) != 32 {
+			t.Errorf("expected 32 decoded bytes, got %d", len(decoded))
 		}
 	})
 
