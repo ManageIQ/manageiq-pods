@@ -15,8 +15,8 @@ func randomBytes(n int) []byte {
 }
 
 func generateEncryptionKey() string {
-	// 32 random bytes encoded as URL-safe base64 (no padding), producing 43 chars from the alphabet [A-Za-z0-9_-]
-	return base64.RawURLEncoding.EncodeToString(randomBytes(32))
+	// Encryption key is required to be 32 bytes, base64 encoded. This is passed directly to the v2 key.
+	return base64.StdEncoding.EncodeToString(randomBytes(32))
 }
 
 func generatePassword() string {
