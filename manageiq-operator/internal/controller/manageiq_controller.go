@@ -25,11 +25,13 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -48,9 +50,10 @@ import (
 
 // ManageIQReconciler reconciles a ManageIQ object
 type ManageIQReconciler struct {
-	Client   client.Client
-	Scheme   *runtime.Scheme
-	Recorder record.EventRecorder
+	Client    client.Client
+	APIReader client.Reader
+	Scheme    *runtime.Scheme
+	Recorder  record.EventRecorder
 }
 
 //+kubebuilder:rbac:namespace=changeme,groups="",resources=configmaps;events;persistentvolumeclaims;pods;pods/finalizers;secrets;serviceaccounts;services;services/finalizers,verbs=get;list;watch;create;update;patch;delete
@@ -65,6 +68,8 @@ type ManageIQReconciler struct {
 //+kubebuilder:rbac:namespace=changeme,groups=manageiq.org,resources=manageiqs/status,verbs=get;update;patch
 //+kubebuilder:rbac:namespace=changeme,groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;create
 //+kubebuilder:rbac:namespace=changeme,groups=networking.k8s.io,resources=ingresses;networkpolicies,verbs=get;list;watch;create;update;patch;delete
+// IngressClass read access is granted by config/rbac/ingressclass_reader_role.yaml (cluster scoped).
+//+kubebuilder:rbac:namespace=changeme,groups=traefik.io,resources=ingressroutes;middlewares;serverstransports,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:namespace=changeme,groups=operators.coreos.com,resources=operatorgroups;subscriptions,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:namespace=changeme,groups=rbac.authorization.k8s.io,resources=rolebindings;roles,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:namespace=changeme,groups=route.openshift.io,resources=routes;routes/custom-host,verbs=get;list;watch;create;update;patch;delete
@@ -233,6 +238,18 @@ func (r *ManageIQReconciler) updateManageIQStatus(cr *miqv1alpha1.ManageIQ) erro
 			}
 		}
 	}
+	if FindIngress(cr, r.Client, "httpd") == nil {
+		route := &unstructured.Unstructured{}
+		route.SetGroupVersionKind(miqtool.TraefikGVK("IngressRoute"))
+		if err := r.Client.Get(context.TODO(), types.NamespacedName{Namespace: cr.Namespace, Name: "httpd"}, route); err == nil && len(route.GetOwnerReferences()) != 0 {
+			endpointInfo := miqv1alpha1.Endpoint{Name: "httpd", Type: "UI", Scope: "External", URI: cr.Spec.ApplicationDomain}
+			endpointInfo.CASecret.SecretName, _, _ = unstructured.NestedString(route.Object, "spec", "tls", "secretName")
+			if secret := FindSecret(cr, r.Client, endpointInfo.CASecret.SecretName); secret != nil && secret.Data["ca.crt"] != nil {
+				endpointInfo.CASecret.Key = "ca.crt"
+			}
+			r.reportEndpointInfo(miqInstance, endpointInfo)
+		}
+	}
 	if err := r.Client.Status().Update(context.TODO(), miqInstance); err != nil {
 		logger.Error(err, "Error updating status")
 		return err
@@ -285,6 +302,20 @@ func (r *ManageIQReconciler) SetupWithManager(mgr ctrl.Manager) error {
 				controller = controller.Owns(&routev1.Route{})
 			} else {
 				logger.Info(fmt.Sprintf("Skipping watch for Routes! %s", err))
+			}
+
+			// Watch Traefik resources if the CRDs are installed
+			traefikRoutes := &unstructured.UnstructuredList{}
+			traefikRoutes.SetGroupVersionKind(miqtool.TraefikGVK("IngressRouteList"))
+			if err := client.List(context.TODO(), traefikRoutes, ctrlclient.InNamespace(os.Getenv("WATCH_NAMESPACE"))); err == nil {
+				logger.Info("Adding watch for Traefik resources!")
+				for _, kind := range []string{"IngressRoute", "Middleware", "ServersTransport"} {
+					object := &unstructured.Unstructured{}
+					object.SetGroupVersionKind(miqtool.TraefikGVK(kind))
+					controller = controller.Owns(object)
+				}
+			} else {
+				logger.Info(fmt.Sprintf("Skipping watch for Traefik resources! %s", err))
 			}
 		} else {
 			logger.Info(fmt.Sprintf("Failed to create a client! %s", err))
@@ -453,7 +484,9 @@ func (r *ManageIQReconciler) generateHttpdResources(cr *miqv1alpha1.ManageIQ) er
 		logger.Info("Service has been reconciled", "component", "httpd", "service", "remote_console_service", "result", result)
 	}
 
-	httpdService, mutateFunc := miqtool.HttpdService(cr, r.Scheme)
+	traefik := r.useTraefik()
+
+	httpdService, mutateFunc := miqtool.HttpdService(cr, r.Scheme, traefik)
 	if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, httpdService, mutateFunc); err != nil {
 		return err
 	} else if result != controllerutil.OperationResultNone {
@@ -486,12 +519,55 @@ func (r *ManageIQReconciler) generateHttpdResources(cr *miqv1alpha1.ManageIQ) er
 		if err := r.Client.Get(context.TODO(), types.NamespacedName{Namespace: cr.Namespace, Name: "httpd"}, ingress); err == nil {
 			r.Client.Delete(context.TODO(), ingress)
 		}
+	} else if traefik {
+		if err := r.reconcileHttpdTraefik(cr); err != nil {
+			return err
+		}
+
+		ingress := &networkingv1.Ingress{}
+		if err := r.Client.Get(context.TODO(), types.NamespacedName{Namespace: cr.Namespace, Name: "httpd"}, ingress); err == nil {
+			r.Client.Delete(context.TODO(), ingress)
+		}
 	} else {
 		httpdIngress, mutateFunc := miqtool.Ingress(cr, r.Scheme)
 		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, httpdIngress, mutateFunc); err != nil {
 			return err
 		} else if result != controllerutil.OperationResultNone {
 			logger.Info("Ingress has been reconciled", "component", "httpd", "result", result)
+		}
+	}
+
+	return nil
+}
+
+func (r *ManageIQReconciler) useTraefik() bool {
+	if err := r.Client.List(context.TODO(), &routev1.RouteList{}); err == nil || r.APIReader == nil {
+		return false
+	}
+
+	traefik, err := miqtool.IsTraefikIngress(r.APIReader)
+	if err != nil {
+		logger.Info(fmt.Sprintf("Unable to read IngressClasses, assuming nginx! %s", err))
+		return false
+	}
+
+	return traefik
+}
+
+func (r *ManageIQReconciler) reconcileHttpdTraefik(cr *miqv1alpha1.ManageIQ) error {
+	builders := []func(*miqv1alpha1.ManageIQ, *runtime.Scheme) (*unstructured.Unstructured, controllerutil.MutateFn){
+		miqtool.TraefikServersTransport,
+		miqtool.TraefikRedirectMiddleware,
+		miqtool.TraefikIngressRoute,
+		miqtool.TraefikHTTPIngressRoute,
+	}
+
+	for _, builder := range builders {
+		object, mutateFunc := builder(cr, r.Scheme)
+		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, object, mutateFunc); err != nil {
+			return err
+		} else if result != controllerutil.OperationResultNone {
+			logger.Info("Traefik resource has been reconciled", "component", "httpd", "kind", object.GetKind(), "name", object.GetName(), "result", result)
 		}
 	}
 

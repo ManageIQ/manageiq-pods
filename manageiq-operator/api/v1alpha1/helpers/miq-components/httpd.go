@@ -568,7 +568,7 @@ func RemoteConsoleService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*co
 	return service, f
 }
 
-func HttpdService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Service, controllerutil.MutateFn) {
+func HttpdService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme, traefik bool) (*corev1.Service, controllerutil.MutateFn) {
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "httpd",
@@ -587,6 +587,14 @@ func HttpdService(cr *miqv1alpha1.ManageIQ, scheme *runtime.Scheme) (*corev1.Ser
 		service.Spec.Ports[0].Name = "http"
 		service.Spec.Ports[0].Port = 8080
 		service.Spec.Selector = map[string]string{"name": "httpd"}
+		if traefik {
+			if service.Annotations == nil {
+				service.Annotations = map[string]string{}
+			}
+			service.Annotations["traefik.ingress.kubernetes.io/service.serversscheme"] = "https"
+			service.Annotations["traefik.ingress.kubernetes.io/service.serverstransport"] = cr.Namespace + "-" + traefikServersTransportName + "@kubernetescrd"
+		}
+
 		return nil
 	}
 

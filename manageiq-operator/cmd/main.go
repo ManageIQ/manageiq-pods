@@ -247,8 +247,9 @@ func main() {
 	}
 
 	if err = (&controllers.ManageIQReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:    mgr.GetClient(),
+		APIReader: mgr.GetAPIReader(),
+		Scheme:    mgr.GetScheme(),
 		// Add a Recorder to the reconciler.
 		// This allows the operator author to emit events during reconcilliation.
 		Recorder: mgr.GetEventRecorderFor("manageiq-controller"),
