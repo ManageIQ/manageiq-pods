@@ -520,8 +520,32 @@ func (r *ManageIQReconciler) generateHttpdResources(cr *miqv1alpha1.ManageIQ) er
 			r.Client.Delete(context.TODO(), ingress)
 		}
 	} else if traefik {
-		if err := r.reconcileHttpdTraefik(cr); err != nil {
+		serversTransport, mutateFunc := miqtool.TraefikServersTransport(cr, r.Scheme)
+		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, serversTransport, mutateFunc); err != nil {
 			return err
+		} else if result != controllerutil.OperationResultNone {
+			logger.Info("ServersTransport has been reconciled", "component", "httpd", "result", result)
+		}
+
+		redirectMiddleware, mutateFunc := miqtool.TraefikRedirectMiddleware(cr, r.Scheme)
+		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, redirectMiddleware, mutateFunc); err != nil {
+			return err
+		} else if result != controllerutil.OperationResultNone {
+			logger.Info("Middleware has been reconciled", "component", "httpd", "result", result)
+		}
+
+		ingressRoute, mutateFunc := miqtool.TraefikIngressRoute(cr, r.Scheme)
+		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, ingressRoute, mutateFunc); err != nil {
+			return err
+		} else if result != controllerutil.OperationResultNone {
+			logger.Info("IngressRoute has been reconciled", "component", "httpd", "result", result)
+		}
+
+		httpIngressRoute, mutateFunc := miqtool.TraefikHTTPIngressRoute(cr, r.Scheme)
+		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, httpIngressRoute, mutateFunc); err != nil {
+			return err
+		} else if result != controllerutil.OperationResultNone {
+			logger.Info("IngressRoute has been reconciled", "component", "httpd", "name", "http_redirect", "result", result)
 		}
 
 		ingress := &networkingv1.Ingress{}
@@ -552,26 +576,6 @@ func (r *ManageIQReconciler) useTraefik() bool {
 	}
 
 	return traefik
-}
-
-func (r *ManageIQReconciler) reconcileHttpdTraefik(cr *miqv1alpha1.ManageIQ) error {
-	builders := []func(*miqv1alpha1.ManageIQ, *runtime.Scheme) (*unstructured.Unstructured, controllerutil.MutateFn){
-		miqtool.TraefikServersTransport,
-		miqtool.TraefikRedirectMiddleware,
-		miqtool.TraefikIngressRoute,
-		miqtool.TraefikHTTPIngressRoute,
-	}
-
-	for _, builder := range builders {
-		object, mutateFunc := builder(cr, r.Scheme)
-		if result, err := controllerutil.CreateOrUpdate(context.TODO(), r.Client, object, mutateFunc); err != nil {
-			return err
-		} else if result != controllerutil.OperationResultNone {
-			logger.Info("Traefik resource has been reconciled", "component", "httpd", "kind", object.GetKind(), "name", object.GetName(), "result", result)
-		}
-	}
-
-	return nil
 }
 
 func (r *ManageIQReconciler) reconcileHttpdDeployment(cr *miqv1alpha1.ManageIQ) error {
