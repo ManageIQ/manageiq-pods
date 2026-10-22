@@ -175,3 +175,17 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - traefik.io
+  resources:
+  - ingressroutes
+  - middlewares
+  - serverstransports
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
