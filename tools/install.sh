@@ -2,9 +2,11 @@
 #
 # ManageIQ bare-metal / VM installer for EL10 (CentOS Stream 10, Rocky 10, RHEL 10)
 #
-# Usage: sudo bash install.sh
+# Usage: sudo bash install.sh [--nightly]
 #
-# This script installs ManageIQ from the Uhlmann nightly RPM repository.
+#   --nightly   Install from the nightly repository instead of the stable release.
+#
+# This script installs ManageIQ from the Uhlmann RPM repository.
 # It is the shell-script equivalent of the manageiq-appliance container image build.
 
 set -euo pipefail
@@ -22,6 +24,18 @@ die()   { echo "ERROR: $*" >&2; exit 1; }
 # ---------------------------------------------------------------------------
 
 [[ $EUID -eq 0 ]] || die "This script must be run as root (sudo bash $0)"
+
+# ---------------------------------------------------------------------------
+# Argument parsing
+# ---------------------------------------------------------------------------
+
+NIGHTLY=false
+for arg in "$@"; do
+  case "${arg}" in
+    --nightly) NIGHTLY=true ;;
+    *) die "Unknown argument: ${arg}" ;;
+  esac
+done
 
 info "Detecting OS..."
 if [[ -f /etc/os-release ]]; then
@@ -49,6 +63,12 @@ RPM_PREFIX="${RPM_PREFIX:-manageiq}"
 MIQ_RELEASE_RPM="https://rpm.manageiq.org/release/21-uhlmann/el10/noarch/manageiq-release-21.0-1.el10.noarch.rpm"
 MIQ_NIGHTLY_REPO="manageiq-21-uhlmann-nightly"
 
+if [[ "${NIGHTLY}" == "true" ]]; then
+  info "Build type: nightly"
+else
+  info "Build type: release"
+fi
+
 # ---------------------------------------------------------------------------
 # Step 1: Configure dnf defaults
 # ---------------------------------------------------------------------------
@@ -72,14 +92,16 @@ dnf -y install epel-release
 /usr/bin/crb enable
 
 # ---------------------------------------------------------------------------
-# Step 4: Install ManageIQ release repo and enable nightly
+# Step 4: Install ManageIQ release repo
 # ---------------------------------------------------------------------------
 
 info "Installing ManageIQ release repository..."
 dnf -y install "${MIQ_RELEASE_RPM}"
 
-info "Enabling ManageIQ nightly repository..."
-dnf config-manager --enable "${MIQ_NIGHTLY_REPO}"
+if [[ "${NIGHTLY}" == "true" ]]; then
+  info "Enabling ManageIQ nightly repository..."
+  dnf config-manager --enable "${MIQ_NIGHTLY_REPO}"
+fi
 
 # Pin qpid-proton to the ManageIQ repo; EPEL ships a newer version that is
 # incompatible. See https://github.com/ManageIQ/manageiq/blob/b5bf7bee569991d3f1a182a4792fae8cb6265863/Gemfile#L220
