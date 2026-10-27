@@ -2,9 +2,13 @@
 #
 # ManageIQ bare-metal / VM installer for EL10 (CentOS Stream 10, Rocky 10, RHEL 10)
 #
-# Usage: sudo bash install.sh [--nightly]
+# Usage: sudo bash install.sh [--nightly] [--rpm-dir DIR]
 #
-#   --nightly   Install from the nightly repository instead of the stable release.
+#   --nightly      Install from the nightly repository instead of the stable release.
+#   --rpm-dir DIR  Install ManageIQ RPMs from a local directory of RPMs (e.g. /tmp/rpms).
+#                  A local yum repo is created from DIR and takes precedence over the
+#                  upstream ManageIQ repos for manageiq-* packages. Useful for testing
+#                  custom-built RPMs.
 #
 # This script installs ManageIQ from the Uhlmann RPM repository.
 # It is the shell-script equivalent of the manageiq-appliance container image build.
@@ -30,12 +34,26 @@ die()   { echo "ERROR: $*" >&2; exit 1; }
 # ---------------------------------------------------------------------------
 
 NIGHTLY=false
-for arg in "$@"; do
-  case "${arg}" in
+RPM_DIR=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
     --nightly) NIGHTLY=true ;;
-    *) die "Unknown argument: ${arg}" ;;
+    --rpm-dir)
+      [[ $# -ge 2 ]] || die "--rpm-dir requires a directory argument"
+      RPM_DIR="$2"
+      shift
+      ;;
+    --rpm-dir=*) RPM_DIR="${1#--rpm-dir=}" ;;
+    *) die "Unknown argument: $1" ;;
   esac
+  shift
 done
+
+if [[ -n "${RPM_DIR}" ]]; then
+  [[ -d "${RPM_DIR}" ]] || die "RPM directory not found: ${RPM_DIR}"
+  RPM_DIR="$(cd "${RPM_DIR}" && pwd)"
+  compgen -G "${RPM_DIR}/*.rpm" >/dev/null || die "No .rpm files found in ${RPM_DIR}"
+fi
 
 info "Detecting OS..."
 if [[ -f /etc/os-release ]]; then
@@ -101,6 +119,27 @@ dnf -y install "${MIQ_RELEASE_RPM}"
 if [[ "${NIGHTLY}" == "true" ]]; then
   info "Enabling ManageIQ nightly repository..."
   dnf config-manager --enable "${MIQ_NIGHTLY_REPO}"
+fi
+
+# Equivalent of the miq_prepare_local_yum_repo build tool: create a local repo
+# from RPM_DIR and exclude manageiq-* packages from the upstream ManageIQ repos
+# so that the local RPMs are always used. This must run after the release repo
+# RPM is installed so the manageiq-* repos exist for the exclude setopt.
+if [[ -n "${RPM_DIR}" ]]; then
+  info "Creating local yum repository from ${RPM_DIR}..."
+  dnf -y install createrepo_c
+  rm -rf "${RPM_DIR}/repodata"
+  createrepo_c "${RPM_DIR}"
+
+  cat > /etc/yum.repos.d/local_rpm.repo << EOF
+[local-rpm]
+name=Local yum repo
+baseurl=file://${RPM_DIR}
+enabled=1
+gpgcheck=0
+EOF
+
+  dnf config-manager --setopt='manageiq-*.exclude=manageiq-*' --save
 fi
 
 # Pin qpid-proton to the ManageIQ repo; EPEL ships a newer version that is
