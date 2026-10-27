@@ -133,4 +133,4 @@ pushd ${APP_ROOT}
   update_auth_settings
   set_resource_setting
 popd
-exec ruby /var/www/miq/vmdb/lib/workers/bin/evm_server.rb
+exec ruby /usr/lib/manageiq/manageiq/lib/workers/bin/evm_server.rb

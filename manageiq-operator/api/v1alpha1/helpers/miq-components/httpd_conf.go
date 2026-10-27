@@ -456,7 +456,11 @@ LimitRequestFieldSize 524288
   IncludeOptional conf.d/*_config
 
   ServerName %s://ui
-  DocumentRoot /var/www/miq/vmdb/public
+  DocumentRoot /usr/lib/manageiq/manageiq/public
+  <Directory "/usr/lib/manageiq/manageiq/public">
+    Require all granted
+  </Directory>
+
   Header always unset Strict-Transport-Security
   Header always set Strict-Transport-Security "max-age=631138519"
   Header always unset Referrer-Policy
@@ -480,6 +484,7 @@ LimitRequestFieldSize 524288
 
   ProxyPreserveHost on
   <Location /assets/>
+    Require all granted
     Header unset ETag
     # CSP for static assets: strict policy since these are pre-compiled external files
     # No unsafe-inline needed - all scripts/styles are external resources
@@ -493,6 +498,7 @@ LimitRequestFieldSize 524288
     Header merge Cache-Control public
   </Location>
   <Location /packs/>
+    Require all granted
     Header unset ETag
     # CSP for static assets: strict policy since these are pre-compiled external files
     # No unsafe-inline needed - all scripts/styles are external resources
@@ -506,6 +512,7 @@ LimitRequestFieldSize 524288
     Header merge Cache-Control public
   </Location>
   <Location /proxy_pages/>
+    Require all granted
     ErrorDocument 403 /error/noindex.html
     ErrorDocument 404 /error/noindex.html
   </Location>
@@ -545,7 +552,7 @@ LimitRequestFieldSize 524288
   IncludeOptional conf.d/*_config
 
   ServerName %s://web-service
-  DocumentRoot /var/www/miq/vmdb/public
+  DocumentRoot /usr/lib/manageiq/manageiq/public
 
   RewriteRule ^/ http://localhost:3001%%{REQUEST_URI} [P,QSA,L]
   ProxyPassReverse / http://localhost:3001/
@@ -587,7 +594,7 @@ LimitRequestFieldSize 524288
   IncludeOptional conf.d/*_config
 
   ServerName %s://remote-console
-  DocumentRoot /var/www/miq/vmdb/public
+  DocumentRoot /usr/lib/manageiq/manageiq/public
 
   RewriteCond %%{REQUEST_URI}     ^/ws/console [NC]
   RewriteCond %%{HTTP:UPGRADE}    ^websocket$  [NC]
