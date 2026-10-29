@@ -15,23 +15,11 @@
 
 set -euo pipefail
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
 info()  { echo "==> $*"; }
 warn()  { echo "WARN: $*" >&2; }
 die()   { echo "ERROR: $*" >&2; exit 1; }
 
-# ---------------------------------------------------------------------------
-# Preflight checks
-# ---------------------------------------------------------------------------
-
 [[ $EUID -eq 0 ]] || die "This script must be run as root (sudo bash $0)"
-
-# ---------------------------------------------------------------------------
-# Argument parsing
-# ---------------------------------------------------------------------------
 
 NIGHTLY=false
 RPM_DIR=""
@@ -73,10 +61,6 @@ if [[ "$OS_MAJOR" != "10" ]]; then
   warn "Detected major version: ${OS_MAJOR}. Proceeding anyway, but things may break."
 fi
 
-# ---------------------------------------------------------------------------
-# Variables
-# ---------------------------------------------------------------------------
-
 RPM_PREFIX="${RPM_PREFIX:-manageiq}"
 MIQ_RELEASE_RPM="https://rpm.manageiq.org/release/21-uhlmann/el10/noarch/manageiq-release-21.0-1.el10.noarch.rpm"
 MIQ_NIGHTLY_REPO="manageiq-21-uhlmann-nightly"
@@ -87,31 +71,15 @@ else
   info "Build type: release"
 fi
 
-# ---------------------------------------------------------------------------
-# Step 1: Configure dnf defaults
-# ---------------------------------------------------------------------------
-
 info "Configuring dnf defaults..."
 dnf config-manager --setopt=tsflags=nodocs --setopt=install_weak_deps=False --save
-
-# ---------------------------------------------------------------------------
-# Step 2: Update system
-# ---------------------------------------------------------------------------
 
 info "Updating system packages..."
 dnf -y update
 
-# ---------------------------------------------------------------------------
-# Step 3: Enable EPEL and CRB
-# ---------------------------------------------------------------------------
-
 info "Enabling EPEL and CRB..."
 dnf -y install epel-release
 /usr/bin/crb enable
-
-# ---------------------------------------------------------------------------
-# Step 4: Install ManageIQ release repo
-# ---------------------------------------------------------------------------
 
 info "Installing ManageIQ release repository..."
 dnf -y install "${MIQ_RELEASE_RPM}"
@@ -121,10 +89,8 @@ if [[ "${NIGHTLY}" == "true" ]]; then
   dnf config-manager --enable "${MIQ_NIGHTLY_REPO}"
 fi
 
-# Equivalent of the miq_prepare_local_yum_repo build tool: create a local repo
-# from RPM_DIR and exclude manageiq-* packages from the upstream ManageIQ repos
-# so that the local RPMs are always used. This must run after the release repo
-# RPM is installed so the manageiq-* repos exist for the exclude setopt.
+# Same as the miq_prepare_local_yum_repo build tool. Must come after the release
+# repo RPM is installed so the manageiq-* repos exist for the exclude.
 if [[ -n "${RPM_DIR}" ]]; then
   info "Creating local yum repository from ${RPM_DIR}..."
   dnf -y install createrepo_c
@@ -147,20 +113,12 @@ fi
 info "Pinning qpid-proton to ManageIQ repo..."
 dnf config-manager --setopt=epel.exclude=*qpid-proton* --save
 
-# ---------------------------------------------------------------------------
-# Step 5: Install ManageIQ packages
-# ---------------------------------------------------------------------------
-
-info "Installing ManageIQ appliance packages..."
+info "Installing appliance packages..."
 dnf -y install \
   firewalld \
   fuse-libs \
   python3-devel \
   "${RPM_PREFIX}-appliance"
-
-# ---------------------------------------------------------------------------
-# Step 6: Configure firewall
-# ---------------------------------------------------------------------------
 
 info "Configuring firewall..."
 systemctl enable --now firewalld
@@ -190,10 +148,6 @@ done
 
 firewall-cmd --reload
 
-# ---------------------------------------------------------------------------
-# Step 7: Configure systemd services
-# ---------------------------------------------------------------------------
-
 info "Configuring systemd services..."
 
 # Disable ipmi if the unit exists
@@ -217,19 +171,11 @@ fi
 # has already completed on a deployed VM)
 systemctl enable cockpit.socket evminit memcached miqtop miqvmstat
 
-# ---------------------------------------------------------------------------
-# Step 8: Cockpit configuration
-# ---------------------------------------------------------------------------
-
 info "Configuring Cockpit..."
 # Allow root to log in via Cockpit
 if [[ -f /etc/cockpit/disallowed-users ]]; then
   sed -i 's/root//g' /etc/cockpit/disallowed-users
 fi
-
-# ---------------------------------------------------------------------------
-# Step 9: User and SSH setup
-# ---------------------------------------------------------------------------
 
 info "Configuring users..."
 usermod -a -G wheel manageiq
@@ -237,10 +183,6 @@ usermod -a -G wheel manageiq
 mkdir -p /root/.ssh
 chmod 700 /root/.ssh
 su manageiq -c "mkdir -p -m 700 ~/.ssh"
-
-# ---------------------------------------------------------------------------
-# Step 10: Run ManageIQ setup
-# ---------------------------------------------------------------------------
 
 info "Running ManageIQ setup..."
 # /etc/default/evm is provided by the manageiq-appliance RPM and exports
@@ -250,11 +192,7 @@ info "Running ManageIQ setup..."
 source /etc/default/evm
 "${APPLIANCE_SOURCE_DIRECTORY}/manageiq-setup.sh"
 
-# ---------------------------------------------------------------------------
-# Done
-# ---------------------------------------------------------------------------
-
-info "ManageIQ installation complete."
-info "Run the following to load ManageIQ aliases into your current session:"
+info "Installation complete."
+info "Run the following to load the aliases into your current session:"
 info "  source /etc/profile.d/evm.sh && cd /var/www/miq/vmdb"
 info "Then run 'appliance_console' (or 'ap') to configure the appliance."
