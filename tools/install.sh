@@ -62,6 +62,7 @@ if [[ "$OS_MAJOR" != "10" ]]; then
 fi
 
 RPM_PREFIX="${RPM_PREFIX:-manageiq}"
+EPEL_RELEASE_RPM="https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm"
 MIQ_RELEASE_RPM="https://rpm.manageiq.org/release/21-uhlmann/el10/noarch/manageiq-release-21.0-1.el10.noarch.rpm"
 MIQ_NIGHTLY_REPO="manageiq-21-uhlmann-nightly"
 
@@ -78,7 +79,12 @@ info "Updating system packages..."
 dnf -y update
 
 info "Enabling EPEL and CRB..."
-dnf -y install epel-release
+if [[ "${OS_ID}" == "rhel" ]]; then
+  # epel-release is not in the RHEL repos, so install it from the URL
+  dnf -y install "${EPEL_RELEASE_RPM}"
+else
+  dnf -y install epel-release
+fi
 /usr/bin/crb enable
 
 info "Installing ManageIQ release repository..."
