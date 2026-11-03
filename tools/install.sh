@@ -220,6 +220,23 @@ info "Running ManageIQ setup..."
 source /etc/default/evm
 "${APPLIANCE_SOURCE_DIRECTORY}/manageiq-setup.sh"
 
+# Apply Kafka FIPS workaround when running on a FIPS-enabled machine
+FIPS_ENABLED=$(cat /proc/sys/crypto/fips_enabled 2>/dev/null || echo 0)
+if [[ "${FIPS_ENABLED}" == "1" ]]; then
+  info "FIPS mode detected -- applying Kafka FIPS workaround..."
+
+  SETUP_KAFKA_FIPS="$(dirname "$0")/setup_kafka_fips.sh"
+  [[ -f "${SETUP_KAFKA_FIPS}" ]] || die "setup_kafka_fips.sh not found at ${SETUP_KAFKA_FIPS}"
+
+  read -r -p "Kafka keystore/truststore password: " STOREPASS
+  [[ -n "${STOREPASS}" ]] || die "Kafka keystore password must not be empty"
+  ADMIN_USER="${ADMIN_USER:-admin}"
+  read -r -p "Kafka admin password: " ADMIN_PASS
+  [[ -n "${ADMIN_PASS}" ]] || die "Kafka admin password must not be empty"
+  export STOREPASS ADMIN_USER ADMIN_PASS
+  bash "${SETUP_KAFKA_FIPS}"
+fi
+
 info "Installation complete."
 info "Run the following to load the aliases into your current session:"
 info "  source /etc/profile.d/evm.sh && cd /var/www/miq/vmdb"
