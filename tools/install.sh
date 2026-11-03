@@ -19,6 +19,20 @@ info()  { echo "==> $*"; }
 warn()  { echo "WARN: $*" >&2; }
 die()   { echo "ERROR: $*" >&2; exit 1; }
 
+# read_password PROMPT VAR -- prompt twice without echo until both entries match
+read_password() {
+  local prompt="$1" var="$2" first second
+  while true; do
+    read -r -s -p "${prompt}: " first
+    echo
+    read -r -s -p "${prompt} (confirm): " second
+    echo
+    [[ "${first}" == "${second}" ]] && break
+    warn "Passwords do not match, please try again."
+  done
+  printf -v "${var}" '%s' "${first}"
+}
+
 [[ $EUID -eq 0 ]] || die "This script must be run as root (sudo bash $0)"
 
 NIGHTLY=false
@@ -228,11 +242,12 @@ if [[ "${FIPS_ENABLED}" == "1" ]]; then
   SETUP_KAFKA_FIPS="$(dirname "$0")/setup_kafka_fips.sh"
   [[ -f "${SETUP_KAFKA_FIPS}" ]] || die "setup_kafka_fips.sh not found at ${SETUP_KAFKA_FIPS}"
 
-  read -r -p "Kafka keystore/truststore password: " STOREPASS
-  [[ -n "${STOREPASS}" ]] || die "Kafka keystore password must not be empty"
-  ADMIN_USER="${ADMIN_USER:-admin}"
-  read -r -p "Kafka admin password: " ADMIN_PASS
+  read -r -p "Kafka admin user [${ADMIN_USER:-admin}]: " ADMIN_USER_INPUT
+  ADMIN_USER="${ADMIN_USER_INPUT:-${ADMIN_USER:-admin}}"
+  read_password "Kafka admin password" ADMIN_PASS
   [[ -n "${ADMIN_PASS}" ]] || die "Kafka admin password must not be empty"
+  read_password "Kafka keystore/truststore password" STOREPASS
+  [[ -n "${STOREPASS}" ]] || die "Kafka keystore password must not be empty"
   export STOREPASS ADMIN_USER ADMIN_PASS
   bash "${SETUP_KAFKA_FIPS}"
 fi
