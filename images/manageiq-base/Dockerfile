@@ -14,7 +14,7 @@ ARG RPM_PREFIX=manageiq
 
 ENV TERM=xterm \
     CONTAINER=true \
-    APP_ROOT=/var/www/miq/vmdb
+    APP_ROOT=/usr/lib/manageiq/manageiq
 
 LABEL name="manageiq-base" \
       summary="ManageIQ base application image" \
