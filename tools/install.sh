@@ -72,7 +72,9 @@ fi
 
 if [[ "$OS_MAJOR" != "10" ]]; then
   warn "This script targets EL10 (CentOS Stream 10, Rocky Linux 10, RHEL 10)."
-  warn "Detected major version: ${OS_MAJOR}. Proceeding anyway, but things may break."
+  warn "Detected major version: ${OS_MAJOR}. Continuing may break things."
+  read -r -p "Continue with the install anyway? [y/N]: " CONTINUE_ANSWER || CONTINUE_ANSWER=""
+  [[ "${CONTINUE_ANSWER}" =~ ^[Yy]([Ee][Ss])?$ ]] || die "Aborted by user"
 fi
 
 RPM_PREFIX="${RPM_PREFIX:-manageiq}"
