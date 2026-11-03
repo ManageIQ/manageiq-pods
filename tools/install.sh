@@ -190,6 +190,28 @@ mkdir -p /root/.ssh
 chmod 700 /root/.ssh
 su manageiq -c "mkdir -p -m 700 ~/.ssh"
 
+info "Configuring SSL certificates..."
+CERT_DIR="/var/www/miq/vmdb/certs"
+CERT_FILE="${CERT_DIR}/server.cer"
+KEY_FILE="${CERT_DIR}/server.cer.key"
+
+if [[ ! -f "${CERT_FILE}" || ! -f "${KEY_FILE}" ]]; then
+  info "Generating self-signed SSL certificate..."
+  mkdir -p "${CERT_DIR}"
+  CERT_HOSTNAME="$(hostname -f 2>/dev/null || hostname)"
+  CERT_IP="$(ip route get 1.1.1.1 2>/dev/null | awk '{print $7; exit}' || hostname -I 2>/dev/null | awk '{print $1}' || echo "")"
+  SAN="subjectAltName=DNS:${CERT_HOSTNAME},DNS:localhost,IP:127.0.0.1"
+  [[ -n "${CERT_IP}" && "${CERT_IP}" != "127.0.0.1" ]] && SAN="${SAN},IP:${CERT_IP}"
+
+  openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout "${KEY_FILE}" \
+    -out "${CERT_FILE}" \
+    -subj "/CN=${CERT_HOSTNAME}" \
+    -addext "${SAN}"
+  chmod 600 "${KEY_FILE}"
+  chmod 644 "${CERT_FILE}"
+fi
+
 info "Running ManageIQ setup..."
 # /etc/default/evm is provided by the manageiq-appliance RPM and exports
 # APPLIANCE_SOURCE_DIRECTORY (and other env vars) needed by manageiq-setup.sh
