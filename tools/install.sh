@@ -143,7 +143,7 @@ dnf -y install \
   "${RPM_PREFIX}-appliance"
 
 info "Configuring firewall..."
-systemctl enable --now firewalld
+systemctl enable --now firewalld >/dev/null
 
 MIQ_SERVICES=(http https ssh postgresql dhcpv6-client cockpit)
 
@@ -152,10 +152,10 @@ CURRENT_DEFAULT_ZONE=$(firewall-cmd --get-default-zone 2>/dev/null || true)
 if [[ -z "${CURRENT_DEFAULT_ZONE}" || "${CURRENT_DEFAULT_ZONE}" == "public" ]]; then
   info "No meaningful default zone found (got: '${CURRENT_DEFAULT_ZONE}'). Creating 'manageiq' zone..."
   if ! firewall-cmd --permanent --info-zone=manageiq &>/dev/null; then
-    firewall-cmd --permanent --new-zone=manageiq
+    firewall-cmd --permanent --new-zone=manageiq >/dev/null
   fi
-  firewall-cmd --reload
-  firewall-cmd --set-default-zone=manageiq
+  firewall-cmd --reload >/dev/null
+  firewall-cmd --set-default-zone=manageiq >/dev/null
   FIREWALL_ZONE="manageiq"
 else
   info "Using existing default firewall zone: '${CURRENT_DEFAULT_ZONE}'"
@@ -164,11 +164,11 @@ fi
 
 for svc in "${MIQ_SERVICES[@]}"; do
   if ! firewall-cmd --permanent --zone="${FIREWALL_ZONE}" --query-service="${svc}" &>/dev/null; then
-    firewall-cmd --permanent --zone="${FIREWALL_ZONE}" --add-service="${svc}"
+    firewall-cmd --permanent --zone="${FIREWALL_ZONE}" --add-service="${svc}" >/dev/null
   fi
 done
 
-firewall-cmd --reload
+firewall-cmd --reload >/dev/null
 
 info "Configuring systemd services..."
 
@@ -234,7 +234,9 @@ info "Running ManageIQ setup..."
 [[ -f /etc/default/evm ]] || die "/etc/default/evm not found -- was the ${RPM_PREFIX}-appliance RPM installed correctly?"
 # shellcheck source=/dev/null
 source /etc/default/evm
-"${APPLIANCE_SOURCE_DIRECTORY}/manageiq-setup.sh"
+
+# Filter out harmless, known SELinux/semodule errors during base setup
+"${APPLIANCE_SOURCE_DIRECTORY}/manageiq-setup.sh" 2> >(grep -v -E "already defined, modifying instead|cockpit_ws_miq|semodule:  Failed\!" >&2 || true)
 
 # Apply Kafka FIPS workaround when running on a FIPS-enabled machine
 FIPS_ENABLED=$(cat /proc/sys/crypto/fips_enabled 2>/dev/null || echo 0)
