@@ -11,7 +11,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # Configuration Variables (override via environment if desired)
-KAFKA_HOST="${KAFKA_HOST:-$(ip route get 1.1.1.1 2>/dev/null | awk '{print $7; exit}' || hostname -I | awk '{print $1}')}"
+KAFKA_HOST="${KAFKA_HOST:-$(ip route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i=="src") {print $(i+1); exit}}' || hostname -I | awk '{print $1}')}"
 KAFKA_HOSTNAME="${KAFKA_HOSTNAME:-$(hostname -f)}"
 KAFKA_PORT="${KAFKA_PORT:-9092}"
 

@@ -215,7 +215,7 @@ if [[ ! -f "${CERT_FILE}" || ! -f "${KEY_FILE}" ]]; then
   info "Generating self-signed SSL certificate..."
   mkdir -p "${CERT_DIR}"
   CERT_HOSTNAME="$(hostname -f 2>/dev/null || hostname)"
-  CERT_IP="$(ip route get 1.1.1.1 2>/dev/null | awk '{print $7; exit}' || hostname -I 2>/dev/null | awk '{print $1}' || echo "")"
+  CERT_IP="$(ip route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i=="src") {print $(i+1); exit}}' || hostname -I 2>/dev/null | awk '{print $1}' || echo "")"
   SAN="subjectAltName=DNS:${CERT_HOSTNAME},DNS:localhost,IP:127.0.0.1"
   [[ -n "${CERT_IP}" && "${CERT_IP}" != "127.0.0.1" ]] && SAN="${SAN},IP:${CERT_IP}"
 
