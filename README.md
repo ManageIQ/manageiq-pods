@@ -34,6 +34,13 @@ Other sizing considerations:
 
 ### Follow the Operator deployment instructions
 
+#### Kubernetes
+
+Production Deployment:
+https://www.manageiq.org/docs/reference/latest/installing_on_kubernetes/index.html#preparing-the-kubernetes-namespace
+
+#### OpenShift
+
 Production Deployment:
 https://www.manageiq.org/docs/reference/latest/installing_on_kubernetes/index.html#preparing-the-kubernetes-namespace
 
